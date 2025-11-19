@@ -16,14 +16,20 @@ const io = socketIo(server, {
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/Geometria', express.static(path.join(__dirname, 'Geometria')));
 
 // Хранилище комнат и игроков
 const rooms = new Map();
 const players = new Map();
 
-// Генерация кода комнаты
+// Генерация кода комнаты (4 символа)
 function generateRoomCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 4; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
 }
 
 // Базовые вопросы для MVP
@@ -189,8 +195,8 @@ io.on('connection', (socket) => {
     }
 
     // Проверка на переполнение
-    if (room.players.length >= 6) {
-      socket.emit('error', { message: 'Комната переполнена (максимум 6 игроков)' });
+    if (room.players.length >= 14) {
+      socket.emit('error', { message: 'Комната переполнена (максимум 14 игроков)' });
       return;
     }
 
