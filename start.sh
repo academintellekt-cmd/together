@@ -39,6 +39,12 @@ if [ ! -d "node_modules" ]; then
     "$NODE_CMD" "$(dirname "$NODE_CMD")/npm" install 2>/dev/null || npm install
 fi
 
+# Проверка наличия nodemon
+if ! command -v nodemon &> /dev/null && [ ! -f "node_modules/.bin/nodemon" ]; then
+    echo "📦 Установка nodemon для автоматической перезагрузки..."
+    npm install --save-dev nodemon
+fi
+
 # Остановка старого сервера если запущен
 if lsof -ti:3000 &> /dev/null; then
     echo "⚠️  Останавливаю старый сервер..."
@@ -46,9 +52,16 @@ if lsof -ti:3000 &> /dev/null; then
     sleep 1
 fi
 
-# Запуск сервера
-echo "🚀 Запуск сервера на http://localhost:3000"
+# Запуск сервера с nodemon для автоматической перезагрузки
+echo "🚀 Запуск сервера с автоматической перезагрузкой на http://localhost:3000"
 echo "📱 Хост: http://localhost:3000/host.html"
 echo "📱 Игроки: http://localhost:3000/player.html"
 echo ""
-"$NODE_CMD" server.js
+echo "💡 Сервер автоматически перезагрузится при изменении файлов"
+echo ""
+
+if [ -f "node_modules/.bin/nodemon" ]; then
+    ./node_modules/.bin/nodemon server.js
+else
+    nodemon server.js
+fi

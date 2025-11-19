@@ -308,6 +308,30 @@
 
         <!-- Игровой экран -->
         <div id="game-screen" class="game-screen">
+            <!-- Кнопка показа QR-кода (всегда видна во время игры) -->
+            <div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+                <button id="show-qr-btn" class="btn" style="display: none; padding: 10px 20px; font-size: 16px; background: rgba(255, 255, 255, 0.2); border: 2px solid white;">
+                    📱 Показать QR-код
+                </button>
+            </div>
+            
+            <!-- Модальное окно для QR-кода -->
+            <div id="qr-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 2000; justify-content: center; align-items: center;">
+                <div style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;">
+                    <h2 style="margin-bottom: 20px;">QR-код для подключения</h2>
+                    <div id="qr-modal-container" class="qr-container" style="margin: 20px auto;">
+                        <canvas id="qr-modal-canvas"></canvas>
+                    </div>
+                    <div id="qr-modal-link" style="margin: 20px 0;">
+                        <a id="qr-modal-player-link" href="#" target="_blank" style="color: white; text-decoration: underline; font-size: 16px; word-break: break-all;">Ссылка для игроков</a>
+                    </div>
+                    <div class="status" style="margin: 20px 0; font-size: 14px;">
+                        Игроки могут отсканировать QR-код или перейти по ссылке для переподключения
+                    </div>
+                    <button id="close-qr-modal" class="btn" style="margin-top: 20px;">Закрыть</button>
+                </div>
+            </div>
+            
             <!-- Вопрос -->
             <div id="question-screen" class="question-screen">
                 <div class="question-number">
@@ -621,7 +645,74 @@
             socket.on('game-started', () => {
                 document.getElementById('lobby-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'block';
+                // Показываем кнопку QR-кода когда игра началась
+                document.getElementById('show-qr-btn').style.display = 'block';
             });
+            
+            // Обработчик кнопки показа QR-кода
+            document.getElementById('show-qr-btn').addEventListener('click', async () => {
+                await showQRModal();
+            });
+            
+            // Обработчик закрытия модального окна
+            document.getElementById('close-qr-modal').addEventListener('click', () => {
+                document.getElementById('qr-modal').style.display = 'none';
+            });
+            
+            // Закрытие модального окна при клике вне его
+            document.getElementById('qr-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'qr-modal') {
+                    document.getElementById('qr-modal').style.display = 'none';
+                }
+            });
+            
+            // Функция показа QR-кода в модальном окне
+            async function showQRModal() {
+                if (!roomCode) return;
+                
+                // Показываем модальное окно сразу (не ждем загрузки QR-кода)
+                document.getElementById('qr-modal').style.display = 'flex';
+                
+                // Получаем URL сервера (если еще не получен, делаем это в фоне)
+                if (!serverUrl) {
+                    await getServerUrl();
+                }
+                
+                // Формируем URL для игрока
+                const baseUrl = serverUrl || window.location.origin;
+                const playerUrl = `${baseUrl}/player.html?room=${roomCode}`;
+                
+                // Обновляем ссылку
+                const modalLink = document.getElementById('qr-modal-player-link');
+                modalLink.href = playerUrl;
+                modalLink.textContent = playerUrl;
+                
+                // Генерируем QR-код для модального окна (асинхронно, не блокируя UI)
+                const qrModalCanvas = document.getElementById('qr-modal-canvas');
+                const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(playerUrl)}`;
+                const img = document.createElement('img');
+                img.src = apiUrl;
+                img.alt = 'QR Code';
+                img.crossOrigin = 'anonymous';
+                
+                img.onload = function() {
+                    try {
+                        const ctx = qrModalCanvas.getContext('2d');
+                        qrModalCanvas.width = 300;
+                        qrModalCanvas.height = 300;
+                        ctx.clearRect(0, 0, 300, 300);
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, 300, 300);
+                        ctx.drawImage(img, 0, 0, 300, 300);
+                    } catch (error) {
+                        console.error('Ошибка при отрисовке QR-кода в модальном окне:', error);
+                    }
+                };
+                
+                img.onerror = function() {
+                    console.error('Не удалось загрузить QR-код');
+                };
+            }
 
             // Вопрос
             socket.on('question', (data) => {

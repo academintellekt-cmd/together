@@ -448,52 +448,28 @@
         let playerName = null;
         let currentTimer = null;
         let hasAnswered = false;
-        let playerId = null; // Для переподключения
 
-        // Автоматическое заполнение кода комнаты из URL и восстановление данных
+        // Функция показа ошибки
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            if (errorDiv) {
+                errorDiv.innerHTML = `<div class="error">${message}</div>`;
+                setTimeout(() => {
+                    errorDiv.innerHTML = '';
+                }, 5000);
+            } else {
+                console.error('Ошибка:', message);
+            }
+        }
+
+        // Автоматическое заполнение кода комнаты из URL
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const roomParam = urlParams.get('room');
             if (roomParam) {
                 document.getElementById('room-code').value = roomParam.toUpperCase();
             }
-            
-            // Восстанавливаем сохраненные данные игрока
-            const savedData = loadPlayerData();
-            if (savedData) {
-                if (!roomParam) {
-                    document.getElementById('room-code').value = savedData.roomCode;
-                }
-                document.getElementById('player-name').value = savedData.playerName;
-                playerId = savedData.playerId; // Восстанавливаем ID для переподключения
-                console.log('Восстановлены данные игрока:', savedData);
-            }
         });
-
-        // Сохранение данных игрока в localStorage
-        function savePlayerData() {
-            if (roomCode && playerName && playerId) {
-                localStorage.setItem('quizPlayerData', JSON.stringify({
-                    roomCode,
-                    playerName,
-                    playerId
-                }));
-            }
-        }
-
-        // Загрузка данных игрока из localStorage
-        function loadPlayerData() {
-            const saved = localStorage.getItem('quizPlayerData');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    return data;
-                } catch (e) {
-                    return null;
-                }
-            }
-            return null;
-        }
 
         // Подключение к комнате
         document.getElementById('connect-btn').addEventListener('click', () => {
@@ -505,19 +481,11 @@
                 return;
             }
 
-            // Проверяем, есть ли сохраненные данные для переподключения
-            const savedData = loadPlayerData();
-            const reconnectId = (savedData && savedData.roomCode === roomCode && savedData.playerName === playerName) 
-                ? savedData.playerId 
-                : null;
-
-            socket.emit('player-join', { roomCode, playerName, reconnectPlayerId: reconnectId });
+            socket.emit('player-join', { roomCode, playerName });
         });
 
         socket.on('player-connected', (data) => {
-            playerId = data.playerId;
-            console.log('Игрок подключен, ID:', playerId);
-            savePlayerData();
+            console.log('✅ Игрок подключен, ID:', data.playerId);
             document.getElementById('connect-screen').style.display = 'none';
             document.getElementById('waiting-screen').style.display = 'block';
         });
@@ -526,21 +494,13 @@
             showError(data.message);
         });
 
-        function showError(message) {
-            const errorDiv = document.getElementById('error-message');
-            errorDiv.innerHTML = `<div class="error">${message}</div>`;
-            setTimeout(() => {
-                errorDiv.innerHTML = '';
-            }, 5000);
-        }
-
         // Начало игры
         socket.on('game-started', () => {
             document.getElementById('waiting-screen').style.display = 'none';
             const gameScreen = document.getElementById('game-screen');
             gameScreen.style.display = 'block';
             gameScreen.style.animation = 'fadeIn 0.5s ease-in';
-            hasAnswered = false; // Сбрасываем флаг при новом вопросе
+            hasAnswered = false;
         });
 
         // Вопрос
@@ -559,8 +519,7 @@
             readyBtn.style.display = 'none';
             readyStatus.textContent = '';
             
-            // Проверяем, не ответил ли уже игрок (при переподключении)
-            const wasAnswered = hasAnswered;
+            // ВАЖНО: ВСЕГДА сбрасываем флаг ответа при получении нового вопроса
             hasAnswered = false;
             
             document.getElementById('question-screen').style.display = 'block';
@@ -580,18 +539,15 @@
             const progress = (questionNum / totalQuestions) * 100;
             document.getElementById('progress-bar').style.width = progress + '%';
             
-            // Варианты ответов
+            // Варианты ответов - ВСЕГДА создаем активные кнопки
             const optionsDiv = document.getElementById('options');
             optionsDiv.innerHTML = '';
             data.options.forEach((option, index) => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.textContent = option;
-                if (!wasAnswered) {
-                    btn.onclick = () => selectAnswer(index);
-                } else {
-                    btn.disabled = true;
-                }
+                btn.disabled = false;
+                btn.onclick = () => selectAnswer(index);
                 optionsDiv.appendChild(btn);
             });
 
@@ -731,7 +687,8 @@
         // Результаты вопроса
         socket.on('results', (data) => {
             clearInterval(currentTimer);
-            isReady = false; // Сбрасываем готовность при новом результате
+            isReady = false;
+            
             document.getElementById('question-screen').style.display = 'none';
             document.getElementById('results-screen').style.display = 'block';
             
@@ -794,9 +751,8 @@
             readyStatus.textContent = 'Вы готовы! Ожидание других игроков...';
         });
 
-        // Статус готовности (для обновления при переподключении)
+        // Статус готовности
         socket.on('ready-status', (data) => {
-            // Если мы на экране результатов и уже готовы, обновляем статус
             if (isReady && document.getElementById('results-screen').style.display !== 'none') {
                 const readyBtn = document.getElementById('ready-btn');
                 const readyStatus = document.getElementById('ready-status');
