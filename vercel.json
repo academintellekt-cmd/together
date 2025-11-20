@@ -16,7 +16,7 @@
       "dest": "/api/quizzes/[id].js"
     },
     {
-      "src": "/api/quizzes",
+      "src": "/api/quizzes$",
       "dest": "/api/quizzes.js"
     },
     {
