@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Квиз - Соло режим</title>
+    <link rel="stylesheet" href="/styles/common.css">
+    <style>
+        .container {
+            max-width: 600px;
+        }
+
+        .name-input-screen {
+            text-align: center;
+        }
+
+        .game-screen {
+            display: none;
+        }
+
+        .question-screen {
+            text-align: center;
+        }
+
+        .question-number {
+            font-size: 18px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .question-text {
+            font-size: 28px;
+            margin: 32px 0;
+            line-height: 1.4;
+        }
+
+        .timer {
+            font-size: 48px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .timer.urgent {
+            color: var(--error);
+        }
+
+        .options {
+            margin: 30px 0;
+        }
+
+        .option-btn {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            padding: 18px 24px;
+            font-size: 17px;
+            font-weight: 500;
+            font-family: inherit;
+            border-radius: 14px;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.2s;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .option-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .option-btn.selected {
+            background: rgba(0, 122, 255, 0.25);
+            border-color: rgba(0, 122, 255, 0.5);
+        }
+
+        .option-btn.correct {
+            background: rgba(52, 199, 89, 0.25);
+            border-color: rgba(52, 199, 89, 0.5);
+        }
+
+        .option-btn.incorrect {
+            background: rgba(255, 59, 48, 0.25);
+            border-color: rgba(255, 59, 48, 0.5);
+        }
+
+        .answer-feedback {
+            text-align: center;
+            margin: 24px 0;
+            font-size: 28px;
+            font-weight: 600;
+            min-height: 40px;
+        }
+
+        .answer-feedback.correct {
+            color: #34C759;
+        }
+
+        .answer-feedback.incorrect {
+            color: #FF3B30;
+        }
+
+        .results-screen {
+            text-align: center;
+            display: none;
+        }
+
+        .score-display {
+            font-size: 72px;
+            font-weight: 700;
+            margin: 32px 0;
+            color: var(--success);
+        }
+
+        .stats {
+            margin: 32px 0;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 16px 20px;
+            margin: 12px 0;
+            border-radius: 12px;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .link-to-leaderboard {
+            margin-top: 32px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Экран ввода имени -->
+        <div id="name-input-screen" class="name-input-screen">
+            <h1>🎮 Квиз для друзей</h1>
+            <p class="subtitle">Введите ваше имя</p>
+            <div class="input-group">
+                <input type="text" id="player-name" placeholder="Ваше имя" maxlength="20" autocomplete="off">
+            </div>
+            <button class="btn full-width" id="start-btn">Начать игру</button>
+            <div class="link-to-leaderboard" style="margin-top: 20px;">
+                <a href="/leaderboard.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 16px;">
+                    📊 Посмотреть рейтинг
+                </a>
+            </div>
+        </div>
+
+        <!-- Экран игры -->
+        <div id="game-screen" class="game-screen">
+            <!-- Экран вопроса -->
+            <div id="question-screen" class="question-screen">
+                <div class="question-number" id="question-number">Вопрос 1 из 15</div>
+                <div class="timer" id="timer">15</div>
+                <div class="question-text" id="question-text"></div>
+                <div class="options" id="options"></div>
+                <div class="answer-feedback" id="answer-feedback"></div>
+            </div>
+
+            <!-- Экран результатов -->
+            <div id="results-screen" class="results-screen">
+                <h1>🎉 Игра завершена!</h1>
+                <div class="score-display" id="final-score">0</div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span>Правильных ответов:</span>
+                        <span id="correct-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Всего вопросов:</span>
+                        <span id="total-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Время:</span>
+                        <span id="time-spent">0 сек</span>
+                    </div>
+                </div>
+                <button class="btn full-width" id="play-again-btn">Играть снова</button>
+                <div class="link-to-leaderboard">
+                    <a href="/leaderboard.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 16px;">
+                        📊 Посмотреть рейтинг
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let quiz = null;
+        let currentQuestion = 0;
+        let score = 0;
+        let correctAnswers = 0;
+        let startTime = null;
+        let timerInterval = null;
+        let timeLeft = 0;
+        let playerName = '';
+
+        // Получение ID квиза из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const quizId = urlParams.get('quiz') || 'friends-quiz';
+
+        // Загрузка квиза
+        async function loadQuiz() {
+            try {
+                const response = await fetch(`/api/quizzes/${quizId}`);
+                if (!response.ok) {
+                    throw new Error('Квиз не найден');
+                }
+                quiz = await response.json();
+            } catch (error) {
+                console.error('Ошибка загрузки квиза:', error);
+                alert('Не удалось загрузить квиз');
+            }
+        }
+
+        // Начало игры
+        document.getElementById('start-btn').addEventListener('click', () => {
+            playerName = document.getElementById('player-name').value.trim();
+            if (!playerName) {
+                alert('Введите ваше имя');
+                return;
+            }
+            startGame();
+        });
+
+        // Enter для начала игры
+        document.getElementById('player-name').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('start-btn').click();
+            }
+        });
+
+        function startGame() {
+            document.getElementById('name-input-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            document.getElementById('results-screen').style.display = 'none';
+            
+            currentQuestion = 0;
+            score = 0;
+            correctAnswers = 0;
+            startTime = Date.now();
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestion >= quiz.questions.length) {
+                endGame();
+                return;
+            }
+
+            const question = quiz.questions[currentQuestion];
+            document.getElementById('question-number').textContent = 
+                `Вопрос ${currentQuestion + 1} из ${quiz.questions.length}`;
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('answer-feedback').textContent = '';
+            document.getElementById('answer-feedback').className = 'answer-feedback';
+
+            // Очистка предыдущих вариантов
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+
+            // Создание кнопок вариантов
+            question.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = option;
+                btn.addEventListener('click', () => selectAnswer(index));
+                optionsDiv.appendChild(btn);
+            });
+
+            // Таймер
+            timeLeft = question.time;
+            document.getElementById('timer').textContent = timeLeft;
+            document.getElementById('timer').className = 'timer';
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                
+                if (timeLeft <= 5) {
+                    document.getElementById('timer').className = 'timer urgent';
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    // Автоматически выбираем неправильный ответ (время вышло)
+                    selectAnswer(-1);
+                }
+            }, 1000);
+        }
+
+        function selectAnswer(answerIndex) {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            const question = quiz.questions[currentQuestion];
+            const options = document.querySelectorAll('.option-btn');
+            
+            // Отключаем все кнопки
+            options.forEach(btn => btn.disabled = true);
+
+            const isCorrect = answerIndex === question.correct;
+            const answerTime = question.time - timeLeft;
+
+            if (isCorrect) {
+                // Правильный ответ
+                options[answerIndex].classList.add('correct');
+                document.getElementById('answer-feedback').textContent = '✅ Правильно!';
+                document.getElementById('answer-feedback').className = 'answer-feedback correct';
+                
+                // Начисление очков
+                const timeBonus = Math.max(0, question.time * 1000 - answerTime * 1000);
+                const points = 100 + Math.floor(timeBonus / 100);
+                score += points;
+                correctAnswers++;
+            } else {
+                // Неправильный ответ
+                if (answerIndex >= 0) {
+                    options[answerIndex].classList.add('incorrect');
+                }
+                options[question.correct].classList.add('correct');
+                document.getElementById('answer-feedback').textContent = 
+                    `❌ Неправильно! Правильный ответ: ${question.options[question.correct]}`;
+                document.getElementById('answer-feedback').className = 'answer-feedback incorrect';
+            }
+
+            // Переход к следующему вопросу через 2 секунды
+            setTimeout(() => {
+                currentQuestion++;
+                showQuestion();
+            }, 2000);
+        }
+
+        async function endGame() {
+            const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+            
+            document.getElementById('question-screen').style.display = 'none';
+            document.getElementById('results-screen').style.display = 'block';
+            
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('correct-count').textContent = `${correctAnswers} из ${quiz.questions.length}`;
+            document.getElementById('total-count').textContent = quiz.questions.length;
+            document.getElementById('time-spent').textContent = `${timeSpent} сек`;
+
+            // Сохранение результата в рейтинг
+            try {
+                await fetch('/api/leaderboard', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        playerName: playerName,
+                        quizId: quizId,
+                        score: score,
+                        correctAnswers: correctAnswers,
+                        totalQuestions: quiz.questions.length,
+                        timeSpent: timeSpent
+                    })
+                });
+            } catch (error) {
+                console.error('Ошибка сохранения результата:', error);
+            }
+        }
+
+        // Кнопка "Играть снова"
+        document.getElementById('play-again-btn').addEventListener('click', () => {
+            document.getElementById('name-input-screen').style.display = 'block';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('player-name').value = playerName;
+        });
+
+        // Загрузка квиза при загрузке страницы
+        loadQuiz();
+    </script>
+</body>
+</html>
+

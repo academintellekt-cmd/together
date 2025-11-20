@@ -122,7 +122,12 @@
                 
                 if (!quiz.comingSoon) {
                     card.addEventListener('click', () => {
-                        window.location.href = `/host.html?quiz=${quiz.id}`;
+                        // Если квиз поддерживает соло-режим, переходим на solo.html
+                        if (quiz.soloMode) {
+                            window.location.href = `/solo.html?quiz=${quiz.id}`;
+                        } else {
+                            window.location.href = `/host.html?quiz=${quiz.id}`;
+                        }
                     });
                 }
 
@@ -131,10 +136,13 @@
                 const questionCount = quiz.questionCount || 0;
                 const avgTime = quiz.avgTime || 0;
 
+                const modeBadge = quiz.soloMode ? '<div style="margin-top: 10px; font-size: 14px; opacity: 0.8;">🎮 Соло-режим</div>' : '';
+                
                 card.innerHTML = `
                     <span class="quiz-icon">${icon}</span>
                     <div class="quiz-title">${quiz.name}</div>
                     <div class="quiz-description">${description}</div>
+                    ${modeBadge}
                     <div class="quiz-info">
                         <div class="quiz-info-item">
                             <span class="quiz-info-icon">❓</span>

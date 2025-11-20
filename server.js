@@ -3,6 +3,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -21,6 +22,93 @@ app.use('/Geometria', express.static(path.join(__dirname, 'Geometria')));
 // Хранилище комнат и игроков
 const rooms = new Map();
 const players = new Map();
+
+// Хранилище рейтинга для соло-режима
+const leaderboard = [];
+
+// Функция загрузки вопросов из TXT файла
+function loadQuestionsFromFile(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) {
+      console.log(`Файл ${filePath} не найден. Вопросы будут пустыми.`);
+      return [];
+    }
+
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const lines = fileContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    
+    const questions = [];
+    let currentQuestion = null;
+    let questionId = 1;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Пропускаем пустые строки и комментарии
+      if (!line || line.startsWith('//') || line.startsWith('#')) {
+        continue;
+      }
+
+      // Если строка заканчивается на "?", это вопрос
+      if (line.endsWith('?')) {
+        // Сохраняем предыдущий вопрос, если есть
+        if (currentQuestion && currentQuestion.options.length > 0) {
+          questions.push(currentQuestion);
+        }
+        
+        // Начинаем новый вопрос
+        currentQuestion = {
+          id: questionId++,
+          question: line,
+          options: [],
+          correct: -1,
+          time: 20 // По умолчанию 20 секунд
+        };
+      }
+      // Если строка начинается с "+" или "*", это правильный ответ
+      else if (line.startsWith('+') || line.startsWith('*')) {
+        if (currentQuestion) {
+          const answer = line.substring(1).trim();
+          currentQuestion.options.push(answer);
+          if (currentQuestion.correct === -1) {
+            currentQuestion.correct = currentQuestion.options.length - 1;
+          }
+        }
+      }
+      // Если строка начинается с "-", это неправильный ответ
+      else if (line.startsWith('-')) {
+        if (currentQuestion) {
+          const answer = line.substring(1).trim();
+          currentQuestion.options.push(answer);
+        }
+      }
+      // Если строка содержит "time:" или "время:", это время на ответ
+      else if (line.toLowerCase().includes('time:') || line.toLowerCase().includes('время:')) {
+        if (currentQuestion) {
+          const timeMatch = line.match(/\d+/);
+          if (timeMatch) {
+            currentQuestion.time = parseInt(timeMatch[0]);
+          }
+        }
+      }
+      // Иначе это может быть вариант ответа без префикса
+      else if (currentQuestion && currentQuestion.options.length < 4) {
+        currentQuestion.options.push(line);
+      }
+    }
+
+    // Добавляем последний вопрос
+    if (currentQuestion && currentQuestion.options.length > 0) {
+      questions.push(currentQuestion);
+    }
+
+    console.log(`Загружено ${questions.length} вопросов из файла ${filePath}`);
+    return questions;
+  } catch (error) {
+    console.error(`Ошибка при загрузке вопросов из файла ${filePath}:`, error);
+    return [];
+  }
+}
 
 // Генерация кода комнаты (4 символа)
 function generateRoomCode() {
@@ -106,9 +194,21 @@ const quizzes = {
         time: 15
       }
     ]
+  },
+  'friends-quiz': {
+    id: 'friends-quiz',
+    name: 'Чемпионат ГНУ по целям своих братишек',
+    description: 'Девушки тоже братишки',
+    icon: '👥',
+    soloMode: true, // Флаг для соло-режима
+    questions: [] // Вопросы загружаются из файла questions.txt
   }
   // Здесь можно добавить новые квизы в будущем
 };
+
+// Загрузка вопросов для квиза друзей из файла
+const questionsFilePath = path.join(__dirname, 'questions.txt');
+quizzes['friends-quiz'].questions = loadQuestionsFromFile(questionsFilePath);
 
 // Получение списка квизов
 app.get('/api/quizzes', (req, res) => {
@@ -124,7 +224,8 @@ app.get('/api/quizzes', (req, res) => {
       icon: quiz.icon,
       questionCount: quiz.questions.length,
       avgTime: avgTime,
-      comingSoon: false
+      comingSoon: false,
+      soloMode: quiz.soloMode || false
     };
   });
   
@@ -144,8 +245,93 @@ app.get('/api/quizzes/:id', (req, res) => {
     id: quiz.id,
     name: quiz.name,
     description: quiz.description,
-    questions: quiz.questions
+    questions: quiz.questions,
+    soloMode: quiz.soloMode || false
   });
+});
+
+// Сохранение результата в рейтинг
+app.post('/api/leaderboard', (req, res) => {
+  const { playerName, quizId, score, correctAnswers, totalQuestions, timeSpent } = req.body;
+  
+  if (!playerName || !quizId || score === undefined) {
+    return res.status(400).json({ error: 'Недостаточно данных' });
+  }
+  
+  const result = {
+    id: Date.now().toString(),
+    playerName: playerName.trim(),
+    quizId: quizId,
+    score: score,
+    correctAnswers: correctAnswers || 0,
+    totalQuestions: totalQuestions || 0,
+    timeSpent: timeSpent || 0,
+    date: new Date().toISOString(),
+    timestamp: Date.now()
+  };
+  
+  leaderboard.push(result);
+  
+  // Сортируем по очкам (от большего к меньшему)
+  leaderboard.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.timestamp - b.timestamp; // При одинаковых очках - кто раньше
+  });
+  
+  // Ограничиваем до 100 лучших результатов
+  if (leaderboard.length > 100) {
+    leaderboard.splice(100);
+  }
+  
+  res.json({ success: true, result: result });
+});
+
+// Получение рейтинга
+app.get('/api/leaderboard', (req, res) => {
+  const { quizId } = req.query;
+  
+  let results = leaderboard;
+  
+  // Фильтруем по quizId, если указан
+  if (quizId) {
+    results = leaderboard.filter(r => r.quizId === quizId);
+  }
+  
+  // Группируем по игрокам и берем лучший результат каждого
+  const playerBestScores = {};
+  results.forEach(result => {
+    const key = result.playerName.toLowerCase();
+    if (!playerBestScores[key] || playerBestScores[key].score < result.score) {
+      playerBestScores[key] = result;
+    }
+  });
+  
+  // Сортируем по очкам
+  const sortedResults = Object.values(playerBestScores).sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.timestamp - b.timestamp;
+  });
+  
+  res.json(sortedResults);
+});
+
+// Перезагрузка вопросов из файла (для обновления без перезапуска сервера)
+app.post('/api/reload-questions', (req, res) => {
+  const { quizId } = req.body;
+  
+  if (quizId === 'friends-quiz') {
+    const questionsFilePath = path.join(__dirname, 'questions.txt');
+    const loadedQuestions = loadQuestionsFromFile(questionsFilePath);
+    quizzes['friends-quiz'].questions = loadedQuestions;
+    
+    res.json({ 
+      success: true, 
+      message: `Вопросы перезагружены. Загружено ${loadedQuestions.length} вопросов.`,
+      questionCount: loadedQuestions.length
+    });
+  } else {
+    res.status(400).json({ error: 'Неверный ID квиза' });
+  }
 });
 
 // Получение IP-адреса сервера

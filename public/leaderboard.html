@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рейтинг - Квиз для друзей</title>
+    <link rel="stylesheet" href="/styles/common.css">
+    <style>
+        .container {
+            max-width: 800px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            font-size: 18px;
+        }
+
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .refresh-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+
+        .leaderboard-list {
+            margin: 32px 0;
+        }
+
+        .leaderboard-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px 24px;
+            margin: 12px 0;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .leaderboard-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(4px);
+        }
+
+        .leaderboard-item.first {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(245, 158, 11, 0.25));
+            font-weight: 600;
+            border: 2px solid rgba(251, 191, 36, 0.5);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            position: relative;
+            padding-left: 60px;
+        }
+
+        .leaderboard-item.first::before {
+            content: '🥇';
+            position: absolute;
+            left: 20px;
+            font-size: 32px;
+        }
+
+        .leaderboard-item.second {
+            background: linear-gradient(135deg, rgba(226, 232, 240, 0.2), rgba(203, 213, 225, 0.2));
+            border: 1.5px solid rgba(226, 232, 240, 0.4);
+            padding-left: 60px;
+            position: relative;
+        }
+
+        .leaderboard-item.second::before {
+            content: '🥈';
+            position: absolute;
+            left: 20px;
+            font-size: 32px;
+        }
+
+        .leaderboard-item.third {
+            background: linear-gradient(135deg, rgba(253, 186, 116, 0.2), rgba(251, 146, 60, 0.2));
+            border: 1.5px solid rgba(253, 186, 116, 0.4);
+            padding-left: 60px;
+            position: relative;
+        }
+
+        .leaderboard-item.third::before {
+            content: '🥉';
+            position: absolute;
+            left: 20px;
+            font-size: 32px;
+        }
+
+        .player-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .player-name {
+            font-weight: 600;
+            font-size: 20px;
+        }
+
+        .player-stats {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .player-score {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.7;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .back-link a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .back-link a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 Рейтинг</h1>
+        <p class="subtitle">Лучшие результаты в квизе для друзей</p>
+
+        <div class="leaderboard-header">
+            <div></div>
+            <button class="btn refresh-btn" id="refresh-btn">🔄 Обновить</button>
+        </div>
+
+        <div id="loading" class="loading">Загрузка рейтинга...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="leaderboard-list" class="leaderboard-list" style="display: none;"></div>
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">📊</div>
+            <p>Пока нет результатов</p>
+            <p style="margin-top: 20px; font-size: 16px;">Будьте первым, кто пройдет квиз!</p>
+        </div>
+
+        <div class="back-link">
+            <a href="/index.html">← Вернуться к выбору квиза</a>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const quizId = urlParams.get('quiz') || 'friends-quiz';
+
+        async function loadLeaderboard() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const list = document.getElementById('leaderboard-list');
+            const emptyState = document.getElementById('empty-state');
+
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            list.style.display = 'none';
+            emptyState.style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/leaderboard?quizId=${quizId}`);
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки рейтинга');
+                }
+                const results = await response.json();
+
+                loading.style.display = 'none';
+
+                if (results.length === 0) {
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                list.innerHTML = '';
+                results.forEach((result, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'leaderboard-item';
+                    
+                    if (index === 0) item.classList.add('first');
+                    else if (index === 1) item.classList.add('second');
+                    else if (index === 2) item.classList.add('third');
+
+                    const playerInfo = document.createElement('div');
+                    playerInfo.className = 'player-info';
+                    
+                    const playerName = document.createElement('div');
+                    playerName.className = 'player-name';
+                    playerName.textContent = result.playerName;
+                    
+                    const playerStats = document.createElement('div');
+                    playerStats.className = 'player-stats';
+                    playerStats.textContent = `${result.correctAnswers}/${result.totalQuestions} правильных • ${result.timeSpent} сек`;
+                    
+                    playerInfo.appendChild(playerName);
+                    playerInfo.appendChild(playerStats);
+
+                    const playerScore = document.createElement('div');
+                    playerScore.className = 'player-score';
+                    playerScore.textContent = result.score;
+
+                    item.appendChild(playerInfo);
+                    item.appendChild(playerScore);
+                    list.appendChild(item);
+                });
+
+                list.style.display = 'block';
+            } catch (error) {
+                console.error('Ошибка:', error);
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.textContent = 'Не удалось загрузить рейтинг. Убедитесь, что сервер запущен.';
+            }
+        }
+
+        document.getElementById('refresh-btn').addEventListener('click', loadLeaderboard);
+
+        // Загружаем рейтинг при загрузке страницы
+        loadLeaderboard();
+
+        // Автообновление каждые 30 секунд
+        setInterval(loadLeaderboard, 30000);
+    </script>
+</body>
+</html>
+
