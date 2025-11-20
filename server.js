@@ -166,11 +166,9 @@ function loadQuestionsFromFile(filePath) {
           time: 20 // По умолчанию 20 секунд
         };
       }
-      // Если строка начинается с "+" или "*", это правильный ответ
+      // Если строка начинается с "+" или "*", это вариант ответа
       else if (line.startsWith('+') || line.startsWith('*')) {
         if (currentQuestion) {
-<<<<<<< HEAD
-<<<<<<< HEAD
           let answer = line.substring(1).trim(); // Убираем префикс "+" или "*"
           
           // Проверяем, есть ли звездочка в конце (правильный ответ)
@@ -184,16 +182,6 @@ function loadQuestionsFromFile(filePath) {
           
           // Если это правильный ответ и еще не установлен
           if (isCorrect && currentQuestion.correct === -1) {
-=======
-          const answer = line.substring(1).trim();
-          currentQuestion.options.push(answer);
-          if (currentQuestion.correct === -1) {
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
-=======
-          const answer = line.substring(1).trim();
-          currentQuestion.options.push(answer);
-          if (currentQuestion.correct === -1) {
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
             currentQuestion.correct = currentQuestion.options.length - 1;
           }
         }
@@ -214,8 +202,6 @@ function loadQuestionsFromFile(filePath) {
           }
         }
       }
-<<<<<<< HEAD
-<<<<<<< HEAD
       // Пропускаем строки "Вопрос N"
       else if (line.toLowerCase().startsWith('вопрос ')) {
         continue;
@@ -237,16 +223,6 @@ function loadQuestionsFromFile(filePath) {
         if (isCorrect && currentQuestion.correct === -1) {
           currentQuestion.correct = currentQuestion.options.length - 1;
         }
-=======
-      // Иначе это может быть вариант ответа без префикса
-      else if (currentQuestion && currentQuestion.options.length < 4) {
-        currentQuestion.options.push(line);
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
-=======
-      // Иначе это может быть вариант ответа без префикса
-      else if (currentQuestion && currentQuestion.options.length < 4) {
-        currentQuestion.options.push(line);
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
       }
     }
 
@@ -256,8 +232,6 @@ function loadQuestionsFromFile(filePath) {
     }
 
     console.log(`Загружено ${questions.length} вопросов из файла ${filePath}`);
-<<<<<<< HEAD
-<<<<<<< HEAD
     
     // Перемешиваем варианты ответов для каждого вопроса
     questions.forEach(question => {
@@ -287,12 +261,6 @@ function loadQuestionsFromFile(filePath) {
 
     console.log(`Вопросы перемешаны. Всего: ${shuffled.length}`);
     return shuffled;
-=======
-    return questions;
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
-=======
-    return questions;
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
   } catch (error) {
     console.error(`Ошибка при загрузке вопросов из файла ${filePath}:`, error);
     return [];
@@ -395,18 +363,12 @@ const quizzes = {
   // Здесь можно добавить новые квизы в будущем
 };
 
-<<<<<<< HEAD
 // Загрузка вопросов для квиза ГНУ из файла questions.txt (131 вопрос)
 // Явно указываем путь к файлу с вопросами
 const gnuQuestionsFilePath = path.join(__dirname, 'questions.txt');
 console.log(`Загрузка вопросов для квиза ГНУ из файла: ${gnuQuestionsFilePath}`);
 quizzes['friends-quiz'].questions = loadQuestionsFromFile(gnuQuestionsFilePath);
 console.log(`Загружено ${quizzes['friends-quiz'].questions.length} вопросов для квиза ГНУ`);
-=======
-// Загрузка вопросов для квиза друзей из файла
-const questionsFilePath = path.join(__dirname, 'questions.txt');
-quizzes['friends-quiz'].questions = loadQuestionsFromFile(questionsFilePath);
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
 
 // Получение списка квизов
 app.get('/api/quizzes', (req, res) => {
@@ -439,8 +401,6 @@ app.get('/api/quizzes/:id', (req, res) => {
     return res.status(404).json({ error: 'Квиз не найден' });
   }
   
-<<<<<<< HEAD
-<<<<<<< HEAD
   let questionsToSend = quiz.questions;
   
   // Для квиза ГНУ выбираем 15 случайных вопросов из 131
@@ -499,27 +459,13 @@ app.get('/api/quizzes/:id', (req, res) => {
     }));
   }
   
-=======
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
-=======
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
   res.json({
     id: quiz.id,
     name: quiz.name,
     description: quiz.description,
-<<<<<<< HEAD
-<<<<<<< HEAD
     questions: questionsToSend,
     soloMode: quiz.soloMode || false,
     totalQuestionsInBase: quiz.questions.length // Общее количество вопросов в базе
-=======
-    questions: quiz.questions,
-    soloMode: quiz.soloMode || false
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
-=======
-    questions: quiz.questions,
-    soloMode: quiz.soloMode || false
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
   });
 });
 
@@ -555,6 +501,11 @@ app.post('/api/leaderboard', (req, res) => {
   if (leaderboard.length > 100) {
     leaderboard.splice(100);
   }
+
+  // Записываем в Google Sheets (асинхронно, не блокируем ответ)
+  writeToGoogleSheets(result).catch(err => {
+    console.error('Ошибка записи в Google Sheets:', err);
+  });
   
   res.json({ success: true, result: result });
 });
@@ -593,13 +544,7 @@ app.post('/api/reload-questions', (req, res) => {
   const { quizId } = req.body;
   
   if (quizId === 'friends-quiz') {
-<<<<<<< HEAD
-<<<<<<< HEAD
     // Загружаем вопросы из questions.txt (131 вопрос)
-=======
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
-=======
->>>>>>> parent of 82a5425 (Add solo quiz mode with Google Sheets integration - Added championship quiz with 131 questions from file - Implemented random question selection (15 from 131) - Added random answer position shuffling - Integrated Google Sheets API for results logging - Added leaderboard functionality - Updated UI for solo mode)
     const questionsFilePath = path.join(__dirname, 'questions.txt');
     const loadedQuestions = loadQuestionsFromFile(questionsFilePath);
     quizzes['friends-quiz'].questions = loadedQuestions;
