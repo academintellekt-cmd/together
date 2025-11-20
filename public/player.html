@@ -4,8 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Квиз - Игрок</title>
+    <link rel="stylesheet" href="/styles/common.css">
     <script src="/socket.io/socket.io.js"></script>
-    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* Специфичные стили для страницы игрока */
+        .container {
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        input {
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .btn {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .waiting-screen {
+            text-align: center;
+            display: none;
+        }
+
+        .game-screen {
+            display: none;
+        }
+
+        .question-screen {
+            text-align: center;
+        }
+
+        .question-number {
+            font-size: 18px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .question-text {
+            font-size: 24px;
+            margin: 30px 0;
+            line-height: 1.4;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .timer-container {
+            display: inline-block;
+            margin: 16px 0;
+        }
+
+        .timer {
+            /* Стили из common.css */
+        }
+
+        .options {
+            margin: 30px 0;
+        }
+
+        .results-screen {
+            text-align: center;
+            display: none;
+        }
+
+        .score {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -14,25 +86,20 @@
             <h1>Присоединиться к игре</h1>
             <div class="input-group">
                 <label for="room-code">Код комнаты</label>
-                <input type="text" id="room-code" maxlength="4" placeholder="Например: ABCD">
+                <input type="text" id="room-code" maxlength="4" placeholder="Введите код">
             </div>
             <div class="input-group">
                 <label for="player-name">Ваше имя</label>
-                <input type="text" id="player-name" maxlength="20" placeholder="Ваше имя">
+                <input type="text" id="player-name" maxlength="20" placeholder="Введите имя">
             </div>
-            <button id="connect-btn" class="btn primary-action">Подключиться</button>
+            <button id="connect-btn" class="btn">Подключиться</button>
             <div id="error-message"></div>
         </div>
 
         <!-- Экран ожидания -->
         <div id="waiting-screen" class="waiting-screen">
             <h1>Ожидание начала игры...</h1>
-            <div class="status" style="margin: 20px 0;">
-                <div id="waiting-room-code" style="font-size: 18px; color: var(--color-orange); margin-bottom: 10px;"></div>
-                <div>Вы подключены к комнате</div>
-                <div class="secondary-info" style="margin-top: 16px;">Ожидайте начала игры от ведущего</div>
-            </div>
-            <div class="loading-spinner" style="margin: 30px auto; width: 50px; height: 50px; border: 4px solid rgba(229, 91, 24, 0.3); border-top-color: var(--color-orange); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <div class="status">Вы подключены к комнате</div>
         </div>
 
         <!-- Игровой экран -->
@@ -47,7 +114,6 @@
                 </div>
                 <div id="question-text" class="question-text"></div>
                 <div class="timer-container">
-                    <div class="timer-ring" id="timer-ring"></div>
                     <div id="timer" class="timer">15</div>
                 </div>
                 <div class="options" id="options"></div>
@@ -57,20 +123,23 @@
             <!-- Результаты вопроса -->
             <div id="results-screen" class="results-screen">
                 <h2>Результаты вопроса</h2>
-                <div id="correct-answer" class="correct-answer" style="display: none;"></div>
-                <div class="score">Ваш счет: <span id="player-score">0</span></div>
+                <div id="correct-answer-display" class="correct-answer" style="margin: 20px 0; font-size: 18px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 12px;"></div>
+                <div class="score">
+                    Ваш счет: <span id="player-score">0</span>
+                    <span id="points-added" style="font-size: 16px; margin-left: 10px; opacity: 0.8;"></span>
+                </div>
                 <div class="leaderboard">
                     <h3>Таблица лидеров</h3>
                     <div id="leaderboard"></div>
                 </div>
-                <div id="ready-status" class="status secondary-info" style="margin: 20px 0;">Ожидание следующего вопроса...</div>
-                <button id="ready-btn" class="btn primary-action" style="display: none;">Готов к следующему вопросу</button>
+                <div id="ready-status" class="status" style="margin: 20px 0;">Ожидание следующего вопроса...</div>
+                <button id="ready-btn" class="btn" style="display: none;">Готов к следующему вопросу</button>
             </div>
 
             <!-- Финальные результаты -->
             <div id="final-results" class="results-screen">
-                <h1 style="font-size: 48px; margin-bottom: 40px;">Игра завершена!</h1>
-                <div class="score" style="font-size: 42px;">Ваш финальный счет: <span id="final-score" style="font-size: 52px;">0</span></div>
+                <h1>Игра завершена!</h1>
+                <div class="score">Ваш финальный счет: <span id="final-score">0</span></div>
                 <div class="leaderboard">
                     <h2>Финальные результаты</h2>
                     <div id="final-leaderboard"></div>
@@ -104,12 +173,15 @@
             const urlParams = new URLSearchParams(window.location.search);
             const roomParam = urlParams.get('room');
             if (roomParam) {
-                document.getElementById('room-code').value = roomParam.toUpperCase();
+                const roomCodeInput = document.getElementById('room-code');
+                if (roomCodeInput) {
+                    roomCodeInput.value = roomParam.toUpperCase();
+                }
             }
         });
 
-        // Подключение к комнате
-        document.getElementById('connect-btn').addEventListener('click', () => {
+        // Функция подключения к комнате
+        function connectToRoom() {
             roomCode = document.getElementById('room-code').value.toUpperCase().trim();
             playerName = document.getElementById('player-name').value.trim();
 
@@ -118,18 +190,35 @@
                 return;
             }
 
+            console.log('Подключение к комнате:', roomCode, 'Игрок:', playerName);
             socket.emit('player-join', { roomCode, playerName });
+        }
+
+        // Подключение к комнате
+        document.getElementById('connect-btn').addEventListener('click', connectToRoom);
+        
+        // Автоматическое подключение, если код комнаты уже есть в URL
+        socket.on('connect', () => {
+            console.log('Socket.io подключен');
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomParam = urlParams.get('room');
+            if (roomParam) {
+                // Даем время на заполнение формы
+                setTimeout(() => {
+                    const roomCodeInput = document.getElementById('room-code');
+                    const playerNameInput = document.getElementById('player-name');
+                    if (roomCodeInput && roomCodeInput.value && playerNameInput && playerNameInput.value) {
+                        // Если имя уже введено, подключаемся автоматически
+                        connectToRoom();
+                    }
+                }, 100);
+            }
         });
 
         socket.on('player-connected', (data) => {
-            console.log('Игрок подключен, ID:', data.playerId);
+            console.log('✅ Игрок подключен, ID:', data.playerId);
             document.getElementById('connect-screen').style.display = 'none';
             document.getElementById('waiting-screen').style.display = 'block';
-            // Показываем код комнаты на экране ожидания
-            const waitingRoomCode = document.getElementById('waiting-room-code');
-            if (waitingRoomCode) {
-                waitingRoomCode.textContent = `Код комнаты: ${roomCode}`;
-            }
         });
 
         socket.on('error', (data) => {
@@ -142,13 +231,13 @@
             const gameScreen = document.getElementById('game-screen');
             gameScreen.style.display = 'block';
             gameScreen.style.animation = 'fadeIn 0.5s ease-in';
-            
-            // Скрываем все внутренние экраны при начале игры
-            document.getElementById('question-screen').style.display = 'none';
-            document.getElementById('results-screen').style.display = 'none';
-            document.getElementById('final-results').style.display = 'none';
-            
             hasAnswered = false;
+            // Инициализируем счет при начале игры
+            window.previousPlayerScore = 0;
+            const scoreElement = document.getElementById('player-score');
+            if (scoreElement) {
+                scoreElement.textContent = '0';
+            }
         });
 
         // Вопрос
@@ -176,6 +265,12 @@
             document.getElementById('answer-feedback').textContent = '';
             document.getElementById('answer-feedback').style.display = 'none';
             
+            // Сохраняем текущий счет перед новым вопросом
+            const currentScoreElement = document.getElementById('player-score');
+            if (currentScoreElement) {
+                window.previousPlayerScore = parseInt(currentScoreElement.textContent) || 0;
+            }
+            
             const questionNum = data.questionNumber;
             const totalQuestions = data.totalQuestions;
             
@@ -195,14 +290,13 @@
                 btn.className = 'option-btn';
                 btn.textContent = option;
                 btn.disabled = false;
-                    btn.onclick = () => selectAnswer(index);
+                btn.onclick = () => selectAnswer(index);
                 optionsDiv.appendChild(btn);
             });
 
-            // Таймер с улучшенной визуализацией
+            // Таймер
             let timeLeft = data.timeLeft !== undefined ? data.timeLeft : data.time;
             const timerElement = document.getElementById('timer');
-            const timerRing = document.getElementById('timer-ring');
             timerElement.textContent = timeLeft;
             timerElement.classList.remove('urgent');
             
@@ -222,10 +316,6 @@
                 if (timeLeft <= 5) {
                     timerElement.classList.add('urgent');
                 }
-                
-                // Анимация кольца таймера
-                const progress = (timeLeft / data.time) * 100;
-                timerRing.style.borderTopColor = timeLeft <= 5 ? 'var(--color-orange)' : 'var(--color-green)';
                 
                 if (timeLeft <= 0) {
                     clearInterval(currentTimer);
@@ -296,20 +386,22 @@
             }
             
             const feedback = document.getElementById('answer-feedback');
-            const messages = {
-                correct: ['Отлично!', 'Правильно!', 'Верно!', 'Супер!', 'Молодец!'],
-                incorrect: ['Неправильно', 'Неверно', 'Упс...', 'Попробуй еще']
-            };
             
+            // Просто цветовая индикация без текста
             if (data.isCorrect) {
-                const message = messages.correct[Math.floor(Math.random() * messages.correct.length)];
-                feedback.textContent = message;
+                feedback.textContent = '';
                 feedback.className = 'answer-feedback correct';
             } else {
-                const message = messages.incorrect[Math.floor(Math.random() * messages.incorrect.length)];
-                feedback.textContent = message;
+                feedback.textContent = '';
                 feedback.className = 'answer-feedback incorrect';
             }
+            
+            // Сохраняем данные для экрана результатов
+            window.lastAnswerData = {
+                isCorrect: data.isCorrect,
+                points: data.points || 0,
+                newScore: data.newScore || 0
+            };
             
             // Блокируем все кнопки после ответа
             disableOptions();
@@ -332,7 +424,7 @@
 
         let isReady = false;
 
-            // Результаты вопроса
+        // Результаты вопроса
         socket.on('results', (data) => {
             clearInterval(currentTimer);
             isReady = false;
@@ -340,13 +432,16 @@
             document.getElementById('question-screen').style.display = 'none';
             document.getElementById('results-screen').style.display = 'block';
             
-            // Показать правильный ответ
-            const correctAnswerDiv = document.getElementById('correct-answer');
-            if (correctAnswerDiv && data.correctAnswerText) {
-                correctAnswerDiv.textContent = `Правильный ответ: ${data.correctAnswerText}`;
-                correctAnswerDiv.style.display = 'block';
+            // Показываем правильный ответ
+            const correctAnswerDisplay = document.getElementById('correct-answer-display');
+            if (data.correctAnswerText) {
+                correctAnswerDisplay.textContent = `Правильный ответ: ${data.correctAnswerText}`;
+                correctAnswerDisplay.style.display = 'block';
+            } else {
+                correctAnswerDisplay.style.display = 'none';
             }
             
+            // Показать правильный ответ на кнопках
             const buttons = document.querySelectorAll('.option-btn');
             buttons.forEach((btn, index) => {
                 if (index === data.correctAnswer) {
@@ -356,13 +451,31 @@
                 }
             });
 
-            // Обновить счет
+            // Обновить счет с прибавленными баллами
             const player = data.players.find(p => p.name === playerName);
             if (player) {
-                document.getElementById('player-score').textContent = player.score;
+                const previousScore = window.previousPlayerScore || 0;
+                const newScore = player.score;
+                const pointsEarned = newScore - previousScore;
+                
+                document.getElementById('player-score').textContent = newScore;
+                
+                // Показываем прибавленные баллы за этот раунд
+                const pointsAdded = document.getElementById('points-added');
+                if (pointsEarned > 0) {
+                    pointsAdded.textContent = `(+${pointsEarned})`;
+                    pointsAdded.style.color = 'var(--success)';
+                    pointsAdded.style.fontWeight = '600';
+                } else {
+                    pointsAdded.textContent = `(+0)`;
+                    pointsAdded.style.color = 'var(--gray-400)';
+                }
+                
+                // Сохраняем текущий счет для следующего раунда
+                window.previousPlayerScore = newScore;
             }
 
-            // Таблица лидеров с анимациями
+            // Таблица лидеров с прибавленными баллами
             const leaderboard = document.getElementById('leaderboard');
             leaderboard.innerHTML = '';
             data.players.forEach((player, index) => {
@@ -375,9 +488,24 @@
                 item.className = className;
                 item.style.animationDelay = (index * 0.1) + 's';
                 
+                // Находим прибавленные баллы для этого игрока
+                let pointsDisplay = '';
+                if (player.name === playerName) {
+                    // Вычисляем прибавленные очки из разницы счетов
+                    const previousScore = window.previousPlayerScore || 0;
+                    const pointsEarned = player.score - previousScore;
+                    // Показываем "+X" только если ответ был правильный
+                    if (pointsEarned > 0 && window.lastAnswerData && window.lastAnswerData.isCorrect) {
+                        pointsDisplay = ` <span style="color: var(--success); font-weight: 600;">(+${pointsEarned})</span>`;
+                    }
+                    // Если ответ неправильный - ничего не показываем
+                    // Сохраняем текущий счет для следующего раунда
+                    window.previousPlayerScore = player.score;
+                }
+                
                 item.innerHTML = `
                     <span>${index + 1}. ${player.name}</span>
-                    <span>${player.score} очков</span>
+                    <span>${player.score} очков${pointsDisplay}</span>
                 `;
                 leaderboard.appendChild(item);
             });
@@ -398,7 +526,7 @@
             isReady = true;
             socket.emit('player-ready', roomCode);
             readyBtn.disabled = true;
-            readyBtn.textContent = 'Готов! Ожидание других игроков...';
+            readyBtn.textContent = '✅ Готов! Ожидание других игроков...';
             const readyStatus = document.getElementById('ready-status');
             readyStatus.textContent = 'Вы готовы! Ожидание других игроков...';
         });
@@ -428,9 +556,9 @@
             const leaderboard = document.getElementById('final-leaderboard');
             leaderboard.innerHTML = '';
             const finalMessages = {
-                0: 'Чемпион!',
-                1: 'Второе место!',
-                2: 'Третье место!'
+                0: '· Чемпион',
+                1: '· Второе место',
+                2: '· Третье место'
             };
             
             data.results.forEach((player, index) => {

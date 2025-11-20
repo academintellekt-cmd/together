@@ -2,18 +2,15 @@
   "watch": [
     "server.js",
     "public/**/*.html",
-    "public/**/*.js",
-    "public/**/*.css"
+    "public/**/*.css",
+    "public/**/*.js"
   ],
-  "ext": "js,json,html,css",
+  "ext": "js,html,css,json",
   "ignore": [
     "node_modules/**",
-    "*.md"
+    "*.log",
+    ".git/**"
   ],
-  "delay": 500,
-  "verbose": true,
-  "env": {
-    "NODE_ENV": "development"
-  }
+  "exec": "node server.js",
+  "verbose": true
 }
-

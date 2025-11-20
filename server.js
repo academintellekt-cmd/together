@@ -16,7 +16,6 @@ const io = socketIo(server, {
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/Geometria', express.static(path.join(__dirname, 'Geometria')));
 
 // Хранилище комнат и игроков
 const rooms = new Map();
@@ -24,87 +23,129 @@ const players = new Map();
 
 // Генерация кода комнаты (4 символа)
 function generateRoomCode() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < 4; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
+  return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
 
-// Базовые вопросы для MVP
-const questions = [
-  {
-    id: 1,
-    question: "Какая планета самая большая в Солнечной системе?",
-    options: ["Земля", "Юпитер", "Сатурн", "Марс"],
-    correct: 1,
-    time: 15
-  },
-  {
-    id: 2,
-    question: "Сколько континентов на Земле?",
-    options: ["5", "6", "7", "8"],
-    correct: 2,
-    time: 10
-  },
-  {
-    id: 3,
-    question: "Какая столица Франции?",
-    options: ["Лондон", "Берлин", "Париж", "Мадрид"],
-    correct: 2,
-    time: 10
-  },
-  {
-    id: 4,
-    question: "Кто написал 'Войну и мир'?",
-    options: ["Достоевский", "Толстой", "Чехов", "Пушкин"],
-    correct: 1,
-    time: 15
-  },
-  {
-    id: 5,
-    question: "Сколько дней в високосном году?",
-    options: ["364", "365", "366", "367"],
-    correct: 2,
-    time: 10
-  },
-  {
-    id: 6,
-    question: "Какое животное самое быстрое на суше?",
-    options: ["Лев", "Гепард", "Тигр", "Леопард"],
-    correct: 1,
-    time: 15
-  },
-  {
-    id: 7,
-    question: "В каком году человек впервые полетел в космос?",
-    options: ["1957", "1961", "1969", "1971"],
-    correct: 1,
-    time: 20
-  },
-  {
-    id: 8,
-    question: "Сколько океанов на Земле?",
-    options: ["3", "4", "5", "6"],
-    correct: 2,
-    time: 10
-  },
-  {
-    id: 9,
-    question: "Какая самая длинная река в мире?",
-    options: ["Амазонка", "Нил", "Янцзы", "Миссисипи"],
-    correct: 0,
-    time: 20
-  },
-  {
-    id: 10,
-    question: "Кто изобрел телефон?",
-    options: ["Эдисон", "Белл", "Тесла", "Маркони"],
-    correct: 1,
-    time: 15
+// Структура квизов
+const quizzes = {
+  'general-knowledge': {
+    id: 'general-knowledge',
+    name: 'Общие знания',
+    description: 'Проверьте свои знания в разных областях',
+    icon: '🧠',
+    questions: [
+      {
+        id: 1,
+        question: "Какая планета самая большая в Солнечной системе?",
+        options: ["Земля", "Юпитер", "Сатурн", "Марс"],
+        correct: 1,
+        time: 15
+      },
+      {
+        id: 2,
+        question: "Сколько континентов на Земле?",
+        options: ["5", "6", "7", "8"],
+        correct: 2,
+        time: 10
+      },
+      {
+        id: 3,
+        question: "Какая столица Франции?",
+        options: ["Лондон", "Берлин", "Париж", "Мадрид"],
+        correct: 2,
+        time: 10
+      },
+      {
+        id: 4,
+        question: "Кто написал 'Войну и мир'?",
+        options: ["Достоевский", "Толстой", "Чехов", "Пушкин"],
+        correct: 1,
+        time: 15
+      },
+      {
+        id: 5,
+        question: "Сколько дней в високосном году?",
+        options: ["364", "365", "366", "367"],
+        correct: 2,
+        time: 10
+      },
+      {
+        id: 6,
+        question: "Какое животное самое быстрое на суше?",
+        options: ["Лев", "Гепард", "Тигр", "Леопард"],
+        correct: 1,
+        time: 15
+      },
+      {
+        id: 7,
+        question: "В каком году человек впервые полетел в космос?",
+        options: ["1957", "1961", "1969", "1971"],
+        correct: 1,
+        time: 20
+      },
+      {
+        id: 8,
+        question: "Сколько океанов на Земле?",
+        options: ["3", "4", "5", "6"],
+        correct: 2,
+        time: 10
+      },
+      {
+        id: 9,
+        question: "Какая самая длинная река в мире?",
+        options: ["Амазонка", "Нил", "Янцзы", "Миссисипи"],
+        correct: 0,
+        time: 20
+      },
+      {
+        id: 10,
+        question: "Кто изобрел телефон?",
+        options: ["Эдисон", "Белл", "Тесла", "Маркони"],
+        correct: 1,
+        time: 15
+      }
+    ]
   }
-];
+  // Здесь можно добавить новые квизы в будущем
+};
+
+// Получение списка квизов
+app.get('/api/quizzes', (req, res) => {
+  const quizzesList = Object.values(quizzes).map(quiz => {
+    const avgTime = quiz.questions.length > 0
+      ? Math.round(quiz.questions.reduce((sum, q) => sum + q.time, 0) / quiz.questions.length)
+      : 0;
+    
+    return {
+      id: quiz.id,
+      name: quiz.name,
+      description: quiz.description,
+      icon: quiz.icon,
+      questionCount: quiz.questions.length,
+      avgTime: avgTime,
+      comingSoon: false
+    };
+  });
+  
+  res.json(quizzesList);
+});
+
+// Получение конкретного квиза по ID (для соло режима)
+app.get('/api/quizzes/:id', (req, res) => {
+  const quizId = req.params.id;
+  const quiz = quizzes[quizId];
+  
+  if (!quiz) {
+    return res.status(404).json({ error: 'Квиз не найден' });
+  }
+  
+  res.json({
+    id: quiz.id,
+    name: quiz.name,
+    description: quiz.description,
+    questions: quiz.questions
+  });
+});
 
 // Получение IP-адреса сервера
 app.get('/api/server-ip', (req, res) => {
@@ -138,6 +179,14 @@ app.get('/api/server-ip', (req, res) => {
 
 // Создание комнаты
 app.post('/api/create-room', (req, res) => {
+  const { quizId } = req.body;
+  
+  // Проверяем, что квиз существует
+  if (!quizId || !quizzes[quizId]) {
+    return res.status(400).json({ error: 'Квиз не найден' });
+  }
+  
+  const quiz = quizzes[quizId];
   const roomCode = generateRoomCode();
   const room = {
     code: roomCode,
@@ -145,7 +194,9 @@ app.post('/api/create-room', (req, res) => {
     players: [],
     gameState: 'lobby', // lobby, playing, question, results, finished
     currentQuestion: 0,
-    questions: [...questions],
+    questions: [...quiz.questions],
+    quizId: quizId,
+    quizName: quiz.name,
     readyPlayers: new Set(), // Игроки, готовые к следующему вопросу
     startTime: null,
     answers: new Map()
@@ -320,13 +371,19 @@ io.on('connection', (socket) => {
     });
 
     // Начисление очков
+    let points = 0;
     if (isCorrect) {
       const timeBonus = Math.max(0, question.time * 1000 - answerTime);
-      const points = 100 + Math.floor(timeBonus / 100);
+      points = 100 + Math.floor(timeBonus / 100);
       player.score += points;
     }
 
-    socket.emit('answer-received', { isCorrect });
+    socket.emit('answer-received', { 
+      isCorrect,
+      correctAnswer: question.options[question.correct],
+      points: points,
+      newScore: player.score
+    });
     
     // Обновляем статус ответов
     updateAnswerStatus(roomCode);
@@ -467,8 +524,8 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Сервер запущен на порту ${PORT}`);
-  console.log(`Откройте http://localhost:${PORT}/host.html для хоста`);
-  console.log(`Откройте http://localhost:${PORT}/player.html для игроков`);
+  console.log(`Откройте http://localhost:${PORT}/index.html для выбора квиза`);
+  console.log(`Или http://localhost:${PORT}/player.html для игроков`);
 }).on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     console.error(`Порт ${PORT} уже занят. Попробуйте другой порт:`);
