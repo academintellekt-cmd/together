@@ -6,4 +6,5 @@ node-v*/
 *.tar.gz
 *.pkg
 *.sh.bak
+google-credentials.json
 
