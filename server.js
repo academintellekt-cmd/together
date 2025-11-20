@@ -91,9 +91,25 @@ function loadQuestionsFromFile(filePath) {
           }
         }
       }
-      // Иначе это может быть вариант ответа без префикса
+      // Пропускаем строки "Вопрос N"
+      else if (line.toLowerCase().startsWith('вопрос ')) {
+        continue;
+      }
+      // Иначе это может быть вариант ответа без префикса (проверяем на звездочку)
       else if (currentQuestion && currentQuestion.options.length < 4) {
-        currentQuestion.options.push(line);
+        let answer = line.trim();
+        const isCorrect = answer.endsWith('★') || answer.endsWith('*');
+        // Удаляем звездочку из ответа
+        answer = answer.replace(/[★*]$/, '').trim();
+        // Удаляем префикс "* " если есть
+        answer = answer.replace(/^\*\s*/, '').trim();
+        
+        currentQuestion.options.push(answer);
+        
+        // Если это правильный ответ и еще не установлен
+        if (isCorrect && currentQuestion.correct === -1) {
+          currentQuestion.correct = currentQuestion.options.length - 1;
+        }
       }
     }
 
@@ -103,7 +119,35 @@ function loadQuestionsFromFile(filePath) {
     }
 
     console.log(`Загружено ${questions.length} вопросов из файла ${filePath}`);
-    return questions;
+    
+    // Перемешиваем варианты ответов для каждого вопроса
+    questions.forEach(question => {
+      if (question.options.length > 0 && question.correct >= 0) {
+        // Сохраняем правильный ответ
+        const correctAnswer = question.options[question.correct];
+        
+        // Перемешиваем все варианты
+        const shuffledOptions = question.options.sort(() => Math.random() - 0.5);
+        
+        // Находим новый индекс правильного ответа
+        const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
+        
+        // Обновляем вопрос
+        question.options = shuffledOptions;
+        question.correct = newCorrectIndex;
+      }
+    });
+
+    // Перемешиваем вопросы случайным образом
+    const shuffled = questions.sort(() => Math.random() - 0.5);
+    
+    // Переназначаем ID для последовательности
+    shuffled.forEach((q, index) => {
+      q.id = index + 1;
+    });
+
+    console.log(`Вопросы перемешаны. Всего: ${shuffled.length}`);
+    return shuffled;
   } catch (error) {
     console.error(`Ошибка при загрузке вопросов из файла ${filePath}:`, error);
     return [];
@@ -207,7 +251,18 @@ const quizzes = {
 };
 
 // Загрузка вопросов для квиза друзей из файла
-const questionsFilePath = path.join(__dirname, 'questions.txt');
+// Сначала пробуем загрузить из Quiz/GNU.txt, если нет - из questions.txt
+const gnuQuestionsPath = path.join(__dirname, 'Quiz', 'GNU.txt');
+const defaultQuestionsPath = path.join(__dirname, 'questions.txt');
+
+let questionsFilePath = gnuQuestionsPath;
+if (!fs.existsSync(gnuQuestionsPath)) {
+  questionsFilePath = defaultQuestionsPath;
+  console.log(`Файл Quiz/GNU.txt не найден, используем questions.txt`);
+} else {
+  console.log(`Используем файл Quiz/GNU.txt`);
+}
+
 quizzes['friends-quiz'].questions = loadQuestionsFromFile(questionsFilePath);
 
 // Получение списка квизов
@@ -320,7 +375,15 @@ app.post('/api/reload-questions', (req, res) => {
   const { quizId } = req.body;
   
   if (quizId === 'friends-quiz') {
-    const questionsFilePath = path.join(__dirname, 'questions.txt');
+    // Сначала пробуем загрузить из Quiz/GNU.txt, если нет - из questions.txt
+    const gnuQuestionsPath = path.join(__dirname, 'Quiz', 'GNU.txt');
+    const defaultQuestionsPath = path.join(__dirname, 'questions.txt');
+    
+    let questionsFilePath = gnuQuestionsPath;
+    if (!fs.existsSync(gnuQuestionsPath)) {
+      questionsFilePath = defaultQuestionsPath;
+    }
+    
     const loadedQuestions = loadQuestionsFromFile(questionsFilePath);
     quizzes['friends-quiz'].questions = loadedQuestions;
     
