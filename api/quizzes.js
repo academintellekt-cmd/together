@@ -187,16 +187,21 @@ const quizzes = {
 };
 
 module.exports = async (req, res) => {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  try {
+    // CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
 
-  const quizzesList = Object.values(quizzes).map(quiz => {
+    console.log('API /api/quizzes called, method:', req.method);
+    console.log('Available quizzes:', Object.keys(quizzes));
+    console.log('Friends quiz questions count:', friendsQuizQuestions.length);
+
+    const quizzesList = Object.values(quizzes).map(quiz => {
     const avgTime = quiz.questions.length > 0
       ? Math.round(quiz.questions.reduce((sum, q) => sum + q.time, 0) / quiz.questions.length)
       : 0;
@@ -220,8 +225,13 @@ module.exports = async (req, res) => {
       soloMode: quiz.soloMode || false,
       totalQuestionsInBase: quiz.questions.length
     };
-  });
+    });
 
-  res.json(quizzesList);
+    console.log('Returning quizzes list:', quizzesList.length, 'items');
+    res.json(quizzesList);
+  } catch (error) {
+    console.error('Error in /api/quizzes:', error);
+    res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
 };
 
