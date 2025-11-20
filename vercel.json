@@ -2,11 +2,27 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
+    {
+      "src": "/api/quizzes/([^/]+)",
+      "dest": "/api/quizzes/[id].js"
+    },
+    {
+      "src": "/api/quizzes",
+      "dest": "/api/quizzes.js"
+    },
+    {
+      "src": "/Geometria/(.*)",
+      "dest": "server.js"
+    },
     {
       "src": "/socket.io/(.*)",
       "dest": "server.js"
