@@ -26,6 +26,107 @@ const players = new Map();
 // Хранилище рейтинга для соло-режима
 const leaderboard = [];
 
+// Функция записи результата в Google Sheets через Apps Script Web App
+async function writeToGoogleSheets(result) {
+  try {
+    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxesMEtekXqo7tsB0vGSsAUx1WPrQ0CFw3wjJmg22phlNXRhG5oqn_w7-15gRBKQhFG0w/exec';
+    
+    if (!WEB_APP_URL) {
+      console.log('GOOGLE_APPS_SCRIPT_URL не настроен. Пропускаем запись в Google Sheets.');
+      return false;
+    }
+
+    // Форматируем данные
+    const minutes = Math.floor(result.timeSpent / 60);
+    const seconds = result.timeSpent % 60;
+    const formattedTime = `${minutes}м ${seconds}с`;
+
+    const percentage = result.totalQuestions > 0 
+      ? Math.round((result.correctAnswers / result.totalQuestions) * 100) 
+      : 0;
+
+    const data = {
+      date: result.date,
+      playerName: result.playerName,
+      score: result.score,
+      correctAnswers: result.correctAnswers,
+      totalQuestions: result.totalQuestions,
+      timeSpent: result.timeSpent, // Передаем в секундах, Apps Script сам отформатирует
+      percentage: percentage,
+      quizId: result.quizId === 'friends-quiz' ? 'Чемпионат ГНУ' : result.quizId
+    };
+
+    const https = require('https');
+    const http = require('http');
+    
+    const parsedUrl = new URL(WEB_APP_URL);
+    const client = parsedUrl.protocol === 'https:' ? https : http;
+    
+    const postData = JSON.stringify(data);
+    
+    const options = {
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+      },
+      // Следуем редиректам (Google Apps Script возвращает 302)
+      maxRedirects: 5
+    };
+
+    return new Promise((resolve) => {
+      const req = client.request(options, (res) => {
+        // Google Apps Script может вернуть 302 (редирект) или 200
+        // 302 обычно означает успешную запись с редиректом
+        if (res.statusCode === 200) {
+          let responseData = '';
+          res.on('data', (chunk) => {
+            responseData += chunk;
+          });
+          res.on('end', () => {
+            try {
+              const result = JSON.parse(responseData);
+              if (result.success) {
+                console.log('✅ Данные успешно записаны в Google Sheets');
+                resolve(true);
+              } else {
+                console.error('❌ Ошибка записи в Google Sheets:', result.error);
+                resolve(false);
+              }
+            } catch (e) {
+              console.log('✅ Данные успешно записаны в Google Sheets (200 OK)');
+              resolve(true);
+            }
+          });
+        } else if (res.statusCode === 302) {
+          // 302 редирект - это нормально для Google Apps Script, означает успех
+          console.log('✅ Данные успешно записаны в Google Sheets (302 redirect)');
+          res.on('data', () => {}); // Поглощаем данные
+          res.on('end', () => resolve(true));
+        } else {
+          console.error('❌ Ошибка записи в Google Sheets Web App:', res.statusCode);
+          res.on('data', () => {});
+          res.on('end', () => resolve(false));
+        }
+      });
+
+      req.on('error', (error) => {
+        console.error('❌ Ошибка при запросе к Google Sheets Web App:', error.message);
+        resolve(false);
+      });
+
+      req.write(postData);
+      req.end();
+    });
+  } catch (error) {
+    console.error('Ошибка при записи в Google Sheets через Web App:', error.message);
+    return false;
+  }
+}
+
 // Функция загрузки вопросов из TXT файла
 function loadQuestionsFromFile(filePath) {
   try {
@@ -65,12 +166,22 @@ function loadQuestionsFromFile(filePath) {
           time: 20 // По умолчанию 20 секунд
         };
       }
-      // Если строка начинается с "+" или "*", это правильный ответ
+      // Если строка начинается с "+" или "*", это вариант ответа
       else if (line.startsWith('+') || line.startsWith('*')) {
         if (currentQuestion) {
-          const answer = line.substring(1).trim();
+          let answer = line.substring(1).trim(); // Убираем префикс "+" или "*"
+          
+          // Проверяем, есть ли звездочка в конце (правильный ответ)
+          const isCorrect = answer.endsWith('★') || answer.endsWith('*');
+          
+          // Удаляем звездочку из конца ответа
+          answer = answer.replace(/[★*]$/, '').trim();
+          
+          // Добавляем ответ БЕЗ звездочки
           currentQuestion.options.push(answer);
-          if (currentQuestion.correct === -1) {
+          
+          // Если это правильный ответ и еще не установлен
+          if (isCorrect && currentQuestion.correct === -1) {
             currentQuestion.correct = currentQuestion.options.length - 1;
           }
         }
@@ -99,11 +210,13 @@ function loadQuestionsFromFile(filePath) {
       else if (currentQuestion && currentQuestion.options.length < 4) {
         let answer = line.trim();
         const isCorrect = answer.endsWith('★') || answer.endsWith('*');
-        // Удаляем звездочку из ответа
+        
+        // Удаляем звездочку из ответа (важно: удаляем ПЕРЕД добавлением в массив)
         answer = answer.replace(/[★*]$/, '').trim();
         // Удаляем префикс "* " если есть
         answer = answer.replace(/^\*\s*/, '').trim();
         
+        // Добавляем ответ БЕЗ звездочки
         currentQuestion.options.push(answer);
         
         // Если это правильный ответ и еще не установлен
@@ -250,20 +363,12 @@ const quizzes = {
   // Здесь можно добавить новые квизы в будущем
 };
 
-// Загрузка вопросов для квиза друзей из файла
-// Сначала пробуем загрузить из Quiz/GNU.txt, если нет - из questions.txt
-const gnuQuestionsPath = path.join(__dirname, 'Quiz', 'GNU.txt');
-const defaultQuestionsPath = path.join(__dirname, 'questions.txt');
-
-let questionsFilePath = gnuQuestionsPath;
-if (!fs.existsSync(gnuQuestionsPath)) {
-  questionsFilePath = defaultQuestionsPath;
-  console.log(`Файл Quiz/GNU.txt не найден, используем questions.txt`);
-} else {
-  console.log(`Используем файл Quiz/GNU.txt`);
-}
-
-quizzes['friends-quiz'].questions = loadQuestionsFromFile(questionsFilePath);
+// Загрузка вопросов для квиза ГНУ из файла questions.txt (131 вопрос)
+// Явно указываем путь к файлу с вопросами
+const gnuQuestionsFilePath = path.join(__dirname, 'questions.txt');
+console.log(`Загрузка вопросов для квиза ГНУ из файла: ${gnuQuestionsFilePath}`);
+quizzes['friends-quiz'].questions = loadQuestionsFromFile(gnuQuestionsFilePath);
+console.log(`Загружено ${quizzes['friends-quiz'].questions.length} вопросов для квиза ГНУ`);
 
 // Получение списка квизов
 app.get('/api/quizzes', (req, res) => {
@@ -296,12 +401,71 @@ app.get('/api/quizzes/:id', (req, res) => {
     return res.status(404).json({ error: 'Квиз не найден' });
   }
   
+  let questionsToSend = quiz.questions;
+  
+  // Для квиза ГНУ выбираем 15 случайных вопросов из 131
+  if (quizId === 'friends-quiz' && quiz.questions.length > 15) {
+    // Создаем копию массива и перемешиваем
+    const shuffled = [...quiz.questions].sort(() => Math.random() - 0.5);
+    // Берем первые 15
+    questionsToSend = shuffled.slice(0, 15);
+    
+    // Перемешиваем варианты ответов для каждого выбранного вопроса
+    questionsToSend = questionsToSend.map((q, index) => {
+      // Создаем глубокую копию вопроса
+      const questionCopy = {
+        ...q,
+        options: [...q.options],
+        id: index + 1
+      };
+      
+      // Перемешиваем варианты ответов
+      if (questionCopy.options.length > 0 && questionCopy.correct >= 0) {
+        // Сохраняем правильный ответ
+        const correctAnswer = questionCopy.options[questionCopy.correct];
+        
+        // Перемешиваем все варианты
+        const shuffledOptions = questionCopy.options.sort(() => Math.random() - 0.5);
+        
+        // Находим новый индекс правильного ответа
+        const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
+        
+        // Обновляем вопрос
+        questionCopy.options = shuffledOptions;
+        questionCopy.correct = newCorrectIndex;
+      }
+      
+      // Убеждаемся, что звездочки удалены из всех вариантов ответов (клиент не должен видеть маркеры)
+      questionCopy.options = questionCopy.options.map(option => {
+        // Удаляем звездочки и другие маркеры в конце и начале строки
+        let cleanOption = option.toString();
+        cleanOption = cleanOption.replace(/[★*]$/, ''); // Удаляем звездочку в конце
+        cleanOption = cleanOption.replace(/^\*\s*/, ''); // Удаляем префикс "* "
+        cleanOption = cleanOption.trim();
+        return cleanOption;
+      });
+      
+      return questionCopy;
+    });
+    
+    console.log(`Для квиза ГНУ выбрано 15 случайных вопросов из ${quiz.questions.length}`);
+  } else {
+    // Для других квизов также удаляем звездочки из ответов
+    questionsToSend = questionsToSend.map(q => ({
+      ...q,
+      options: q.options.map(option => {
+        return option.replace(/[★*]$/, '').replace(/^\*\s*/, '').trim();
+      })
+    }));
+  }
+  
   res.json({
     id: quiz.id,
     name: quiz.name,
     description: quiz.description,
-    questions: quiz.questions,
-    soloMode: quiz.soloMode || false
+    questions: questionsToSend,
+    soloMode: quiz.soloMode || false,
+    totalQuestionsInBase: quiz.questions.length // Общее количество вопросов в базе
   });
 });
 
@@ -337,6 +501,11 @@ app.post('/api/leaderboard', (req, res) => {
   if (leaderboard.length > 100) {
     leaderboard.splice(100);
   }
+
+  // Записываем в Google Sheets (асинхронно, не блокируем ответ)
+  writeToGoogleSheets(result).catch(err => {
+    console.error('Ошибка записи в Google Sheets:', err);
+  });
   
   res.json({ success: true, result: result });
 });
@@ -375,15 +544,8 @@ app.post('/api/reload-questions', (req, res) => {
   const { quizId } = req.body;
   
   if (quizId === 'friends-quiz') {
-    // Сначала пробуем загрузить из Quiz/GNU.txt, если нет - из questions.txt
-    const gnuQuestionsPath = path.join(__dirname, 'Quiz', 'GNU.txt');
-    const defaultQuestionsPath = path.join(__dirname, 'questions.txt');
-    
-    let questionsFilePath = gnuQuestionsPath;
-    if (!fs.existsSync(gnuQuestionsPath)) {
-      questionsFilePath = defaultQuestionsPath;
-    }
-    
+    // Загружаем вопросы из questions.txt (131 вопрос)
+    const questionsFilePath = path.join(__dirname, 'questions.txt');
     const loadedQuestions = loadQuestionsFromFile(questionsFilePath);
     quizzes['friends-quiz'].questions = loadedQuestions;
     
