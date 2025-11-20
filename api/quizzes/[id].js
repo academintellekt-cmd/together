@@ -99,14 +99,36 @@ function loadQuestionsFromFile(filePath) {
   }
 }
 
-// Загрузка вопросов
-const gnuQuestionsPath = path.join(__dirname, '..', '..', 'Quiz', 'GNU.txt');
-const defaultQuestionsPath = path.join(__dirname, '..', '..', 'questions.txt');
-let questionsFilePath = gnuQuestionsPath;
-if (!fs.existsSync(gnuQuestionsPath)) {
-  questionsFilePath = defaultQuestionsPath;
+// Загрузка вопросов (для Vercel пути могут отличаться)
+let friendsQuizQuestions = [];
+const possiblePaths = [
+  path.join(process.cwd(), 'Quiz', 'GNU.txt'),
+  path.join(process.cwd(), 'questions.txt'),
+  path.join(__dirname, '..', '..', 'Quiz', 'GNU.txt'),
+  path.join(__dirname, '..', '..', 'questions.txt'),
+  '/var/task/Quiz/GNU.txt',
+  '/var/task/questions.txt'
+];
+
+let questionsFilePath = null;
+for (const filePath of possiblePaths) {
+  try {
+    if (fs.existsSync(filePath)) {
+      questionsFilePath = filePath;
+      console.log('Найден файл вопросов:', filePath);
+      break;
+    }
+  } catch (e) {
+    // Продолжаем поиск
+  }
 }
-const friendsQuizQuestions = loadQuestionsFromFile(questionsFilePath);
+
+if (questionsFilePath) {
+  friendsQuizQuestions = loadQuestionsFromFile(questionsFilePath);
+  console.log(`Загружено ${friendsQuizQuestions.length} вопросов`);
+} else {
+  console.warn('Файл вопросов не найден. Используются пустые вопросы.');
+}
 
 // Структура квизов
 const quizzes = {
@@ -173,11 +195,33 @@ module.exports = async (req, res) => {
     return res.status(200).end();
   }
 
-  const quizId = req.query.id || req.url.split('/').pop();
+  // Получаем ID из URL (для Vercel)
+  let quizId = req.query.id;
+  
+  // Если нет в query, пробуем извлечь из пути
+  if (!quizId) {
+    const urlMatch = req.url.match(/\/quizzes\/([^\/\?]+)/);
+    if (urlMatch) {
+      quizId = urlMatch[1];
+    } else {
+      // Пробуем из последней части URL
+      const urlParts = req.url.split('/').filter(p => p);
+      quizId = urlParts[urlParts.length - 1];
+    }
+  }
+  
+  // Если все еще нет или это параметр маршрута, используем дефолтный
+  if (!quizId || quizId === '[id]' || quizId.includes('?')) {
+    quizId = 'friends-quiz';
+  }
+  
+  console.log('Requested quizId:', quizId, 'URL:', req.url);
+  
   const quiz = quizzes[quizId];
   
   if (!quiz) {
-    return res.status(404).json({ error: 'Квиз не найден' });
+    console.log('Available quizzes:', Object.keys(quizzes));
+    return res.status(404).json({ error: 'Квиз не найден', requestedId: quizId, available: Object.keys(quizzes) });
   }
   
   let questionsToReturn = quiz.questions;

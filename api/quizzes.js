@@ -100,14 +100,36 @@ function loadQuestionsFromFile(filePath) {
   }
 }
 
-// Загрузка вопросов
-const gnuQuestionsPath = path.join(__dirname, '..', 'Quiz', 'GNU.txt');
-const defaultQuestionsPath = path.join(__dirname, '..', 'questions.txt');
-let questionsFilePath = gnuQuestionsPath;
-if (!fs.existsSync(gnuQuestionsPath)) {
-  questionsFilePath = defaultQuestionsPath;
+// Загрузка вопросов (для Vercel пути могут отличаться)
+let friendsQuizQuestions = [];
+const possiblePaths = [
+  path.join(process.cwd(), 'Quiz', 'GNU.txt'),
+  path.join(process.cwd(), 'questions.txt'),
+  path.join(__dirname, '..', 'Quiz', 'GNU.txt'),
+  path.join(__dirname, '..', 'questions.txt'),
+  '/var/task/Quiz/GNU.txt',
+  '/var/task/questions.txt'
+];
+
+let questionsFilePath = null;
+for (const filePath of possiblePaths) {
+  try {
+    if (fs.existsSync(filePath)) {
+      questionsFilePath = filePath;
+      console.log('Найден файл вопросов:', filePath);
+      break;
+    }
+  } catch (e) {
+    // Продолжаем поиск
+  }
 }
-const friendsQuizQuestions = loadQuestionsFromFile(questionsFilePath);
+
+if (questionsFilePath) {
+  friendsQuizQuestions = loadQuestionsFromFile(questionsFilePath);
+  console.log(`Загружено ${friendsQuizQuestions.length} вопросов`);
+} else {
+  console.warn('Файл вопросов не найден. Используются пустые вопросы.');
+}
 
 // Структура квизов
 const quizzes = {
