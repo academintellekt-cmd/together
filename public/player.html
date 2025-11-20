@@ -4,12 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Квиз - Игрок</title>
-    <link rel="stylesheet" href="/styles/common.css">
+    <link rel="stylesheet" href="/styles/brand-style.css">
     <script src="/socket.io/socket.io.js"></script>
     <style>
         /* Специфичные стили для страницы игрока */
         .container {
             max-width: 500px;
+            position: relative;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
         }
 
         h1 {
@@ -52,6 +60,8 @@
             margin: 30px 0;
             line-height: 1.4;
             animation: fadeIn 0.5s ease-in;
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
         }
 
         .timer-container {
@@ -76,11 +86,20 @@
             font-size: 32px;
             font-weight: bold;
             margin: 20px 0;
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Кнопка назад -->
+        <div class="back-button">
+            <a href="/index.html" class="btn" style="text-decoration: none; display: inline-block;">
+                ← Назад
+            </a>
+        </div>
+        
         <!-- Экран подключения -->
         <div id="connect-screen">
             <h1>Присоединиться к игре</h1>
@@ -219,6 +238,12 @@
             console.log('✅ Игрок подключен, ID:', data.playerId);
             document.getElementById('connect-screen').style.display = 'none';
             document.getElementById('waiting-screen').style.display = 'block';
+            
+            // Скрываем кнопку "Назад" после подключения
+            const backButton = document.querySelector('.back-button');
+            if (backButton) {
+                backButton.style.display = 'none';
+            }
         });
 
         socket.on('error', (data) => {
@@ -232,6 +257,13 @@
             gameScreen.style.display = 'block';
             gameScreen.style.animation = 'fadeIn 0.5s ease-in';
             hasAnswered = false;
+            
+            // Скрываем кнопку "Назад" во время игры
+            const backButton = document.querySelector('.back-button');
+            if (backButton) {
+                backButton.style.display = 'none';
+            }
+            
             // Инициализируем счет при начале игры
             window.previousPlayerScore = 0;
             const scoreElement = document.getElementById('player-score');

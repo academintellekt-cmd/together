@@ -377,7 +377,7 @@ app.get('/api/quizzes', (req, res) => {
       ? Math.round(quiz.questions.reduce((sum, q) => sum + q.time, 0) / quiz.questions.length)
       : 0;
     
-    return {
+    const result = {
       id: quiz.id,
       name: quiz.name,
       description: quiz.description,
@@ -387,6 +387,13 @@ app.get('/api/quizzes', (req, res) => {
       comingSoon: false,
       soloMode: quiz.soloMode || false
     };
+    
+    // Для квизов с soloMode добавляем totalQuestionsInBase
+    if (quiz.soloMode) {
+      result.totalQuestionsInBase = quiz.questions.length;
+    }
+    
+    return result;
   });
   
   res.json(quizzesList);

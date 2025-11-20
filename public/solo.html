@@ -4,14 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Квиз - Соло режим</title>
-    <link rel="stylesheet" href="/styles/common.css">
+    <link rel="stylesheet" href="/styles/brand-style.css">
     <style>
         .container {
             max-width: 600px;
+            position: relative;
         }
 
         .name-input-screen {
             text-align: center;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
         }
 
         .game-screen {
@@ -26,73 +34,19 @@
             font-size: 18px;
             margin-bottom: 15px;
             opacity: 0.8;
+            font-family: 'Nunito', sans-serif;
         }
 
         .question-text {
             font-size: 28px;
             margin: 32px 0;
             line-height: 1.4;
-        }
-
-        .timer {
-            font-size: 48px;
-            font-weight: 600;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .timer.urgent {
-            color: var(--error);
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
         }
 
         .options {
             margin: 30px 0;
-        }
-
-        .option-btn {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1.5px solid rgba(255, 255, 255, 0.2);
-            padding: 18px 24px;
-            font-size: 17px;
-            font-weight: 500;
-            font-family: inherit;
-            border-radius: 14px;
-            cursor: pointer;
-            margin: 10px 0;
-            transition: all 0.2s;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-
-        .option-btn:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.18);
-            border-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .option-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .option-btn.selected {
-            background: rgba(0, 122, 255, 0.25);
-            border-color: rgba(0, 122, 255, 0.5);
-        }
-
-        .option-btn.correct {
-            background: rgba(52, 199, 89, 0.25);
-            border-color: rgba(52, 199, 89, 0.5);
-        }
-
-        .option-btn.incorrect {
-            background: rgba(255, 59, 48, 0.25);
-            border-color: rgba(255, 59, 48, 0.5);
         }
 
         .answer-feedback {
@@ -101,14 +55,15 @@
             font-size: 28px;
             font-weight: 600;
             min-height: 40px;
+            font-family: 'Days One', sans-serif;
         }
 
         .answer-feedback.correct {
-            color: #34C759;
+            color: var(--color-green-alt);
         }
 
         .answer-feedback.incorrect {
-            color: #FF3B30;
+            color: var(--color-coral);
         }
 
         .results-screen {
@@ -120,7 +75,8 @@
             font-size: 72px;
             font-weight: 700;
             margin: 32px 0;
-            color: var(--success);
+            color: var(--color-green-alt);
+            font-family: 'Days One', sans-serif;
         }
 
         .stats {
@@ -128,35 +84,53 @@
         }
 
         .stat-item {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(245, 245, 245, 0.85);
             padding: 16px 20px;
             margin: 12px 0;
             border-radius: 12px;
             font-size: 18px;
             display: flex;
             justify-content: space-between;
+            border: 3px solid var(--color-black);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            font-family: 'Days One', sans-serif;
         }
 
         .link-to-leaderboard {
             margin-top: 32px;
         }
+
+        .link-to-leaderboard a {
+            color: var(--color-green-alt);
+            text-decoration: none;
+            font-size: 16px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Кнопка назад -->
+        <div class="back-button">
+            <a href="/index.html" class="btn" style="text-decoration: none; display: inline-block;">
+                ← Назад
+            </a>
+        </div>
+        
         <!-- Экран ввода имени -->
         <div id="name-input-screen" class="name-input-screen">
-            <h1>🎮 Квиз для друзей</h1>
+            <h1>🎮 Чемпионат ГНУ</h1>
             <p class="subtitle">Введите ваше имя</p>
             <div class="input-group">
                 <input type="text" id="player-name" placeholder="Ваше имя" maxlength="20" autocomplete="off">
             </div>
             <button class="btn full-width" id="start-btn">Начать игру</button>
-            <div class="link-to-leaderboard" style="margin-top: 20px;">
-                <a href="/leaderboard.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 16px;">
-                    📊 Посмотреть рейтинг
-                </a>
-            </div>
+            <a href="/leaderboard.html" class="btn full-width" style="margin-top: 20px; background: rgba(0, 193, 89, 0.85); color: white; text-decoration: none; display: inline-block; text-align: center;">
+                📊 Посмотреть рейтинг
+            </a>
         </div>
 
         <!-- Экран игры -->
@@ -189,11 +163,9 @@
                     </div>
                 </div>
                 <button class="btn full-width" id="play-again-btn">Играть снова</button>
-                <div class="link-to-leaderboard">
-                    <a href="/leaderboard.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 16px;">
-                        📊 Посмотреть рейтинг
-                    </a>
-                </div>
+                <a href="/leaderboard.html" class="btn full-width" style="margin-top: 16px; background: rgba(0, 193, 89, 0.85); color: white; text-decoration: none; display: inline-block; text-align: center;">
+                    📊 Посмотреть рейтинг
+                </a>
             </div>
         </div>
     </div>
@@ -247,6 +219,12 @@
             document.getElementById('name-input-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
             document.getElementById('results-screen').style.display = 'none';
+            
+            // Скрываем кнопку "Назад" во время игры
+            const backButton = document.querySelector('.back-button');
+            if (backButton) {
+                backButton.style.display = 'none';
+            }
             
             currentQuestion = 0;
             score = 0;
@@ -385,6 +363,12 @@
             document.getElementById('name-input-screen').style.display = 'block';
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('player-name').value = playerName;
+            
+            // Показываем кнопку "Назад" снова
+            const backButton = document.querySelector('.back-button');
+            if (backButton) {
+                backButton.style.display = 'block';
+            }
         });
 
         // Загрузка квиза при загрузке страницы

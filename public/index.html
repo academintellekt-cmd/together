@@ -4,85 +4,563 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Квиз - Выбор игры</title>
-    <link rel="stylesheet" href="/styles/common.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
     <style>
-        /* Специфичные стили для страницы выбора квиза */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', 'Montserrat', 'Open Sans', sans-serif;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            background: #F2F2F2;
+        }
+
         .container {
             max-width: 1200px;
             width: 100%;
+            margin: 0 auto;
+            padding: 80px 20px 40px;
+            position: relative;
+            z-index: 2;
             text-align: center;
         }
 
-        h1 {
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Caveat', cursive;
+        }
+
+        .main-title {
+            margin-bottom: 20px;
             animation: fadeInDown 0.8s ease;
+            text-align: center;
+        }
+
+        .main-title .hey {
+            font-family: 'Days One', sans-serif;
+            font-size: 116px;
+            font-weight: 700;
+            color: #383638;
+            display: inline-block;
+            transform: rotate(-2deg);
+            letter-spacing: 16px;
+            text-shadow: 4px 4px 0px #ff7674;
+            position: relative;
+            text-transform: uppercase;
+        }
+
+        .letter-m {
+            position: relative;
+            display: inline-block;
+        }
+
+        .letter-m::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 20%;
+            transform: translateX(calc(-50% - 5.5px));
+            width: 35px;
+            height: 35px;
+            background: #A8E063;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 
+                2px 1px 0 0 #000,
+                1px 2px 0 0 #000,
+                -1px 1px 0 0 #000,
+                0.5px -1px 0 0 #000,
+                -1.5px 0.5px 0 0 #000,
+                1.5px -0.5px 0 0 #000,
+                -0.5px 1.5px 0 0 #000;
+        }
+
+        .letter-m::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 70%;
+            transform: translateX(calc(-50% + 3.5px));
+            width: 35px;
+            height: 35px;
+            background: #FF6B6B;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 
+                2px 1px 0 0 #000,
+                1px 2px 0 0 #000,
+                -1px 1px 0 0 #000,
+                0.5px -1px 0 0 #000,
+                -1.5px 0.5px 0 0 #000,
+                1.5px -0.5px 0 0 #000,
+                -0.5px 1.5px 0 0 #000;
         }
 
         .subtitle {
-            font-size: 20px;
+            font-family: 'Caveat', cursive;
+            font-size: 52px;
+            color: #383638;
             margin-bottom: 50px;
-            opacity: 0.9;
+            font-weight: 400;
             animation: fadeInDown 1s ease;
+            text-shadow: none;
+            position: relative;
+            display: block;
+            text-align: center;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: #A8E063;
+            border-radius: 50% 40% 60% 30%;
+            opacity: 0.4;
+            z-index: -1;
+            animation: wobble 6s ease-in-out infinite;
+        }
+
+        .container::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            right: -80px;
+            width: 250px;
+            height: 250px;
+            background: #FF6B6B;
+            border-radius: 40% 50% 30% 60%;
+            opacity: 0.3;
+            z-index: -1;
+            animation: wobble 8s ease-in-out infinite reverse;
+        }
+
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(5deg) scale(1.1); }
+            50% { transform: rotate(-5deg) scale(0.9); }
+            75% { transform: rotate(3deg) scale(1.05); }
         }
 
         .quizzes-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 50px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .quiz-card {
+            background: rgba(245, 245, 245, 0.85);
+            border-radius: 25px;
+            padding: 25px 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease;
+            animation-fill-mode: both;
+            aspect-ratio: 4 / 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+            min-height: 0;
+        }
+
+        .quiz-card.empty {
+            background: rgba(255, 235, 201, 0.85);
+            border: none;
+            cursor: pointer;
+            box-shadow: 
+                0 6px 0px rgba(255, 118, 100, 0.3),
+                0 8px 16px rgba(255, 118, 100, 0.1);
+        }
+
+        .quiz-card.empty:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 8px 0px rgba(255, 118, 100, 0.4),
+                0 12px 24px rgba(255, 118, 100, 0.15);
+            background: rgba(255, 235, 201, 0.6);
+        }
+
+        .quiz-card.empty .quiz-title {
+            color: #ff7664;
+            font-family: 'Days One', sans-serif;
+            font-weight: 700;
+            font-size: 38px;
+            text-transform: uppercase;
+        }
+
+        .quiz-card.empty .quiz-subtitle {
+            color: #ff7664;
+            font-family: 'Days One', sans-serif;
+            font-weight: 400;
+            font-size: 26px;
+            margin-top: 8px;
+        }
+
+        .quiz-card:not(.empty):nth-child(1),
+        .quiz-card:not(.empty).solo-mode {
+            background: rgba(180, 242, 0, 0.85);
+            border: none;
+            box-shadow: 
+                0 6px 0px rgba(0, 193, 89, 0.3),
+                0 8px 16px rgba(0, 193, 89, 0.1);
+        }
+
+        .quiz-card:not(.empty):nth-child(1):hover,
+        .quiz-card:not(.empty).solo-mode:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 8px 0px rgba(0, 193, 89, 0.4),
+                0 12px 24px rgba(0, 193, 89, 0.15);
+            background: rgba(180, 242, 0, 0.6);
+        }
+
+        .quiz-card:not(.empty):nth-child(1) .quiz-title,
+        .quiz-card:not(.empty).solo-mode .quiz-title {
+            color: #00C159;
+            font-family: 'Days One', sans-serif;
+            font-weight: 700;
+            font-size: 26px;
+            max-height: 110px;
+            -webkit-line-clamp: 4;
+            line-clamp: 4;
+        }
+
+        .quiz-card:not(.empty):nth-child(1) .quiz-subtitle,
+        .quiz-card:not(.empty).solo-mode .quiz-subtitle {
+            color: #00C159;
+            font-family: 'Days One', sans-serif;
+            font-weight: 400;
+            font-size: 26px;
+            margin-top: 8px;
+        }
+
+        .quiz-card:not(.empty):nth-child(1) .quiz-icon,
+        .quiz-card:not(.empty).solo-mode .quiz-icon {
+            display: none;
+        }
+
+        .quiz-card:not(.empty):nth-child(1) .quiz-info,
+        .quiz-card:not(.empty).solo-mode .quiz-info {
+            font-family: 'Caveat', cursive;
+            font-size: 30px;
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .quiz-card:not(.empty):nth-child(n+2) {
+            background: #FFFFFF !important;
+            border: none !important;
+        }
+
+        .quiz-card:not(.empty):nth-child(n+2):hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 8px 0px rgba(0, 0, 0, 0.4),
+                0 12px 24px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .quiz-card:not(.empty):nth-child(n+2) .quiz-title {
+            color: #383638 !important;
+        }
+
+        .quiz-card:not(.empty):nth-child(n+2) .quiz-subtitle {
+            color: #383638 !important;
+        }
+
+        .quiz-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 8px 0px rgba(0, 0, 0, 0.4),
+                0 12px 24px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+
+        .quiz-card:active {
+            transform: translateY(-4px) scale(0.98);
+        }
+
+        .hand-drawn-icon {
+            width: 32px;
+            height: 32px;
+            display: inline-block;
+            vertical-align: middle;
         }
 
         .quiz-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
+            font-size: 48px;
+            margin-bottom: 10px;
             display: block;
-            animation: bounce 2s infinite;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+            animation: iconFloat 3s ease-in-out infinite;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-8px) rotate(5deg);
+            }
         }
 
         .quiz-title {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            font-family: 'Days One', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #000;
+            line-height: 1.3;
+            flex-shrink: 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            max-height: 100px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            line-clamp: 4;
+            -webkit-box-orient: vertical;
+            text-align: center;
+        }
+
+        .quiz-subtitle {
+            font-family: 'Days One', sans-serif;
+            font-size: 26px;
+            font-weight: 400;
+            margin-top: 8px;
+            color: #333;
         }
 
         .quiz-description {
-            font-size: 16px;
-            opacity: 0.9;
-            margin-bottom: 20px;
+            font-family: 'Days One', sans-serif;
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 10px;
             line-height: 1.5;
+            font-weight: 400;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            min-height: 0;
         }
 
         .quiz-info {
             display: flex;
             justify-content: space-around;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 14px;
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 3px solid #000;
+            font-size: 20px;
+            width: 100%;
+            flex-shrink: 0;
+            font-weight: 600;
+            font-family: 'Days One', sans-serif;
         }
 
         .quiz-info-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
+            color: #000;
+            font-family: 'Days One', sans-serif;
         }
 
         .quiz-info-icon {
             font-size: 20px;
+            opacity: 1;
+        }
+
+        .quiz-info-item span:last-child {
+            font-weight: 500;
+            font-size: 20px;
+            font-family: 'Days One', sans-serif;
+        }
+
+        .quiz-mode-badge {
+            margin-top: 10px;
+            font-size: 14px;
+            font-family: 'Days One', sans-serif;
+            color: #00C159;
+            font-weight: 600;
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
-            font-size: 24px;
+            padding: 60px 40px;
+            font-size: 22px;
+            color: #000;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            text-shadow: 2px 2px 0px #A8E063;
+            position: relative;
+        }
+
+        .loading::before {
+            content: 'ooo';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            opacity: 0.3;
+            letter-spacing: 8px;
+        }
+
+        .error {
+            background: #FF6B6B;
+            border: 4px solid #000;
+            color: #FFFFFF;
+            padding: 20px;
+            border-radius: 25px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            box-shadow: 0 6px 0px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .main-title .hey {
+                font-size: 96px;
+                letter-spacing: 12px;
+            }
+
+            .subtitle {
+                font-size: 44px;
+            }
+
+            .quizzes-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 18px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-title .hey {
+                font-size: 76px;
+                letter-spacing: 10px;
+            }
+
+            .subtitle {
+                font-size: 38px;
+            }
+
+            .quizzes-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .container {
+                padding: 60px 15px 30px;
+            }
+
+            .quiz-title {
+                font-size: 20px;
+                max-height: 80px;
+                -webkit-line-clamp: 3;
+                line-clamp: 3;
+            }
+
+            .quiz-card:not(.empty):nth-child(1) .quiz-title,
+            .quiz-card:not(.empty).solo-mode .quiz-title {
+                font-size: 22px;
+                max-height: 90px;
+                -webkit-line-clamp: 3;
+                line-clamp: 3;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-title .hey {
+                font-size: 56px;
+                letter-spacing: 6px;
+            }
+
+            .subtitle {
+                font-size: 28px;
+            }
+
+            .quizzes-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .container {
+                padding: 50px 10px 20px;
+            }
+
+            .quiz-title {
+                font-size: 18px;
+                max-height: 70px;
+                -webkit-line-clamp: 3;
+                line-clamp: 3;
+            }
+
+            .quiz-card:not(.empty):nth-child(1) .quiz-title,
+            .quiz-card:not(.empty).solo-mode .quiz-title {
+                font-size: 20px;
+                max-height: 80px;
+                -webkit-line-clamp: 3;
+                line-clamp: 3;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎮 Выберите квиз</h1>
-        <p class="subtitle">Выберите тему для вашей игры</p>
+        <div class="main-title">
+            <span class="hey">В<span class="letter-m">М</span>ЕСТЕ</span>
+        </div>
+        <p class="subtitle">хорошие люди объединяются играми</p>
         
         <div id="loading" class="loading">Загрузка квизов...</div>
         <div id="error" class="error" style="display: none;"></div>
@@ -90,7 +568,6 @@
     </div>
 
     <script>
-        // Загрузка списка квизов
         async function loadQuizzes() {
             try {
                 const response = await fetch('/api/quizzes');
@@ -115,53 +592,153 @@
             grid.style.display = 'grid';
             grid.innerHTML = '';
 
-            quizzes.forEach((quiz, index) => {
-                const card = document.createElement('div');
-                card.className = 'quiz-card' + (quiz.comingSoon ? ' coming-soon' : '');
-                card.style.animationDelay = (index * 0.1) + 's';
-                
-                if (!quiz.comingSoon) {
-                    card.addEventListener('click', () => {
-                        // Если квиз поддерживает соло-режим, переходим на solo.html
-                        if (quiz.soloMode) {
-                            window.location.href = `/solo.html?quiz=${quiz.id}`;
-                        } else {
-                            window.location.href = `/host.html?quiz=${quiz.id}`;
-                        }
-                    });
-                }
-
-                const icon = quiz.icon || '📚';
-                const description = quiz.description || 'Проверьте свои знания!';
-                const questionCount = quiz.questionCount || 0;
-                const avgTime = quiz.avgTime || 0;
-
-                const modeBadge = quiz.soloMode ? '<div style="margin-top: 10px; font-size: 14px; opacity: 0.8;">🎮 Соло-режим</div>' : '';
-                
-                card.innerHTML = `
-                    <span class="quiz-icon">${icon}</span>
-                    <div class="quiz-title">${quiz.name}</div>
-                    <div class="quiz-description">${description}</div>
-                    ${modeBadge}
-                    <div class="quiz-info">
-                        <div class="quiz-info-item">
-                            <span class="quiz-info-icon">❓</span>
-                            <span>${questionCount} вопросов</span>
-                        </div>
-                        <div class="quiz-info-item">
-                            <span class="quiz-info-icon">⏱️</span>
-                            <span>~${avgTime} сек</span>
-                        </div>
-                    </div>
-                `;
-
-                grid.appendChild(card);
+            const totalSlots = 9;
+            const existingQuizzes = quizzes || [];
+            const quizMap = new Map();
+            existingQuizzes.forEach((quiz, index) => {
+                quizMap.set(index, quiz);
             });
+
+            for (let i = 0; i < totalSlots; i++) {
+                const quiz = quizMap.get(i);
+                
+                if (quiz) {
+                    const card = document.createElement('div');
+                    card.className = 'quiz-card' + (quiz.soloMode ? ' solo-mode' : '');
+                    card.style.animationDelay = (i * 0.1) + 's';
+                    
+                    if (!quiz.comingSoon) {
+                        card.addEventListener('click', () => {
+                            if (quiz.soloMode) {
+                                window.location.href = `/solo.html?quiz=${quiz.id}`;
+                            } else {
+                                window.location.href = `/host.html?quiz=${quiz.id}`;
+                            }
+                        });
+                    }
+
+                    const icon = quiz.icon || '📚';
+                    const description = quiz.description || 'Проверьте свои знания!';
+                    const questionCount = quiz.questionCount || 0;
+                    const avgTime = quiz.avgTime || 0;
+                    const totalQuestionsInBase = quiz.totalQuestionsInBase || quiz.questionCount || 0;
+                    const questionCountText = quiz.soloMode ? `15 из ${totalQuestionsInBase} вопросов` : `${questionCount} вопросов`;
+                    const modeBadge = quiz.soloMode ? '<div class="quiz-mode-badge">🎮 Соло-режим</div>' : '';
+
+                    let cardHTML = '';
+                    // Первая карточка или квиз с soloMode оформляются в специальном стиле
+                    if (i === 0 || quiz.soloMode) {
+                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                            <text x="20" y="32" 
+                                  font-family="Kalam, cursive" 
+                                  font-size="36" 
+                                  font-weight="700"
+                                  fill="#383638" 
+                                  text-anchor="middle">?</text>
+                        </svg>`;
+                        
+                        const timeSeconds = avgTime || 15;
+                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
+                                  stroke="#383638" stroke-width="4" fill="none" 
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="16" y1="16" x2="16" y2="10" 
+                                  stroke="#383638" stroke-width="3.5" 
+                                  stroke-linecap="round"/>
+                            <line x1="16" y1="16" x2="21" y2="21" 
+                                  stroke="#383638" stroke-width="3.5" 
+                                  stroke-linecap="round"/>
+                        </svg>`;
+
+                        cardHTML = `
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
+                                <div class="quiz-title">${quiz.name}</div>
+                                <div class="quiz-subtitle">${description}</div>
+                                ${modeBadge}
+                            </div>
+                            <div class="quiz-info">
+                                <div class="quiz-info-item">
+                                    ${questionIcon}
+                                    <span>${questionCountText}</span>
+                                </div>
+                                <div class="quiz-info-item">
+                                    ${clockIcon}
+                                    <span>по ${timeSeconds} сек</span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        cardHTML = `
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
+                                <span class="quiz-icon">${icon}</span>
+                                <div class="quiz-title">${quiz.name}</div>
+                                <div class="quiz-description">${description}</div>
+                                ${modeBadge}
+                            </div>
+                            <div class="quiz-info">
+                                <div class="quiz-info-item">
+                                    <span class="quiz-info-icon">❓</span>
+                                    <span>${questionCountText}</span>
+                                </div>
+                                <div class="quiz-info-item">
+                                    <span class="quiz-info-icon">⏱️</span>
+                                    <span>~${avgTime} сек</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    card.innerHTML = cardHTML;
+                    grid.appendChild(card);
+                } else {
+                    const card = document.createElement('div');
+                    card.className = 'quiz-card empty';
+                    card.style.animationDelay = (i * 0.1) + 's';
+
+                    const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                        <text x="20" y="32" 
+                              font-family="Kalam, cursive" 
+                              font-size="36" 
+                              font-weight="700"
+                              fill="#383638" 
+                              text-anchor="middle">?</text>
+                    </svg>`;
+                    
+                    const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
+                              stroke="#383638" stroke-width="4" fill="none" 
+                              stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="16" y1="16" x2="16" y2="10" 
+                              stroke="#383638" stroke-width="3.5" 
+                              stroke-linecap="round"/>
+                        <line x1="16" y1="16" x2="21" y2="21" 
+                              stroke="#383638" stroke-width="3.5" 
+                              stroke-linecap="round"/>
+                    </svg>`;
+
+                    card.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
+                            <div class="quiz-title">СКОРО</div>
+                            <div class="quiz-subtitle">новый квиз здесь</div>
+                        </div>
+                        <div class="quiz-info">
+                            <div class="quiz-info-item">
+                                ${questionIcon}
+                                <span>...</span>
+                            </div>
+                            <div class="quiz-info-item">
+                                ${clockIcon}
+                                <span>...</span>
+                            </div>
+                        </div>
+                    `;
+
+                    grid.appendChild(card);
+                }
+            }
         }
 
-        // Загружаем квизы при загрузке страницы
         loadQuizzes();
     </script>
 </body>
 </html>
-

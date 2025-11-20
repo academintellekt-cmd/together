@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Квиз - Главный экран</title>
-    <link rel="stylesheet" href="/styles/common.css">
+    <link rel="stylesheet" href="/styles/brand-style.css">
     <script src="/socket.io/socket.io.js"></script>
     <style>
         /* Специфичные стили для страницы хоста */
@@ -17,7 +17,8 @@
             font-weight: bold;
             letter-spacing: 10px;
             margin: 30px 0;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
         }
 
         #qrcode {
@@ -42,6 +43,8 @@
             font-size: 36px;
             margin: 40px 0;
             line-height: 1.4;
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
         }
 
         .results-screen {
@@ -49,11 +52,17 @@
         }
 
         .correct-answer {
-            background: rgba(76, 175, 80, 0.3);
+            background: rgba(0, 193, 89, 0.25);
+            border: 3px solid var(--color-green-alt);
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 12px;
             margin: 20px 0;
             font-size: 24px;
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
+            box-shadow: 
+                0 4px 0px rgba(0, 193, 89, 0.3),
+                0 6px 12px rgba(0, 193, 89, 0.2);
         }
 
         .final-results {
@@ -71,11 +80,14 @@
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(245, 245, 245, 0.95);
             backdrop-filter: blur(10px);
             padding: 15px 20px;
             z-index: 1000;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 3px solid var(--color-black);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
         }
 
         .hub-content {
@@ -100,14 +112,20 @@
             align-items: center;
             gap: 8px;
             padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(245, 245, 245, 0.85);
+            border: 2px solid var(--color-black);
             border-radius: 20px;
             font-size: 14px;
             transition: all 0.3s;
+            font-family: 'Nunito', sans-serif;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .hub-player:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+            transform: translateY(-2px);
         }
 
         .hub-player-name {
@@ -148,6 +166,9 @@
 
         .hub-code {
             font-size: 18px;
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
+            font-weight: 700;
             font-weight: bold;
             letter-spacing: 3px;
             opacity: 0.9;
@@ -179,14 +200,21 @@
             </div>
             <div class="hub-actions">
                 <div class="hub-code" id="hub-code">----</div>
-                <a href="/index.html" style="display: inline-block; background: rgba(255, 255, 255, 0.1); color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s;">
-                    « Назад
+                <a href="/index.html" class="btn" style="text-decoration: none; display: inline-block; font-size: 14px; padding: 8px 15px;">
+                    ← Назад
                 </a>
             </div>
         </div>
     </div>
 
     <div class="container">
+        <!-- Кнопка назад на экране лобби -->
+        <div id="lobby-back-btn" style="position: absolute; top: 20px; left: 20px; z-index: 10;">
+            <a href="/index.html" class="btn" style="text-decoration: none; display: inline-block;">
+                ← Назад
+            </a>
+        </div>
+        
         <!-- Лобби -->
         <div id="lobby-screen" class="lobby-screen">
             <h1>Создайте комнату</h1>
@@ -660,6 +688,11 @@
             socket.on('game-started', () => {
                 document.getElementById('lobby-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'block';
+                // Скрываем кнопку "Назад" на экране лобби
+                const lobbyBackBtn = document.getElementById('lobby-back-btn');
+                if (lobbyBackBtn) {
+                    lobbyBackBtn.style.display = 'none';
+                }
             });
 
             // Вопрос
@@ -837,6 +870,12 @@
         
         async function startSoloMode() {
             soloMode = true;
+            
+            // Скрываем кнопку "Назад" на экране лобби
+            const lobbyBackBtn = document.getElementById('lobby-back-btn');
+            if (lobbyBackBtn) {
+                lobbyBackBtn.style.display = 'none';
+            }
             
             // Загружаем вопросы для соло режима
             try {

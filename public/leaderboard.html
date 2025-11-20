@@ -4,10 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Рейтинг - Квиз для друзей</title>
-    <link rel="stylesheet" href="/styles/common.css">
+    <link rel="stylesheet" href="/styles/brand-style.css">
     <style>
         .container {
             max-width: 800px;
+            position: relative;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
         }
 
         h1 {
@@ -121,7 +129,8 @@
         .player-score {
             font-size: 32px;
             font-weight: 700;
-            color: var(--success);
+            color: var(--color-green-alt);
+            font-family: 'Days One', sans-serif;
         }
 
         .empty-state {
@@ -141,13 +150,15 @@
         }
 
         .back-link a {
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--color-green-alt);
             text-decoration: none;
             font-size: 16px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
         }
 
         .back-link a:hover {
-            color: white;
+            color: var(--color-green);
             text-decoration: underline;
         }
 
@@ -155,11 +166,21 @@
             text-align: center;
             padding: 40px;
             font-size: 24px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            color: var(--color-dark);
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Кнопка назад -->
+        <div class="back-button">
+            <a href="/index.html" class="btn" style="text-decoration: none; display: inline-block;">
+                ← Назад
+            </a>
+        </div>
+        
         <h1>🏆 Рейтинг</h1>
         <p class="subtitle">Лучшие результаты в квизе для друзей</p>
 
@@ -177,9 +198,6 @@
             <p style="margin-top: 20px; font-size: 16px;">Будьте первым, кто пройдет квиз!</p>
         </div>
 
-        <div class="back-link">
-            <a href="/index.html">← Вернуться к выбору квиза</a>
-        </div>
     </div>
 
     <script>
