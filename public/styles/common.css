@@ -3,6 +3,104 @@
    Apple-inspired Minimalist Design
    ============================================ */
 
+/* === ПОДКЛЮЧЕНИЕ ШРИФТА GEOMETRIA === */
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-Thin.otf') format('opentype');
+    font-weight: 100;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-ExtraLight.otf') format('opentype');
+    font-weight: 200;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-Light.otf') format('opentype');
+    font-weight: 300;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-Medium.otf') format('opentype');
+    font-weight: 500;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-Bold.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-Heavy.otf') format('opentype');
+    font-weight: 800;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-ExtaBlack.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-Italic.otf') format('opentype');
+    font-weight: 400;
+    font-style: italic;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-ThinItalic.otf') format('opentype');
+    font-weight: 100;
+    font-style: italic;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-ExtraLightItalic.otf') format('opentype');
+    font-weight: 200;
+    font-style: italic;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-LightItalic.otf') format('opentype');
+    font-weight: 300;
+    font-style: italic;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-MediumItalic.otf') format('opentype');
+    font-weight: 500;
+    font-style: italic;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-BoldItalic.otf') format('opentype');
+    font-weight: 700;
+    font-style: italic;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-HeavyItalic.otf') format('opentype');
+    font-weight: 800;
+    font-style: italic;
+}
+@font-face {
+    font-family: 'Geometria';
+    src: url('/Geometria/Geometria-ExtraBlackItalic.otf') format('opentype');
+    font-weight: 900;
+    font-style: italic;
+}
+
 /* === БАЗОВЫЕ СТИЛИ === */
 * {
     margin: 0;
@@ -41,7 +139,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Geometria', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: var(--gradient-primary);
     color: white;
     min-height: 100vh;
@@ -171,6 +269,7 @@ p {
     padding: 14px 32px;
     font-size: 17px;
     font-weight: 500;
+    font-family: inherit;
     border-radius: 12px;
     cursor: pointer;
     margin: 8px;
@@ -526,6 +625,7 @@ select:focus {
     padding: 18px 24px;
     font-size: 17px;
     font-weight: 500;
+    font-family: inherit;
     border-radius: 14px;
     cursor: pointer;
     margin: 10px 0;
