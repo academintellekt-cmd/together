@@ -4,7 +4,6 @@ const socketIo = require('socket.io');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { google } = require('googleapis');
 
 const app = express();
 const server = http.createServer(app);
@@ -14,12 +13,6 @@ const io = socketIo(server, {
     methods: ["GET", "POST"]
   }
 });
-
-// URL Google Apps Script Web App для записи результатов
-// Можно переопределить через переменную окружения GOOGLE_APPS_SCRIPT_URL
-if (!process.env.GOOGLE_APPS_SCRIPT_URL) {
-  process.env.GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxesMEtekXqo7tsB0vGSsAUx1WPrQ0CFw3wjJmg22phlNXRhG5oqn_w7-15gRBKQhFG0w/exec';
-}
 
 app.use(cors());
 app.use(express.json());
@@ -42,27 +35,17 @@ function loadQuestionsFromFile(filePath) {
     }
 
     const fileContent = fs.readFileSync(filePath, 'utf8');
-    const lines = fileContent.split('\n').map(line => line.trim());
+    const lines = fileContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
     const questions = [];
     let currentQuestion = null;
     let questionId = 1;
 
     for (let i = 0; i < lines.length; i++) {
-      let line = lines[i];
+      const line = lines[i];
       
-      // Пропускаем пустые строки
-      if (!line || line.length === 0) {
-        continue;
-      }
-      
-      // Пропускаем комментарии
-      if (line.startsWith('//') || line.startsWith('#')) {
-        continue;
-      }
-
-      // Пропускаем строки "Вопрос N"
-      if (line.match(/^Вопрос\s+\d+$/i)) {
+      // Пропускаем пустые строки и комментарии
+      if (!line || line.startsWith('//') || line.startsWith('#')) {
         continue;
       }
 
@@ -82,20 +65,12 @@ function loadQuestionsFromFile(filePath) {
           time: 20 // По умолчанию 20 секунд
         };
       }
-      // Если строка начинается с "+" или "*", это вариант ответа
+      // Если строка начинается с "+" или "*", это правильный ответ
       else if (line.startsWith('+') || line.startsWith('*')) {
         if (currentQuestion) {
-          // Убираем префикс и проверяем на звездочку в конце
-          let answer = line.substring(1).trim();
-          const isCorrect = answer.endsWith('★') || answer.endsWith('*');
-          
-          // Убираем звездочку из текста
-          answer = answer.replace(/[★*]$/, '').trim();
-          
+          const answer = line.substring(1).trim();
           currentQuestion.options.push(answer);
-          
-          // Если это правильный ответ (была звездочка), запоминаем индекс
-          if (isCorrect && currentQuestion.correct === -1) {
+          if (currentQuestion.correct === -1) {
             currentQuestion.correct = currentQuestion.options.length - 1;
           }
         }
@@ -103,7 +78,7 @@ function loadQuestionsFromFile(filePath) {
       // Если строка начинается с "-", это неправильный ответ
       else if (line.startsWith('-')) {
         if (currentQuestion) {
-          const answer = line.substring(1).trim().replace(/[★*]$/, '').trim();
+          const answer = line.substring(1).trim();
           currentQuestion.options.push(answer);
         }
       }
@@ -116,17 +91,9 @@ function loadQuestionsFromFile(filePath) {
           }
         }
       }
-      // Иначе это может быть вариант ответа без префикса (проверяем на звездочку)
+      // Иначе это может быть вариант ответа без префикса
       else if (currentQuestion && currentQuestion.options.length < 4) {
-        let answer = line.trim();
-        const isCorrect = answer.endsWith('★') || answer.endsWith('*');
-        answer = answer.replace(/[★*]$/, '').trim();
-        
-        currentQuestion.options.push(answer);
-        
-        if (isCorrect && currentQuestion.correct === -1) {
-          currentQuestion.correct = currentQuestion.options.length - 1;
-        }
+        currentQuestion.options.push(line);
       }
     }
 
@@ -135,34 +102,8 @@ function loadQuestionsFromFile(filePath) {
       questions.push(currentQuestion);
     }
 
-    // Перемешиваем варианты ответов для каждого вопроса
-    questions.forEach(question => {
-      if (question.options.length > 0 && question.correct >= 0) {
-        // Сохраняем правильный ответ
-        const correctAnswer = question.options[question.correct];
-        
-        // Перемешиваем все варианты
-        const shuffledOptions = question.options.sort(() => Math.random() - 0.5);
-        
-        // Находим новый индекс правильного ответа
-        const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
-        
-        // Обновляем вопрос
-        question.options = shuffledOptions;
-        question.correct = newCorrectIndex;
-      }
-    });
-
-    // Перемешиваем вопросы случайным образом
-    const shuffled = questions.sort(() => Math.random() - 0.5);
-    
-    // Переназначаем ID для последовательности
-    shuffled.forEach((q, index) => {
-      q.id = index + 1;
-    });
-
-    console.log(`Загружено ${shuffled.length} вопросов из файла ${filePath} (перемешано)`);
-    return shuffled;
+    console.log(`Загружено ${questions.length} вопросов из файла ${filePath}`);
+    return questions;
   } catch (error) {
     console.error(`Ошибка при загрузке вопросов из файла ${filePath}:`, error);
     return [];
@@ -266,15 +207,7 @@ const quizzes = {
 };
 
 // Загрузка вопросов для квиза друзей из файла
-// Сначала пробуем загрузить из Quiz/GNU.txt, если нет - из questions.txt
-const gnuQuestionsPath = path.join(__dirname, 'Quiz', 'GNU.txt');
-const defaultQuestionsPath = path.join(__dirname, 'questions.txt');
-
-let questionsFilePath = gnuQuestionsPath;
-if (!fs.existsSync(gnuQuestionsPath)) {
-  questionsFilePath = defaultQuestionsPath;
-}
-
+const questionsFilePath = path.join(__dirname, 'questions.txt');
 quizzes['friends-quiz'].questions = loadQuestionsFromFile(questionsFilePath);
 
 // Получение списка квизов
@@ -284,23 +217,12 @@ app.get('/api/quizzes', (req, res) => {
       ? Math.round(quiz.questions.reduce((sum, q) => sum + q.time, 0) / quiz.questions.length)
       : 0;
     
-    // Для квиза друзей показываем, что будет выбрано 15 вопросов из базы
-    let questionCount = quiz.questions.length;
-    let questionInfo = `${questionCount} вопросов`;
-    
-    if (quiz.id === 'friends-quiz' && questionCount > 15) {
-      questionInfo = `15 из ${questionCount} вопросов`;
-      questionCount = 15; // Показываем количество вопросов в игре
-    }
-    
     return {
       id: quiz.id,
       name: quiz.name,
       description: quiz.description,
       icon: quiz.icon,
-      questionCount: questionCount,
-      questionInfo: questionInfo, // Дополнительная информация
-      totalQuestionsInBase: quiz.questions.length, // Общее количество в базе
+      questionCount: quiz.questions.length,
       avgTime: avgTime,
       comingSoon: false,
       soloMode: quiz.soloMode || false
@@ -319,212 +241,17 @@ app.get('/api/quizzes/:id', (req, res) => {
     return res.status(404).json({ error: 'Квиз не найден' });
   }
   
-  let questionsToReturn = quiz.questions;
-  
-  // Для квиза друзей выбираем случайные 15 вопросов из базы
-  if (quizId === 'friends-quiz' && quiz.questions.length > 15) {
-    // Создаем копию массива и перемешиваем
-    const shuffled = [...quiz.questions].sort(() => Math.random() - 0.5);
-    // Берем первые 15
-    questionsToReturn = shuffled.slice(0, 15);
-    
-    // Перемешиваем варианты ответов для каждого вопроса
-    questionsToReturn = questionsToReturn.map((q, index) => {
-      // Создаем глубокую копию вопроса
-      const questionCopy = {
-        ...q,
-        options: [...q.options],
-        id: index + 1
-      };
-      
-      // Перемешиваем варианты ответов
-      if (questionCopy.options.length > 0 && questionCopy.correct >= 0) {
-        // Сохраняем правильный ответ
-        const correctAnswer = questionCopy.options[questionCopy.correct];
-        
-        // Перемешиваем все варианты
-        const shuffledOptions = questionCopy.options.sort(() => Math.random() - 0.5);
-        
-        // Находим новый индекс правильного ответа
-        const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
-        
-        // Обновляем вопрос
-        questionCopy.options = shuffledOptions;
-        questionCopy.correct = newCorrectIndex;
-      }
-      
-      return questionCopy;
-    });
-  }
-  
   res.json({
     id: quiz.id,
     name: quiz.name,
     description: quiz.description,
-    questions: questionsToReturn,
-    soloMode: quiz.soloMode || false,
-    totalQuestionsInBase: quiz.questions.length // Информация о размере базы
+    questions: quiz.questions,
+    soloMode: quiz.soloMode || false
   });
 });
 
-// Функция записи результата в Google Sheets через API
-async function writeToGoogleSheetsAPI(result) {
-  try {
-    // ID таблицы из переменной окружения или конфига
-    const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID || '';
-    
-    if (!SPREADSHEET_ID) {
-      return false; // Пробуем альтернативный способ
-    }
-    
-    // Проверяем наличие credentials файла
-    const credentialsPath = path.join(__dirname, 'google-credentials.json');
-    if (!fs.existsSync(credentialsPath)) {
-      return false; // Пробуем альтернативный способ
-    }
-
-    const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
-    
-    // Настройка аутентификации
-    const auth = new google.auth.GoogleAuth({
-      credentials: credentials,
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-
-    const sheets = google.sheets({ version: 'v4', auth });
-
-    // Форматируем данные
-    const date = new Date(result.date);
-    const formattedDate = date.toLocaleString('ru-RU', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-
-    const minutes = Math.floor(result.timeSpent / 60);
-    const seconds = result.timeSpent % 60;
-    const formattedTime = `${minutes}м ${seconds}с`;
-
-    const percentage = result.totalQuestions > 0 
-      ? Math.round((result.correctAnswers / result.totalQuestions) * 100) 
-      : 0;
-
-    const values = [[
-      formattedDate,
-      result.playerName,
-      result.score,
-      result.correctAnswers,
-      result.totalQuestions,
-      percentage + '%',
-      formattedTime,
-      result.quizId === 'friends-quiz' ? 'Чемпионат ГНУ' : result.quizId
-    ]];
-
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: SPREADSHEET_ID,
-      range: 'Лист1!A:H',
-      valueInputOption: 'USER_ENTERED',
-      insertDataOption: 'INSERT_ROWS',
-      resource: { values: values },
-    });
-
-    console.log('Данные успешно записаны в Google Sheets через API');
-    return true;
-  } catch (error) {
-    console.error('Ошибка при записи в Google Sheets через API:', error.message);
-    return false;
-  }
-}
-
-// Функция записи результата в Google Sheets через Apps Script Web App
-async function writeToGoogleSheetsWebApp(result) {
-  try {
-    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || '';
-    
-    if (!WEB_APP_URL) {
-      return false;
-    }
-
-    // Форматируем данные
-    const minutes = Math.floor(result.timeSpent / 60);
-    const seconds = result.timeSpent % 60;
-    const formattedTime = `${minutes}м ${seconds}с`;
-
-    const percentage = result.totalQuestions > 0 
-      ? Math.round((result.correctAnswers / result.totalQuestions) * 100) 
-      : 0;
-
-    const data = {
-      date: result.date,
-      playerName: result.playerName,
-      score: result.score,
-      correctAnswers: result.correctAnswers,
-      totalQuestions: result.totalQuestions,
-      timeSpent: result.timeSpent, // Передаем в секундах, Apps Script сам отформатирует
-      percentage: percentage,
-      quizId: result.quizId === 'friends-quiz' ? 'Чемпионат ГНУ' : result.quizId
-    };
-
-    const https = require('https');
-    const http = require('http');
-    const url = require('url');
-    
-    const parsedUrl = new URL(WEB_APP_URL);
-    const client = parsedUrl.protocol === 'https:' ? https : http;
-    
-    const postData = JSON.stringify(data);
-    
-    const options = {
-      hostname: parsedUrl.hostname,
-      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
-      path: parsedUrl.pathname + parsedUrl.search,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
-      }
-    };
-
-    return new Promise((resolve) => {
-      const req = client.request(options, (res) => {
-        if (res.statusCode === 200) {
-          console.log('Данные успешно записаны в Google Sheets через Web App');
-          resolve(true);
-        } else {
-          console.error('Ошибка записи в Google Sheets Web App:', res.statusCode);
-          resolve(false);
-        }
-      });
-
-      req.on('error', (error) => {
-        console.error('Ошибка при запросе к Google Sheets Web App:', error.message);
-        resolve(false);
-      });
-
-      req.write(postData);
-      req.end();
-    });
-  } catch (error) {
-    console.error('Ошибка при записи в Google Sheets через Web App:', error.message);
-    return false;
-  }
-}
-
-// Основная функция записи в Google Sheets (пробует оба способа)
-async function writeToGoogleSheets(result) {
-  // Сначала пробуем через API
-  const apiSuccess = await writeToGoogleSheetsAPI(result);
-  if (apiSuccess) return;
-
-  // Если не получилось, пробуем через Web App
-  await writeToGoogleSheetsWebApp(result);
-}
-
 // Сохранение результата в рейтинг
-app.post('/api/leaderboard', async (req, res) => {
+app.post('/api/leaderboard', (req, res) => {
   const { playerName, quizId, score, correctAnswers, totalQuestions, timeSpent } = req.body;
   
   if (!playerName || !quizId || score === undefined) {
@@ -555,11 +282,6 @@ app.post('/api/leaderboard', async (req, res) => {
   if (leaderboard.length > 100) {
     leaderboard.splice(100);
   }
-
-  // Записываем в Google Sheets (асинхронно, не блокируем ответ)
-  writeToGoogleSheets(result).catch(err => {
-    console.error('Ошибка записи в Google Sheets:', err);
-  });
   
   res.json({ success: true, result: result });
 });
@@ -598,21 +320,13 @@ app.post('/api/reload-questions', (req, res) => {
   const { quizId } = req.body;
   
   if (quizId === 'friends-quiz') {
-    // Сначала пробуем загрузить из Quiz/GNU.txt, если нет - из questions.txt
-    const gnuQuestionsPath = path.join(__dirname, 'Quiz', 'GNU.txt');
-    const defaultQuestionsPath = path.join(__dirname, 'questions.txt');
-    
-    let questionsFilePath = gnuQuestionsPath;
-    if (!fs.existsSync(gnuQuestionsPath)) {
-      questionsFilePath = defaultQuestionsPath;
-    }
-    
+    const questionsFilePath = path.join(__dirname, 'questions.txt');
     const loadedQuestions = loadQuestionsFromFile(questionsFilePath);
     quizzes['friends-quiz'].questions = loadedQuestions;
     
     res.json({ 
       success: true, 
-      message: `Вопросы перезагружены. Загружено ${loadedQuestions.length} вопросов (перемешано).`,
+      message: `Вопросы перезагружены. Загружено ${loadedQuestions.length} вопросов.`,
       questionCount: loadedQuestions.length
     });
   } else {
@@ -995,18 +709,26 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
-  console.log(`Откройте http://localhost:${PORT}/index.html для выбора квиза`);
-  console.log(`Или http://localhost:${PORT}/player.html для игроков`);
-}).on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`Порт ${PORT} уже занят. Попробуйте другой порт:`);
-    console.error(`PORT=3001 npm start`);
-    process.exit(1);
-  } else {
-    console.error('Ошибка запуска сервера:', err);
-    process.exit(1);
-  }
-});
+
+// Запуск сервера только если файл запущен напрямую (не импортирован)
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`Сервер запущен на порту ${PORT}`);
+    console.log(`Откройте http://localhost:${PORT}/index.html для выбора квиза`);
+    console.log(`Или http://localhost:${PORT}/player.html для игроков`);
+  }).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Порт ${PORT} уже занят. Попробуйте другой порт:`);
+      console.error(`PORT=3001 npm start`);
+      process.exit(1);
+    } else {
+      console.error('Ошибка запуска сервера:', err);
+      process.exit(1);
+    }
+  });
+}
+
+// Экспорт для Vercel и других платформ деплоя
+// Vercel требует экспорт app для serverless функций
+module.exports = app;
 
