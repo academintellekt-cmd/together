@@ -995,18 +995,25 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
-  console.log(`Откройте http://localhost:${PORT}/index.html для выбора квиза`);
-  console.log(`Или http://localhost:${PORT}/player.html для игроков`);
-}).on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`Порт ${PORT} уже занят. Попробуйте другой порт:`);
-    console.error(`PORT=3001 npm start`);
-    process.exit(1);
-  } else {
-    console.error('Ошибка запуска сервера:', err);
-    process.exit(1);
-  }
-});
+
+// Запуск сервера только если файл запущен напрямую (не импортирован)
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`Сервер запущен на порту ${PORT}`);
+    console.log(`Откройте http://localhost:${PORT}/index.html для выбора квиза`);
+    console.log(`Или http://localhost:${PORT}/player.html для игроков`);
+  }).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Порт ${PORT} уже занят. Попробуйте другой порт:`);
+      console.error(`PORT=3001 npm start`);
+      process.exit(1);
+    } else {
+      console.error('Ошибка запуска сервера:', err);
+      process.exit(1);
+    }
+  });
+}
+
+// Экспорт для Vercel и других платформ деплоя
+module.exports = { app, server, io };
 
