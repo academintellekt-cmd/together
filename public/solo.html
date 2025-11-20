@@ -220,14 +220,6 @@
                     throw new Error('Квиз не найден');
                 }
                 quiz = await response.json();
-                
-                // Проверяем, что вопросы загружены
-                if (!quiz.questions || quiz.questions.length === 0) {
-                    alert('Вопросы не найдены. Убедитесь, что файл questions.txt содержит вопросы.');
-                    return;
-                }
-                
-                console.log(`Загружено ${quiz.questions.length} вопросов для игры (из ${quiz.totalQuestionsInBase || quiz.questions.length} в базе)`);
             } catch (error) {
                 console.error('Ошибка загрузки квиза:', error);
                 alert('Не удалось загрузить квиз');
