@@ -1,0 +1,14 @@
+# Render конфигурация (опционально)
+# Можно использовать для автоматического деплоя через Render Dashboard
+
+services:
+  - type: web
+    name: quiz-gnu
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: GOOGLE_APPS_SCRIPT_URL
+        value: https://script.google.com/macros/s/AKfycbxesMEtekXqo7tsB0vGSsAUx1WPrQ0CFw3wjJmg22phlNXRhG5oqn_w7-15gRBKQhFG0w/exec
+      - key: NODE_ENV
+        value: production
