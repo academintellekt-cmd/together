@@ -1015,5 +1015,6 @@ if (require.main === module) {
 }
 
 // Экспорт для Vercel и других платформ деплоя
-module.exports = { app, server, io };
+// Vercel требует экспорт app для serverless функций
+module.exports = app;
 
