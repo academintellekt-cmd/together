@@ -4,33 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Квиз - Игрок</title>
+    <link rel="stylesheet" href="/styles/common.css">
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
+        /* Специфичные стили для страницы игрока */
         .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
             max-width: 500px;
-            width: 100%;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         h1 {
@@ -39,46 +18,14 @@
             font-size: 28px;
         }
 
-        .input-group {
-            margin: 20px 0;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
         input {
-            width: 100%;
-            padding: 15px;
-            font-size: 18px;
-            border: none;
-            border-radius: 10px;
             text-align: center;
             text-transform: uppercase;
         }
 
         .btn {
             width: 100%;
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 15px;
-            font-size: 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: transform 0.2s;
-        }
-
-        .btn:hover {
-            transform: scale(1.02);
-        }
-
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
+            margin: 10px 0;
         }
 
         .waiting-screen {
@@ -100,23 +47,6 @@
             opacity: 0.8;
         }
 
-        .progress-bar-container {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #8BC34A);
-            border-radius: 10px;
-            transition: width 0.3s ease;
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-        }
-
         .question-text {
             font-size: 24px;
             margin: 30px 0;
@@ -124,176 +54,17 @@
             animation: fadeIn 0.5s ease-in;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .timer-container {
-            position: relative;
             display: inline-block;
-            margin: 20px 0;
+            margin: 16px 0;
         }
 
         .timer {
-            font-size: 48px;
-            font-weight: bold;
-            margin: 0;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-            animation: pulse 1s infinite;
-        }
-
-        .timer.urgent {
-            color: #ff6b6b;
-            animation: shake 0.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .timer-ring {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 120px;
-            height: 120px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #4CAF50;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: translate(-50%, -50%) rotate(360deg); }
+            /* Стили из common.css */
         }
 
         .options {
             margin: 30px 0;
-        }
-
-        .option-btn {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            padding: 20px;
-            font-size: 18px;
-            border-radius: 15px;
-            cursor: pointer;
-            margin: 12px 0;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .option-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .option-btn:active::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .option-btn:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05) translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .option-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: scale(0.98);
-        }
-
-        .option-btn.selected {
-            background: linear-gradient(135deg, rgba(76, 175, 80, 0.6), rgba(139, 195, 74, 0.6));
-            border-color: #4CAF50;
-            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
-            animation: selectedPulse 0.5s ease;
-        }
-
-        @keyframes selectedPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .option-btn.correct {
-            background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(139, 195, 74, 0.9));
-            border-color: #4CAF50;
-            box-shadow: 0 0 30px rgba(76, 175, 80, 0.8);
-            animation: correctAnswer 0.6s ease;
-        }
-
-        @keyframes correctAnswer {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1) rotate(2deg); }
-            100% { transform: scale(1); }
-        }
-
-        .option-btn.incorrect {
-            background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(229, 57, 53, 0.9));
-            border-color: #f44336;
-            box-shadow: 0 0 30px rgba(244, 67, 54, 0.8);
-            animation: incorrectAnswer 0.6s ease;
-        }
-
-        @keyframes incorrectAnswer {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
-        .answer-feedback {
-            text-align: center;
-            margin: 20px 0;
-            font-size: 32px;
-            font-weight: bold;
-            animation: feedbackPop 0.5s ease;
-            min-height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        @keyframes feedbackPop {
-            0% { transform: scale(0); opacity: 0; }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .answer-feedback.correct {
-            color: #4CAF50;
-            text-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
-        }
-
-        .answer-feedback.incorrect {
-            color: #f44336;
-            text-shadow: 0 0 20px rgba(244, 67, 54, 0.8);
         }
 
         .results-screen {
@@ -306,74 +77,6 @@
             font-weight: bold;
             margin: 20px 0;
         }
-
-        .leaderboard {
-            margin: 30px 0;
-        }
-
-        .leaderboard-item {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 18px;
-        }
-
-        .leaderboard-item {
-            animation: slideIn 0.5s ease;
-            animation-fill-mode: both;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .leaderboard-item.first {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.4), rgba(255, 193, 7, 0.4));
-            font-weight: bold;
-            border: 2px solid #FFD700;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-            position: relative;
-        }
-
-        .leaderboard-item.first::before {
-            content: '👑';
-            position: absolute;
-            left: -30px;
-            font-size: 24px;
-        }
-
-        .leaderboard-item.second {
-            background: linear-gradient(135deg, rgba(192, 192, 192, 0.3), rgba(169, 169, 169, 0.3));
-        }
-
-        .leaderboard-item.third {
-            background: linear-gradient(135deg, rgba(205, 127, 50, 0.3), rgba(184, 115, 51, 0.3));
-        }
-
-        .status {
-            font-size: 16px;
-            margin: 15px 0;
-            opacity: 0.9;
-        }
-
-        .error {
-            background: rgba(244, 67, 54, 0.3);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -383,7 +86,7 @@
             <h1>Присоединиться к игре</h1>
             <div class="input-group">
                 <label for="room-code">Код комнаты</label>
-                <input type="text" id="room-code" maxlength="6" placeholder="Введите код">
+                <input type="text" id="room-code" maxlength="4" placeholder="Введите код">
             </div>
             <div class="input-group">
                 <label for="player-name">Ваше имя</label>
@@ -411,7 +114,6 @@
                 </div>
                 <div id="question-text" class="question-text"></div>
                 <div class="timer-container">
-                    <div class="timer-ring" id="timer-ring"></div>
                     <div id="timer" class="timer">15</div>
                 </div>
                 <div class="options" id="options"></div>
@@ -421,13 +123,17 @@
             <!-- Результаты вопроса -->
             <div id="results-screen" class="results-screen">
                 <h2>Результаты вопроса</h2>
-                <div class="score">Ваш счет: <span id="player-score">0</span></div>
+                <div id="correct-answer-display" class="correct-answer" style="margin: 20px 0; font-size: 18px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 12px;"></div>
+                <div class="score">
+                    Ваш счет: <span id="player-score">0</span>
+                    <span id="points-added" style="font-size: 16px; margin-left: 10px; opacity: 0.8;"></span>
+                </div>
                 <div class="leaderboard">
                     <h3>Таблица лидеров</h3>
                     <div id="leaderboard"></div>
                 </div>
                 <div id="ready-status" class="status" style="margin: 20px 0;">Ожидание следующего вопроса...</div>
-                <button id="ready-btn" class="btn" style="display: none;">✅ Готов к следующему вопросу</button>
+                <button id="ready-btn" class="btn" style="display: none;">Готов к следующему вопросу</button>
             </div>
 
             <!-- Финальные результаты -->
@@ -467,12 +173,15 @@
             const urlParams = new URLSearchParams(window.location.search);
             const roomParam = urlParams.get('room');
             if (roomParam) {
-                document.getElementById('room-code').value = roomParam.toUpperCase();
+                const roomCodeInput = document.getElementById('room-code');
+                if (roomCodeInput) {
+                    roomCodeInput.value = roomParam.toUpperCase();
+                }
             }
         });
 
-        // Подключение к комнате
-        document.getElementById('connect-btn').addEventListener('click', () => {
+        // Функция подключения к комнате
+        function connectToRoom() {
             roomCode = document.getElementById('room-code').value.toUpperCase().trim();
             playerName = document.getElementById('player-name').value.trim();
 
@@ -481,7 +190,29 @@
                 return;
             }
 
+            console.log('Подключение к комнате:', roomCode, 'Игрок:', playerName);
             socket.emit('player-join', { roomCode, playerName });
+        }
+
+        // Подключение к комнате
+        document.getElementById('connect-btn').addEventListener('click', connectToRoom);
+        
+        // Автоматическое подключение, если код комнаты уже есть в URL
+        socket.on('connect', () => {
+            console.log('Socket.io подключен');
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomParam = urlParams.get('room');
+            if (roomParam) {
+                // Даем время на заполнение формы
+                setTimeout(() => {
+                    const roomCodeInput = document.getElementById('room-code');
+                    const playerNameInput = document.getElementById('player-name');
+                    if (roomCodeInput && roomCodeInput.value && playerNameInput && playerNameInput.value) {
+                        // Если имя уже введено, подключаемся автоматически
+                        connectToRoom();
+                    }
+                }, 100);
+            }
         });
 
         socket.on('player-connected', (data) => {
@@ -501,6 +232,12 @@
             gameScreen.style.display = 'block';
             gameScreen.style.animation = 'fadeIn 0.5s ease-in';
             hasAnswered = false;
+            // Инициализируем счет при начале игры
+            window.previousPlayerScore = 0;
+            const scoreElement = document.getElementById('player-score');
+            if (scoreElement) {
+                scoreElement.textContent = '0';
+            }
         });
 
         // Вопрос
@@ -528,6 +265,12 @@
             document.getElementById('answer-feedback').textContent = '';
             document.getElementById('answer-feedback').style.display = 'none';
             
+            // Сохраняем текущий счет перед новым вопросом
+            const currentScoreElement = document.getElementById('player-score');
+            if (currentScoreElement) {
+                window.previousPlayerScore = parseInt(currentScoreElement.textContent) || 0;
+            }
+            
             const questionNum = data.questionNumber;
             const totalQuestions = data.totalQuestions;
             
@@ -551,10 +294,9 @@
                 optionsDiv.appendChild(btn);
             });
 
-            // Таймер с улучшенной визуализацией
+            // Таймер
             let timeLeft = data.timeLeft !== undefined ? data.timeLeft : data.time;
             const timerElement = document.getElementById('timer');
-            const timerRing = document.getElementById('timer-ring');
             timerElement.textContent = timeLeft;
             timerElement.classList.remove('urgent');
             
@@ -574,10 +316,6 @@
                 if (timeLeft <= 5) {
                     timerElement.classList.add('urgent');
                 }
-                
-                // Анимация кольца таймера
-                const progress = (timeLeft / data.time) * 100;
-                timerRing.style.borderTopColor = timeLeft <= 5 ? '#ff6b6b' : '#4CAF50';
                 
                 if (timeLeft <= 0) {
                     clearInterval(currentTimer);
@@ -648,20 +386,22 @@
             }
             
             const feedback = document.getElementById('answer-feedback');
-            const messages = {
-                correct: ['🎉 Отлично!', '✨ Правильно!', '🏆 Верно!', '👍 Супер!', '⭐ Молодец!'],
-                incorrect: ['😔 Неправильно', '❌ Неверно', '💔 Упс...', '🤔 Попробуй еще']
-            };
             
+            // Просто цветовая индикация без текста
             if (data.isCorrect) {
-                const message = messages.correct[Math.floor(Math.random() * messages.correct.length)];
-                feedback.textContent = message;
+                feedback.textContent = '';
                 feedback.className = 'answer-feedback correct';
             } else {
-                const message = messages.incorrect[Math.floor(Math.random() * messages.incorrect.length)];
-                feedback.textContent = message;
+                feedback.textContent = '';
                 feedback.className = 'answer-feedback incorrect';
             }
+            
+            // Сохраняем данные для экрана результатов
+            window.lastAnswerData = {
+                isCorrect: data.isCorrect,
+                points: data.points || 0,
+                newScore: data.newScore || 0
+            };
             
             // Блокируем все кнопки после ответа
             disableOptions();
@@ -692,7 +432,16 @@
             document.getElementById('question-screen').style.display = 'none';
             document.getElementById('results-screen').style.display = 'block';
             
-            // Показать правильный ответ
+            // Показываем правильный ответ
+            const correctAnswerDisplay = document.getElementById('correct-answer-display');
+            if (data.correctAnswerText) {
+                correctAnswerDisplay.textContent = `Правильный ответ: ${data.correctAnswerText}`;
+                correctAnswerDisplay.style.display = 'block';
+            } else {
+                correctAnswerDisplay.style.display = 'none';
+            }
+            
+            // Показать правильный ответ на кнопках
             const buttons = document.querySelectorAll('.option-btn');
             buttons.forEach((btn, index) => {
                 if (index === data.correctAnswer) {
@@ -702,16 +451,33 @@
                 }
             });
 
-            // Обновить счет
+            // Обновить счет с прибавленными баллами
             const player = data.players.find(p => p.name === playerName);
             if (player) {
-                document.getElementById('player-score').textContent = player.score;
+                const previousScore = window.previousPlayerScore || 0;
+                const newScore = player.score;
+                const pointsEarned = newScore - previousScore;
+                
+                document.getElementById('player-score').textContent = newScore;
+                
+                // Показываем прибавленные баллы за этот раунд
+                const pointsAdded = document.getElementById('points-added');
+                if (pointsEarned > 0) {
+                    pointsAdded.textContent = `(+${pointsEarned})`;
+                    pointsAdded.style.color = 'var(--success)';
+                    pointsAdded.style.fontWeight = '600';
+                } else {
+                    pointsAdded.textContent = `(+0)`;
+                    pointsAdded.style.color = 'var(--gray-400)';
+                }
+                
+                // Сохраняем текущий счет для следующего раунда
+                window.previousPlayerScore = newScore;
             }
 
-            // Таблица лидеров с анимациями
+            // Таблица лидеров с прибавленными баллами
             const leaderboard = document.getElementById('leaderboard');
             leaderboard.innerHTML = '';
-            const medals = ['👑', '🥈', '🥉'];
             data.players.forEach((player, index) => {
                 const item = document.createElement('div');
                 let className = 'leaderboard-item';
@@ -722,10 +488,24 @@
                 item.className = className;
                 item.style.animationDelay = (index * 0.1) + 's';
                 
-                const medal = index < 3 ? medals[index] + ' ' : '';
+                // Находим прибавленные баллы для этого игрока
+                let pointsDisplay = '';
+                if (player.name === playerName) {
+                    // Вычисляем прибавленные очки из разницы счетов
+                    const previousScore = window.previousPlayerScore || 0;
+                    const pointsEarned = player.score - previousScore;
+                    // Показываем "+X" только если ответ был правильный
+                    if (pointsEarned > 0 && window.lastAnswerData && window.lastAnswerData.isCorrect) {
+                        pointsDisplay = ` <span style="color: var(--success); font-weight: 600;">(+${pointsEarned})</span>`;
+                    }
+                    // Если ответ неправильный - ничего не показываем
+                    // Сохраняем текущий счет для следующего раунда
+                    window.previousPlayerScore = player.score;
+                }
+                
                 item.innerHTML = `
-                    <span>${medal}${index + 1}. ${player.name}</span>
-                    <span>${player.score} очков</span>
+                    <span>${index + 1}. ${player.name}</span>
+                    <span>${player.score} очков${pointsDisplay}</span>
                 `;
                 leaderboard.appendChild(item);
             });
@@ -735,7 +515,7 @@
             const readyStatus = document.getElementById('ready-status');
             readyBtn.style.display = 'block';
             readyBtn.disabled = false;
-            readyBtn.textContent = '✅ Готов к следующему вопросу';
+            readyBtn.textContent = 'Готов к следующему вопросу';
             readyStatus.textContent = 'Нажмите кнопку, когда будете готовы к следующему вопросу';
         });
 
@@ -757,7 +537,7 @@
                 const readyBtn = document.getElementById('ready-btn');
                 const readyStatus = document.getElementById('ready-status');
                 readyBtn.disabled = true;
-                readyBtn.textContent = '✅ Готов! Ожидание других игроков...';
+                readyBtn.textContent = 'Готов! Ожидание других игроков...';
                 readyStatus.textContent = `Вы готовы! Ожидание других игроков... (${data.readyCount}/${data.totalPlayers})`;
             }
         });
@@ -775,11 +555,10 @@
 
             const leaderboard = document.getElementById('final-leaderboard');
             leaderboard.innerHTML = '';
-            const medals = ['👑', '🥈', '🥉'];
             const finalMessages = {
-                0: '🏆 Чемпион!',
-                1: '🥈 Второе место!',
-                2: '🥉 Третье место!'
+                0: '· Чемпион',
+                1: '· Второе место',
+                2: '· Третье место'
             };
             
             data.results.forEach((player, index) => {
@@ -792,10 +571,9 @@
                 item.className = className;
                 item.style.animationDelay = (index * 0.1) + 's';
                 
-                const medal = index < 3 ? medals[index] + ' ' : '';
                 const message = finalMessages[index] || '';
                 item.innerHTML = `
-                    <span>${medal}${index + 1}. ${player.name} ${message}</span>
+                    <span>${index + 1}. ${player.name} ${message}</span>
                     <span>${player.score} очков</span>
                 `;
                 leaderboard.appendChild(item);

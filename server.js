@@ -21,9 +21,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 const rooms = new Map();
 const players = new Map();
 
-// Генерация кода комнаты
+// Генерация кода комнаты (4 символа)
 function generateRoomCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
 
 // Структура квизов
@@ -130,6 +130,23 @@ app.get('/api/quizzes', (req, res) => {
   res.json(quizzesList);
 });
 
+// Получение конкретного квиза по ID (для соло режима)
+app.get('/api/quizzes/:id', (req, res) => {
+  const quizId = req.params.id;
+  const quiz = quizzes[quizId];
+  
+  if (!quiz) {
+    return res.status(404).json({ error: 'Квиз не найден' });
+  }
+  
+  res.json({
+    id: quiz.id,
+    name: quiz.name,
+    description: quiz.description,
+    questions: quiz.questions
+  });
+});
+
 // Получение IP-адреса сервера
 app.get('/api/server-ip', (req, res) => {
   // Получаем IP-адрес из запроса
@@ -229,8 +246,8 @@ io.on('connection', (socket) => {
     }
 
     // Проверка на переполнение
-    if (room.players.length >= 6) {
-      socket.emit('error', { message: 'Комната переполнена (максимум 6 игроков)' });
+    if (room.players.length >= 14) {
+      socket.emit('error', { message: 'Комната переполнена (максимум 14 игроков)' });
       return;
     }
 
@@ -354,13 +371,19 @@ io.on('connection', (socket) => {
     });
 
     // Начисление очков
+    let points = 0;
     if (isCorrect) {
       const timeBonus = Math.max(0, question.time * 1000 - answerTime);
-      const points = 100 + Math.floor(timeBonus / 100);
+      points = 100 + Math.floor(timeBonus / 100);
       player.score += points;
     }
 
-    socket.emit('answer-received', { isCorrect });
+    socket.emit('answer-received', { 
+      isCorrect,
+      correctAnswer: question.options[question.correct],
+      points: points,
+      newScore: player.score
+    });
     
     // Обновляем статус ответов
     updateAnswerStatus(roomCode);

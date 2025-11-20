@@ -4,35 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Квиз - Главный экран</title>
+    <link rel="stylesheet" href="/styles/common.css">
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 1200px;
-            width: 100%;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
+        /* Специфичные стили для страницы хоста */
         .lobby-screen {
             text-align: center;
         }
@@ -45,64 +20,8 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
 
-        .qr-container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px auto;
-            max-width: 300px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
         #qrcode {
             display: inline-block;
-        }
-
-        .qr-placeholder {
-            background: white;
-            color: #667eea;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px auto;
-            max-width: 300px;
-            font-size: 14px;
-            text-align: center;
-        }
-
-        .players-list {
-            margin: 30px 0;
-            text-align: left;
-        }
-
-        .player-item {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            font-size: 20px;
-        }
-
-        .btn {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            margin: 10px;
-            transition: transform 0.2s;
-        }
-
-        .btn:hover {
-            transform: scale(1.05);
-        }
-
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
         }
 
         .game-screen {
@@ -125,12 +44,6 @@
             line-height: 1.4;
         }
 
-        .timer {
-            font-size: 48px;
-            font-weight: bold;
-            margin: 30px 0;
-        }
-
         .results-screen {
             text-align: center;
         }
@@ -143,59 +56,6 @@
             font-size: 24px;
         }
 
-        .leaderboard {
-            margin: 30px 0;
-        }
-
-        .leaderboard-item {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 20px;
-        }
-
-        .leaderboard-item {
-            animation: slideIn 0.5s ease;
-            animation-fill-mode: both;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .leaderboard-item.first {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.4), rgba(255, 193, 7, 0.4));
-            font-weight: bold;
-            border: 2px solid #FFD700;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-            position: relative;
-        }
-
-        .leaderboard-item.first::before {
-            content: '👑';
-            position: absolute;
-            left: -30px;
-            font-size: 24px;
-        }
-
-        .leaderboard-item.second {
-            background: linear-gradient(135deg, rgba(192, 192, 192, 0.3), rgba(169, 169, 169, 0.3));
-        }
-
-        .leaderboard-item.third {
-            background: linear-gradient(135deg, rgba(205, 127, 50, 0.3), rgba(184, 115, 51, 0.3));
-        }
-
         .final-results {
             text-align: center;
         }
@@ -205,93 +65,128 @@
             margin-bottom: 40px;
         }
 
-        .status {
+        /* HUB стили */
+        .hub {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hub-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .hub-players {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .hub-player {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .hub-player:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .hub-player-name {
+            font-weight: 500;
+        }
+
+        .hub-player-status {
+            font-size: 16px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .hub-player-status.answering {
+            color: #FF9800;
+        }
+
+        .hub-player-status.answered {
+            color: #4CAF50;
+        }
+
+        .hub-player-status.ready {
+            color: #4CAF50;
+        }
+
+        .hub-player-status.waiting {
+            color: #FF9800;
+        }
+
+        .hub-player-status.loading {
+            color: #9E9E9E;
+        }
+
+        .hub-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .hub-code {
             font-size: 18px;
-            margin: 20px 0;
+            font-weight: bold;
+            letter-spacing: 3px;
             opacity: 0.9;
         }
 
-        .answer-status {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
-        .answer-status h3 {
-            margin-bottom: 15px;
-            font-size: 20px;
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
 
-        .player-status {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            margin: 8px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-
-        .player-status.answered {
-            background: rgba(76, 175, 80, 0.3);
-            border-left: 4px solid #4CAF50;
-        }
-
-        .player-status.waiting {
-            background: rgba(255, 152, 0, 0.3);
-            border-left: 4px solid #FF9800;
-        }
-
-        .status-icon {
-            font-size: 20px;
-            margin-right: 10px;
-        }
-
-        .ready-status {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-
-        .ready-status h3 {
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-
-        .ready-player-status {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            margin: 8px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-
-        .ready-player-status.ready {
-            background: rgba(76, 175, 80, 0.3);
-            border-left: 4px solid #4CAF50;
-        }
-
-        .ready-player-status.waiting {
-            background: rgba(255, 152, 0, 0.3);
-            border-left: 4px solid #FF9800;
-        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <!-- Кнопка возврата на главную -->
-        <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
-            <a href="/index.html" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-size: 16px; border: 2px solid rgba(255, 255, 255, 0.3); transition: all 0.3s;">
-                ← Назад к выбору квизов
-            </a>
+<body class="with-hub">
+    <!-- HUB блок -->
+    <div class="hub" id="hub">
+        <div class="hub-content">
+            <div class="hub-players" id="hub-players">
+                <!-- Игроки будут добавлены динамически -->
+            </div>
+            <div class="hub-actions">
+                <div class="hub-code" id="hub-code">----</div>
+                <a href="/index.html" style="display: inline-block; background: rgba(255, 255, 255, 0.1); color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s;">
+                    « Назад
+                </a>
+            </div>
         </div>
-        
+    </div>
+
+    <div class="container">
         <!-- Лобби -->
         <div id="lobby-screen" class="lobby-screen">
             <h1>Создайте комнату</h1>
@@ -306,38 +201,77 @@
             <div id="qr-link" style="display: none; margin: 20px 0; text-align: center;">
                 <a id="player-link" href="#" target="_blank" style="color: white; text-decoration: underline; font-size: 16px;">Ссылка для игроков</a>
             </div>
-            <div class="players-list">
-                <h2>Игроки (<span id="players-count">0</span>/6)</h2>
-                <div id="players-list"></div>
+            
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 32px;">
+                <button id="start-btn" class="btn" disabled>Начать мультиплеер</button>
+                <button id="solo-btn" class="btn secondary">Играть одному</button>
             </div>
-            <button id="start-btn" class="btn" disabled>Начать игру</button>
+        </div>
+
+        <!-- Экран одиночной игры -->
+        <div id="solo-screen" class="game-screen" style="display: none;">
+            <!-- Вопрос в соло режиме -->
+            <div id="solo-question-screen" class="question-screen">
+                <div class="question-number">
+                    Вопрос <span id="solo-question-num">1</span> из <span id="solo-total-questions">10</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="solo-progress-bar"></div>
+                </div>
+                <div id="solo-question-text" class="question-text"></div>
+                <div class="timer-container">
+                    <div id="solo-timer" class="timer">15</div>
+                </div>
+                <div class="options" id="solo-options"></div>
+                <div id="solo-answer-feedback" class="answer-feedback"></div>
+            </div>
+
+            <!-- Результаты в соло режиме -->
+            <div id="solo-results-screen" class="results-screen" style="display: none;">
+                <h2>Результаты вопроса</h2>
+                <div id="solo-correct-answer" class="correct-answer"></div>
+                <div class="score" style="font-size: 48px; margin: 32px 0;">
+                    Ваш счет: <span id="solo-score">0</span>
+                </div>
+                <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                    <button id="solo-next-btn" class="btn">Следующий вопрос</button>
+                    <button id="solo-end-game-btn" class="btn secondary">Завершить игру</button>
+                </div>
+            </div>
+
+            <!-- Финальные результаты соло -->
+            <div id="solo-final-results" class="final-results" style="display: none;">
+                <h1>Игра завершена!</h1>
+                <div class="score" style="font-size: 64px; margin: 32px 0;">
+                    Финальный счет: <span id="solo-final-score">0</span>
+                </div>
+                <div style="font-size: 20px; opacity: 0.9; margin: 24px 0;">
+                    Правильных ответов: <span id="solo-correct-count">0</span> из <span id="solo-questions-total">10</span>
+                </div>
+                <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                    <button id="solo-restart-btn" class="btn">Новая игра</button>
+                    <button id="solo-back-to-menu-btn" class="btn secondary">Выбрать другой квиз</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Модальное окно подтверждения выхода -->
+        <div id="solo-exit-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 3000; justify-content: center; align-items: center;">
+            <div style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); padding: 40px; border-radius: 20px; text-align: center; max-width: 400px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                <h2 style="margin-bottom: 20px; font-size: 24px;">Завершить игру?</h2>
+                <p style="margin-bottom: 30px; font-size: 16px; opacity: 0.9;">
+                    Ваш прогресс не будет сохранен.<br>
+                    Вы вернетесь к выбору квизов.
+                </p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button id="solo-exit-confirm" class="btn" style="background: var(--error);">Да, завершить</button>
+                    <button id="solo-exit-cancel" class="btn secondary">Отмена</button>
+                </div>
+            </div>
         </div>
 
         <!-- Игровой экран -->
         <div id="game-screen" class="game-screen">
-            <!-- Кнопка показа QR-кода (всегда видна во время игры) -->
-            <div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
-                <button id="show-qr-btn" class="btn" style="display: none; padding: 10px 20px; font-size: 16px; background: rgba(255, 255, 255, 0.2); border: 2px solid white;">
-                    📱 Показать QR-код
-                </button>
-            </div>
-            
-            <!-- Модальное окно для QR-кода -->
-            <div id="qr-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 2000; justify-content: center; align-items: center;">
-                <div style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;">
-                    <h2 style="margin-bottom: 20px;">QR-код для подключения</h2>
-                    <div id="qr-modal-container" class="qr-container" style="margin: 20px auto;">
-                        <canvas id="qr-modal-canvas"></canvas>
-                    </div>
-                    <div id="qr-modal-link" style="margin: 20px 0;">
-                        <a id="qr-modal-player-link" href="#" target="_blank" style="color: white; text-decoration: underline; font-size: 16px; word-break: break-all;">Ссылка для игроков</a>
-                    </div>
-                    <div class="status" style="margin: 20px 0; font-size: 14px;">
-                        Игроки могут отсканировать QR-код или перейти по ссылке для переподключения
-                    </div>
-                    <button id="close-qr-modal" class="btn" style="margin-top: 20px;">Закрыть</button>
-                </div>
-            </div>
             
             <!-- Вопрос -->
             <div id="question-screen" class="question-screen">
@@ -346,10 +280,6 @@
                 </div>
                 <div id="question-text" class="question-text"></div>
                 <div id="timer" class="timer">15</div>
-                <div class="answer-status" id="answer-status" style="display: none;">
-                    <h3>Статус ответов: <span id="answered-count">0</span>/<span id="total-count">0</span></h3>
-                    <div id="players-status-list"></div>
-                </div>
                 <div class="status" id="question-status">Игроки отвечают...</div>
             </div>
 
@@ -360,10 +290,6 @@
                 <div class="leaderboard">
                     <h3>Таблица лидеров</h3>
                     <div id="leaderboard"></div>
-                </div>
-                <div class="ready-status" id="ready-status-container" style="display: none;">
-                    <h3>Готовность игроков: <span id="ready-count">0</span>/<span id="ready-total">0</span></h3>
-                    <div id="ready-players-list"></div>
                 </div>
                 <button id="next-btn" class="btn" disabled>Следующий вопрос</button>
                 <div id="next-btn-status" class="status" style="margin-top: 10px; font-size: 14px;"></div>
@@ -452,6 +378,15 @@
         let currentTimer = null;
         let serverUrl = null;
         let quizId = null;
+        
+        // Переменные для соло режима
+        let soloMode = false;
+        let soloQuestions = [];
+        let soloCurrentQuestion = 0;
+        let soloScore = 0;
+        let soloCorrectAnswers = 0;
+        let soloTimer = null;
+        let soloAnswered = false;
 
         function initApp() {
             // Получаем quizId из URL
@@ -492,7 +427,7 @@
                 // Формируем URL для игрока
                 const baseUrl = serverUrl || window.location.origin;
                 const playerUrl = `${baseUrl}/player.html?room=${roomCode}`;
-                console.log('📱 Генерация QR-кода для URL:', playerUrl);
+                console.log('Генерация QR-кода для URL:', playerUrl);
                 
                 const qrContainer = document.getElementById('qr-container');
                 const qrPlaceholder = document.getElementById('qr-placeholder');
@@ -536,7 +471,7 @@
                         ctx.drawImage(img, 0, 0, 250, 250);
                         qrPlaceholder.style.display = 'none';
                         qrContainer.style.display = 'flex';
-                        console.log('✅ QR-код успешно сгенерирован через API');
+                        console.log('QR-код успешно сгенерирован через API');
                     } catch (error) {
                         console.error('Ошибка при отрисовке QR-кода:', error);
                         // Если не получилось нарисовать на canvas, просто показываем изображение
@@ -600,6 +535,7 @@
                     
                     // Обновляем отображение кода комнаты
                     roomCodeElement.textContent = roomCode;
+                    document.getElementById('hub-code').textContent = roomCode;
                     console.log('Код комнаты установлен:', roomCode);
                     
                     // Показываем IP-адрес для подключения
@@ -608,7 +544,7 @@
                         ipInfo.className = 'status';
                         ipInfo.style.marginTop = '10px';
                         ipInfo.style.fontSize = '14px';
-                        ipInfo.innerHTML = `📱 Подключение: <strong>${serverUrl}</strong>`;
+                        ipInfo.innerHTML = `Подключение: <strong>${serverUrl}</strong>`;
                         roomCodeElement.parentNode.insertBefore(ipInfo, roomCodeElement.nextSibling);
                     }
                     
@@ -637,29 +573,84 @@
                 }
             }
 
+            // Хранилище данных игроков для HUB
+            let playersData = new Map(); // playerId -> {name, answered, ready}
+            let gameState = 'lobby'; // lobby, question, results
+
+            // Обновление HUB
+            function updateHub() {
+                const hubPlayers = document.getElementById('hub-players');
+                hubPlayers.innerHTML = '';
+                
+                playersData.forEach((data, playerId) => {
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = 'hub-player';
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'hub-player-name';
+                    nameSpan.textContent = data.name;
+                    
+                    const statusSpan = document.createElement('span');
+                    statusSpan.className = 'hub-player-status';
+                    
+                    if (gameState === 'question') {
+                        // Во время вопроса: • если отвечает, ✓ если ответил
+                        if (data.answered) {
+                            statusSpan.textContent = '✓';
+                            statusSpan.className = 'hub-player-status answered';
+                        } else {
+                            statusSpan.textContent = '•';
+                            statusSpan.className = 'hub-player-status answering';
+                        }
+                    } else if (gameState === 'results') {
+                        // После ответа: ✓ если готов, • если нет
+                        if (data.ready) {
+                            statusSpan.textContent = '✓';
+                            statusSpan.className = 'hub-player-status ready';
+                        } else {
+                            statusSpan.textContent = '•';
+                            statusSpan.className = 'hub-player-status waiting';
+                        }
+                    } else {
+                        // В лобби: просто имя
+                        statusSpan.style.display = 'none';
+                    }
+                    
+                    playerDiv.appendChild(nameSpan);
+                    playerDiv.appendChild(statusSpan);
+                    hubPlayers.appendChild(playerDiv);
+                });
+                
+                // Обновляем кнопку старта
+                document.getElementById('start-btn').disabled = playersData.size === 0;
+            }
+
             // Подключение хоста
             socket.on('host-connected', (data) => {
                 console.log('Хост подключен');
-                updatePlayersList(data.players || []);
+                playersData.clear();
+                (data.players || []).forEach(player => {
+                    playersData.set(player.id, {
+                        name: player.name,
+                        answered: false,
+                        ready: false
+                    });
+                });
+                updateHub();
             });
 
             // Обновление списка игроков
             socket.on('player-list-updated', (data) => {
-                updatePlayersList(data.players || []);
-            });
-
-            function updatePlayersList(players) {
-                const list = document.getElementById('players-list');
-                list.innerHTML = '';
-                players.forEach(player => {
-                    const item = document.createElement('div');
-                    item.className = 'player-item';
-                    item.textContent = player.name;
-                    list.appendChild(item);
+                playersData.clear();
+                (data.players || []).forEach(player => {
+                    playersData.set(player.id, {
+                        name: player.name,
+                        answered: false,
+                        ready: false
+                    });
                 });
-                document.getElementById('players-count').textContent = players.length;
-                document.getElementById('start-btn').disabled = players.length === 0;
-            }
+                updateHub();
+            });
 
             // Начало игры
             document.getElementById('start-btn').addEventListener('click', () => {
@@ -669,86 +660,25 @@
             socket.on('game-started', () => {
                 document.getElementById('lobby-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'block';
-                // Показываем кнопку QR-кода когда игра началась
-                document.getElementById('show-qr-btn').style.display = 'block';
             });
-            
-            // Обработчик кнопки показа QR-кода
-            document.getElementById('show-qr-btn').addEventListener('click', async () => {
-                await showQRModal();
-            });
-            
-            // Обработчик закрытия модального окна
-            document.getElementById('close-qr-modal').addEventListener('click', () => {
-                document.getElementById('qr-modal').style.display = 'none';
-            });
-            
-            // Закрытие модального окна при клике вне его
-            document.getElementById('qr-modal').addEventListener('click', (e) => {
-                if (e.target.id === 'qr-modal') {
-                    document.getElementById('qr-modal').style.display = 'none';
-                }
-            });
-            
-            // Функция показа QR-кода в модальном окне
-            async function showQRModal() {
-                if (!roomCode) return;
-                
-                // Показываем модальное окно сразу (не ждем загрузки QR-кода)
-                document.getElementById('qr-modal').style.display = 'flex';
-                
-                // Получаем URL сервера (если еще не получен, делаем это в фоне)
-                if (!serverUrl) {
-                    await getServerUrl();
-                }
-                
-                // Формируем URL для игрока
-                const baseUrl = serverUrl || window.location.origin;
-                const playerUrl = `${baseUrl}/player.html?room=${roomCode}`;
-                
-                // Обновляем ссылку
-                const modalLink = document.getElementById('qr-modal-player-link');
-                modalLink.href = playerUrl;
-                modalLink.textContent = playerUrl;
-                
-                // Генерируем QR-код для модального окна (асинхронно, не блокируя UI)
-                const qrModalCanvas = document.getElementById('qr-modal-canvas');
-                const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(playerUrl)}`;
-                const img = document.createElement('img');
-                img.src = apiUrl;
-                img.alt = 'QR Code';
-                img.crossOrigin = 'anonymous';
-                
-                img.onload = function() {
-                    try {
-                        const ctx = qrModalCanvas.getContext('2d');
-                        qrModalCanvas.width = 300;
-                        qrModalCanvas.height = 300;
-                        ctx.clearRect(0, 0, 300, 300);
-                        ctx.fillStyle = '#FFFFFF';
-                        ctx.fillRect(0, 0, 300, 300);
-                        ctx.drawImage(img, 0, 0, 300, 300);
-                    } catch (error) {
-                        console.error('Ошибка при отрисовке QR-кода в модальном окне:', error);
-                    }
-                };
-                
-                img.onerror = function() {
-                    console.error('Не удалось загрузить QR-код');
-                };
-            }
 
             // Вопрос
             socket.on('question', (data) => {
+                gameState = 'question';
                 document.getElementById('question-screen').style.display = 'block';
                 document.getElementById('results-screen').style.display = 'none';
                 document.getElementById('final-results').style.display = 'none';
-                document.getElementById('answer-status').style.display = 'block';
-                document.getElementById('ready-status-container').style.display = 'none';
                 
                 document.getElementById('question-num').textContent = data.questionNumber;
                 document.getElementById('total-questions').textContent = data.totalQuestions;
                 document.getElementById('question-text').textContent = data.question;
+                
+                // Сбрасываем статусы игроков
+                playersData.forEach((playerData) => {
+                    playerData.answered = false;
+                    playerData.ready = false;
+                });
+                updateHub();
                 
                 // Таймер
                 let timeLeft = data.time;
@@ -767,51 +697,43 @@
 
             // Статус ответов игроков
             socket.on('answer-status', (data) => {
-            const statusDiv = document.getElementById('answer-status');
-            const statusList = document.getElementById('players-status-list');
-            const answeredCount = document.getElementById('answered-count');
-            const totalCount = document.getElementById('total-count');
-            const questionStatus = document.getElementById('question-status');
-            
-            answeredCount.textContent = data.answeredCount;
-            totalCount.textContent = data.totalPlayers;
-            
-            statusList.innerHTML = '';
-            data.players.forEach(player => {
-                const item = document.createElement('div');
-                item.className = 'player-status ' + (player.answered ? 'answered' : 'waiting');
-                item.innerHTML = `
-                    <span>
-                        <span class="status-icon">${player.answered ? '✅' : '⏳'}</span>
-                        ${player.name}
-                    </span>
-                    <span>${player.answered ? 'Ответил' : 'Ожидает...'}</span>
-                `;
-                statusList.appendChild(item);
+                const questionStatus = document.getElementById('question-status');
+                
+                // Обновляем статусы в playersData
+                data.players.forEach(player => {
+                    const playerData = playersData.get(player.id);
+                    if (playerData) {
+                        playerData.answered = player.answered;
+                    }
+                });
+                updateHub();
+                
+                if (data.allAnswered) {
+                    questionStatus.textContent = 'Все ответили! Переход к результатам...';
+                    if (currentTimer) clearInterval(currentTimer);
+                } else {
+                    questionStatus.textContent = `Игроки отвечают... (${data.answeredCount}/${data.totalPlayers})`;
+                }
             });
-            
-            if (data.allAnswered) {
-                questionStatus.textContent = '🎉 Все ответили! Переход к результатам...';
-                if (currentTimer) clearInterval(currentTimer);
-            } else {
-                questionStatus.textContent = `Игроки отвечают... (${data.answeredCount}/${data.totalPlayers})`;
-            }
-        });
 
             // Результаты вопроса
             socket.on('results', (data) => {
+                gameState = 'results';
                 clearInterval(currentTimer);
                 document.getElementById('question-screen').style.display = 'none';
                 document.getElementById('results-screen').style.display = 'block';
-                document.getElementById('answer-status').style.display = 'none';
-                document.getElementById('ready-status-container').style.display = 'block';
+                
+                // Сбрасываем статусы готовности
+                playersData.forEach((playerData) => {
+                    playerData.ready = false;
+                });
+                updateHub();
                 
                 document.getElementById('correct-answer').textContent = 
                     `Правильный ответ: ${data.correctAnswerText}`;
                 
                 const leaderboard = document.getElementById('leaderboard');
                 leaderboard.innerHTML = '';
-                const medals = ['👑', '🥈', '🥉'];
                 data.players.forEach((player, index) => {
                     const item = document.createElement('div');
                     let className = 'leaderboard-item';
@@ -822,9 +744,8 @@
                     item.className = className;
                     item.style.animationDelay = (index * 0.1) + 's';
                     
-                    const medal = index < 3 ? medals[index] + ' ' : '';
                     item.innerHTML = `
-                        <span>${medal}${index + 1}. ${player.name}</span>
+                        <span>${index + 1}. ${player.name}</span>
                         <span>${player.score} очков</span>
                     `;
                     leaderboard.appendChild(item);
@@ -839,33 +760,21 @@
 
             // Статус готовности игроков
             socket.on('ready-status', (data) => {
-                const readyContainer = document.getElementById('ready-status-container');
-                const readyList = document.getElementById('ready-players-list');
-                const readyCount = document.getElementById('ready-count');
-                const readyTotal = document.getElementById('ready-total');
                 const nextBtn = document.getElementById('next-btn');
                 const nextBtnStatus = document.getElementById('next-btn-status');
                 
-                readyCount.textContent = data.readyCount;
-                readyTotal.textContent = data.totalPlayers;
-                
-                readyList.innerHTML = '';
+                // Обновляем статусы готовности в playersData
                 data.players.forEach(player => {
-                    const item = document.createElement('div');
-                    item.className = 'ready-player-status ' + (player.ready ? 'ready' : 'waiting');
-                    item.innerHTML = `
-                        <span>
-                            <span class="status-icon">${player.ready ? '✅' : '⏳'}</span>
-                            ${player.name}
-                        </span>
-                        <span>${player.ready ? 'Готов' : 'Ожидает...'}</span>
-                    `;
-                    readyList.appendChild(item);
+                    const playerData = playersData.get(player.id);
+                    if (playerData) {
+                        playerData.ready = player.ready;
+                    }
                 });
+                updateHub();
                 
                 if (data.allReady) {
                     nextBtn.disabled = false;
-                    nextBtnStatus.textContent = '🎉 Все игроки готовы! Можно переходить к следующему вопросу.';
+                    nextBtnStatus.textContent = 'Все игроки готовы! Можно переходить к следующему вопросу.';
                 } else {
                     nextBtn.disabled = true;
                     nextBtnStatus.textContent = `Ожидание готовности игроков... (${data.readyCount}/${data.totalPlayers})`;
@@ -885,11 +794,10 @@
             
             const leaderboard = document.getElementById('final-leaderboard');
             leaderboard.innerHTML = '';
-            const medals = ['👑', '🥈', '🥉'];
             const finalMessages = {
-                0: '🏆 Чемпион!',
-                1: '🥈 Второе место!',
-                2: '🥉 Третье место!'
+                0: '· Чемпион',
+                1: '· Второе место',
+                2: '· Третье место'
             };
             
             data.results.forEach((player, index) => {
@@ -902,10 +810,9 @@
                 item.className = className;
                 item.style.animationDelay = (index * 0.1) + 's';
                 
-                const medal = index < 3 ? medals[index] + ' ' : '';
                 const message = finalMessages[index] || '';
                 item.innerHTML = `
-                    <span>${medal}${index + 1}. ${player.name} ${message}</span>
+                    <span>${index + 1}. ${player.name} ${message}</span>
                     <span>${player.score} очков</span>
                 `;
                 leaderboard.appendChild(item);
@@ -919,7 +826,282 @@
 
             // Инициализация
             createRoom();
+            
+            // Кнопка соло режима
+            document.getElementById('solo-btn').addEventListener('click', startSoloMode);
         } // конец initApp()
+        
+        // ============================================
+        // СОЛО РЕЖИМ
+        // ============================================
+        
+        async function startSoloMode() {
+            soloMode = true;
+            
+            // Загружаем вопросы для соло режима
+            try {
+                const response = await fetch('/api/quizzes');
+                const quizzes = await response.json();
+                const quiz = quizzes.find(q => q.id === quizId);
+                
+                if (!quiz) {
+                    // Если не нашли квиз через API, используем дефолтные вопросы
+                    soloQuestions = getDefaultQuestions();
+                } else {
+                    // Загружаем полные данные квиза
+                    const quizResponse = await fetch(`/api/quizzes/${quizId}`);
+                    if (quizResponse.ok) {
+                        const quizData = await quizResponse.json();
+                        soloQuestions = quizData.questions || getDefaultQuestions();
+                    } else {
+                        soloQuestions = getDefaultQuestions();
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки вопросов:', error);
+                soloQuestions = getDefaultQuestions();
+            }
+            
+            // Скрываем лобби, показываем соло экран
+            document.getElementById('lobby-screen').style.display = 'none';
+            document.getElementById('solo-screen').style.display = 'block';
+            document.getElementById('hub').style.display = 'none';
+            
+            // Сбрасываем счет
+            soloCurrentQuestion = 0;
+            soloScore = 0;
+            soloCorrectAnswers = 0;
+            
+            // Показываем первый вопрос
+            showSoloQuestion();
+        }
+        
+        function getDefaultQuestions() {
+            // Дефолтные вопросы если не удалось загрузить с сервера
+            return [
+                {
+                    question: "Какая планета самая большая в Солнечной системе?",
+                    options: ["Земля", "Юпитер", "Сатурн", "Марс"],
+                    correct: 1,
+                    time: 15
+                },
+                {
+                    question: "Сколько континентов на Земле?",
+                    options: ["5", "6", "7", "8"],
+                    correct: 2,
+                    time: 10
+                },
+                {
+                    question: "Какая столица Франции?",
+                    options: ["Лондон", "Берлин", "Париж", "Мадрид"],
+                    correct: 2,
+                    time: 10
+                },
+                {
+                    question: "Кто написал 'Войну и мир'?",
+                    options: ["Достоевский", "Толстой", "Чехов", "Пушкин"],
+                    correct: 1,
+                    time: 15
+                },
+                {
+                    question: "Сколько дней в високосном году?",
+                    options: ["364", "365", "366", "367"],
+                    correct: 2,
+                    time: 10
+                },
+                {
+                    question: "Какое животное самое быстрое на суше?",
+                    options: ["Лев", "Гепард", "Тигр", "Леопард"],
+                    correct: 1,
+                    time: 15
+                },
+                {
+                    question: "В каком году человек впервые полетел в космос?",
+                    options: ["1957", "1961", "1969", "1971"],
+                    correct: 1,
+                    time: 20
+                },
+                {
+                    question: "Сколько океанов на Земле?",
+                    options: ["3", "4", "5", "6"],
+                    correct: 2,
+                    time: 10
+                },
+                {
+                    question: "Какая самая длинная река в мире?",
+                    options: ["Амазонка", "Нил", "Янцзы", "Миссисипи"],
+                    correct: 0,
+                    time: 20
+                },
+                {
+                    question: "Кто изобрел телефон?",
+                    options: ["Эдисон", "Белл", "Тесла", "Маркони"],
+                    correct: 1,
+                    time: 15
+                }
+            ];
+        }
+        
+        function showSoloQuestion() {
+            if (soloCurrentQuestion >= soloQuestions.length) {
+                showSoloFinalResults();
+                return;
+            }
+            
+            const question = soloQuestions[soloCurrentQuestion];
+            soloAnswered = false;
+            
+            // Показываем экран вопроса
+            document.getElementById('solo-question-screen').style.display = 'block';
+            document.getElementById('solo-results-screen').style.display = 'none';
+            document.getElementById('solo-final-results').style.display = 'none';
+            
+            // Обновляем информацию о вопросе
+            document.getElementById('solo-question-num').textContent = soloCurrentQuestion + 1;
+            document.getElementById('solo-total-questions').textContent = soloQuestions.length;
+            document.getElementById('solo-question-text').textContent = question.question;
+            
+            // Прогресс бар
+            const progress = ((soloCurrentQuestion + 1) / soloQuestions.length) * 100;
+            document.getElementById('solo-progress-bar').style.width = progress + '%';
+            
+            // Очищаем фидбек
+            document.getElementById('solo-answer-feedback').textContent = '';
+            document.getElementById('solo-answer-feedback').className = 'answer-feedback';
+            
+            // Создаем кнопки ответов
+            const optionsDiv = document.getElementById('solo-options');
+            optionsDiv.innerHTML = '';
+            question.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = option;
+                btn.onclick = () => selectSoloAnswer(index);
+                optionsDiv.appendChild(btn);
+            });
+            
+            // Запускаем таймер
+            let timeLeft = question.time;
+            const timerElement = document.getElementById('solo-timer');
+            timerElement.textContent = timeLeft;
+            timerElement.classList.remove('urgent');
+            
+            if (soloTimer) clearInterval(soloTimer);
+            soloTimer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 5) {
+                    timerElement.classList.add('urgent');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(soloTimer);
+                    if (!soloAnswered) {
+                        selectSoloAnswer(-1); // Таймаут
+                    }
+                }
+            }, 1000);
+        }
+        
+        function selectSoloAnswer(answerIndex) {
+            if (soloAnswered) return;
+            soloAnswered = true;
+            
+            // Останавливаем таймер
+            if (soloTimer) {
+                clearInterval(soloTimer);
+            }
+            
+            const question = soloQuestions[soloCurrentQuestion];
+            const isCorrect = answerIndex === question.correct;
+            
+            // Обновляем счет
+            if (isCorrect) {
+                const timeLeft = parseInt(document.getElementById('solo-timer').textContent);
+                const timeBonus = Math.max(0, timeLeft * 10);
+                soloScore += 100 + timeBonus;
+                soloCorrectAnswers++;
+            }
+            
+            // Показываем фидбек
+            const feedback = document.getElementById('solo-answer-feedback');
+            if (isCorrect) {
+                feedback.textContent = 'Правильно!';
+                feedback.className = 'answer-feedback correct';
+            } else if (answerIndex === -1) {
+                feedback.textContent = 'Время вышло';
+                feedback.className = 'answer-feedback incorrect';
+            } else {
+                feedback.textContent = 'Неправильно';
+                feedback.className = 'answer-feedback incorrect';
+            }
+            
+            // Подсвечиваем ответы
+            const buttons = document.querySelectorAll('#solo-options .option-btn');
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === question.correct) {
+                    btn.classList.add('correct');
+                } else if (index === answerIndex && !isCorrect) {
+                    btn.classList.add('incorrect');
+                }
+            });
+            
+            // Показываем результаты через 2 секунды
+            setTimeout(showSoloResults, 2000);
+        }
+        
+        function showSoloResults() {
+            document.getElementById('solo-question-screen').style.display = 'none';
+            document.getElementById('solo-results-screen').style.display = 'block';
+            
+            const question = soloQuestions[soloCurrentQuestion];
+            document.getElementById('solo-correct-answer').textContent = 
+                `Правильный ответ: ${question.options[question.correct]}`;
+            document.getElementById('solo-score').textContent = soloScore;
+        }
+        
+        // Следующий вопрос в соло режиме
+        document.getElementById('solo-next-btn').addEventListener('click', () => {
+            soloCurrentQuestion++;
+            showSoloQuestion();
+        });
+        
+        // Кнопка завершения игры в соло режиме
+        document.getElementById('solo-end-game-btn').addEventListener('click', () => {
+            document.getElementById('solo-exit-modal').style.display = 'flex';
+        });
+        
+        // Подтверждение выхода
+        document.getElementById('solo-exit-confirm').addEventListener('click', () => {
+            window.location.href = '/index.html';
+        });
+        
+        // Отмена выхода
+        document.getElementById('solo-exit-cancel').addEventListener('click', () => {
+            document.getElementById('solo-exit-modal').style.display = 'none';
+        });
+        
+        function showSoloFinalResults() {
+            document.getElementById('solo-question-screen').style.display = 'none';
+            document.getElementById('solo-results-screen').style.display = 'none';
+            document.getElementById('solo-final-results').style.display = 'block';
+            
+            document.getElementById('solo-final-score').textContent = soloScore;
+            document.getElementById('solo-correct-count').textContent = soloCorrectAnswers;
+            document.getElementById('solo-questions-total').textContent = soloQuestions.length;
+        }
+        
+        // Перезапуск соло игры
+        document.getElementById('solo-restart-btn').addEventListener('click', () => {
+            location.reload();
+        });
+        
+        // Возврат к меню выбора квизов
+        document.getElementById('solo-back-to-menu-btn').addEventListener('click', () => {
+            window.location.href = '/index.html';
+        });
     </script>
 </body>
 </html>
