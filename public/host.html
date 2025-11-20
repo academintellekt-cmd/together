@@ -285,6 +285,13 @@
 </head>
 <body>
     <div class="container">
+        <!-- Кнопка возврата на главную -->
+        <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
+            <a href="/index.html" style="display: inline-block; background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-size: 16px; border: 2px solid rgba(255, 255, 255, 0.3); transition: all 0.3s;">
+                ← Назад к выбору квизов
+            </a>
+        </div>
+        
         <!-- Лобби -->
         <div id="lobby-screen" class="lobby-screen">
             <h1>Создайте комнату</h1>
@@ -444,8 +451,19 @@
         let roomCode = null;
         let currentTimer = null;
         let serverUrl = null;
+        let quizId = null;
 
         function initApp() {
+            // Получаем quizId из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            quizId = urlParams.get('quiz');
+            
+            // Если quizId не указан, перенаправляем на главную страницу
+            if (!quizId) {
+                window.location.href = '/index.html';
+                return;
+            }
+            
             socket = io();
 
             // Получение IP-адреса сервера
@@ -559,7 +577,13 @@
                     // Сначала получаем IP-адрес сервера
                     await getServerUrl();
                     
-                    const response = await fetch('/api/create-room', { method: 'POST' });
+                    const response = await fetch('/api/create-room', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ quizId: quizId })
+                    });
                     
                     if (!response.ok) {
                         throw new Error(`Ошибка сервера: ${response.status} ${response.statusText}`);

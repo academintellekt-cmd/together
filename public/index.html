@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Квиз - Выбор игры</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            margin-bottom: 50px;
+            opacity: 0.9;
+            animation: fadeInDown 1s ease;
+        }
+
+        .quizzes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .quiz-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px 30px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease;
+            animation-fill-mode: both;
+        }
+
+        .quiz-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .quiz-card:hover::before {
+            left: 100%;
+        }
+
+        .quiz-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .quiz-card:active {
+            transform: translateY(-5px) scale(0.98);
+        }
+
+        .quiz-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            display: block;
+            animation: bounce 2s infinite;
+        }
+
+        .quiz-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .quiz-description {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .quiz-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 14px;
+        }
+
+        .quiz-info-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .quiz-info-icon {
+            font-size: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 24px;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.3);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .coming-soon {
+            opacity: 0.6;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .coming-soon::after {
+            content: 'Скоро';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 193, 7, 0.9);
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .coming-soon:hover {
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Выберите квиз</h1>
+        <p class="subtitle">Выберите тему для вашей игры</p>
+        
+        <div id="loading" class="loading">Загрузка квизов...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="quizzes-grid" class="quizzes-grid" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Загрузка списка квизов
+        async function loadQuizzes() {
+            try {
+                const response = await fetch('/api/quizzes');
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки квизов');
+                }
+                const quizzes = await response.json();
+                displayQuizzes(quizzes);
+            } catch (error) {
+                console.error('Ошибка:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = 'Не удалось загрузить квизы. Убедитесь, что сервер запущен.';
+            }
+        }
+
+        function displayQuizzes(quizzes) {
+            const loading = document.getElementById('loading');
+            const grid = document.getElementById('quizzes-grid');
+            
+            loading.style.display = 'none';
+            grid.style.display = 'grid';
+            grid.innerHTML = '';
+
+            quizzes.forEach((quiz, index) => {
+                const card = document.createElement('div');
+                card.className = 'quiz-card' + (quiz.comingSoon ? ' coming-soon' : '');
+                card.style.animationDelay = (index * 0.1) + 's';
+                
+                if (!quiz.comingSoon) {
+                    card.addEventListener('click', () => {
+                        window.location.href = `/host.html?quiz=${quiz.id}`;
+                    });
+                }
+
+                const icon = quiz.icon || '📚';
+                const description = quiz.description || 'Проверьте свои знания!';
+                const questionCount = quiz.questionCount || 0;
+                const avgTime = quiz.avgTime || 0;
+
+                card.innerHTML = `
+                    <span class="quiz-icon">${icon}</span>
+                    <div class="quiz-title">${quiz.name}</div>
+                    <div class="quiz-description">${description}</div>
+                    <div class="quiz-info">
+                        <div class="quiz-info-item">
+                            <span class="quiz-info-icon">❓</span>
+                            <span>${questionCount} вопросов</span>
+                        </div>
+                        <div class="quiz-info-item">
+                            <span class="quiz-info-icon">⏱️</span>
+                            <span>~${avgTime} сек</span>
+                        </div>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Загружаем квизы при загрузке страницы
+        loadQuizzes();
+    </script>
+</body>
+</html>
+
