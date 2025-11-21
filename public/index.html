@@ -481,13 +481,83 @@
             font-size: 24px;
         }
 
-        /* Все карточки кроме первой, второй и третьей - единый стиль */
-        .quiz-card:not(.empty):nth-child(n+4) {
+        /* Четвертая карточка (Тест-меломан) - фиолетовый стиль из брендбука */
+        .quiz-card:not(.empty):nth-child(4) {
+            background: linear-gradient(135deg, rgba(152, 103, 249, 0.25), rgba(204, 118, 191, 0.25)) !important;
+            border: 2px solid rgba(152, 103, 249, 0.5) !important;
+            box-shadow: 
+                0 4px 0px rgba(152, 103, 249, 0.3),
+                0 6px 12px rgba(152, 103, 249, 0.2);
+        }
+
+        .quiz-card:not(.empty):nth-child(4):hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 8px 0px rgba(152, 103, 249, 0.4),
+                0 12px 24px rgba(152, 103, 249, 0.15);
+            background: rgba(152, 103, 249, 0.35) !important;
+        }
+
+        .quiz-card:not(.empty):nth-child(4):hover .quiz-title,
+        .quiz-card:not(.empty):nth-child(4):hover .quiz-subtitle,
+        .quiz-card:not(.empty):nth-child(4):hover .quiz-info-item,
+        .quiz-card:not(.empty):nth-child(4):hover .quiz-info-item span {
+            color: #9867f9;
+            filter: brightness(1.1);
+        }
+
+        .quiz-card:not(.empty):nth-child(4):hover div[style*="Caveat"] {
+            filter: brightness(1.1) !important;
+        }
+
+        .quiz-card:not(.empty):nth-child(4) .quiz-title {
+            color: #9867f9;
+            font-family: 'Days One', sans-serif;
+            font-weight: 700;
+            font-size: 28px;
+        }
+
+        .quiz-card:not(.empty):nth-child(4) .quiz-subtitle {
+            color: #9867f9;
+            font-family: 'Days One', sans-serif;
+            font-weight: 400;
+            font-size: 22px;
+            margin-top: 8px;
+        }
+
+        .quiz-card:not(.empty):nth-child(4) .quiz-divider {
+            display: none;
+        }
+
+        .quiz-card:not(.empty):nth-child(4) .quiz-icon {
+            display: none;
+        }
+
+        .quiz-card:not(.empty):nth-child(4) .quiz-info {
+            font-family: 'Caveat', cursive;
+            font-size: 30px;
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .quiz-card:not(.empty):nth-child(4) .quiz-info-item {
+            font-family: 'Caveat', cursive;
+            color: #383638;
+        }
+
+        .quiz-card:not(.empty):nth-child(4) .quiz-info-item span:last-child {
+            font-family: 'Caveat', cursive;
+            font-weight: 400;
+            font-size: 24px;
+        }
+
+        /* Все карточки кроме первой, второй, третьей и четвертой - единый стиль */
+        .quiz-card:not(.empty):nth-child(n+5) {
             background: #FFFFFF !important; /* Белый фон */
             border: none !important;
         }
 
-        .quiz-card:not(.empty):nth-child(n+4):hover {
+        .quiz-card:not(.empty):nth-child(n+5):hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
                 0 8px 0px rgba(56, 54, 56, 0.4),
@@ -495,7 +565,7 @@
             background: rgba(255, 255, 255, 0.9) !important; /* Белый полупрозрачный при наведении */
         }
 
-        .quiz-card:not(.empty):nth-child(n+3):hover {
+        .quiz-card:not(.empty):nth-child(3):hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
                 0 8px 0px rgba(0, 0, 0, 0.4),
@@ -503,22 +573,22 @@
             background: rgba(255, 255, 255, 0.9) !important; /* Чуть полупрозрачный при наведении */
         }
 
-        .quiz-card:not(.empty):nth-child(n+4):hover .quiz-title,
-        .quiz-card:not(.empty):nth-child(n+4):hover .quiz-subtitle,
-        .quiz-card:not(.empty):nth-child(n+4):hover .quiz-info-item,
-        .quiz-card:not(.empty):nth-child(n+4):hover .quiz-info-item span {
+        .quiz-card:not(.empty):nth-child(n+5):hover .quiz-title,
+        .quiz-card:not(.empty):nth-child(n+5):hover .quiz-subtitle,
+        .quiz-card:not(.empty):nth-child(n+5):hover .quiz-info-item,
+        .quiz-card:not(.empty):nth-child(n+5):hover .quiz-info-item span {
             color: #383638;
             filter: brightness(1.1);
         }
 
-        .quiz-card:not(.empty):nth-child(n+4) .quiz-title {
+        .quiz-card:not(.empty):nth-child(n+5) .quiz-title {
             color: #383638 !important;
             font-family: 'Days One', sans-serif !important;
             font-weight: 700 !important;
             font-size: 28px !important;
         }
 
-        .quiz-card:not(.empty):nth-child(n+4) .quiz-subtitle {
+        .quiz-card:not(.empty):nth-child(n+5) .quiz-subtitle {
             color: #383638 !important;
             font-family: 'Days One', sans-serif !important;
             font-weight: 400 !important;
@@ -1018,6 +1088,10 @@
                 font-size: clamp(22px, 3.2vw, 30px);
             }
 
+            .quiz-card:not(.empty):nth-child(4) .quiz-title {
+                font-size: clamp(22px, 3.2vw, 30px);
+            }
+
             .quiz-card.empty .quiz-title {
                 font-size: clamp(24px, 3.5vw, 32px);
             }
@@ -1025,6 +1099,7 @@
             .quiz-card:not(.empty):nth-child(1) .quiz-subtitle,
             .quiz-card:not(.empty):nth-child(2) .quiz-subtitle,
             .quiz-card:not(.empty):nth-child(3) .quiz-subtitle,
+            .quiz-card:not(.empty):nth-child(4) .quiz-subtitle,
             .quiz-card.empty .quiz-subtitle {
                 font-size: clamp(18px, 2.8vw, 26px);
             }
@@ -1032,6 +1107,7 @@
             .quiz-card:not(.empty):nth-child(1) .quiz-info,
             .quiz-card:not(.empty):nth-child(2) .quiz-info,
             .quiz-card:not(.empty):nth-child(3) .quiz-info,
+            .quiz-card:not(.empty):nth-child(4) .quiz-info,
             .quiz-card.empty .quiz-info {
                 font-size: clamp(20px, 3.2vw, 30px);
             }
@@ -1039,13 +1115,15 @@
             .quiz-card:not(.empty):nth-child(1) .quiz-info-item span:last-child,
             .quiz-card:not(.empty):nth-child(2) .quiz-info-item span:last-child,
             .quiz-card:not(.empty):nth-child(3) .quiz-info-item span:last-child,
+            .quiz-card:not(.empty):nth-child(4) .quiz-info-item span:last-child,
             .quiz-card.empty .quiz-info-item span:last-child {
                 font-size: clamp(20px, 3.2vw, 30px);
             }
 
             .quiz-card:not(.empty):nth-child(1) div[style*="Caveat"],
             .quiz-card:not(.empty):nth-child(2) div[style*="Caveat"],
-            .quiz-card:not(.empty):nth-child(3) div[style*="Caveat"] {
+            .quiz-card:not(.empty):nth-child(3) div[style*="Caveat"],
+            .quiz-card:not(.empty):nth-child(4) div[style*="Caveat"] {
                 font-size: clamp(16px, 2.5vw, 24px) !important;
             }
 
@@ -1091,6 +1169,10 @@
                 font-size: clamp(18px, 5.5vw, 26px);
             }
 
+            .quiz-card:not(.empty):nth-child(4) .quiz-title {
+                font-size: clamp(18px, 5.5vw, 26px);
+            }
+
             .quiz-card.empty .quiz-title {
                 font-size: clamp(20px, 6vw, 28px);
             }
@@ -1098,6 +1180,7 @@
             .quiz-card:not(.empty):nth-child(1) .quiz-subtitle,
             .quiz-card:not(.empty):nth-child(2) .quiz-subtitle,
             .quiz-card:not(.empty):nth-child(3) .quiz-subtitle,
+            .quiz-card:not(.empty):nth-child(4) .quiz-subtitle,
             .quiz-card.empty .quiz-subtitle {
                 font-size: clamp(16px, 5vw, 24px);
             }
@@ -1105,6 +1188,7 @@
             .quiz-card:not(.empty):nth-child(1) .quiz-info,
             .quiz-card:not(.empty):nth-child(2) .quiz-info,
             .quiz-card:not(.empty):nth-child(3) .quiz-info,
+            .quiz-card:not(.empty):nth-child(4) .quiz-info,
             .quiz-card.empty .quiz-info {
                 font-size: clamp(20px, 6.5vw, 30px);
             }
@@ -1112,6 +1196,7 @@
             .quiz-card:not(.empty):nth-child(1) .quiz-info-item span:last-child,
             .quiz-card:not(.empty):nth-child(2) .quiz-info-item span:last-child,
             .quiz-card:not(.empty):nth-child(3) .quiz-info-item span:last-child,
+            .quiz-card:not(.empty):nth-child(4) .quiz-info-item span:last-child,
             .quiz-card.empty .quiz-info-item span:last-child {
                 font-size: clamp(18px, 6vw, 28px);
             }
@@ -1213,6 +1298,10 @@
                 font-size: clamp(14px, 7.5vw, 22px);
             }
 
+            .quiz-card:not(.empty):nth-child(4) .quiz-title {
+                font-size: clamp(14px, 7.5vw, 22px);
+            }
+
             .quiz-card.empty .quiz-title {
                 font-size: clamp(16px, 8vw, 24px);
             }
@@ -1220,6 +1309,7 @@
             .quiz-card:not(.empty):nth-child(1) .quiz-subtitle,
             .quiz-card:not(.empty):nth-child(2) .quiz-subtitle,
             .quiz-card:not(.empty):nth-child(3) .quiz-subtitle,
+            .quiz-card:not(.empty):nth-child(4) .quiz-subtitle,
             .quiz-card.empty .quiz-subtitle {
                 font-size: clamp(12px, 6.5vw, 20px);
             }
@@ -1227,6 +1317,7 @@
             .quiz-card:not(.empty):nth-child(1) .quiz-info,
             .quiz-card:not(.empty):nth-child(2) .quiz-info,
             .quiz-card:not(.empty):nth-child(3) .quiz-info,
+            .quiz-card:not(.empty):nth-child(4) .quiz-info,
             .quiz-card.empty .quiz-info {
                 font-size: clamp(16px, 8.5vw, 26px);
             }
@@ -1234,13 +1325,15 @@
             .quiz-card:not(.empty):nth-child(1) .quiz-info-item span:last-child,
             .quiz-card:not(.empty):nth-child(2) .quiz-info-item span:last-child,
             .quiz-card:not(.empty):nth-child(3) .quiz-info-item span:last-child,
+            .quiz-card:not(.empty):nth-child(4) .quiz-info-item span:last-child,
             .quiz-card.empty .quiz-info-item span:last-child {
                 font-size: clamp(14px, 7.5vw, 24px);
             }
 
             .quiz-card:not(.empty):nth-child(1) div[style*="Caveat"],
             .quiz-card:not(.empty):nth-child(2) div[style*="Caveat"],
-            .quiz-card:not(.empty):nth-child(3) div[style*="Caveat"] {
+            .quiz-card:not(.empty):nth-child(3) div[style*="Caveat"],
+            .quiz-card:not(.empty):nth-child(4) div[style*="Caveat"] {
                 font-size: clamp(12px, 7vw, 22px) !important;
             }
 
@@ -1607,12 +1700,17 @@
                             window.location.href = `/solo.html?quiz=friends-quiz`;
                         });
                     } else if (i === 1) {
-                        // Вторая карточка - мультиплеер
+                        // НОВАЯ ВТОРАЯ КАРТОЧКА - Чемпионат ГНУ мультиплеер
+                        card.addEventListener('click', () => {
+                            window.location.href = `/host.html?quiz=gnu-multiplayer`;
+                        });
+                    } else if (i === 2) {
+                        // Третья карточка - Тест-эрудит (бывшая вторая)
                         card.addEventListener('click', () => {
                             window.location.href = `/host.html?quiz=general-knowledge`;
                         });
-                    } else if (i === 2) {
-                        // Третья карточка открывает музыкальные гифки
+                    } else if (i === 3) {
+                        // Четвертая карточка открывает музыкальные гифки (бывшая третья)
                         card.addEventListener('click', () => {
                             // Открываем страницу Gifer с тегом "музыка"
                             const giferUrl = 'https://gifer.com/ru/s/%D0%BC%D1%83%D0%B7%D1%8B%D0%BA%D0%B0';
@@ -1695,7 +1793,55 @@
                             </div>
                         `;
                     } else if (i === 1) {
-                        // Специальный стиль для второго квиза (ГНУ)
+                        // НОВАЯ ИГРА: Чемпионат ГНУ Мультиплеер (вторая позиция)
+                        // Иконка вопроса - маркерный шрифт
+                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                            <text x="20" y="32" 
+                                  font-family="Kalam, cursive" 
+                                  font-size="36" 
+                                  font-weight="700"
+                                  fill="#383638" 
+                                  text-anchor="middle">?</text>
+                        </svg>`;
+                        
+                        // Параметры для мультиплеер ГНУ
+                        const timeSeconds = 15; // 15 секунд на вопрос
+                        const questionsInGame = 15; // 15 вопросов в игре
+                        
+                        // SVG иконка часов "от руки маркером" - рисованные часы
+                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
+                                  stroke="#383638" stroke-width="4" fill="none" 
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+                            <!-- Часовая стрелка (вверх) -->
+                            <line x1="16" y1="16" x2="16" y2="10" 
+                                  stroke="#383638" stroke-width="3.5" 
+                                  stroke-linecap="round"/>
+                            <!-- Минутная стрелка (вправо) -->
+                            <line x1="16" y1="16" x2="21" y2="21" 
+                                  stroke="#383638" stroke-width="3.5" 
+                                  stroke-linecap="round"/>
+                        </svg>`;
+
+                        cardHTML = `
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
+                                <div class="quiz-title">ЧЕМПИОНАТ ГНУ</div>
+                                <div class="quiz-subtitle">мультиплеер</div>
+                                <div style="font-family: 'Caveat', cursive; font-size: 22px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(1.5deg);">цели братишек</div>
+                            </div>
+                            <div class="quiz-info">
+                                <div class="quiz-info-item">
+                                    ${questionIcon}
+                                    <span>15 из 150</span>
+                                </div>
+                                <div class="quiz-info-item">
+                                    ${clockIcon}
+                                    <span>по ${timeSeconds} сек</span>
+                                </div>
+                            </div>
+                        `;
+                    } else if (i === 2) {
+                        // Тест-эрудит (теперь третья позиция)
                         // Иконка вопроса - маркерный шрифт
                         const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
                             <text x="20" y="32" 
@@ -1743,8 +1889,8 @@
                                 </div>
                             </div>
                         `;
-                    } else if (i === 2) {
-                        // Специальный стиль для третьей карточки (Меломан)
+                    } else if (i === 3) {
+                        // Специальный стиль для четвертой карточки (Меломан)
                         // Иконка вопроса - маркерный шрифт
                         const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
                             <text x="20" y="32" 
@@ -1774,51 +1920,7 @@
                             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
                                 <div class="quiz-title">ТЕСТ-МЕЛОМАН</div>
                                 <div class="quiz-subtitle">угадай мелодию</div>
-                                <div style="font-family: 'Caveat', cursive; font-size: 28px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(-1deg);">музыка нааас связала</div>
-                            </div>
-                            <div class="quiz-info">
-                                <div class="quiz-info-item">
-                                    ${questionIcon}
-                                    <span>10</span>
-                                </div>
-                                <div class="quiz-info-item">
-                                    ${clockIcon}
-                                    <span>30 сек.</span>
-                                </div>
-                            </div>
-                        `;
-                    } else if (i === 2) {
-                        // Специальный стиль для третьей карточки (Меломан)
-                        // Иконка вопроса - маркерный шрифт
-                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                            <text x="20" y="32" 
-                                  font-family="Kalam, cursive" 
-                                  font-size="36" 
-                                  font-weight="700"
-                                  fill="#383638" 
-                                  text-anchor="middle">?</text>
-                        </svg>`;
-                        
-                        // SVG иконка часов "от руки маркером" - рисованные часы
-                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
-                                  stroke="#383638" stroke-width="4" fill="none" 
-                                  stroke-linecap="round" stroke-linejoin="round"/>
-                            <!-- Часовая стрелка (вверх) -->
-                            <line x1="16" y1="16" x2="16" y2="10" 
-                                  stroke="#383638" stroke-width="3.5" 
-                                  stroke-linecap="round"/>
-                            <!-- Минутная стрелка (вправо) -->
-                            <line x1="16" y1="16" x2="21" y2="21" 
-                                  stroke="#383638" stroke-width="3.5" 
-                                  stroke-linecap="round"/>
-                        </svg>`;
-
-                        cardHTML = `
-                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
-                                <div class="quiz-title">ТЕСТ-МЕЛОМАН</div>
-                                <div class="quiz-subtitle">угадай мелодию</div>
-                                <div style="font-family: 'Caveat', cursive; font-size: 28px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(-1deg);">музыка нааас связала</div>
+                                <div style="font-family: 'Caveat', cursive; font-size: 22px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(-1deg);">музыка нааас связала</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">

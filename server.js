@@ -485,6 +485,14 @@ const quizzes = {
     soloMode: true, // Флаг для соло-режима
     questions: [] // Вопросы загружаются из файла questions.txt
   },
+  'gnu-multiplayer': {
+    id: 'gnu-multiplayer',
+    name: 'Чемпионат ГНУ',
+    description: 'Мультиплеер',
+    icon: '🎮',
+    soloMode: false, // Мультиплеер режим
+    questions: [] // Вопросы загружаются из файла questions.txt (те же что и в friends-quiz)
+  },
   'general-knowledge': {
     id: 'general-knowledge',
     name: 'Тест-эрудит',
@@ -571,8 +579,14 @@ const quizzes = {
 // Явно указываем путь к файлу с вопросами
 const gnuQuestionsFilePath = path.join(__dirname, 'questions.txt');
 console.log(`Загрузка вопросов для квиза ГНУ из файла: ${gnuQuestionsFilePath}`);
-quizzes['friends-quiz'].questions = loadQuestionsFromFile(gnuQuestionsFilePath);
-console.log(`Загружено ${quizzes['friends-quiz'].questions.length} вопросов для квиза ГНУ`);
+const gnuQuestions = loadQuestionsFromFile(gnuQuestionsFilePath);
+
+// Загружаем одинаковые вопросы для обеих игр на базе ГНУ
+quizzes['friends-quiz'].questions = gnuQuestions;
+quizzes['gnu-multiplayer'].questions = gnuQuestions;
+
+console.log(`Загружено ${gnuQuestions.length} вопросов для квиза ГНУ`);
+console.log(`Загружено ${quizzes['gnu-multiplayer'].questions.length} вопросов для мультиплеер ГНУ`);
 
 // Получение списка квизов
 app.get('/api/quizzes', (req, res) => {
@@ -614,8 +628,8 @@ app.get('/api/quizzes/:id', (req, res) => {
   
   let questionsToSend = quiz.questions;
   
-  // Для квиза ГНУ выбираем 15 случайных вопросов из 150
-  if (quizId === 'friends-quiz' && quiz.questions.length > 15) {
+  // Для квизов ГНУ (соло и мультиплеер) выбираем 15 случайных вопросов из 150
+  if ((quizId === 'friends-quiz' || quizId === 'gnu-multiplayer') && quiz.questions.length > 15) {
     // Создаем копию массива и перемешиваем
     const shuffled = [...quiz.questions].sort(() => Math.random() - 0.5);
     // Берем первые 15
@@ -808,11 +822,12 @@ app.get('/api/reload-leaderboard', async (req, res) => {
 app.post('/api/reload-questions', (req, res) => {
   const { quizId } = req.body;
   
-  if (quizId === 'friends-quiz') {
+  if (quizId === 'friends-quiz' || quizId === 'gnu-multiplayer') {
     // Загружаем вопросы из questions.txt (150 вопросов)
     const questionsFilePath = path.join(__dirname, 'questions.txt');
     const loadedQuestions = loadQuestionsFromFile(questionsFilePath);
     quizzes['friends-quiz'].questions = loadedQuestions;
+    quizzes['gnu-multiplayer'].questions = loadedQuestions;
     
     res.json({ 
       success: true, 
