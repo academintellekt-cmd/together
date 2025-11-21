@@ -296,14 +296,14 @@
             color: #00C159;
             font-family: 'Days One', sans-serif;
             font-weight: 700;
-            font-size: 32px;
+            font-size: 28px;
         }
 
         .quiz-card:not(.empty):nth-child(1) .quiz-subtitle {
             color: #00C159;
             font-family: 'Days One', sans-serif;
             font-weight: 400;
-            font-size: 26px;
+            font-size: 22px;
             margin-top: 8px;
         }
 
@@ -374,14 +374,14 @@
             color: #ff7664;
             font-family: 'Days One', sans-serif;
             font-weight: 700;
-            font-size: 30px;
+            font-size: 28px;
         }
 
         .quiz-card:not(.empty):nth-child(2) .quiz-subtitle {
             color: #ff7664;
             font-family: 'Days One', sans-serif;
             font-weight: 400;
-            font-size: 26px;
+            font-size: 22px;
             margin-top: 8px;
         }
 
@@ -444,14 +444,14 @@
             color: #9867f9;
             font-family: 'Days One', sans-serif;
             font-weight: 700;
-            font-size: 30px;
+            font-size: 28px;
         }
 
         .quiz-card:not(.empty):nth-child(3) .quiz-subtitle {
             color: #9867f9;
             font-family: 'Days One', sans-serif;
             font-weight: 400;
-            font-size: 20px;
+            font-size: 22px;
             margin-top: 8px;
         }
 
@@ -513,10 +513,17 @@
 
         .quiz-card:not(.empty):nth-child(n+4) .quiz-title {
             color: #383638 !important;
+            font-family: 'Days One', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 28px !important;
         }
 
         .quiz-card:not(.empty):nth-child(n+4) .quiz-subtitle {
             color: #383638 !important;
+            font-family: 'Days One', sans-serif !important;
+            font-weight: 400 !important;
+            font-size: 22px !important;
+            margin-top: 8px !important;
         }
 
         .quiz-card:not(.empty):nth-child(n+4) .quiz-info-item {
@@ -1568,8 +1575,8 @@
             
             // Создаем специальную карту для фиксированных квизов
             const fixedQuizzes = {
-                0: existingQuizzes.find(q => q.id === 'general-knowledge'),
-                1: existingQuizzes.find(q => q.id === 'friends-quiz')
+                0: existingQuizzes.find(q => q.id === 'friends-quiz'), // Соло-режим в первом слоте
+                1: existingQuizzes.find(q => q.id === 'general-knowledge') // Мультиплеер во втором слоте
             };
 
             for (let i = 0; i < totalSlots; i++) {
@@ -1595,14 +1602,14 @@
                     
                     // Обработчики кликов для разных типов карточек
                     if (i === 0) {
-                        // Первая карточка - общие знания
-                        card.addEventListener('click', () => {
-                            window.location.href = `/host.html?quiz=general-knowledge`;
-                        });
-                    } else if (i === 1) {
-                        // Вторая карточка - квиз ГНУ (соло-режим)
+                        // Первая карточка - квиз ГНУ (соло-режим)
                         card.addEventListener('click', () => {
                             window.location.href = `/solo.html?quiz=friends-quiz`;
+                        });
+                    } else if (i === 1) {
+                        // Вторая карточка - мультиплеер
+                        card.addEventListener('click', () => {
+                            window.location.href = `/host.html?quiz=general-knowledge`;
                         });
                     } else if (i === 2) {
                         // Третья карточка открывает музыкальные гифки
@@ -1672,18 +1679,18 @@
 
                         cardHTML = `
                             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
-                                <div class="quiz-title">ТЕСТ-ЭРУДИТ</div>
-                                <div class="quiz-subtitle">общие знания</div>
-                                <div style="font-family: 'Caveat', cursive; font-size: 28px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(-2deg);">это база</div>
+                                <div class="quiz-title">ЧЕМПИОНАТ ГНУ</div>
+                                <div class="quiz-subtitle">цели братишек</div>
+                                <div style="font-family: 'Caveat', cursive; font-size: 22px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(-2deg);">девушки тоже братишки</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
                                     ${questionIcon}
-                                    <span>10</span>
+                                    <span>15 из ${questionCount}</span>
                                 </div>
                                 <div class="quiz-info-item">
                                     ${clockIcon}
-                                    <span>14 сек.</span>
+                                    <span>по ${timeSeconds} сек</span>
                                 </div>
                             </div>
                         `;
@@ -1699,11 +1706,10 @@
                                   text-anchor="middle">?</text>
                         </svg>`;
                         
-                        // Используем данные из квиза ГНУ
-                        const gnuQuiz = fixedQuizzes[1];
-                        const timeSeconds = gnuQuiz ? gnuQuiz.avgTime : 20;
-                        const totalQuestions = gnuQuiz ? gnuQuiz.totalQuestionsInBase : 150;
-                        const questionsInGame = gnuQuiz && gnuQuiz.soloMode ? 15 : (gnuQuiz ? gnuQuiz.questionCount : 15);
+                        // Используем данные из квиза общих знаний
+                        const generalQuiz = fixedQuizzes[1];
+                        const timeSeconds = generalQuiz ? generalQuiz.avgTime : 15;
+                        const questionsInGame = generalQuiz ? generalQuiz.questionCount : 10;
                         
                         // SVG иконка часов "от руки маркером" - рисованные часы
                         const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
@@ -1722,18 +1728,18 @@
 
                         cardHTML = `
                             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
-                                <div class="quiz-title">ЧЕМПИОНАТ ГНУ</div>
-                                <div class="quiz-subtitle">цели братишек</div>
-                                <div style="font-family: 'Caveat', cursive; font-size: 28px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(1.5deg);">девушки тоже братишки</div>
+                                <div class="quiz-title">ТЕСТ-ЭРУДИТ</div>
+                                <div class="quiz-subtitle">мультиплеер</div>
+                                <div style="font-family: 'Caveat', cursive; font-size: 22px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(1.5deg);">общие знания</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
                                     ${questionIcon}
-                                    <span>${questionsInGame}/${totalQuestions}</span>
+                                    <span>${questionsInGame} вопросов</span>
                                 </div>
                                 <div class="quiz-info-item">
                                     ${clockIcon}
-                                    <span>${timeSeconds} сек.</span>
+                                    <span>по ${timeSeconds} сек</span>
                                 </div>
                             </div>
                         `;

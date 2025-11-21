@@ -33,7 +33,7 @@ tar -czf quiz-deploy.tar.gz \
     --exclude=ИНСТРУКЦИЯ_ЗАПУСКА.md \
     --exclude=УСТАНОВКА.md \
     --exclude=Geometria \
-    server.js package.json package-lock.json public/ start.sh questions.txt
+    server.js package.json package-lock.json public/ start.sh nodemon.json api/ questions.txt
 
 echo "📤 Загрузка файлов на сервер..."
 echo "💡 Введите пароль от сервера:"

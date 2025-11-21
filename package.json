@@ -5,10 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
-    "stop": "node stop-server.js",
-    "start:win": "start.bat",
-    "restart": "node stop-server.js && node server.js"
+    "dev": "nodemon server.js"
   },
   "keywords": [
     "quiz",

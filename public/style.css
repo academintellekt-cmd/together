@@ -1,63 +1,17 @@
-/* Подключение шрифтов Geometria */
+/* Подключение основных шрифтов Geometria (оптимизированная версия) */
 @font-face {
     font-family: 'Geometria';
     src: url('/Geometria/Geometria.otf') format('opentype');
     font-weight: 400;
     font-style: normal;
-}
-@font-face {
-    font-family: 'Geometria';
-    src: url('/Geometria/Geometria-Thin.otf') format('opentype');
-    font-weight: 100;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'Geometria';
-    src: url('/Geometria/Geometria-ExtraLight.otf') format('opentype');
-    font-weight: 200;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'Geometria';
-    src: url('/Geometria/Geometria-Light.otf') format('opentype');
-    font-weight: 300;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'Geometria';
-    src: url('/Geometria/Geometria-Medium.otf') format('opentype');
-    font-weight: 500;
-    font-style: normal;
+    font-display: swap;
 }
 @font-face {
     font-family: 'Geometria';
     src: url('/Geometria/Geometria-Bold.otf') format('opentype');
     font-weight: 700;
     font-style: normal;
-}
-@font-face {
-    font-family: 'Geometria';
-    src: url('/Geometria/Geometria-Heavy.otf') format('opentype');
-    font-weight: 800;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'Geometria';
-    src: url('/Geometria/Geometria-ExtraBlack.otf') format('opentype');
-    font-weight: 900;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'Geometria';
-    src: url('/Geometria/Geometria-Italic.otf') format('opentype');
-    font-weight: 400;
-    font-style: italic;
-}
-@font-face {
-    font-family: 'Geometria';
-    src: url('/Geometria/Geometria-BoldItalic.otf') format('opentype');
-    font-weight: 700;
-    font-style: italic;
+    font-display: swap;
 }
 
 * {

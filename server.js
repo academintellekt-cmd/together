@@ -50,7 +50,7 @@ async function initializeLeaderboard() {
 // Функция загрузки рейтинга из Google Sheets
 async function loadLeaderboardFromGoogleSheets() {
   try {
-    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbztFCa9WW9uHa89EqxlsHczbNvSrTi8mmUGAGcYB4xG-3tAMeGwHOj_0G3HQf93sMHwwg/exec';
+    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbw3CjUHux-4HKTwgHFUolsWIiW_kKjxM6KAPkcLyTi12_RoHH9A9fpgkEWj3x0ePtGo9g/exec';
     
     console.log('🔄 Попытка загрузки рейтинга из Google Sheets...');
     console.log('📡 URL:', WEB_APP_URL + '?action=getLeaderboard');
@@ -185,7 +185,7 @@ async function loadLeaderboardFromGoogleSheets() {
 // Функция записи результата в Google Sheets через Apps Script Web App
 async function writeToGoogleSheets(result) {
   try {
-    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbztFCa9WW9uHa89EqxlsHczbNvSrTi8mmUGAGcYB4xG-3tAMeGwHOj_0G3HQf93sMHwwg/exec';
+    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbw3CjUHux-4HKTwgHFUolsWIiW_kKjxM6KAPkcLyTi12_RoHH9A9fpgkEWj3x0ePtGo9g/exec';
     
     if (!WEB_APP_URL) {
       console.log('GOOGLE_APPS_SCRIPT_URL не настроен. Пропускаем запись в Google Sheets.');
@@ -298,39 +298,58 @@ function loadQuestionsFromFile(filePath) {
     let currentQuestion = null;
     let questionId = 1;
 
-    for (const line of lines) {
-      if (!line || line.startsWith('//') || line.startsWith('#') || line.startsWith('Вопрос')) {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Пропускаем пустые строки и комментарии
+      if (!line || line.startsWith('//') || line.startsWith('#')) {
         continue;
       }
 
+      // Если строка заканчивается на "?", это вопрос
       if (line.endsWith('?')) {
+        // Сохраняем предыдущий вопрос, если есть
         if (currentQuestion && currentQuestion.options.length > 0) {
           questions.push(currentQuestion);
         }
         
+        // Начинаем новый вопрос
         currentQuestion = {
           id: questionId++,
           question: line,
           options: [],
           correct: -1,
-          time: 20
+          time: 20 // По умолчанию 20 секунд
         };
       }
+      // Если строка начинается с "+" или "*", это вариант ответа
       else if (line.startsWith('+') || line.startsWith('*')) {
         if (currentQuestion) {
-          let answer = line.substring(1).trim().replace(/[★*]$/, '').trim();
+          let answer = line.substring(1).trim(); // Убираем префикс "+" или "*"
+          
+          // Проверяем, есть ли звездочка в конце (правильный ответ)
+          const isCorrect = answer.endsWith('★') || answer.endsWith('*');
+          
+          // Удаляем звездочку из конца ответа
+          answer = answer.replace(/[★*]$/, '').trim();
+          
+          // Добавляем ответ БЕЗ звездочки
           currentQuestion.options.push(answer);
-          if (currentQuestion.correct === -1) {
+          
+          // Если это правильный ответ и еще не установлен
+          if (isCorrect && currentQuestion.correct === -1) {
             currentQuestion.correct = currentQuestion.options.length - 1;
           }
         }
       }
+      // Если строка начинается с "-", это неправильный ответ
       else if (line.startsWith('-')) {
         if (currentQuestion) {
-          const answer = line.substring(1).trim().replace(/[★*]$/, '').trim();
+          const answer = line.substring(1).trim();
           currentQuestion.options.push(answer);
         }
       }
+      // Если строка содержит "time:" или "время:", это время на ответ
       else if (line.toLowerCase().includes('time:') || line.toLowerCase().includes('время:')) {
         if (currentQuestion) {
           const timeMatch = line.match(/\d+/);
@@ -339,13 +358,24 @@ function loadQuestionsFromFile(filePath) {
           }
         }
       }
+      // Пропускаем строки "Вопрос N"
+      else if (line.toLowerCase().startsWith('вопрос ')) {
+        continue;
+      }
+      // Иначе это может быть вариант ответа без префикса (проверяем на звездочку)
       else if (currentQuestion && currentQuestion.options.length < 4) {
         let answer = line.trim();
         const isCorrect = answer.endsWith('★') || answer.endsWith('*');
-        answer = answer.replace(/[★*]$/, '').trim();
         
+        // Удаляем звездочку из ответа (важно: удаляем ПЕРЕД добавлением в массив)
+        answer = answer.replace(/[★*]$/, '').trim();
+        // Удаляем префикс "* " если есть
+        answer = answer.replace(/^\*\s*/, '').trim();
+        
+        // Добавляем ответ БЕЗ звездочки
         currentQuestion.options.push(answer);
         
+        // Если это правильный ответ и еще не установлен
         if (isCorrect && currentQuestion.correct === -1) {
           currentQuestion.correct = currentQuestion.options.length - 1;
         }
@@ -359,19 +389,28 @@ function loadQuestionsFromFile(filePath) {
 
     console.log(`Загружено ${questions.length} вопросов из файла ${filePath}`);
     
-    // Перемешиваем варианты ответов
+    // Перемешиваем варианты ответов для каждого вопроса
     questions.forEach(question => {
       if (question.options.length > 0 && question.correct >= 0) {
+        // Сохраняем правильный ответ
         const correctAnswer = question.options[question.correct];
+        
+        // Перемешиваем все варианты
         const shuffledOptions = question.options.sort(() => Math.random() - 0.5);
+        
+        // Находим новый индекс правильного ответа
         const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
+        
+        // Обновляем вопрос
         question.options = shuffledOptions;
         question.correct = newCorrectIndex;
       }
     });
 
-    // Перемешиваем вопросы и переназначаем ID
+    // Перемешиваем вопросы случайным образом
     const shuffled = questions.sort(() => Math.random() - 0.5);
+    
+    // Переназначаем ID для последовательности
     shuffled.forEach((q, index) => {
       q.id = index + 1;
     });
@@ -391,11 +430,20 @@ function generateRoomCode() {
 
 // Структура квизов
 const quizzes = {
+  'friends-quiz': {
+    id: 'friends-quiz',
+    name: 'Чемпионат ГНУ по целям своих братишек',
+    description: 'Девушки тоже братишки',
+    icon: '👥',
+    soloMode: true, // Флаг для соло-режима
+    questions: [] // Вопросы загружаются из файла questions.txt
+  },
   'general-knowledge': {
     id: 'general-knowledge',
-    name: 'Общие знания',
-    description: 'Проверьте свои знания в разных областях',
+    name: 'Тест-эрудит',
+    description: 'Общие знания для всех',
     icon: '🧠',
+    soloMode: false, // Мультиплеер режим
     questions: [
       {
         id: 1,
@@ -468,14 +516,6 @@ const quizzes = {
         time: 15
       }
     ]
-  },
-  'friends-quiz': {
-    id: 'friends-quiz',
-    name: 'Чемпионат ГНУ по целям своих братишек',
-    description: 'Девушки тоже братишки',
-    icon: '👥',
-    soloMode: true, // Флаг для соло-режима
-    questions: [] // Вопросы загружаются из файла questions.txt
   }
   // Здесь можно добавить новые квизы в будущем
 };
@@ -627,7 +667,13 @@ app.post('/api/leaderboard', (req, res) => {
   }
 
   // Записываем в Google Sheets (асинхронно, не блокируем ответ)
-  writeToGoogleSheets(result).catch(err => {
+  writeToGoogleSheets(result).then(async (success) => {
+    if (success) {
+      console.log('✅ Результат записан в Google Sheets, обновляем рейтинг...');
+      // Обновляем рейтинг после успешной записи
+      await initializeLeaderboard();
+    }
+  }).catch(err => {
     console.error('Ошибка записи в Google Sheets:', err);
   });
   
@@ -1116,6 +1162,12 @@ if (require.main === module) {
     
     // Инициализируем рейтинг из Google Sheets
     await initializeLeaderboard();
+    
+    // Автоматическое обновление рейтинга каждые 5 минут
+    setInterval(async () => {
+      console.log('🔄 Автоматическое обновление рейтинга...');
+      await initializeLeaderboard();
+    }, 5 * 60 * 1000); // 5 минут
   }).on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
       console.error(`Порт ${PORT} уже занят. Попробуйте другой порт:`);

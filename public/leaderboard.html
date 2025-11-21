@@ -216,6 +216,10 @@
             emptyState.style.display = 'none';
 
             try {
+                // Сначала обновляем данные на сервере
+                await fetch('/api/reload-leaderboard');
+                
+                // Затем загружаем обновленные данные
                 const response = await fetch(`/api/leaderboard`);
                 if (!response.ok) {
                     throw new Error('Ошибка загрузки рейтинга');
