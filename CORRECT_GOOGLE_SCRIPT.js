@@ -1,4 +1,4 @@
-// Полный код для Google Apps Script
+// ПРАВИЛЬНЫЙ код для Google Apps Script (без костылей)
 // Замените YOUR_SHEET_ID на: 1yGUV-99vQEcEYGCS9BIX1IC4LYDopaFA7Qis9hjobPk
 
 // Функция для парсинга времени из формата "Xм Yс" в секунды
@@ -39,7 +39,7 @@ function parseTimeToSeconds(timeString) {
 }
 
 function doPost(e) {
-  // Функция для записи данных (существующая)
+  // Функция для записи данных (оставляем как есть)
   try {
     const data = JSON.parse(e.postData.contents);
     
@@ -74,13 +74,19 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  // Новая функция для загрузки рейтинга
+  // ИСПРАВЛЕННАЯ функция для загрузки рейтинга
   try {
     const action = e.parameter.action;
     
     if (action === 'getLeaderboard') {
       const sheet = SpreadsheetApp.openById('1yGUV-99vQEcEYGCS9BIX1IC4LYDopaFA7Qis9hjobPk').getActiveSheet();
       const data = sheet.getDataRange().getValues();
+      
+      // Отладочная информация - покажем структуру первых строк
+      console.log('=== ОТЛАДКА СТРУКТУРЫ GOOGLE SHEETS ===');
+      for (let i = 0; i < Math.min(5, data.length); i++) {
+        console.log(`Строка ${i}: [${data[i].join(' | ')}]`);
+      }
       
       // Собираем все результаты, пропуская пустые строки
       const allResults = [];
@@ -102,14 +108,26 @@ function doGet(e) {
           continue;
         }
         
+        // ПРОСТАЯ ЛОГИКА: Читаем время из столбца G (индекс 6) как раньше
+        const timeSpent = parseTimeToSeconds(row[6]);
+        
+        // Отладочная информация для проблемных игроков
+        if (playerName === 'Артём Ковальский' || playerName === 'Роман') {
+          console.log(`=== ${playerName} ===`);
+          console.log(`Столбец F (${row[5]}) -> ${parseTimeToSeconds(row[5])}`);
+          console.log(`Столбец G (${row[6]}) -> ${parseTimeToSeconds(row[6])}`);
+          console.log(`Столбец H (${row[7]}) -> ${parseTimeToSeconds(row[7])}`);
+          console.log(`Выбранное время: ${timeSpent}`);
+        }
+        
         allResults.push({
           date: row[0] ? row[0].toString() : new Date().toISOString().split('T')[0],
           playerName: playerName,
           score: score,
           correctAnswers: parseInt(row[3]) || 0,
           totalQuestions: parseInt(row[4]) || 0,
-          timeSpent: parseTimeToSeconds(row[6]), // Время в столбце G (индекс 6)
-          percentage: parseInt(row[5]) || 0,     // Процент в столбце F (индекс 5)
+          timeSpent: timeSpent, // Время из столбца G (как раньше)
+          percentage: parseInt(row[5]) || 0, // Процент в столбце F
           quizId: row[7] ? row[7].toString() : 'friends-quiz',
           timestamp: row[0] ? new Date(row[0]).getTime() : Date.now()
         });

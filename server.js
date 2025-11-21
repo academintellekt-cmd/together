@@ -47,10 +47,47 @@ async function initializeLeaderboard() {
   }
 }
 
+// Функция для парсинга времени из формата "Xм Yс" в секунды
+function parseTimeToSeconds(timeString) {
+  if (!timeString || timeString === '') return 0;
+  
+  // Если это уже число, возвращаем его
+  if (typeof timeString === 'number') return timeString;
+  
+  const str = timeString.toString().trim();
+  
+  // Если пустая строка или "0", возвращаем 0
+  if (str === '' || str === '0') return 0;
+  
+  let totalSeconds = 0;
+  
+  // Ищем минуты (например, "2м")
+  const minutesMatch = str.match(/(\d+)м/);
+  if (minutesMatch) {
+    totalSeconds += parseInt(minutesMatch[1]) * 60;
+  }
+  
+  // Ищем секунды (например, "30с")
+  const secondsMatch = str.match(/(\d+)с/);
+  if (secondsMatch) {
+    totalSeconds += parseInt(secondsMatch[1]);
+  }
+  
+  // Если не нашли ни минут, ни секунд, пробуем парсить как число
+  if (totalSeconds === 0) {
+    const numericValue = parseFloat(str);
+    if (!isNaN(numericValue)) {
+      return numericValue;
+    }
+  }
+  
+  return totalSeconds;
+}
+
 // Функция загрузки рейтинга из Google Sheets
 async function loadLeaderboardFromGoogleSheets() {
   try {
-    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbw3CjUHux-4HKTwgHFUolsWIiW_kKjxM6KAPkcLyTi12_RoHH9A9fpgkEWj3x0ePtGo9g/exec';
+    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwfQPlAw9LTH4V3a3mrZXpqVdOdrTqCYs67L7aPTdibiMloDTvivj-c3hpnQdafvY43zQ/exec';
     
     console.log('🔄 Попытка загрузки рейтинга из Google Sheets...');
     console.log('📡 URL:', WEB_APP_URL + '?action=getLeaderboard');
@@ -115,10 +152,15 @@ async function loadLeaderboardFromGoogleSheets() {
                     
                     if (data.success && Array.isArray(data.leaderboard)) {
                       console.log(`✅ Загружено ${data.leaderboard.length} записей рейтинга из Google Sheets`);
-                      if (data.leaderboard.length > 0) {
-                        console.log('📋 Первая запись:', JSON.stringify(data.leaderboard[0], null, 2));
+                      
+                      // Просто возвращаем данные как есть из Google Apps Script
+                      const processedLeaderboard = data.leaderboard;
+                      
+                      if (processedLeaderboard.length > 0) {
+                        console.log('📋 Первая запись (обработанная):', JSON.stringify(processedLeaderboard[0], null, 2));
+                        console.log('📋 Оригинальная первая запись:', JSON.stringify(data.leaderboard[0], null, 2));
                       }
-                      resolve(data.leaderboard);
+                      resolve(processedLeaderboard);
                     } else {
                       console.log('⚠️ Рейтинг не найден в Google Sheets');
                       resolve([]);
@@ -146,10 +188,15 @@ async function loadLeaderboardFromGoogleSheets() {
             
             if (data.success && Array.isArray(data.leaderboard)) {
               console.log(`✅ Загружено ${data.leaderboard.length} записей рейтинга из Google Sheets`);
-              if (data.leaderboard.length > 0) {
-                console.log('📋 Первая запись:', JSON.stringify(data.leaderboard[0], null, 2));
+              
+              // Просто возвращаем данные как есть из Google Apps Script
+              const processedLeaderboard = data.leaderboard;
+              
+              if (processedLeaderboard.length > 0) {
+                console.log('📋 Первая запись (обработанная):', JSON.stringify(processedLeaderboard[0], null, 2));
+                console.log('📋 Оригинальная первая запись:', JSON.stringify(data.leaderboard[0], null, 2));
               }
-              resolve(data.leaderboard);
+              resolve(processedLeaderboard);
             } else {
               console.log('⚠️ Рейтинг не найден в Google Sheets или неверный формат ответа');
               console.log('🔍 Полный ответ:', JSON.stringify(data, null, 2));
@@ -185,7 +232,7 @@ async function loadLeaderboardFromGoogleSheets() {
 // Функция записи результата в Google Sheets через Apps Script Web App
 async function writeToGoogleSheets(result) {
   try {
-    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbw3CjUHux-4HKTwgHFUolsWIiW_kKjxM6KAPkcLyTi12_RoHH9A9fpgkEWj3x0ePtGo9g/exec';
+    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwfQPlAw9LTH4V3a3mrZXpqVdOdrTqCYs67L7aPTdibiMloDTvivj-c3hpnQdafvY43zQ/exec';
     
     if (!WEB_APP_URL) {
       console.log('GOOGLE_APPS_SCRIPT_URL не настроен. Пропускаем запись в Google Sheets.');
