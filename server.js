@@ -298,58 +298,39 @@ function loadQuestionsFromFile(filePath) {
     let currentQuestion = null;
     let questionId = 1;
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      
-      // Пропускаем пустые строки и комментарии
-      if (!line || line.startsWith('//') || line.startsWith('#')) {
+    for (const line of lines) {
+      if (!line || line.startsWith('//') || line.startsWith('#') || line.startsWith('Вопрос')) {
         continue;
       }
 
-      // Если строка заканчивается на "?", это вопрос
       if (line.endsWith('?')) {
-        // Сохраняем предыдущий вопрос, если есть
         if (currentQuestion && currentQuestion.options.length > 0) {
           questions.push(currentQuestion);
         }
         
-        // Начинаем новый вопрос
         currentQuestion = {
           id: questionId++,
           question: line,
           options: [],
           correct: -1,
-          time: 20 // По умолчанию 20 секунд
+          time: 20
         };
       }
-      // Если строка начинается с "+" или "*", это вариант ответа
       else if (line.startsWith('+') || line.startsWith('*')) {
         if (currentQuestion) {
-          let answer = line.substring(1).trim(); // Убираем префикс "+" или "*"
-          
-          // Проверяем, есть ли звездочка в конце (правильный ответ)
-          const isCorrect = answer.endsWith('★') || answer.endsWith('*');
-          
-          // Удаляем звездочку из конца ответа
-          answer = answer.replace(/[★*]$/, '').trim();
-          
-          // Добавляем ответ БЕЗ звездочки
+          let answer = line.substring(1).trim().replace(/[★*]$/, '').trim();
           currentQuestion.options.push(answer);
-          
-          // Если это правильный ответ и еще не установлен
-          if (isCorrect && currentQuestion.correct === -1) {
+          if (currentQuestion.correct === -1) {
             currentQuestion.correct = currentQuestion.options.length - 1;
           }
         }
       }
-      // Если строка начинается с "-", это неправильный ответ
       else if (line.startsWith('-')) {
         if (currentQuestion) {
-          const answer = line.substring(1).trim();
+          const answer = line.substring(1).trim().replace(/[★*]$/, '').trim();
           currentQuestion.options.push(answer);
         }
       }
-      // Если строка содержит "time:" или "время:", это время на ответ
       else if (line.toLowerCase().includes('time:') || line.toLowerCase().includes('время:')) {
         if (currentQuestion) {
           const timeMatch = line.match(/\d+/);
@@ -358,24 +339,13 @@ function loadQuestionsFromFile(filePath) {
           }
         }
       }
-      // Пропускаем строки "Вопрос N"
-      else if (line.toLowerCase().startsWith('вопрос ')) {
-        continue;
-      }
-      // Иначе это может быть вариант ответа без префикса (проверяем на звездочку)
       else if (currentQuestion && currentQuestion.options.length < 4) {
         let answer = line.trim();
         const isCorrect = answer.endsWith('★') || answer.endsWith('*');
-        
-        // Удаляем звездочку из ответа (важно: удаляем ПЕРЕД добавлением в массив)
         answer = answer.replace(/[★*]$/, '').trim();
-        // Удаляем префикс "* " если есть
-        answer = answer.replace(/^\*\s*/, '').trim();
         
-        // Добавляем ответ БЕЗ звездочки
         currentQuestion.options.push(answer);
         
-        // Если это правильный ответ и еще не установлен
         if (isCorrect && currentQuestion.correct === -1) {
           currentQuestion.correct = currentQuestion.options.length - 1;
         }
@@ -389,28 +359,19 @@ function loadQuestionsFromFile(filePath) {
 
     console.log(`Загружено ${questions.length} вопросов из файла ${filePath}`);
     
-    // Перемешиваем варианты ответов для каждого вопроса
+    // Перемешиваем варианты ответов
     questions.forEach(question => {
       if (question.options.length > 0 && question.correct >= 0) {
-        // Сохраняем правильный ответ
         const correctAnswer = question.options[question.correct];
-        
-        // Перемешиваем все варианты
         const shuffledOptions = question.options.sort(() => Math.random() - 0.5);
-        
-        // Находим новый индекс правильного ответа
         const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
-        
-        // Обновляем вопрос
         question.options = shuffledOptions;
         question.correct = newCorrectIndex;
       }
     });
 
-    // Перемешиваем вопросы случайным образом
+    // Перемешиваем вопросы и переназначаем ID
     const shuffled = questions.sort(() => Math.random() - 0.5);
-    
-    // Переназначаем ID для последовательности
     shuffled.forEach((q, index) => {
       q.id = index + 1;
     });
