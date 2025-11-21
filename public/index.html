@@ -474,6 +474,13 @@
                 letter-spacing: 12px;
             }
 
+            .letter-m::before,
+            .letter-m::after {
+                width: 30px;
+                height: 30px;
+                top: -4px;
+            }
+
             .subtitle {
                 font-size: 44px;
             }
@@ -488,6 +495,13 @@
             .main-title .hey {
                 font-size: 76px;
                 letter-spacing: 10px;
+            }
+
+            .letter-m::before,
+            .letter-m::after {
+                width: 25px;
+                height: 25px;
+                top: -3px;
             }
 
             .subtitle {
@@ -523,6 +537,13 @@
             .main-title .hey {
                 font-size: 56px;
                 letter-spacing: 6px;
+            }
+
+            .letter-m::before,
+            .letter-m::after {
+                width: 20px;
+                height: 20px;
+                top: -2px;
             }
 
             .subtitle {
@@ -623,7 +644,7 @@
                     const avgTime = quiz.avgTime || 0;
                     const totalQuestionsInBase = quiz.totalQuestionsInBase || quiz.questionCount || 0;
                     const questionCountText = quiz.soloMode ? `15 из ${totalQuestionsInBase} вопросов` : `${questionCount} вопросов`;
-                    const modeBadge = quiz.soloMode ? '<div class="quiz-mode-badge">🎮 Соло-режим</div>' : '';
+                    const modeBadge = '';
 
                     let cardHTML = '';
                     // Первая карточка или квиз с soloMode оформляются в специальном стиле

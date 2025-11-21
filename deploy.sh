@@ -1,13 +1,14 @@
 #!/bin/bash
-# Скрипт автоматического развертывания квиз-сайта
+# Единый скрипт развертывания квиз-сайта на сервер
+# Полная замена всех файлов с гарантированным обновлением
 
-echo "🚀 Начинаем развертывание квиз-сайта..."
+echo "🚀 Развертывание квиз-сайта на сервер..."
 
 # Проверка аргументов
 if [ $# -eq 0 ]; then
     echo "❌ Укажите IP адрес сервера:"
     echo "Использование: ./deploy.sh SERVER_IP [USERNAME]"
-    echo "Пример: ./deploy.sh 192.168.1.100 root"
+    echo "Пример: ./deploy.sh 109.107.187.189 root"
     exit 1
 fi
 
@@ -16,83 +17,122 @@ USERNAME=${2:-root}
 
 echo "📡 Сервер: $USERNAME@$SERVER_IP"
 
-# Создание архива если его нет
-if [ ! -f "quiz-site.tar.gz" ]; then
-    echo "📦 Создание архива..."
-    tar -czf quiz-site.tar.gz --exclude=node_modules --exclude=.git server.js package.json package-lock.json public/ start.sh nodemon.json api/
-fi
+# Создание архива с актуальными файлами
+echo "📦 Создание архива с файлами проекта..."
+tar -czf quiz-deploy.tar.gz \
+    --exclude=node_modules \
+    --exclude=.git \
+    --exclude=*.backup \
+    --exclude=*.log \
+    --exclude=*.tar.gz \
+    --exclude=README.md \
+    --exclude=CHECKLIST.md \
+    --exclude=DEPLOY.md \
+    --exclude=DESIGN.md \
+    --exclude=RENDER_UPDATE.md \
+    --exclude=ИНСТРУКЦИЯ_ЗАПУСКА.md \
+    --exclude=УСТАНОВКА.md \
+    --exclude=Geometria \
+    server.js package.json package-lock.json public/ start.sh nodemon.json api/ questions.txt
 
 echo "📤 Загрузка файлов на сервер..."
-scp quiz-site.tar.gz $USERNAME@$SERVER_IP:/tmp/
+echo "💡 Введите пароль от сервера:"
 
-echo "🔧 Настройка сервера..."
-ssh $USERNAME@$SERVER_IP << 'EOF'
-# Обновление системы
-echo "📦 Обновление системы..."
-apt update && apt upgrade -y
+# Загружаем архив
+scp quiz-deploy.tar.gz $USERNAME@$SERVER_IP:/tmp/
 
-# Установка Node.js если не установлен
-if ! command -v node &> /dev/null; then
-    echo "📦 Установка Node.js..."
-    curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-    apt-get install -y nodejs
+if [ $? -ne 0 ]; then
+    echo "❌ Ошибка загрузки файлов. Проверьте подключение и пароль."
+    rm -f quiz-deploy.tar.gz
+    exit 1
 fi
 
-# Установка PM2 если не установлен
-if ! command -v pm2 &> /dev/null; then
-    echo "📦 Установка PM2..."
-    npm install -g pm2
+echo "🔧 Развертывание на сервере..."
+echo "💡 Введите пароль еще раз:"
+
+# Подключаемся и выполняем развертывание
+ssh -t $USERNAME@$SERVER_IP << 'EOF'
+echo "📍 Подготовка директории проекта..."
+cd /var/www/quiz-site || { 
+    echo "📁 Создание директории проекта..."
+    mkdir -p /var/www/quiz-site
+    cd /var/www/quiz-site
+}
+
+echo "⏹️  Остановка приложения..."
+pm2 stop quiz-site 2>/dev/null || echo "Приложение не было запущено"
+pm2 delete quiz-site 2>/dev/null || echo "Процесс не найден"
+
+echo "💾 Создание резервной копии..."
+if [ "$(ls -A . 2>/dev/null)" ]; then
+    BACKUP_DIR="/var/backups/quiz-$(date +%Y%m%d_%H%M%S)"
+    mkdir -p $BACKUP_DIR
+    cp -r * $BACKUP_DIR/ 2>/dev/null && echo "✅ Резервная копия: $BACKUP_DIR"
 fi
 
-# Создание директории проекта
-echo "📁 Создание директории проекта..."
-mkdir -p /var/www/quiz-site
-cd /var/www/quiz-site
+echo "🗑️  Очистка старых файлов..."
+rm -rf * .* 2>/dev/null || true
 
-# Остановка старого процесса если запущен
-pm2 stop quiz-site 2>/dev/null || true
-pm2 delete quiz-site 2>/dev/null || true
+echo "📦 Распаковка новых файлов..."
+tar -xzf /tmp/quiz-deploy.tar.gz
+echo "✅ Файлы распакованы"
 
-# Очистка старых файлов
-rm -rf *
+echo "📋 Установка зависимостей..."
+npm install --production --silent
 
-# Распаковка новых файлов
-echo "📦 Распаковка файлов..."
-tar -xzf /tmp/quiz-site.tar.gz
+echo "🔧 Настройка прав доступа..."
+chmod +x start.sh 2>/dev/null || true
 
-# Установка зависимостей
-echo "📦 Установка зависимостей..."
-npm install --production
-
-# Настройка прав доступа
-chmod +x start.sh
-
-# Настройка файрвола
 echo "🔥 Настройка файрвола..."
-ufw allow 3000 2>/dev/null || true
+ufw allow 3000 2>/dev/null || echo "Порт 3000 уже открыт"
 
-# Запуск приложения
 echo "🚀 Запуск приложения..."
 pm2 start server.js --name "quiz-site"
 
-# Настройка автозапуска
-pm2 startup systemd -u $USER --hp /root 2>/dev/null || true
+echo "🔄 Настройка автозапуска..."
+pm2 startup systemd -u $USER --hp $HOME 2>/dev/null || true
 pm2 save
 
-echo "✅ Развертывание завершено!"
-echo "🌐 Сайт доступен по адресу: http://$(curl -s ifconfig.me):3000"
-echo "📊 Проверить статус: pm2 status"
-echo "📋 Просмотр логов: pm2 logs quiz-site"
+echo "⏳ Ожидание запуска сервера..."
+sleep 3
+
+echo "📊 Статус приложения:"
+pm2 status
+
+echo "🧪 Проверка работы сервера..."
+if curl -I http://localhost:3000/ 2>/dev/null | grep -q "200 OK"; then
+    echo "✅ Сервер успешно запущен и отвечает"
+else
+    echo "⚠️  Сервер запускается, проверьте через минуту"
+fi
+
+echo "📋 Последние логи:"
+pm2 logs quiz-site --lines 3 2>/dev/null || echo "Логи будут доступны через несколько секунд"
+
+echo "🧹 Очистка временных файлов..."
+rm -f /tmp/quiz-deploy.tar.gz
+
+echo ""
+echo "✅ Развертывание завершено успешно!"
+EXTERNAL_IP=$(curl -s ifconfig.me 2>/dev/null || echo "IP не определен")
+echo "🌐 Сайт доступен: http://$EXTERNAL_IP:3000/"
 
 EOF
 
-echo "✅ Развертывание завершено успешно!"
+# Очищаем локальный архив
+rm -f quiz-deploy.tar.gz
+
 echo ""
-echo "🌐 Ваш сайт теперь доступен по адресу:"
-echo "   http://$SERVER_IP:3000/"
-echo "   http://$SERVER_IP:3000/host.html"
-echo "   http://$SERVER_IP:3000/player.html"
+echo "🎉 Развертывание завершено!"
 echo ""
-echo "📊 Для проверки статуса выполните на сервере:"
+echo "🌐 Ваш сайт доступен по адресам:"
+echo "   • Главная: http://$SERVER_IP:3000/"
+echo "   • Хост: http://$SERVER_IP:3000/host.html"
+echo "   • Игроки: http://$SERVER_IP:3000/player.html"
+echo "   • Соло: http://$SERVER_IP:3000/solo.html"
+echo ""
+echo "📊 Управление сервером:"
 echo "   ssh $USERNAME@$SERVER_IP"
 echo "   pm2 status"
+echo "   pm2 logs quiz-site"
+echo "   pm2 restart quiz-site"

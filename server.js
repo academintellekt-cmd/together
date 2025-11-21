@@ -24,12 +24,168 @@ const rooms = new Map();
 const players = new Map();
 
 // Хранилище рейтинга для соло-режима
-const leaderboard = [];
+let leaderboard = [];
+
+// Инициализация рейтинга при запуске сервера
+async function initializeLeaderboard() {
+  console.log('🔄 Загрузка рейтинга из Google Sheets...');
+  const savedLeaderboard = await loadLeaderboardFromGoogleSheets();
+  
+  if (savedLeaderboard.length > 0) {
+    leaderboard.length = 0; // Очищаем текущий массив
+    leaderboard.push(...savedLeaderboard); // Добавляем загруженные данные
+    
+    // Сортируем по очкам (от большего к меньшему)
+    leaderboard.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.timestamp - b.timestamp; // При одинаковых очках - кто раньше
+    });
+    
+    console.log(`✅ Рейтинг загружен: ${leaderboard.length} записей`);
+  } else {
+    console.log('📝 Начинаем с пустого рейтинга');
+  }
+}
+
+// Функция загрузки рейтинга из Google Sheets
+async function loadLeaderboardFromGoogleSheets() {
+  try {
+    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbztFCa9WW9uHa89EqxlsHczbNvSrTi8mmUGAGcYB4xG-3tAMeGwHOj_0G3HQf93sMHwwg/exec';
+    
+    console.log('🔄 Попытка загрузки рейтинга из Google Sheets...');
+    console.log('📡 URL:', WEB_APP_URL + '?action=getLeaderboard');
+    
+    if (!WEB_APP_URL) {
+      console.log('❌ GOOGLE_APPS_SCRIPT_URL не настроен. Пропускаем загрузку рейтинга.');
+      return [];
+    }
+
+    const https = require('https');
+    const http = require('http');
+    
+    const parsedUrl = new URL(WEB_APP_URL + '?action=getLeaderboard');
+    const client = parsedUrl.protocol === 'https:' ? https : http;
+    
+    const options = {
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    };
+
+    return new Promise((resolve) => {
+      const req = client.request(options, (res) => {
+        let responseData = '';
+        
+        console.log('📊 Статус ответа Google Sheets:', res.statusCode);
+        
+        res.on('data', (chunk) => {
+          responseData += chunk;
+        });
+        
+        res.on('end', () => {
+          console.log('📄 Ответ от Google Sheets:', responseData.substring(0, 200) + '...');
+          
+          // Обрабатываем редирект 302
+          if (res.statusCode === 302 && responseData.includes('script.googleusercontent.com')) {
+            console.log('🔄 Обнаружен редирект, извлекаем URL...');
+            
+            // Извлекаем URL из HTML редиректа
+            const match = responseData.match(/HREF="([^"]+)"/);
+            if (match) {
+              const redirectUrl = match[1].replace(/&amp;/g, '&');
+              console.log('📡 Редирект URL:', redirectUrl);
+              
+              // Делаем запрос по редирект URL
+              const https = require('https');
+              const redirectReq = https.get(redirectUrl, (redirectRes) => {
+                let redirectData = '';
+                
+                redirectRes.on('data', (chunk) => {
+                  redirectData += chunk;
+                });
+                
+                redirectRes.on('end', () => {
+                  try {
+                    const data = JSON.parse(redirectData);
+                    console.log('🔍 Парсинг редиректа успешен. Success:', data.success, 'Leaderboard length:', data.leaderboard?.length);
+                    
+                    if (data.success && Array.isArray(data.leaderboard)) {
+                      console.log(`✅ Загружено ${data.leaderboard.length} записей рейтинга из Google Sheets`);
+                      if (data.leaderboard.length > 0) {
+                        console.log('📋 Первая запись:', JSON.stringify(data.leaderboard[0], null, 2));
+                      }
+                      resolve(data.leaderboard);
+                    } else {
+                      console.log('⚠️ Рейтинг не найден в Google Sheets');
+                      resolve([]);
+                    }
+                  } catch (e) {
+                    console.log('❌ Ошибка парсинга JSON редиректа:', e.message);
+                    resolve([]);
+                  }
+                });
+              });
+              
+              redirectReq.on('error', (error) => {
+                console.log('❌ Ошибка запроса редиректа:', error.message);
+                resolve([]);
+              });
+              
+              return;
+            }
+          }
+          
+          // Обычная обработка JSON ответа
+          try {
+            const data = JSON.parse(responseData);
+            console.log('🔍 Парсинг успешен. Success:', data.success, 'Leaderboard length:', data.leaderboard?.length);
+            
+            if (data.success && Array.isArray(data.leaderboard)) {
+              console.log(`✅ Загружено ${data.leaderboard.length} записей рейтинга из Google Sheets`);
+              if (data.leaderboard.length > 0) {
+                console.log('📋 Первая запись:', JSON.stringify(data.leaderboard[0], null, 2));
+              }
+              resolve(data.leaderboard);
+            } else {
+              console.log('⚠️ Рейтинг не найден в Google Sheets или неверный формат ответа');
+              console.log('🔍 Полный ответ:', JSON.stringify(data, null, 2));
+              resolve([]);
+            }
+          } catch (e) {
+            console.log('❌ Ошибка парсинга JSON от Google Sheets:', e.message);
+            console.log('📄 Сырой ответ:', responseData);
+            resolve([]);
+          }
+        });
+      });
+
+      req.on('error', (error) => {
+        console.log('❌ Ошибка HTTP запроса к Google Sheets:', error.message);
+        resolve([]);
+      });
+
+      req.setTimeout(10000, () => {
+        console.log('⏰ Таймаут запроса к Google Sheets');
+        req.destroy();
+        resolve([]);
+      });
+
+      req.end();
+    });
+  } catch (error) {
+    console.log('❌ Критическая ошибка при загрузке рейтинга из Google Sheets:', error.message);
+    return [];
+  }
+}
 
 // Функция записи результата в Google Sheets через Apps Script Web App
 async function writeToGoogleSheets(result) {
   try {
-    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxesMEtekXqo7tsB0vGSsAUx1WPrQ0CFw3wjJmg22phlNXRhG5oqn_w7-15gRBKQhFG0w/exec';
+    const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbztFCa9WW9uHa89EqxlsHczbNvSrTi8mmUGAGcYB4xG-3tAMeGwHOj_0G3HQf93sMHwwg/exec';
     
     if (!WEB_APP_URL) {
       console.log('GOOGLE_APPS_SCRIPT_URL не настроен. Пропускаем запись в Google Sheets.');
@@ -363,7 +519,7 @@ const quizzes = {
   // Здесь можно добавить новые квизы в будущем
 };
 
-// Загрузка вопросов для квиза ГНУ из файла questions.txt (131 вопрос)
+// Загрузка вопросов для квиза ГНУ из файла questions.txt (150 вопросов)
 // Явно указываем путь к файлу с вопросами
 const gnuQuestionsFilePath = path.join(__dirname, 'questions.txt');
 console.log(`Загрузка вопросов для квиза ГНУ из файла: ${gnuQuestionsFilePath}`);
@@ -410,7 +566,7 @@ app.get('/api/quizzes/:id', (req, res) => {
   
   let questionsToSend = quiz.questions;
   
-  // Для квиза ГНУ выбираем 15 случайных вопросов из 131
+  // Для квиза ГНУ выбираем 15 случайных вопросов из 150
   if (quizId === 'friends-quiz' && quiz.questions.length > 15) {
     // Создаем копию массива и перемешиваем
     const shuffled = [...quiz.questions].sort(() => Math.random() - 0.5);
@@ -531,19 +687,67 @@ app.get('/api/leaderboard', (req, res) => {
   // Группируем по игрокам и берем лучший результат каждого
   const playerBestScores = {};
   results.forEach(result => {
-    const key = result.playerName.toLowerCase();
+    // Пропускаем результаты с пустыми именами или нулевыми очками
+    if (!result.playerName || result.playerName.trim() === '' || result.score === 0) {
+      return;
+    }
+    
+    const key = result.playerName.toLowerCase().trim();
+    
+    // Если игрока еще нет или его новый результат лучше
     if (!playerBestScores[key] || playerBestScores[key].score < result.score) {
       playerBestScores[key] = result;
     }
   });
   
-  // Сортируем по очкам
+  // Сортируем по очкам (от большего к меньшему)
   const sortedResults = Object.values(playerBestScores).sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
-    return a.timestamp - b.timestamp;
+    return a.timestamp - b.timestamp; // При одинаковых очках - кто раньше
   });
   
-  res.json(sortedResults);
+  // Ограничиваем до 50 лучших игроков
+  const topResults = sortedResults.slice(0, 50);
+  
+  res.json(topResults);
+});
+
+// Тестовый endpoint для принудительной загрузки рейтинга
+app.get('/api/reload-leaderboard', async (req, res) => {
+  console.log('🔄 Принудительная перезагрузка рейтинга...');
+  
+  try {
+    const savedLeaderboard = await loadLeaderboardFromGoogleSheets();
+    
+    if (savedLeaderboard.length > 0) {
+      leaderboard.length = 0; // Очищаем текущий массив
+      leaderboard.push(...savedLeaderboard); // Добавляем загруженные данные
+      
+      // Сортируем по очкам (от большего к меньшему)
+      leaderboard.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.timestamp - b.timestamp; // При одинаковых очках - кто раньше
+      });
+      
+      res.json({ 
+        success: true, 
+        message: `Рейтинг перезагружен: ${leaderboard.length} записей`,
+        leaderboard: leaderboard 
+      });
+    } else {
+      res.json({ 
+        success: false, 
+        message: 'Не удалось загрузить рейтинг из Google Sheets',
+        leaderboard: [] 
+      });
+    }
+  } catch (error) {
+    console.error('❌ Ошибка перезагрузки рейтинга:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Ошибка перезагрузки рейтинга: ' + error.message 
+    });
+  }
 });
 
 // Перезагрузка вопросов из файла (для обновления без перезапуска сервера)
@@ -551,7 +755,7 @@ app.post('/api/reload-questions', (req, res) => {
   const { quizId } = req.body;
   
   if (quizId === 'friends-quiz') {
-    // Загружаем вопросы из questions.txt (131 вопрос)
+    // Загружаем вопросы из questions.txt (150 вопросов)
     const questionsFilePath = path.join(__dirname, 'questions.txt');
     const loadedQuestions = loadQuestionsFromFile(questionsFilePath);
     quizzes['friends-quiz'].questions = loadedQuestions;
@@ -944,10 +1148,13 @@ const PORT = process.env.PORT || 3000;
 
 // Запуск сервера только если файл запущен напрямую (не импортирован)
 if (require.main === module) {
-  server.listen(PORT, () => {
+  server.listen(PORT, async () => {
     console.log(`Сервер запущен на порту ${PORT}`);
     console.log(`Откройте http://localhost:${PORT}/index.html для выбора квиза`);
     console.log(`Или http://localhost:${PORT}/player.html для игроков`);
+    
+    // Инициализируем рейтинг из Google Sheets
+    await initializeLeaderboard();
   }).on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
       console.error(`Порт ${PORT} уже занят. Попробуйте другой порт:`);

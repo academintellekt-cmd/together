@@ -216,7 +216,7 @@
             emptyState.style.display = 'none';
 
             try {
-                const response = await fetch(`/api/leaderboard?quizId=${quizId}`);
+                const response = await fetch(`/api/leaderboard`);
                 if (!response.ok) {
                     throw new Error('Ошибка загрузки рейтинга');
                 }
@@ -247,7 +247,22 @@
                     
                     const playerStats = document.createElement('div');
                     playerStats.className = 'player-stats';
-                    playerStats.textContent = `${result.correctAnswers}/${result.totalQuestions} правильных • ${result.timeSpent} сек`;
+                    
+                    // Форматируем время
+                    let timeText = '';
+                    if (result.timeSpent > 0) {
+                        const minutes = Math.floor(result.timeSpent / 60);
+                        const seconds = result.timeSpent % 60;
+                        if (minutes > 0) {
+                            timeText = `${minutes}м ${seconds}с`;
+                        } else {
+                            timeText = `${seconds}с`;
+                        }
+                    } else {
+                        timeText = 'время не записано';
+                    }
+                    
+                    playerStats.textContent = `${result.correctAnswers}/${result.totalQuestions} правильных • ${timeText}`;
                     
                     playerInfo.appendChild(playerName);
                     playerInfo.appendChild(playerStats);
