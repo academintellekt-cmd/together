@@ -22,7 +22,51 @@
         }
 
         #qrcode {
-            display: inline-block;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .qr-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .qr-placeholder {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 16px;
+            opacity: 0.7;
+        }
+
+        /* Адаптивные стили для QR-кода */
+        @media (max-width: 768px) {
+            .qr-container {
+                margin: 15px 0;
+            }
+            
+            #qrcode {
+                max-width: 200px;
+                height: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .qr-container {
+                margin: 10px 0;
+            }
+            
+            #qrcode {
+                max-width: 180px;
+                height: auto;
+            }
+            
+            .room-code {
+                font-size: 48px;
+                letter-spacing: 6px;
+            }
         }
 
         .game-screen {
