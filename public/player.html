@@ -89,9 +89,110 @@
             font-family: 'Days One', sans-serif;
             color: var(--color-dark);
         }
+
+        /* Модальное окно для пароля */
+        .password-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(56, 54, 56, 0.85);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .password-modal-content {
+            background: #F2F2F2;
+            padding: 30px;
+            border-radius: 25px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            border: 3px solid #383638;
+            box-shadow: 0 6px 0px rgba(0, 193, 89, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2);
+            box-sizing: border-box;
+        }
+
+        .password-modal h2 {
+            margin-bottom: 15px;
+            font-size: 24px;
+            font-family: 'Days One', sans-serif;
+            color: #00C159;
+            font-weight: 700;
+        }
+
+        .password-modal p {
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #383638;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .password-modal input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            border: 3px solid #383638;
+            background: #FFFFFF;
+            color: #383638;
+            font-size: 16px;
+            text-align: center;
+            font-family: 'Days One', sans-serif;
+            font-weight: 600;
+            letter-spacing: 2px;
+            box-sizing: border-box;
+        }
+
+        .password-error {
+            color: #ff7674;
+            margin-bottom: 15px;
+            font-size: 13px;
+            display: none;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            min-height: 20px;
+        }
+
+        .password-modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .password-modal-buttons button {
+            flex: 1;
+            min-width: 140px;
+            max-width: 180px;
+            padding: 12px 24px;
+            font-size: 16px;
+            box-sizing: border-box;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body>
+    <!-- Модальное окно для ввода пароля -->
+    <div id="password-modal" class="password-modal">
+        <div class="password-modal-content">
+            <h2>Введите пароль</h2>
+            <p>Эта комната защищена паролем</p>
+            <input type="password" id="password-input" placeholder="Пароль" autofocus>
+            <div id="password-error" class="password-error"></div>
+            <div class="password-modal-buttons">
+                <button id="password-submit" class="btn" style="background: #00C159; border: 3px solid #383638; color: #FFFFFF; font-weight: 700; padding: 12px 24px; font-size: 16px;">Ввод</button>
+                <button id="password-cancel" class="btn secondary" style="background: #F2F2F2; border: 3px solid #383638; color: #383638; padding: 12px 24px; font-size: 16px;">Отмена</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Кнопка назад -->
         <div class="back-button">
@@ -200,7 +301,7 @@
         });
 
         // Функция подключения к комнате
-        function connectToRoom() {
+        function connectToRoom(password = null) {
             roomCode = document.getElementById('room-code').value.toUpperCase().trim();
             playerName = document.getElementById('player-name').value.trim();
 
@@ -210,7 +311,45 @@
             }
 
             console.log('Подключение к комнате:', roomCode, 'Игрок:', playerName);
-            socket.emit('player-join', { roomCode, playerName });
+            socket.emit('player-join', { roomCode, playerName, password });
+        }
+
+        // Функция показа модального окна для ввода пароля
+        function showPasswordModal(callback) {
+            const modal = document.getElementById('password-modal');
+            const passwordInput = document.getElementById('password-input');
+            const passwordError = document.getElementById('password-error');
+            const submitBtn = document.getElementById('password-submit');
+            const cancelBtn = document.getElementById('password-cancel');
+            
+            modal.style.display = 'flex';
+            passwordInput.value = '';
+            passwordError.style.display = 'none';
+            passwordInput.focus();
+            
+            const handleSubmit = () => {
+                const password = passwordInput.value.trim();
+                if (!password) {
+                    passwordError.textContent = 'Введите пароль';
+                    passwordError.style.display = 'block';
+                    return;
+                }
+                modal.style.display = 'none';
+                callback(password);
+            };
+            
+            const handleCancel = () => {
+                modal.style.display = 'none';
+            };
+            
+            submitBtn.onclick = handleSubmit;
+            cancelBtn.onclick = handleCancel;
+            
+            passwordInput.onkeypress = (e) => {
+                if (e.key === 'Enter') {
+                    handleSubmit();
+                }
+            };
         }
 
         // Подключение к комнате
@@ -247,7 +386,14 @@
         });
 
         socket.on('error', (data) => {
-            showError(data.message);
+            if (data.requiresPassword) {
+                // Показываем модальное окно для ввода пароля
+                showPasswordModal((password) => {
+                    connectToRoom(password);
+                });
+            } else {
+                showError(data.message);
+            }
         });
 
         // Начало игры
