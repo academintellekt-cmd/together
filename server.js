@@ -4,6 +4,7 @@ const socketIo = require('socket.io');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const { loadAllQuizzes } = require('./server/utils/quiz-loader');
 
 const app = express();
 const server = http.createServer(app);
@@ -256,7 +257,7 @@ async function writeToGoogleSheets(result) {
       totalQuestions: result.totalQuestions,
       timeSpent: result.timeSpent, // Передаем в секундах, Apps Script сам отформатирует
       percentage: percentage,
-      quizId: result.quizId === 'friends-quiz' ? 'Чемпионат ГНУ' : result.quizId
+      quizId: (result.quizId === 'friends-quiz' || result.quizId === 'gnu') ? (quizzes['gnu']?.name || 'Чемпионат ГНУ') : (quizzes[result.quizId]?.name || result.quizId)
     };
 
     const https = require('https');
@@ -475,363 +476,96 @@ function generateRoomCode() {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
 
-// Структура квизов
-const quizzes = {
-  'friends-quiz': {
-    id: 'friends-quiz',
-    name: 'Чемпионат ГНУ по целям своих братишек',
-    description: 'Девушки тоже братишки',
-    icon: '👥',
-    soloMode: true, // Флаг для соло-режима
-    questions: [] // Вопросы загружаются из файла questions.txt
-  },
-  'gnu-multiplayer': {
-    id: 'gnu-multiplayer',
-    name: 'Чемпионат ГНУ',
-    description: 'Мультиплеер',
-    icon: '🎮',
-    soloMode: false, // Мультиплеер режим
-    questions: [] // Вопросы загружаются из файла questions.txt (те же что и в friends-quiz)
-  },
-  'general-knowledge': {
-    id: 'general-knowledge',
-    name: 'Тест-эрудит',
-    description: 'Общие знания для всех',
-    icon: '🧠',
-    soloMode: false, // Мультиплеер режим
-    questions: [
-      {
-        id: 1,
-        question: "Какая планета самая большая в Солнечной системе?",
-        options: ["Земля", "Юпитер", "Сатурн", "Марс"],
-        correct: 1,
-        time: 15
-      },
-      {
-        id: 2,
-        question: "Сколько континентов на Земле?",
-        options: ["5", "6", "7", "8"],
-        correct: 2,
-        time: 10
-      },
-      {
-        id: 3,
-        question: "Какая столица Франции?",
-        options: ["Лондон", "Берлин", "Париж", "Мадрид"],
-        correct: 2,
-        time: 10
-      },
-      {
-        id: 4,
-        question: "Кто написал 'Войну и мир'?",
-        options: ["Достоевский", "Толстой", "Чехов", "Пушкин"],
-        correct: 1,
-        time: 15
-      },
-      {
-        id: 5,
-        question: "Сколько дней в високосном году?",
-        options: ["364", "365", "366", "367"],
-        correct: 2,
-        time: 10
-      },
-      {
-        id: 6,
-        question: "Какое животное самое быстрое на суше?",
-        options: ["Лев", "Гепард", "Тигр", "Леопард"],
-        correct: 1,
-        time: 15
-      },
-      {
-        id: 7,
-        question: "В каком году человек впервые полетел в космос?",
-        options: ["1957", "1961", "1969", "1971"],
-        correct: 1,
-        time: 20
-      },
-      {
-        id: 8,
-        question: "Сколько океанов на Земле?",
-        options: ["3", "4", "5", "6"],
-        correct: 2,
-        time: 10
-      },
-      {
-        id: 9,
-        question: "Какая самая длинная река в мире?",
-        options: ["Амазонка", "Нил", "Янцзы", "Миссисипи"],
-        correct: 0,
-        time: 20
-      },
-      {
-        id: 10,
-        question: "Кто изобрел телефон?",
-        options: ["Эдисон", "Белл", "Тесла", "Маркони"],
-        correct: 1,
-        time: 15
-      }
-    ]
-  },
-  'anastasia-quiz': {
-    id: 'anastasia-quiz',
-    name: 'Квиз по Анастасии',
-    description: 'Проверь свои знания об Анастасии',
-    icon: '👑',
-    soloMode: false, // Мультиплеер режим
-    questions: [
-      {
-        id: 1,
-        question: "«Дээээ)))» — в каком контексте она напишет это в переписке?",
-        options: ["Когда увидит счёт в ресторане", "Когда подруга пишет, что они опять смотрят Гарри Поттера", "Когда Алексей предлагает пойти на лекцию по физике", "Когда кто-то перепутал Митхуна Чакраборти с Шахрухом Ханом"],
-        correct: 1,
-        time: 20
-      },
-      {
-        id: 2,
-        question: "«Я фотошоплю как кретин» — что скрывается за этой фразой?",
-        options: ["Она делает сложный 3D-рендер для работы", "Она пыталась подправить аватарку и получился ужас", "Это её новый профессиональный скилл", "Она делает креатив для конкурса «Мисс НГУ»"],
-        correct: 1,
-        time: 20
-      },
-      {
-        id: 3,
-        question: "«Сходить с ума, есть дрянь и разливать вино!» — кому это адресовано?",
-        options: ["Коллегам по цеху дизайнеров", "Бывшим одноклассникам", "Лучшей подруге Елизавете", "Брату, который снова съел её шоколад"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 4,
-        question: "«Ёлка стоит — я требую продолжения банкета» — откуда такая переписка?",
-        options: ["17 января, когда Новый год — это образ жизни", "31 декабря в 23:59", "14 февраля, если праздник не удался", "8 марта, когда устали все"],
-        correct: 0,
-        time: 20
-      },
-      {
-        id: 5,
-        question: "«Отсталые в развитии коты» — это о ком?",
-        options: ["О героях мема из «Лепры»", "О её собственных питомцах", "О новых знакомых из клуба «КВАНТ»", "О персонажах «Гарри Поттера»"],
-        correct: 1,
-        time: 20
-      },
-      {
-        id: 6,
-        question: "«У нас будет новая квартира:))» — как отреагировала подруга?",
-        options: ["«Чтоо? Как так! Почему?»", "«Наконец-то!»", "«Поздравляю!»", "«А старую продаёте?»"],
-        correct: 0,
-        time: 20
-      },
-      {
-        id: 7,
-        question: "«Ты видел это? Обычное собрание. Квант.» — что произошло на самом деле?",
-        options: ["Лекция по квантовой механике", "Зажигательный Harlem Shake", "Спор трёх историков о Второй мировой", "Репетиция капустника"],
-        correct: 1,
-        time: 20
-      },
-      {
-        id: 8,
-        question: "«Да он просто обманщик» — что обсуждали?",
-        options: ["Новость про политиков", "Чьи-то отношения во дворе", "Какой-то жизненный мем из «Лепры»", "Коммуникации в корпоративном чате"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 9,
-        question: "«Ну да… кто-то семьи строит, а кто-то учится…» — это отсылка к чему?",
-        options: ["Университетские баталии о смысле жизни", "Разговору о зарплатах", "Общению с родственниками", "Обсуждению ипотеки"],
-        correct: 0,
-        time: 20
-      },
-      {
-        id: 10,
-        question: "«Я с тобой, мой Бутячий бро!» — кому бы она так написала?",
-        options: ["Декану", "Случайному подписчику", "Другу, который паникует перед сессией", "Алексею, если он купил не те сухарики"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 11,
-        question: "«Это лучшее, что я видела за месяц» — о чём речь?",
-        options: ["Новый смартфон", "Мотивирующий тренинг", "Шикарный мем из MDK", "Список покупок в магазине «Белка»"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 12,
-        question: "«Это были лучшие выходные» — что там было?",
-        options: ["Тренировка по бегу", "Чтение Тургенева", "Гарри Поттер + Пираты Карибского моря + подруги", "Мастер-класс по бухгалтерии"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 13,
-        question: "«Требую объяснений. И вина.» — это после чего?",
-        options: ["Она пересмотрела «Гарри Поттера 3»", "Кот уронил цветок", "Подруга снова уехала на выходные", "Она обнаружила, что ёлку до сих пор не убрали в январе"],
-        correct: 3,
-        time: 20
-      },
-      {
-        id: 14,
-        question: "«Ой, ну это же классика» — чаще всего относится к чему?",
-        options: ["Настиному рабочему дню", "Традициям её школы", "Вечнозелёным мемам из «Лепры»", "Музыке 80-х"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 15,
-        question: "«Пожалуйста, скажи, что это не экзамен завтра» — это про что?",
-        options: ["Когда она видит напоминание в календаре", "Когда подруга присылает шутку про Митхуна", "Когда обсуждают сложную сессию в НГУ", "Когда кто-то зовёт её на встречу выпускников"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 16,
-        question: "«Мой лайк за кепку Максимки!» — кто такой Максимка?",
-        options: ["Известный блогер", "Её кот", "Персонаж из «Лепры»", "Ребёнок подруги"],
-        correct: 1,
-        time: 20
-      },
-      {
-        id: 17,
-        question: "«Это было очевидно» — какая ситуация?",
-        options: ["Она угадывает победителя «Евровидения»", "Она понимает, что ёлку никто не уберёт до лета", "Она снова репостит шутку из «Лепры»", "Гарри Поттер в итоге победил Волан-де-Морта"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 18,
-        question: "«Квант зовёт» — что это значит?",
-        options: ["Начинается учёба в НГУ", "Лекция по квантовой физике", "Предстоит вечеринка легендарного масштаба", "Новая серия «Теории большого взрыва»"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 19,
-        question: "«Ну так это ж смешно!» — обычно она так говорит после чего?",
-        options: ["Глубокой философской дискуссии", "Когда мем реально на грани фола", "Когда ей показывают фото её кота", "Когда Алексей шутит про быт"],
-        correct: 1,
-        time: 20
-      },
-      {
-        id: 20,
-        question: "«Ох, как же я люблю этот цвет» — про что это было?",
-        options: ["Маникюр", "Платье, которое «украли», судя по истории", "Новый интерьер квартиры", "Цвет волос на её старой аватарке"],
-        correct: 3,
-        time: 20
-      },
-      {
-        id: 21,
-        question: "«Нас ждут еще 4 части Гарика...» — о каком эпичном марафоне речь?",
-        options: ["Просмотр всех «Мстителей» подряд", "Вечеринка в честь Гарика из соседнего подъезда", "Запойный просмотр «Гарри Поттера»", "Чтение всего Толстого"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 22,
-        question: "«Роман, ну хватит уже писать \"Написать комментарий...\"!» — о ком это?",
-        options: ["О знаменитом писателе", "О друге, который закомментировал все её посты", "О коллеге-дизайнере", "О преподавателе из НГУ"],
-        correct: 1,
-        time: 20
-      },
-      {
-        id: 23,
-        question: "«А чё, Новый год уже закончился?» — это комментарий от...",
-        options: ["Её мужа Алексея", "Её подруги Лели", "Её родственницы Светланы Копытовой", "Анонимного тролля"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 24,
-        question: "«Им так нужно было этот биатлон выиграть, прям жуть» — это она о...",
-        options: ["Реальных спортсменах на Олимпиаде", "Соседях, бегущих за последним пряником в магазин", "Героях очередного абсурдного мема", "Команде на корпоративе"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 25,
-        question: "«Зайди в ТГ – @an_l_kopy» — что ждёт тебя внутри?",
-        options: ["Личный блог о котах", "Канал с мемами про НГУ", "Предложение сделать для тебя крутую презентацию", "Фан-клуб Митхуна Чакраборти"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 26,
-        question: "«Сами же поди и придумывали!» — такое могли сказать про...",
-        options: ["Её дипломную работу", "Сценарий для квеста от «выХода»", "Отчёт для работы", "Оправдание, почему не убрана ёлка"],
-        correct: 1,
-        time: 20
-      },
-      {
-        id: 27,
-        question: "«Частная группа» и «Магазин \"Белка\"» — что это значит?",
-        options: ["Она ведёт секретную жизнь супергероя", "Это просто случайные репосты из студенческих времён", "Это её собственный бизнес", "Это места её силы и вдохновения"],
-        correct: 1,
-        time: 20
-      },
-      {
-        id: 28,
-        question: "«Тряхни Нормальность» — что это было?",
-        options: ["Название её курса по дизайну", "Девиз её жизни", "Название вечеринки или мероприятия", "Призыв к котам вести себя прилично"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 29,
-        question: "«Мисс НГУ 2014» — как Анастасия к этому относится?",
-        options: ["Она была участницей", "Она была членом жюри", "Она просто репостнула анонс кастинга", "Она готовила презентации для конкурса"],
-        correct: 2,
-        time: 20
-      },
-      {
-        id: 30,
-        question: "«Помогу визуализировать данные таблиц, схем, графиков» — а что она НЕ предлагает?",
-        options: ["Визуализировать твои жизненные проблемы", "Сделать редизайн скучной презентации", "Оформить всё на английском языке", "Проработать структуру и текст"],
-        correct: 0,
-        time: 20
-      }
-    ]
+// Загрузка всех квизов из файлов
+console.log('🔄 Загрузка квизов из файлов...');
+let quizzes = {};
+try {
+  quizzes = loadAllQuizzes();
+  console.log(`✅ Загружено ${Object.keys(quizzes).length} квизов`);
+  
+  // Для обратной совместимости создаем старые ID
+  // Если есть квиз 'gnu', создаем также 'friends-quiz' и 'gnu-multiplayer'
+  if (quizzes['gnu']) {
+    const gnuQuiz = quizzes['gnu'];
+    
+    // Создаем friends-quiz для соло режима
+    if (!quizzes['friends-quiz']) {
+      quizzes['friends-quiz'] = {
+        ...gnuQuiz,
+        id: 'friends-quiz',
+        soloMode: true
+      };
+    }
+    
+    // Создаем gnu-multiplayer для мультиплеера
+    if (!quizzes['gnu-multiplayer']) {
+      quizzes['gnu-multiplayer'] = {
+        ...gnuQuiz,
+        id: 'gnu-multiplayer',
+        soloMode: false
+      };
+    }
   }
-  // Здесь можно добавить новые квизы в будущем
-};
-
-// Загрузка вопросов для квиза ГНУ из файла questions.txt (150 вопросов)
-// Явно указываем путь к файлу с вопросами
-const gnuQuestionsFilePath = path.join(__dirname, 'questions.txt');
-console.log(`Загрузка вопросов для квиза ГНУ из файла: ${gnuQuestionsFilePath}`);
-const gnuQuestions = loadQuestionsFromFile(gnuQuestionsFilePath);
-
-// Загружаем одинаковые вопросы для обеих игр на базе ГНУ
-quizzes['friends-quiz'].questions = gnuQuestions;
-quizzes['gnu-multiplayer'].questions = gnuQuestions;
-
-console.log(`Загружено ${gnuQuestions.length} вопросов для квиза ГНУ`);
-console.log(`Загружено ${quizzes['gnu-multiplayer'].questions.length} вопросов для мультиплеер ГНУ`);
+} catch (error) {
+  console.error('❌ Ошибка загрузки квизов:', error);
+  quizzes = {};
+}
 
 // Получение списка квизов
 app.get('/api/quizzes', (req, res) => {
-  const quizzesList = Object.values(quizzes).map(quiz => {
-    const avgTime = quiz.questions.length > 0
-      ? Math.round(quiz.questions.reduce((sum, q) => sum + q.time, 0) / quiz.questions.length)
-      : 0;
-    
-    const result = {
-      id: quiz.id,
-      name: quiz.name,
-      description: quiz.description,
-      icon: quiz.icon,
-      questionCount: quiz.questions.length,
-      avgTime: avgTime,
-      comingSoon: false,
-      soloMode: quiz.soloMode || false
-    };
-    
-    // Для квизов с soloMode добавляем totalQuestionsInBase
-    if (quiz.soloMode) {
-      result.totalQuestionsInBase = quiz.questions.length;
-    }
-    
-    return result;
-  });
+  const quizzesList = Object.values(quizzes)
+    .filter(quiz => {
+      // Показываем только квизы с вопросами
+      if (!quiz.questions || quiz.questions.length === 0) {
+        return false;
+      }
+      
+      // Исключаем дубликаты для обратной совместимости
+      // Показываем 'gnu' вместо 'friends-quiz' и 'gnu-multiplayer', если они есть
+      if (quizzes['gnu'] && (quiz.id === 'friends-quiz' || quiz.id === 'gnu-multiplayer')) {
+        return false; // Скрываем старые ID, если есть новый 'gnu'
+      }
+      
+      return true;
+    })
+    .map(quiz => {
+      const avgTime = quiz.questions.length > 0
+        ? Math.round(quiz.questions.reduce((sum, q) => sum + q.time, 0) / quiz.questions.length)
+        : 0;
+      
+      // Определяем soloMode: если есть soloMode в конфиге, используем его
+      // Если soloMode не указан, но есть multiplayerMode, то soloMode = !multiplayerMode
+      // По умолчанию soloMode = true (если ничего не указано)
+      const soloMode = quiz.soloMode !== undefined 
+        ? quiz.soloMode 
+        : (quiz.multiplayerMode !== undefined ? !quiz.multiplayerMode : true);
+      
+      const result = {
+        id: quiz.id,
+        name: quiz.name,
+        description: quiz.description,
+        icon: quiz.icon,
+        questionCount: quiz.questions.length,
+        avgTime: avgTime,
+        comingSoon: false,
+        soloMode: soloMode
+      };
+      
+      // Для квизов с soloMode добавляем totalQuestionsInBase
+      if (result.soloMode) {
+        result.totalQuestionsInBase = quiz.questions.length;
+      }
+      
+      // Добавляем информацию из конфигурации, если есть
+      if (quiz.colors) {
+        result.colors = quiz.colors;
+      }
+      if (quiz.display) {
+        result.display = quiz.display;
+      }
+      
+      return result;
+    });
   
   res.json(quizzesList);
 });
@@ -847,12 +581,13 @@ app.get('/api/quizzes/:id', (req, res) => {
   
   let questionsToSend = quiz.questions;
   
-  // Для квизов ГНУ (соло и мультиплеер) выбираем 15 случайных вопросов из 150
-  if ((quizId === 'friends-quiz' || quizId === 'gnu-multiplayer') && quiz.questions.length > 15) {
+  // Для квизов с настройкой questionsPerGame выбираем случайные вопросы
+  const questionsPerGame = quiz.gameSettings?.questionsPerGame || 15;
+  if (quiz.questions.length > questionsPerGame) {
     // Создаем копию массива и перемешиваем
     const shuffled = [...quiz.questions].sort(() => Math.random() - 0.5);
-    // Берем первые 15
-    questionsToSend = shuffled.slice(0, 15);
+    // Берем нужное количество вопросов
+    questionsToSend = shuffled.slice(0, questionsPerGame);
     
     // Перемешиваем варианты ответов для каждого выбранного вопроса
     questionsToSend = questionsToSend.map((q, index) => {
@@ -892,7 +627,7 @@ app.get('/api/quizzes/:id', (req, res) => {
       return questionCopy;
     });
     
-    console.log(`Для квиза ГНУ выбрано 15 случайных вопросов из ${quiz.questions.length}`);
+    console.log(`Для квиза ${quizId} выбрано ${questionsPerGame} случайных вопросов из ${quiz.questions.length}`);
   } else {
     // Для других квизов также удаляем звездочки из ответов
     questionsToSend = questionsToSend.map(q => ({
@@ -903,12 +638,17 @@ app.get('/api/quizzes/:id', (req, res) => {
     }));
   }
   
+  // Определяем soloMode для ответа
+  const soloMode = quiz.soloMode !== undefined 
+    ? quiz.soloMode 
+    : (quiz.multiplayerMode !== undefined ? !quiz.multiplayerMode : true);
+  
   res.json({
     id: quiz.id,
     name: quiz.name,
     description: quiz.description,
     questions: questionsToSend,
-    soloMode: quiz.soloMode || false,
+    soloMode: soloMode,
     totalQuestionsInBase: quiz.questions.length // Общее количество вопросов в базе
   });
 });
@@ -1041,20 +781,37 @@ app.get('/api/reload-leaderboard', async (req, res) => {
 app.post('/api/reload-questions', (req, res) => {
   const { quizId } = req.body;
   
-  if (quizId === 'friends-quiz' || quizId === 'gnu-multiplayer') {
-    // Загружаем вопросы из questions.txt (150 вопросов)
-    const questionsFilePath = path.join(__dirname, 'questions.txt');
-    const loadedQuestions = loadQuestionsFromFile(questionsFilePath);
-    quizzes['friends-quiz'].questions = loadedQuestions;
-    quizzes['gnu-multiplayer'].questions = loadedQuestions;
+  if (!quizId || !quizzes[quizId]) {
+    return res.status(400).json({ error: 'Квиз не найден' });
+  }
+  
+  try {
+    const { loadQuiz } = require('./server/utils/quiz-loader');
+    const reloadedQuiz = loadQuiz(quizId);
+    
+    // Обновляем вопросы в памяти
+    quizzes[quizId].questions = reloadedQuiz.questions;
+    
+    // Если это основной квиз 'gnu', обновляем также старые ID для обратной совместимости
+    if (quizId === 'gnu') {
+      if (quizzes['friends-quiz']) {
+        quizzes['friends-quiz'].questions = reloadedQuiz.questions;
+      }
+      if (quizzes['gnu-multiplayer']) {
+        quizzes['gnu-multiplayer'].questions = reloadedQuiz.questions;
+      }
+    }
     
     res.json({ 
       success: true, 
-      message: `Вопросы перезагружены. Загружено ${loadedQuestions.length} вопросов.`,
-      questionCount: loadedQuestions.length
+      message: `Вопросы перезагружены. Загружено ${reloadedQuiz.questions.length} вопросов.`,
+      questionCount: reloadedQuiz.questions.length
     });
-  } else {
-    res.status(400).json({ error: 'Неверный ID квиза' });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Ошибка перезагрузки вопросов: ' + error.message 
+    });
   }
 });
 
@@ -1097,37 +854,24 @@ app.post('/api/create-room', (req, res) => {
     return res.status(400).json({ error: 'Квиз не найден' });
   }
   
-  // Проверяем пароль для квизов ГНУ
-  const gnuQuizzes = ['friends-quiz', 'gnu-multiplayer'];
-  const gnuPassword = '1234';
-  
-  // Проверяем пароль для квиза по Анастасии
-  const anastasiaQuiz = 'anastasia-quiz';
-  const anastasiaPassword = '1';
-  
-  // Проверяем пароль для тест-эрудита
-  const eruditQuiz = 'general-knowledge';
-  const eruditPassword = '1';
-  
-  if (gnuQuizzes.includes(quizId)) {
-    if (!password || password !== gnuPassword) {
-      return res.status(401).json({ error: 'Неверный пароль', requiresPassword: true });
-    }
-  }
-  
-  if (quizId === anastasiaQuiz) {
-    if (!password || password !== anastasiaPassword) {
-      return res.status(401).json({ error: 'Неверный пароль', requiresPassword: true });
-    }
-  }
-  
-  if (quizId === eruditQuiz) {
-    if (!password || password !== eruditPassword) {
-      return res.status(401).json({ error: 'Неверный пароль', requiresPassword: true });
-    }
-  }
-  
   const quiz = quizzes[quizId];
+  
+  // Проверяем пароль из конфигурации квиза
+  if (quiz.passwordRequired && quiz.password) {
+    if (!password || password !== quiz.password) {
+      return res.status(401).json({ error: 'Неверный пароль', requiresPassword: true });
+    }
+  }
+  
+  // Обратная совместимость: проверка для старых ID
+  if (quizId === 'friends-quiz' || quizId === 'gnu-multiplayer') {
+    const gnuQuiz = quizzes['gnu'] || quizzes[quizId];
+    if (gnuQuiz && gnuQuiz.passwordRequired && gnuQuiz.password) {
+      if (!password || password !== gnuQuiz.password) {
+        return res.status(401).json({ error: 'Неверный пароль', requiresPassword: true });
+      }
+    }
+  }
   const roomCode = generateRoomCode();
   const room = {
     code: roomCode,
@@ -1141,7 +885,7 @@ app.post('/api/create-room', (req, res) => {
     readyPlayers: new Set(), // Игроки, готовые к следующему вопросу
     startTime: null,
     answers: new Map(),
-    password: gnuQuizzes.includes(quizId) ? gnuPassword : (quizId === anastasiaQuiz ? anastasiaPassword : (quizId === eruditQuiz ? eruditPassword : null)) // Сохраняем пароль для проверки при подключении игроков
+    password: quiz.passwordRequired ? quiz.password : null // Сохраняем пароль для проверки при подключении игроков
   };
   rooms.set(roomCode, room);
   res.json({ roomCode });
@@ -1476,7 +1220,7 @@ const PORT = process.env.PORT || 3000;
 // Запуск сервера только если файл запущен напрямую (не импортирован)
 if (require.main === module) {
   server.listen(PORT, async () => {
-    console.log(`Сервер запущен на порту ${PORT}`);
+  console.log(`Сервер запущен на порту ${PORT}`);
     console.log(`Откройте http://localhost:${PORT}/index.html для выбора квиза`);
     console.log(`Или http://localhost:${PORT}/player.html для игроков`);
     
@@ -1488,16 +1232,16 @@ if (require.main === module) {
       console.log('🔄 Автоматическое обновление рейтинга...');
       await initializeLeaderboard();
     }, 5 * 60 * 1000); // 5 минут
-  }).on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.error(`Порт ${PORT} уже занят. Попробуйте другой порт:`);
-      console.error(`PORT=3001 npm start`);
-      process.exit(1);
-    } else {
-      console.error('Ошибка запуска сервера:', err);
-      process.exit(1);
-    }
-  });
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Порт ${PORT} уже занят. Попробуйте другой порт:`);
+    console.error(`PORT=3001 npm start`);
+    process.exit(1);
+  } else {
+    console.error('Ошибка запуска сервера:', err);
+    process.exit(1);
+  }
+});
 }
 
 // Экспорт для Vercel и других платформ деплоя

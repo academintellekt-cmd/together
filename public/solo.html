@@ -6,20 +6,78 @@
     <title>Квиз - Соло режим</title>
     <link rel="stylesheet" href="/styles/brand-style.css">
     <style>
+        /* HUB стили */
+        .hub {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 242, 242, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            z-index: 1000;
+            border-bottom: none;
+            box-shadow: none;
+        }
+
+        .hub-content {
+            max-width: 1400px;
+            margin: 0;
+            padding-left: 20px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .hub-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .back-button-hub {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(245, 245, 245, 0.85);
+            border: 2px solid #393639;
+            border-radius: 12px;
+            color: #393639;
+            text-decoration: none;
+            font-family: 'Days One', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .back-button-hub:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+        
+        .back-button-hub:active {
+            transform: translateY(0px);
+        }
+
         .container {
             max-width: 600px;
             position: relative;
+            padding-top: 80px;
         }
 
         .name-input-screen {
             text-align: center;
-        }
-
-        .back-button {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 10;
         }
 
         .game-screen {
@@ -213,13 +271,16 @@
         </div>
     </div>
 
-    <div class="container">
-        <!-- Кнопка назад -->
-        <div class="back-button">
-            <a href="/index.html" class="btn" style="text-decoration: none; display: inline-block;">
-                ← Назад
-            </a>
+    <!-- HUB блок -->
+    <div class="hub" id="hub">
+        <div class="hub-content">
+            <div class="hub-actions">
+                <a href="/gnu-quiz.html" class="back-button-hub">← Назад</a>
+            </div>
         </div>
+    </div>
+    
+    <div class="container">
         
         <!-- Экран ввода имени -->
         <div id="name-input-screen" class="name-input-screen">
@@ -283,23 +344,21 @@
 
         // Получение ID квиза из URL
         const urlParams = new URLSearchParams(window.location.search);
-        const quizId = urlParams.get('quiz') || 'friends-quiz';
+        const quizId = urlParams.get('quiz') || 'gnu';
         const passwordParam = urlParams.get('password');
         
-        // Пароли для разных квизов
+        // Пароли для разных квизов (поддерживаем как новый ID 'gnu', так и старые)
         const passwords = {
-            'friends-quiz': '1234',
-            'anastasia-quiz': '1',
-            'general-knowledge': '1'
+            'gnu': '1234',
+            'friends-quiz': '1234' // Обратная совместимость
         };
         
         const requiredPassword = passwords[quizId] || null;
         
         // Проверяем, пришел ли пользователь с страницы выбора режима (пароль уже проверен)
         const storageKeys = {
-            'friends-quiz': 'gnuPasswordVerified',
-            'anastasia-quiz': 'anastasiaPasswordVerified',
-            'general-knowledge': 'eruditPasswordVerified'
+            'gnu': 'gnuPasswordVerified',
+            'friends-quiz': 'gnuPasswordVerified' // Обратная совместимость
         };
         
         const storageKey = storageKeys[quizId];
@@ -337,7 +396,7 @@
             
             const handleCancel = () => {
                 modal.style.display = 'none';
-                window.location.href = '/index.html';
+                window.location.href = '/gnu-quiz.html';
             };
             
             submitBtn.onclick = handleSubmit;

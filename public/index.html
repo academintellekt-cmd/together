@@ -15,11 +15,27 @@
         }
 
         body {
-            font-family: 'Nunito', 'Montserrat', 'Open Sans', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
-            background: #F2F2F2; /* Светло-серый фон */
+            background: #fff2f2; /* Новый фон */
+        }
+        
+        /* Третий парящий элемент */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 30%;
+            right: -80px;
+            width: 180px;
+            height: 180px;
+            background: #fb906b; /* Третий парящий элемент */
+            border-radius: 30% 60% 50% 40%;
+            opacity: 0.25;
+            z-index: 0;
+            animation: wobble 10s ease-in-out infinite;
+            pointer-events: none;
         }
 
         .container {
@@ -47,11 +63,11 @@
             font-family: 'Days One', sans-serif;
             font-size: 116px;
             font-weight: 700;
-            color: #383638;
+            color: #393639;
             display: inline-block;
             transform: rotate(-2deg);
             letter-spacing: 16px;
-            text-shadow: 4px 4px 0px #ff7674;
+            text-shadow: 4px 4px 0px #fb6c6b;
             position: relative;
             text-transform: uppercase;
         }
@@ -71,7 +87,7 @@
             transform: translateX(calc(-50% - clamp(3px, 0.5vw, 6px))); /* Адаптивный сдвиг */
             width: clamp(25px, 3vw, 40px); /* Адаптивный размер */
             height: clamp(25px, 3vw, 40px);
-            background: #A8E063; /* Лайм-зеленый */
+            background: #abf67c; /* Новая зеленая */
             border-radius: 50%;
             z-index: 10;
             box-shadow: 
@@ -93,7 +109,7 @@
             transform: translateX(calc(-50% + clamp(2px, 0.3vw, 4px))); /* Адаптивный сдвиг */
             width: clamp(25px, 3vw, 40px); /* Адаптивный размер */
             height: clamp(25px, 3vw, 40px);
-            background: #FF6B6B; /* Коралловый */
+            background: #fb6c6b; /* Новая розовая */
             border-radius: 50%;
             z-index: 10;
             box-shadow: 
@@ -110,7 +126,7 @@
         .subtitle {
             font-family: 'Caveat', cursive;
             font-size: 52px;
-            color: #383638;
+            color: #393639;
             margin-bottom: 30px;
             font-weight: 400;
             animation: fadeInDown 1s ease;
@@ -128,7 +144,7 @@
             left: -50px;
             width: 200px;
             height: 200px;
-            background: #A8E063; /* Лайм-зеленый */
+            background: #abf67c; /* Новая зеленая */
             border-radius: 50% 40% 60% 30%;
             opacity: 0.4;
             z-index: -1;
@@ -142,7 +158,7 @@
             right: -80px;
             width: 250px;
             height: 250px;
-            background: #FF6B6B; /* Коралловый */
+            background: #fb6c6b; /* Новая розовая */
             border-radius: 40% 50% 30% 60%;
             opacity: 0.3;
             z-index: -1;
@@ -214,7 +230,7 @@
         .quiz-card.empty:hover .quiz-subtitle,
         .quiz-card.empty:hover .quiz-info-item,
         .quiz-card.empty:hover .quiz-info-item span {
-            color: #383638;
+            color: #393639;
             filter: brightness(1.1);
         }
 
@@ -223,7 +239,7 @@
         }
 
         .quiz-card.empty .quiz-title {
-            color: #383638;
+            color: #393639;
             font-family: 'Days One', sans-serif;
             font-weight: 700;
             font-size: 32px;
@@ -232,7 +248,7 @@
         }
 
         .quiz-card.empty .quiz-subtitle {
-            color: #383638;
+            color: #393639;
             font-family: 'Days One', sans-serif;
             font-weight: 400;
             font-size: 26px;
@@ -253,38 +269,38 @@
 
         .quiz-card.empty .quiz-info-item {
             font-family: 'Caveat', cursive;
-            color: #383638;
+            color: #393639;
         }
 
         .quiz-card.empty .quiz-info-item span:last-child {
             font-family: 'Caveat', cursive;
             font-weight: 400;
             font-size: 30px;
-            color: #383638;
+            color: #393639;
         }
 
-        /* Первый доступный квиз - специальный стиль */
+        /* Первый доступный квиз - специальный стиль (зеленая карточка) */
         .quiz-card:not(.empty):nth-child(1) {
-            background: rgba(180, 242, 0, 0.85); /* Полупрозрачный как пластиковый стикер */
+            background: #abf67c; /* Новый зеленый фон */
             border: none;
             box-shadow: 
-                0 6px 0px rgba(0, 193, 89, 0.3),
-                0 8px 16px rgba(0, 193, 89, 0.1);
+                0 6px 0px rgba(47, 185, 93, 0.3),
+                0 8px 16px rgba(47, 185, 93, 0.1);
         }
 
         .quiz-card:not(.empty):nth-child(1):hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
-                0 8px 0px rgba(0, 193, 89, 0.4),
-                0 12px 24px rgba(0, 193, 89, 0.15);
-            background: rgba(180, 242, 0, 0.6); /* Полупрозрачный при наведении */
+                0 8px 0px rgba(47, 185, 93, 0.4),
+                0 12px 24px rgba(47, 185, 93, 0.15);
+            background: rgba(171, 246, 124, 0.9);
         }
 
         .quiz-card:not(.empty):nth-child(1):hover .quiz-title,
         .quiz-card:not(.empty):nth-child(1):hover .quiz-subtitle,
         .quiz-card:not(.empty):nth-child(1):hover .quiz-info-item,
         .quiz-card:not(.empty):nth-child(1):hover .quiz-info-item span {
-            color: #00C159;
+            color: #2fb95d;
             filter: brightness(1.1);
         }
 
@@ -293,14 +309,14 @@
         }
 
         .quiz-card:not(.empty):nth-child(1) .quiz-title {
-            color: #00C159;
+            color: #2fb95d;
             font-family: 'Days One', sans-serif;
             font-weight: 700;
             font-size: 28px;
         }
 
         .quiz-card:not(.empty):nth-child(1) .quiz-subtitle {
-            color: #00C159;
+            color: #2fb95d;
             font-family: 'Days One', sans-serif;
             font-weight: 400;
             font-size: 22px;
@@ -324,13 +340,18 @@
 
         .quiz-card:not(.empty):nth-child(1) .quiz-info-item {
             font-family: 'Caveat', cursive;
-            color: #383638;
+            color: #393639;
         }
 
         .quiz-card:not(.empty):nth-child(1) .quiz-info-item span:last-child {
             font-family: 'Caveat', cursive;
             font-weight: 400;
             font-size: 30px;
+        }
+        
+        /* Цвет Caveat фраз на зеленой карточке */
+        .quiz-card:not(.empty):nth-child(1) div[style*="Caveat"] {
+            color: #354fba !important;
         }
 
         /* SVG иконки в стиле "от руки маркером" */
@@ -342,263 +363,100 @@
         }
 
 
-        /* Третья карточка - специальный стиль розовый (ТЕСТ-МЕЛОМАН) */
-        .quiz-card:not(.empty):nth-child(3) {
-            background: rgba(255, 147, 239, 0.85); /* Розовый полупрозрачный как пластиковый стикер */
+        /* Вторая карточка (Анастасия) - розовый стиль */
+        .quiz-card:not(.empty):nth-child(2) {
+            background: #fb6c6b; /* Новый розовый фон */
             border: none;
             box-shadow: 
-                0 6px 0px rgba(204, 118, 191, 0.3),
-                0 8px 16px rgba(204, 118, 191, 0.1);
+                0 6px 0px rgba(250, 87, 52, 0.3),
+                0 8px 16px rgba(250, 87, 52, 0.1);
         }
 
-        .quiz-card:not(.empty):nth-child(3):hover {
+        .quiz-card:not(.empty):nth-child(2):hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
-                0 8px 0px rgba(204, 118, 191, 0.4),
-                0 12px 24px rgba(204, 118, 191, 0.15);
-            background: rgba(255, 147, 239, 0.6); /* Розовый полупрозрачный при наведении */
+                0 8px 0px rgba(250, 87, 52, 0.4),
+                0 12px 24px rgba(250, 87, 52, 0.15);
+            background: rgba(251, 108, 107, 0.9);
         }
 
-        .quiz-card:not(.empty):nth-child(3):hover .quiz-title,
-        .quiz-card:not(.empty):nth-child(3):hover .quiz-subtitle,
-        .quiz-card:not(.empty):nth-child(3):hover .quiz-info-item,
-        .quiz-card:not(.empty):nth-child(3):hover .quiz-info-item span {
-            color: #9867f9;
+        .quiz-card:not(.empty):nth-child(2):hover .quiz-title,
+        .quiz-card:not(.empty):nth-child(2):hover .quiz-subtitle,
+        .quiz-card:not(.empty):nth-child(2):hover .quiz-info-item,
+        .quiz-card:not(.empty):nth-child(2):hover .quiz-info-item span {
+            color: #fa5734;
             filter: brightness(1.1);
         }
 
-        .quiz-card:not(.empty):nth-child(3):hover div[style*="Caveat"] {
+        .quiz-card:not(.empty):nth-child(2):hover div[style*="Caveat"] {
             filter: brightness(1.1) !important;
         }
 
-        .quiz-card:not(.empty):nth-child(3) .quiz-title {
-            color: #9867f9;
+        .quiz-card:not(.empty):nth-child(2) .quiz-title {
+            color: #fa5734;
             font-family: 'Days One', sans-serif;
             font-weight: 700;
             font-size: 28px;
         }
 
-        .quiz-card:not(.empty):nth-child(3) .quiz-subtitle {
-            color: #9867f9;
+        .quiz-card:not(.empty):nth-child(2) .quiz-subtitle {
+            color: #fa5734;
             font-family: 'Days One', sans-serif;
             font-weight: 400;
             font-size: 22px;
             margin-top: 8px;
         }
 
-        .quiz-card:not(.empty):nth-child(3) .quiz-divider {
+        .quiz-card:not(.empty):nth-child(2) .quiz-divider {
             display: none;
         }
 
-        .quiz-card:not(.empty):nth-child(3) .quiz-icon {
+        .quiz-card:not(.empty):nth-child(2) .quiz-icon {
             display: none;
         }
 
-        .quiz-card:not(.empty):nth-child(3) .quiz-info {
+        .quiz-card:not(.empty):nth-child(2) .quiz-info {
             font-family: 'Caveat', cursive;
             font-size: 30px;
             border-top: none;
             padding-top: 0;
         }
 
-        .quiz-card:not(.empty):nth-child(3) .quiz-info-item {
+        .quiz-card:not(.empty):nth-child(2) .quiz-info-item {
             font-family: 'Caveat', cursive;
-            color: #383638;
+            color: #393639;
         }
 
-        .quiz-card:not(.empty):nth-child(3) .quiz-info-item span:last-child {
+        .quiz-card:not(.empty):nth-child(2) .quiz-info-item span:last-child {
             font-family: 'Caveat', cursive;
             font-weight: 400;
             font-size: 24px;
         }
-
-        /* Четвертая карточка (Тест-меломан) - фиолетовый стиль из брендбука */
-        .quiz-card:not(.empty):nth-child(4) {
-            background: linear-gradient(135deg, rgba(152, 103, 249, 0.25), rgba(204, 118, 191, 0.25)) !important;
-            border: 2px solid rgba(152, 103, 249, 0.5) !important;
-            box-shadow: 
-                0 4px 0px rgba(152, 103, 249, 0.3),
-                0 6px 12px rgba(152, 103, 249, 0.2);
+        
+        /* Цвет Caveat фраз на розовой карточке */
+        .quiz-card:not(.empty):nth-child(2) div[style*="Caveat"] {
+            color: #354fba !important;
         }
 
-        .quiz-card:not(.empty):nth-child(4):hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 
-                0 8px 0px rgba(152, 103, 249, 0.4),
-                0 12px 24px rgba(152, 103, 249, 0.15);
-            background: rgba(152, 103, 249, 0.35) !important;
-        }
-
-        .quiz-card:not(.empty):nth-child(4):hover .quiz-title,
-        .quiz-card:not(.empty):nth-child(4):hover .quiz-subtitle,
-        .quiz-card:not(.empty):nth-child(4):hover .quiz-info-item,
-        .quiz-card:not(.empty):nth-child(4):hover .quiz-info-item span {
-            color: #9867f9;
-            filter: brightness(1.1);
-        }
-
-        .quiz-card:not(.empty):nth-child(4):hover div[style*="Caveat"] {
-            filter: brightness(1.1) !important;
-        }
-
-        .quiz-card:not(.empty):nth-child(4) .quiz-title {
-            color: #9867f9;
-            font-family: 'Days One', sans-serif;
-            font-weight: 700;
-            font-size: 28px;
-        }
-
-        .quiz-card:not(.empty):nth-child(4) .quiz-subtitle {
-            color: #9867f9;
-            font-family: 'Days One', sans-serif;
-            font-weight: 400;
-            font-size: 22px;
-            margin-top: 8px;
-        }
-
-        .quiz-card:not(.empty):nth-child(4) .quiz-divider {
-            display: none;
-        }
-
-        .quiz-card:not(.empty):nth-child(4) .quiz-icon {
-            display: none;
-        }
-
-        .quiz-card:not(.empty):nth-child(4) .quiz-info {
-            font-family: 'Caveat', cursive;
-            font-size: 30px;
-            border-top: none;
-            padding-top: 0;
-        }
-
-        .quiz-card:not(.empty):nth-child(4) .quiz-info-item {
-            font-family: 'Caveat', cursive;
-            color: #383638;
-        }
-
-        .quiz-card:not(.empty):nth-child(4) .quiz-info-item span:last-child {
-            font-family: 'Caveat', cursive;
-            font-weight: 400;
-            font-size: 24px;
-        }
-
-        /* Пятая карточка (Квиз по Анастасии) - розовый стиль */
-        .quiz-card:not(.empty):nth-child(5) {
-            background: rgba(255, 182, 193, 0.85); /* Розовый полупрозрачный */
-            border: none;
-            box-shadow: 
-                0 6px 0px rgba(255, 105, 180, 0.3),
-                0 8px 16px rgba(255, 105, 180, 0.1);
-        }
-
-        .quiz-card:not(.empty):nth-child(5):hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 
-                0 8px 0px rgba(255, 105, 180, 0.4),
-                0 12px 24px rgba(255, 105, 180, 0.15);
-            background: rgba(255, 182, 193, 0.6);
-        }
-
-        .quiz-card:not(.empty):nth-child(5):hover .quiz-title,
-        .quiz-card:not(.empty):nth-child(5):hover .quiz-subtitle,
-        .quiz-card:not(.empty):nth-child(5):hover .quiz-info-item,
-        .quiz-card:not(.empty):nth-child(5):hover .quiz-info-item span {
-            color: #FF69B4;
-            filter: brightness(1.1);
-        }
-
-        .quiz-card:not(.empty):nth-child(5) .quiz-title {
-            color: #FF69B4;
-            font-family: 'Days One', sans-serif;
-            font-weight: 700;
-            font-size: 28px;
-        }
-
-        .quiz-card:not(.empty):nth-child(5) .quiz-subtitle {
-            color: #FF69B4;
-            font-family: 'Days One', sans-serif;
-            font-weight: 400;
-            font-size: 22px;
-            margin-top: 8px;
-        }
-
-        .quiz-card:not(.empty):nth-child(5) .quiz-divider {
-            display: none;
-        }
-
-        .quiz-card:not(.empty):nth-child(5) .quiz-icon {
-            display: none;
-        }
-
-        .quiz-card:not(.empty):nth-child(5) .quiz-info {
-            font-family: 'Caveat', cursive;
-            font-size: 30px;
-            border-top: none;
-            padding-top: 0;
-        }
-
-        .quiz-card:not(.empty):nth-child(5) .quiz-info-item {
-            font-family: 'Caveat', cursive;
-            color: #383638;
-        }
-
-        .quiz-card:not(.empty):nth-child(5) .quiz-info-item span:last-child {
-            font-family: 'Caveat', cursive;
-            font-weight: 400;
-            font-size: 30px;
-        }
-
-        /* Все карточки кроме первой, второй, третьей, четвертой и пятой - единый стиль */
-        .quiz-card:not(.empty):nth-child(n+6) {
-            background: #FFFFFF !important; /* Белый фон */
-            border: none !important;
-        }
-
-        .quiz-card:not(.empty):nth-child(n+5):hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 
-                0 8px 0px rgba(56, 54, 56, 0.4),
-                0 12px 24px rgba(56, 54, 56, 0.15);
-            background: rgba(255, 255, 255, 0.9) !important; /* Белый полупрозрачный при наведении */
-        }
-
-        .quiz-card:not(.empty):nth-child(3):hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 
-                0 8px 0px rgba(0, 0, 0, 0.4),
-                0 12px 24px rgba(0, 0, 0, 0.15);
-            background: rgba(255, 255, 255, 0.9) !important; /* Чуть полупрозрачный при наведении */
-        }
-
-        .quiz-card:not(.empty):nth-child(n+5):hover .quiz-title,
-        .quiz-card:not(.empty):nth-child(n+5):hover .quiz-subtitle,
-        .quiz-card:not(.empty):nth-child(n+5):hover .quiz-info-item,
-        .quiz-card:not(.empty):nth-child(n+5):hover .quiz-info-item span {
-            color: #383638;
-            filter: brightness(1.1);
-        }
-
-        .quiz-card:not(.empty):nth-child(n+5) .quiz-title {
-            color: #383638 !important;
             font-family: 'Days One', sans-serif !important;
             font-weight: 700 !important;
             font-size: 28px !important;
         }
 
-        .quiz-card:not(.empty):nth-child(n+5) .quiz-subtitle {
-            color: #383638 !important;
+        .quiz-card:not(.empty):nth-child(n+3) .quiz-subtitle {
+            color: #393639 !important;
             font-family: 'Days One', sans-serif !important;
             font-weight: 400 !important;
             font-size: 22px !important;
             margin-top: 8px !important;
         }
 
-        .quiz-card:not(.empty):nth-child(n+4) .quiz-info-item {
-            color: #383638 !important;
+        .quiz-card:not(.empty):nth-child(n+3) .quiz-info-item {
+            color: #393639 !important;
         }
 
-        .quiz-card:not(.empty):nth-child(n+4) .quiz-info-item span {
-            color: #383638 !important;
+        .quiz-card:not(.empty):nth-child(n+3) .quiz-info-item span {
+            color: #393639 !important;
         }
 
         .quiz-card::before {
@@ -704,7 +562,7 @@
             width: 100%;
             flex-shrink: 0;
             font-weight: 600;
-            font-family: 'Days One', sans-serif;
+            font-family: 'Montserrat', sans-serif;
         }
 
         .quiz-info-item {
@@ -713,7 +571,7 @@
             align-items: center;
             gap: 4px;
             color: #000; /* Черный текст */
-            font-family: 'Days One', sans-serif;
+            font-family: 'Montserrat', sans-serif;
         }
 
         .quiz-info-icon {
@@ -776,7 +634,7 @@
         }
 
         .error {
-            background: #FF6B6B; /* Коралловый */
+            background: #fb6c6b; /* Новая розовая */
             border: 4px solid #000;
             color: #FFFFFF;
             padding: 20px;
@@ -1662,18 +1520,21 @@
             // Создаем только реальные квизы (без пустых карточек "СКОРО")
             const existingQuizzes = quizzes || [];
             
-            // Создаем специальную карту для фиксированных квизов
-            const fixedQuizzes = {
-                0: existingQuizzes.find(q => q.id === 'friends-quiz') // Чемпионат ГНУ (объединенная карточка)
-            };
+            // Создаем список квизов для отображения
+            // Ищем квиз 'gnu' (новый ID) или 'friends-quiz' (старый ID для обратной совместимости)
+            const gnuQuiz = existingQuizzes.find(q => q.id === 'gnu') || existingQuizzes.find(q => q.id === 'friends-quiz');
+            
+            // Если квиз не найден, выводим ошибку в консоль
+            if (!gnuQuiz) {
+                console.error('Квиз ГНУ не найден в списке квизов:', existingQuizzes);
+            }
 
             // Список реальных квизов для отображения
             const realQuizzes = [
-                fixedQuizzes[0], // Чемпионат ГНУ
-                existingQuizzes.find(q => q.id === 'general-knowledge'), // Тест-эрудит
-                { id: 'meloman', name: 'ТЕСТ-МЕЛОМАН' }, // Меломан
-                existingQuizzes.find(q => q.id === 'anastasia-quiz') // Квиз по Анастасии
+                gnuQuiz // Чемпионат ГНУ
             ].filter(q => q !== null && q !== undefined);
+            
+            console.log('Квизы для отображения:', realQuizzes);
 
             // Создаем карточки только для реальных квизов
             for (let i = 0; i < realQuizzes.length; i++) {
@@ -1685,44 +1546,32 @@
                     card.className = 'quiz-card';
                     card.style.animationDelay = (i * 0.1) + 's';
                     
+                    // Объявляем переменные для всех квизов
+                    const icon = quiz.icon || '📚';
+                    const description = quiz.description || 'Проверьте свои знания!';
+                    const questionCount = quiz.questionCount || 0;
+                    const avgTime = quiz.avgTime || 0;
+
                     // Обработчики кликов для разных типов карточек
-                    if (quiz.id === 'friends-quiz') {
+                    // Поддерживаем как новый ID 'gnu', так и старый 'friends-quiz'
+                    if (quiz.id === 'gnu' || quiz.id === 'friends-quiz') {
                         // Чемпионат ГНУ - открывает отдельную страницу
                         card.addEventListener('click', () => {
                             window.location.href = `/gnu-quiz.html`;
                         });
-                    } else if (quiz.id === 'general-knowledge') {
-                        // Тест-эрудит - открывает отдельную страницу
-                        card.addEventListener('click', () => {
-                            window.location.href = `/erudit-quiz.html`;
-                        });
-                    } else if (quiz.id === 'meloman') {
-                        // ТЕСТ-МЕЛОМАН - открывает отдельную страницу
-                        card.addEventListener('click', () => {
-                            window.location.href = `/meloman-quiz.html`;
-                        });
-                    } else if (quiz.id === 'anastasia-quiz') {
-                        // Квиз по Анастасии - открывает отдельную страницу
-                        card.addEventListener('click', () => {
-                            window.location.href = `/anastasia-quiz.html`;
-                        });
                     }
-
-                const icon = quiz.icon || '📚';
-                const description = quiz.description || 'Проверьте свои знания!';
-                const questionCount = quiz.questionCount || 0;
-                const avgTime = quiz.avgTime || 0;
 
                     // Специальный стиль для первого квиза
                     let cardHTML = '';
-                    if (quiz.id === 'friends-quiz') {
+                    // Поддерживаем как новый ID 'gnu', так и старый 'friends-quiz'
+                    if (quiz.id === 'gnu' || quiz.id === 'friends-quiz') {
                         // Иконка вопроса - маркерный шрифт
                         const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
                             <text x="20" y="32" 
                                   font-family="Kalam, cursive" 
                                   font-size="36" 
                                   font-weight="700"
-                                  fill="#383638" 
+                                  fill="#393639" 
                                   text-anchor="middle">?</text>
                         </svg>`;
                         
@@ -1732,15 +1581,15 @@
                         // SVG иконка часов "от руки маркером" - рисованные часы
                         const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                             <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
-                                  stroke="#383638" stroke-width="4" fill="none" 
+                                  stroke="#393639" stroke-width="4" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
                             <!-- Часовая стрелка (вверх) -->
                             <line x1="16" y1="16" x2="16" y2="10" 
-                                  stroke="#383638" stroke-width="3.5" 
+                                  stroke="#393639" stroke-width="3.5" 
                                   stroke-linecap="round"/>
                             <!-- Минутная стрелка (вправо) -->
                             <line x1="16" y1="16" x2="21" y2="21" 
-                                  stroke="#383638" stroke-width="3.5" 
+                                  stroke="#393639" stroke-width="3.5" 
                                   stroke-linecap="round"/>
                         </svg>`;
 
@@ -1748,153 +1597,12 @@
                             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
                                 <div class="quiz-title">ЧЕМПИОНАТ ГНУ</div>
                                 <div class="quiz-subtitle">цели братишек</div>
-                                <div style="font-family: 'Caveat', cursive; font-size: 22px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(-2deg);">девушки тоже братишки</div>
+                                <div style="font-family: 'Caveat', cursive; font-size: 22px; color: #354fba; margin: 10px 0; text-align: center; transform: rotate(-2deg);">девушки тоже братишки</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
                                     ${questionIcon}
                                     <span>15 из ${questionCount}</span>
-                                </div>
-                                <div class="quiz-info-item">
-                                    ${clockIcon}
-                                    <span>по ${timeSeconds} сек</span>
-                                </div>
-                            </div>
-                        `;
-                    } else if (quiz.id === 'general-knowledge') {
-                        // Тест-эрудит
-                        // Иконка вопроса - маркерный шрифт
-                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                            <text x="20" y="32" 
-                                  font-family="Kalam, cursive" 
-                                  font-size="36" 
-                                  font-weight="700"
-                                  fill="#383638" 
-                                  text-anchor="middle">?</text>
-                        </svg>`;
-                        
-                        // Используем данные из квиза общих знаний
-                        const generalQuiz = existingQuizzes.find(q => q.id === 'general-knowledge');
-                        const timeSeconds = generalQuiz ? generalQuiz.avgTime : 15;
-                        const questionsInGame = generalQuiz ? generalQuiz.questionCount : 10;
-                        
-                        // SVG иконка часов "от руки маркером" - рисованные часы
-                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
-                                  stroke="#383638" stroke-width="4" fill="none" 
-                                  stroke-linecap="round" stroke-linejoin="round"/>
-                            <!-- Часовая стрелка (вверх) -->
-                            <line x1="16" y1="16" x2="16" y2="10" 
-                                  stroke="#383638" stroke-width="3.5" 
-                                  stroke-linecap="round"/>
-                            <!-- Минутная стрелка (вправо) -->
-                            <line x1="16" y1="16" x2="21" y2="21" 
-                                  stroke="#383638" stroke-width="3.5" 
-                                  stroke-linecap="round"/>
-                        </svg>`;
-
-                        cardHTML = `
-                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
-                                <div class="quiz-title">ТЕСТ-ЭРУДИТ</div>
-                                <div class="quiz-subtitle">мультиплеер</div>
-                                <div style="font-family: 'Caveat', cursive; font-size: 22px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(1.5deg);">общие знания</div>
-                            </div>
-                            <div class="quiz-info">
-                                <div class="quiz-info-item">
-                                    ${questionIcon}
-                                    <span>${questionsInGame} вопросов</span>
-                                </div>
-                                <div class="quiz-info-item">
-                                    ${clockIcon}
-                                    <span>по ${timeSeconds} сек</span>
-                                </div>
-                            </div>
-                        `;
-                    } else if (quiz.id === 'meloman') {
-                        // Специальный стиль для карточки Меломан
-                        // Иконка вопроса - маркерный шрифт
-                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                            <text x="20" y="32" 
-                                  font-family="Kalam, cursive" 
-                                  font-size="36" 
-                                  font-weight="700"
-                                  fill="#383638" 
-                                  text-anchor="middle">?</text>
-                        </svg>`;
-                        
-                        // SVG иконка часов "от руки маркером" - рисованные часы
-                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
-                                  stroke="#383638" stroke-width="4" fill="none" 
-                                  stroke-linecap="round" stroke-linejoin="round"/>
-                            <!-- Часовая стрелка (вверх) -->
-                            <line x1="16" y1="16" x2="16" y2="10" 
-                                  stroke="#383638" stroke-width="3.5" 
-                                  stroke-linecap="round"/>
-                            <!-- Минутная стрелка (вправо) -->
-                            <line x1="16" y1="16" x2="21" y2="21" 
-                                  stroke="#383638" stroke-width="3.5" 
-                                  stroke-linecap="round"/>
-                        </svg>`;
-
-                        cardHTML = `
-                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
-                                <div class="quiz-title">ТЕСТ-МЕЛОМАН</div>
-                                <div class="quiz-subtitle">угадай мелодию</div>
-                                <div style="font-family: 'Caveat', cursive; font-size: 22px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(-1deg);">музыка нааас связала</div>
-                            </div>
-                            <div class="quiz-info">
-                                <div class="quiz-info-item">
-                                    ${questionIcon}
-                                    <span>10</span>
-                                </div>
-                                <div class="quiz-info-item">
-                                    ${clockIcon}
-                                    <span>30 сек.</span>
-                                </div>
-                            </div>
-                        `;
-                    } else if (quiz.id === 'anastasia-quiz') {
-                        // Специальный стиль для карточки Квиз по Анастасии
-                        // Иконка вопроса - маркерный шрифт
-                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                            <text x="20" y="32" 
-                                  font-family="Kalam, cursive" 
-                                  font-size="36" 
-                                  font-weight="700"
-                                  fill="#383638" 
-                                  text-anchor="middle">?</text>
-                        </svg>`;
-                        
-                        // Используем данные из квиза
-                        const timeSeconds = avgTime || 15;
-                        const questionsInGame = questionCount || 10;
-                        
-                        // SVG иконка часов "от руки маркером" - рисованные часы
-                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
-                                  stroke="#383638" stroke-width="4" fill="none" 
-                                  stroke-linecap="round" stroke-linejoin="round"/>
-                            <!-- Часовая стрелка (вверх) -->
-                            <line x1="16" y1="16" x2="16" y2="10" 
-                                  stroke="#383638" stroke-width="3.5" 
-                                  stroke-linecap="round"/>
-                            <!-- Минутная стрелка (вправо) -->
-                            <line x1="16" y1="16" x2="21" y2="21" 
-                                  stroke="#383638" stroke-width="3.5" 
-                                  stroke-linecap="round"/>
-                        </svg>`;
-
-                        cardHTML = `
-                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
-                                <div class="quiz-title">КВИЗ ПО АНАСТАСИИ</div>
-                                <div class="quiz-subtitle">мультиплеер</div>
-                                <div style="font-family: 'Caveat', cursive; font-size: 22px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(1.5deg);">проверь свои знания</div>
-                            </div>
-                            <div class="quiz-info">
-                                <div class="quiz-info-item">
-                                    ${questionIcon}
-                                    <span>${questionsInGame} вопросов</span>
                                 </div>
                                 <div class="quiz-info-item">
                                     ${clockIcon}
@@ -1915,22 +1623,22 @@
                         const clockIconSVG = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                             <!-- Верхняя часть песочных часов -->
                             <path d="M 8 4 Q 8 4, 8 8 Q 8 10, 10 12 Q 12 13, 16 13 Q 20 13, 22 12 Q 24 10, 24 8 Q 24 4, 24 4" 
-                                  stroke="#383638" stroke-width="3.5" fill="none" 
+                                  stroke="#393639" stroke-width="3.5" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
                             <!-- Узкая часть (горлышко) -->
                             <path d="M 10 13 Q 13 14, 16 14.5 Q 19 14, 22 13" 
-                                  stroke="#383638" stroke-width="3.5" fill="none" 
+                                  stroke="#393639" stroke-width="3.5" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
                             <!-- Нижняя часть песочных часов -->
                             <path d="M 8 15 Q 8 15, 8 19 Q 8 21, 10 23 Q 12 24, 16 24 Q 20 24, 22 23 Q 24 21, 24 19 Q 24 15, 24 15" 
-                                  stroke="#383638" stroke-width="3.5" fill="none" 
+                                  stroke="#393639" stroke-width="3.5" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
                             <!-- Песок внизу (уровень зависит от времени) -->
                             <path d="M 8 15 Q 8 19, 10 21 Q 12 22, 16 22 Q 20 22, 22 21 Q 24 19, 24 15 L 24 ${bottomSandTop} Q 22 ${bottomSandTop + 2}, 20 ${bottomSandTop + 3} Q 18 ${bottomSandTop + 4}, 16 ${bottomSandTop + 4} Q 14 ${bottomSandTop + 4}, 12 ${bottomSandTop + 3} Q 10 ${bottomSandTop + 2}, 8 ${bottomSandTop} Z" 
-                                  fill="#383638" opacity="0.7"/>
+                                  fill="#393639" opacity="0.7"/>
                             <!-- Песок вверху (остаток) -->
                             <path d="M 8 4 Q 8 8, 10 10 Q 12 11, 16 11 Q 20 11, 22 10 Q 24 8, 24 4 L 24 8 Q 22 10, 20 11 Q 18 12, 16 12 Q 14 12, 12 11 Q 10 10, 8 8 Z" 
-                                  fill="#383638" opacity="0.3"/>
+                                  fill="#393639" opacity="0.3"/>
                         </svg>`;
                         
                         cardHTML = `

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фирменный стиль "ВМЕСТЕ"</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        @media print {
+            @page {
+                size: A4;
+                margin: 2cm;
+            }
+            body {
+                background: white;
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #fff2f2;
+            color: #393639;
+            padding: 40px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-family: 'Days One', sans-serif;
+            font-size: 48px;
+            color: #393639;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        h2 {
+            font-family: 'Days One', sans-serif;
+            font-size: 32px;
+            color: #393639;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #abf67c;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            font-family: 'Days One', sans-serif;
+            font-size: 24px;
+            color: #393639;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .color-item {
+            text-align: center;
+        }
+        
+        .color-box {
+            width: 100%;
+            height: 100px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 2px solid #ddd;
+        }
+        
+        .color-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .color-code {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .font-sample {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #abf67c;
+        }
+        
+        .font-sample h4 {
+            font-family: 'Days One', sans-serif;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .font-sample .caveat {
+            font-family: 'Caveat', cursive;
+            font-size: 24px;
+            color: #354fba;
+        }
+        
+        .font-sample .montserrat {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+        }
+        
+        .card-example {
+            background: #abf67c;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 6px 0px rgba(47, 185, 93, 0.3);
+        }
+        
+        .card-example h4 {
+            font-family: 'Days One', sans-serif;
+            font-size: 28px;
+            color: #2fb95d;
+            margin-bottom: 10px;
+        }
+        
+        .card-example .subtitle {
+            font-family: 'Days One', sans-serif;
+            font-size: 22px;
+            color: #2fb95d;
+            margin-bottom: 10px;
+        }
+        
+        .card-example .caveat-phrase {
+            font-family: 'Caveat', cursive;
+            font-size: 22px;
+            color: #354fba;
+            margin: 10px 0;
+            transform: rotate(-2deg);
+        }
+        
+        .card-example .info {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            color: #393639;
+            margin-top: 15px;
+        }
+        
+        .card-example.pink {
+            background: #fb6c6b;
+        }
+        
+        .card-example.pink h4,
+        .card-example.pink .subtitle {
+            color: #fa5734;
+        }
+        
+        ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .floating-elements {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .floating-demo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50% 40% 60% 30%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ФИРМЕННЫЙ СТИЛЬ "ВМЕСТЕ"</h1>
+        
+        <div class="section">
+            <h2>1. ШРИФТЫ</h2>
+            
+            <h3>Заголовки (Days One)</h3>
+            <div class="font-sample">
+                <h4>Заголовки, включая названия квизов и слово ВМЕСТЕ</h4>
+                <p class="montserrat">Используется для всех заголовков, названий квизов и главного слова "ВМЕСТЕ"</p>
+            </div>
+            
+            <h3>Подзаголовки (Caveat)</h3>
+            <div class="font-sample">
+                <p class="caveat">Подзаголовки, включая текст под вместе и смешные фразочки под описаниями квизов</p>
+                <p class="montserrat">Используется для подзаголовков и забавных фраз на карточках квизов</p>
+            </div>
+            
+            <h3>Технический текст (Montserrat)</h3>
+            <div class="font-sample">
+                <p class="montserrat">Прочий технический текст использует шрифт Montserrat. Это основной шрифт для всего остального контента: описаний, информации о вопросах, времени и т.д.</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>2. ЦВЕТА</h2>
+            
+            <h3>Основные цвета</h3>
+            <div class="color-palette">
+                <div class="color-item">
+                    <div class="color-box" style="background: #fff2f2;"></div>
+                    <div class="color-name">Фон</div>
+                    <div class="color-code">#fff2f2</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-box" style="background: #393639;"></div>
+                    <div class="color-name">Вместе и технический текст</div>
+                    <div class="color-code">#393639</div>
+                </div>
+            </div>
+            
+            <h3>Парящие абстрактные элементы на фоне</h3>
+            <div class="color-palette">
+                <div class="color-item">
+                    <div class="color-box" style="background: #d6fbbf;"></div>
+                    <div class="color-name">Парящий элемент 1</div>
+                    <div class="color-code">#d6fbbf</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-box" style="background: #fececd;"></div>
+                    <div class="color-name">Парящий элемент 2</div>
+                    <div class="color-code">#fececd</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-box" style="background: #fb906b;"></div>
+                    <div class="color-name">Парящий элемент 3</div>
+                    <div class="color-code">#fb906b</div>
+                </div>
+            </div>
+            
+            <h3>Точки над М и цвета фонов карточек</h3>
+            <div class="color-palette">
+                <div class="color-item">
+                    <div class="color-box" style="background: #abf67c;"></div>
+                    <div class="color-name">Зеленая точка/фон</div>
+                    <div class="color-code">#abf67c</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-box" style="background: #fb6c6b;"></div>
+                    <div class="color-name">Розовая точка/фон</div>
+                    <div class="color-code">#fb6c6b</div>
+                </div>
+            </div>
+            
+            <h3>Цвета шрифтов на карточках</h3>
+            <div class="color-palette">
+                <div class="color-item">
+                    <div class="color-box" style="background: #2fb95d;"></div>
+                    <div class="color-name">Шрифт на зеленых</div>
+                    <div class="color-code">#2fb95d</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-box" style="background: #fa5734;"></div>
+                    <div class="color-name">Шрифт на розовых</div>
+                    <div class="color-code">#fa5734</div>
+                </div>
+                <div class="color-item">
+                    <div class="color-box" style="background: #354fba;"></div>
+                    <div class="color-name">Caveat на карточках</div>
+                    <div class="color-code">#354fba</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>3. ВИД КАРТОЧКИ</h2>
+            
+            <p style="font-family: 'Montserrat', sans-serif; margin-bottom: 20px;">
+                Структура карточки квиза состоит из следующих элементов (сверху вниз):
+            </p>
+            
+            <ol style="font-family: 'Montserrat', sans-serif; margin-left: 20px;">
+                <li>Строчка с названием (Days One, цвет зависит от типа карточки)</li>
+                <li>Строчка с описанием (Days One, цвет зависит от типа карточки)</li>
+                <li>Строчка с забавной фразой по теме квиза (Caveat, цвет #354fba)</li>
+                <li>Строчка с вопросом и часиками (Montserrat, цвет #393639)</li>
+                <li>Строчка с кол-вом вопросов и кол-вом секунд (Montserrat, цвет #393639)</li>
+            </ol>
+            
+            <h3>Пример зеленой карточки</h3>
+            <div class="card-example">
+                <h4>ЧЕМПИОНАТ ГНУ</h4>
+                <div class="subtitle">цели братишек</div>
+                <div class="caveat-phrase">девушки тоже братишки</div>
+                <div class="info">
+                    <div>❓ 15 из 150</div>
+                    <div>⏰ по 15 сек</div>
+                </div>
+            </div>
+            
+            <h3>Пример розовой карточки</h3>
+            <div class="card-example pink">
+                <h4>ТЕСТ-МЕЛОМАН</h4>
+                <div class="subtitle">угадай мелодию</div>
+                <div class="caveat-phrase">музыка нааас связала</div>
+                <div class="info">
+                    <div>❓ 10</div>
+                    <div>⏰ 30 сек.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>4. ПРИМЕНЕНИЕ</h2>
+            
+            <h3>Общие правила</h3>
+            <ul>
+                <li>Все страницы используют фон #fff2f2</li>
+                <li>Основной текст использует цвет #393639</li>
+                <li>Заголовки используют шрифт Days One</li>
+                <li>Подзаголовки и забавные фразы используют шрифт Caveat</li>
+                <li>Технический текст использует шрифт Montserrat</li>
+            </ul>
+            
+            <h3>Карточки квизов</h3>
+            <ul>
+                <li>Зеленые карточки: фон #abf67c, текст Days One #2fb95d, Caveat фразы #354fba</li>
+                <li>Розовые карточки: фон #fb6c6b, текст Days One #fa5734, Caveat фразы #354fba</li>
+                <li>Все карточки квадратные (aspect-ratio: 1 / 1)</li>
+                <li>Карточки имеют тени в цвете текста</li>
+            </ul>
+            
+            <h3>Парящие элементы</h3>
+            <ul>
+                <li>Используются три цвета: #d6fbbf, #fececd, #fb906b</li>
+                <li>Элементы имеют анимацию wobble (покачивание)</li>
+                <li>Расположены на фоне страницы с низкой прозрачностью</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+

@@ -1,0 +1,30 @@
+{
+  "id": "quiz-id",
+  "name": "Название квиза",
+  "description": "Описание квиза",
+  "icon": "🎮",
+  "soloMode": true,
+  "multiplayerMode": true,
+  "password": "",
+  "passwordRequired": false,
+  "colors": {
+    "background": "#abf67c",
+    "text": "#2fb95d",
+    "shadow": "rgba(47, 185, 93, 0.3)"
+  },
+  "display": {
+    "title": "НАЗВАНИЕ КВИЗА",
+    "subtitle": "подзаголовок",
+    "phrase": "забавная фраза",
+    "questionsDisplay": "{count} вопросов",
+    "timeDisplay": "по {time} сек"
+  },
+  "gameSettings": {
+    "questionsPerGame": 15,
+    "totalQuestions": 0,
+    "defaultTime": 15,
+    "maxPlayers": 14
+  },
+  "questionsFile": "quiz-id.txt"
+}
+

@@ -15,20 +15,123 @@
         }
 
         body {
-            font-family: 'Nunito', 'Montserrat', 'Open Sans', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             min-height: 100vh;
-            background: #F2F2F2;
+            background: #fff2f2;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
             position: relative;
         }
+        
+        /* Парящие элементы */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: #d6fbbf;
+            border-radius: 50% 40% 60% 30%;
+            opacity: 0.25;
+            z-index: 0;
+            animation: wobble 6s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -80px;
+            right: -80px;
+            width: 250px;
+            height: 250px;
+            background: #fececd;
+            border-radius: 40% 50% 30% 60%;
+            opacity: 0.25;
+            z-index: 0;
+            animation: wobble 8s ease-in-out infinite reverse;
+            pointer-events: none;
+        }
+        
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(5deg) scale(1.1); }
+            50% { transform: rotate(-5deg) scale(0.9); }
+            75% { transform: rotate(3deg) scale(1.05); }
+        }
+
+        /* HUB стили */
+        .hub {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 242, 242, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            z-index: 1000;
+            border-bottom: none;
+            box-shadow: none;
+        }
+
+        .hub-content {
+            max-width: 1400px;
+            margin: 0;
+            padding-left: 20px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .hub-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .back-button-hub {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(245, 245, 245, 0.85);
+            border: 2px solid #393639;
+            border-radius: 12px;
+            color: #393639;
+            text-decoration: none;
+            font-family: 'Days One', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .back-button-hub:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+        
+        .back-button-hub:active {
+            transform: translateY(0px);
+        }
 
         .container {
             max-width: 600px;
             width: 100%;
             text-align: center;
+            padding-top: 80px;
         }
 
         /* Модальное окно для пароля */
@@ -62,7 +165,7 @@
         .password-title {
             font-family: 'Days One', sans-serif;
             font-size: clamp(24px, 5vw, 32px);
-            color: #383638;
+            color: #393639;
             margin-bottom: 16px;
             text-transform: uppercase;
         }
@@ -70,7 +173,7 @@
         .password-input {
             width: 100%;
             padding: clamp(14px, 3vw, 18px);
-            border: 3px solid #383638;
+            border: 3px solid #393639;
             border-radius: 12px;
             font-family: 'Days One', sans-serif;
             font-size: clamp(20px, 4vw, 24px);
@@ -81,7 +184,7 @@
 
         .password-input:focus {
             outline: none;
-            border-color: #A8E063;
+            border-color: #abf67c;
             box-shadow: 0 0 0 4px rgba(168, 224, 99, 0.2);
         }
 
@@ -93,15 +196,15 @@
         }
 
         .password-button {
-            background: #A8E063;
-            color: #383638;
+            background: #abf67c;
+            color: #2fb95d;
             border: none;
             padding: clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 24px);
             border-radius: 12px;
             font-family: 'Days One', sans-serif;
             font-size: clamp(16px, 3vw, 20px);
             cursor: pointer;
-            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 0px rgba(47, 185, 93, 0.3), 0 6px 12px rgba(0, 0, 0, 0.1);
             transition: all 0.2s;
             flex: 1;
             box-sizing: border-box;
@@ -110,7 +213,7 @@
 
         .password-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 0px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 0px rgba(47, 185, 93, 0.4), 0 8px 16px rgba(0, 0, 0, 0.15);
         }
 
         .password-button:active {
@@ -119,8 +222,8 @@
         }
 
         .password-button.back {
-            background: #F2F2F2;
-            color: #383638;
+            background: #fff2f2;
+            color: #393639;
         }
 
         .password-button.back:hover {
@@ -129,7 +232,7 @@
 
         .password-error {
             color: #ff7664;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             font-size: clamp(14px, 2.5vw, 16px);
             margin-top: 12px;
             min-height: 20px;
@@ -140,38 +243,10 @@
             display: block;
         }
 
-        .back-button {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: #A8E063;
-            color: #383638;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-family: 'Days One', sans-serif;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.2);
-            transition: all 0.2s;
-        }
-
-        .back-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 0px rgba(0, 0, 0, 0.2);
-        }
-
-        .back-button:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
-        }
-
         .title {
             font-family: 'Days One', sans-serif;
             font-size: clamp(32px, 6vw, 48px);
-            color: #383638;
+            color: #393639;
             margin-bottom: 10px;
             text-transform: uppercase;
         }
@@ -223,11 +298,13 @@
         }
 
         .mode-card.solo {
-            background: #A8E063;
+            background: #a8c8e8;
+            color: #4a6fa5;
         }
 
         .mode-card.multiplayer {
-            background: #FFD500;
+            background: #e8c8a8;
+            color: #a56f4a;
         }
 
         .mode-icon {
@@ -239,7 +316,7 @@
         .mode-title {
             font-family: 'Days One', sans-serif;
             font-size: clamp(14px, 2.8vw, 18px);
-            color: #383638;
+            color: #393639;
             margin-bottom: clamp(8px, 2vw, 14px);
             text-transform: uppercase;
             line-height: 1.2;
@@ -250,9 +327,9 @@
         }
 
         .mode-description {
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             font-size: clamp(14px, 2.8vw, 18px);
-            color: #383638;
+            color: #393639;
             opacity: 0.85;
             line-height: 1.4;
             word-wrap: break-word;
@@ -304,7 +381,14 @@
         </div>
     </div>
 
-    <a href="/index.html" class="back-button" onclick="clearPassword()">← Назад</a>
+    <!-- HUB блок -->
+    <div class="hub" id="hub" style="display: none;">
+        <div class="hub-content">
+            <div class="hub-actions">
+                <a href="/index.html" class="back-button-hub">← Назад</a>
+            </div>
+        </div>
+    </div>
     
     <div class="container" id="mainContainer" style="display: none;">
         <h1 class="title">ЧЕМПИОНАТ ГНУ</h1>
@@ -330,9 +414,9 @@
     </div>
 
     <script>
+        // Используем новый ID 'gnu', но поддерживаем старые для обратной совместимости
+        const QUIZ_ID = 'gnu';
         const QUIZ_PASSWORD = '1234';
-        const QUIZ_ID_SOLO = 'friends-quiz';
-        const QUIZ_ID_MULTIPLAYER = 'gnu-multiplayer';
         const STORAGE_KEY = 'gnuPasswordEntered';
         const VERIFIED_KEY = 'gnuPasswordVerified';
         let passwordEntered = false;
@@ -341,6 +425,7 @@
         if (localStorage.getItem(STORAGE_KEY) === 'true') {
             passwordEntered = true;
             document.getElementById('passwordOverlay').style.display = 'none';
+            document.getElementById('hub').style.display = 'block';
             document.getElementById('mainContainer').style.display = 'block';
         }
 
@@ -359,6 +444,7 @@
                 passwordEntered = true;
                 localStorage.setItem(STORAGE_KEY, 'true');
                 document.getElementById('passwordOverlay').style.display = 'none';
+                document.getElementById('hub').style.display = 'block';
                 document.getElementById('mainContainer').style.display = 'block';
                 errorDiv.classList.remove('show');
             } else {
@@ -383,9 +469,11 @@
             localStorage.setItem(VERIFIED_KEY, 'true');
             
             if (mode === 'solo') {
-                window.location.href = `/solo.html?quiz=${QUIZ_ID_SOLO}&password=verified`;
+                // Для соло режима используем ID квиза напрямую
+                window.location.href = `/solo.html?quiz=${QUIZ_ID}&password=verified`;
             } else if (mode === 'multiplayer') {
-                window.location.href = `/host.html?quiz=${QUIZ_ID_MULTIPLAYER}&password=verified`;
+                // Для мультиплеера также используем ID квиза (сервер сам определит режим)
+                window.location.href = `/host.html?quiz=${QUIZ_ID}&password=verified`;
             }
         }
     </script>
