@@ -45,14 +45,14 @@ body {
 body::before {
     content: '';
     position: fixed;
-    top: -50px;
+    top: 120px;
     left: -50px;
     width: 200px;
     height: 200px;
-    background: var(--color-floating-1);
+    background: #d6fbbf; /* Парящий элемент */
     border-radius: 50% 40% 60% 30%;
     opacity: 0.4;
-    z-index: 0;
+    z-index: -1;
     animation: wobble 6s ease-in-out infinite;
     pointer-events: none;
 }
@@ -64,10 +64,10 @@ body::after {
     right: -80px;
     width: 250px;
     height: 250px;
-    background: var(--color-floating-2);
+    background: #fececd; /* Парящий элемент */
     border-radius: 40% 50% 30% 60%;
     opacity: 0.3;
-    z-index: 0;
+    z-index: -1;
     animation: wobble 8s ease-in-out infinite reverse;
     pointer-events: none;
 }

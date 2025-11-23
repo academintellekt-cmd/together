@@ -29,14 +29,14 @@
         body::before {
             content: '';
             position: fixed;
-            top: -50px;
+            top: 120px;
             left: -50px;
             width: 200px;
             height: 200px;
-            background: #d6fbbf;
+            background: #d6fbbf; /* Парящий элемент */
             border-radius: 50% 40% 60% 30%;
-            opacity: 0.25;
-            z-index: 0;
+            opacity: 0.4;
+            z-index: -1;
             animation: wobble 6s ease-in-out infinite;
             pointer-events: none;
         }
@@ -48,10 +48,10 @@
             right: -80px;
             width: 250px;
             height: 250px;
-            background: #fececd;
+            background: #fececd; /* Парящий элемент */
             border-radius: 40% 50% 30% 60%;
-            opacity: 0.25;
-            z-index: 0;
+            opacity: 0.3;
+            z-index: -1;
             animation: wobble 8s ease-in-out infinite reverse;
             pointer-events: none;
         }
@@ -476,6 +476,16 @@
                 window.location.href = `/host.html?quiz=${QUIZ_ID}&password=verified`;
             }
         }
+        // Применяем цвет выбранного персонажа к кнопке "Назад"
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedColor = localStorage.getItem('selectedCharacterColor');
+            if (savedColor) {
+                const backButton = document.querySelector('.back-button-hub');
+                if (backButton) {
+                    backButton.style.background = savedColor;
+                }
+            }
+        });
     </script>
 </body>
 </html>

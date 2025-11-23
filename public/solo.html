@@ -92,7 +92,7 @@
             font-size: 18px;
             margin-bottom: 15px;
             opacity: 0.8;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Montserrat', sans-serif;
         }
 
         .question-text {
@@ -194,7 +194,7 @@
             margin-bottom: 15px;
             font-size: 14px;
             color: #383638;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Montserrat', sans-serif;
         }
 
         .password-modal input {
@@ -218,7 +218,7 @@
             margin-bottom: 15px;
             font-size: 13px;
             display: none;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             font-weight: 600;
             min-height: 20px;
         }
@@ -251,7 +251,7 @@
             color: var(--color-green-alt);
             text-decoration: none;
             font-size: 16px;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             font-weight: 600;
         }
     </style>
@@ -618,6 +618,16 @@
         // Загрузка квиза при загрузке страницы
         // Проверяем пароль и загружаем квиз
         checkPasswordAndLoad();
+        // Применяем цвет выбранного персонажа к кнопке "Назад"
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedColor = localStorage.getItem('selectedCharacterColor');
+            if (savedColor) {
+                const backButton = document.querySelector('.back-button-hub');
+                if (backButton) {
+                    backButton.style.background = savedColor;
+                }
+            }
+        });
     </script>
 </body>
 </html>

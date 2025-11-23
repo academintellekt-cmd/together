@@ -171,7 +171,7 @@
             border-radius: 20px;
             font-size: 14px;
             transition: all 0.3s;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             box-shadow: 
                 0 2px 0px rgba(0, 0, 0, 0.2),
                 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -1018,6 +1018,16 @@
         } // конец initApp()
         // Автоматически создаем комнату при загрузке страницы
         createRoom();
+        // Применяем цвет выбранного персонажа к кнопке "Назад"
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedColor = localStorage.getItem('selectedCharacterColor');
+            if (savedColor) {
+                const backButton = document.querySelector('.back-button-hub');
+                if (backButton) {
+                    backButton.style.background = savedColor;
+                }
+            }
+        });
     </script>
 </body>
 </html>

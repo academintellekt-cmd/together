@@ -6,7 +6,7 @@
     <title>Квиз - Выбор игры</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Kalam:wght@300;400;700&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -22,27 +22,108 @@
             background: #fff2f2; /* Новый фон */
         }
         
-        /* Третий парящий элемент */
-        body::before {
-            content: '';
+        /* HUB стили */
+        .hub {
             position: fixed;
-            top: 30%;
-            right: -80px;
-            width: 180px;
-            height: 180px;
-            background: #fb906b; /* Третий парящий элемент */
-            border-radius: 30% 60% 50% 40%;
-            opacity: 0.25;
-            z-index: 0;
-            animation: wobble 10s ease-in-out infinite;
-            pointer-events: none;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 242, 242, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            z-index: 1000;
+            border-bottom: none;
+            box-shadow: none;
+            width: 100%;
         }
 
+        .hub-content {
+            max-width: 100%;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        /* Секция с логотипом и фразой */
+        .hub-logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-width: 0;
+            gap: 5px;
+        }
+
+        .hub-logo-section .logo {
+            max-width: 100%;
+            height: auto;
+            max-height: 150px;
+            width: auto;
+            transform: rotate(-2deg);
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        .hub-logo-section .subtitle {
+            font-family: 'Caveat', cursive;
+            font-size: 24px;
+            color: #393639;
+            margin: 0;
+            font-weight: 400;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .hub-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .hub-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(245, 245, 245, 0.85);
+            border: 2px solid #393639;
+            border-radius: 12px;
+            color: #393639;
+            text-decoration: none;
+            font-family: 'Days One', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .hub-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+        
+        .hub-button:active {
+            transform: translateY(0px);
+        }
+        
         .container {
             max-width: 1200px;
             width: 100%;
             margin: 0 auto;
             padding: 40px 20px 20px;
+            /* padding-top устанавливается динамически через JavaScript */
             position: relative;
             z-index: 2;
             text-align: center;
@@ -59,96 +140,135 @@
             text-align: center;
         }
 
-        .main-title .hey {
-            font-family: 'Days One', sans-serif;
-            font-size: 116px;
-            font-weight: 700;
-            color: #393639;
-            display: inline-block;
-            transform: rotate(-2deg);
-            letter-spacing: 16px;
-            text-shadow: 4px 4px 0px #fb6c6b;
-            position: relative;
-            text-transform: uppercase;
+        /* Адаптивная ширина HUB */
+        @media (min-width: 1024px) {
+            .hub {
+                padding: 20px 40px;
+            }
+            
+            .hub-content {
+                max-width: 1400px;
+                margin: 0 auto;
+                justify-content: space-between;
+                position: relative;
+            }
+            
+            .hub-logo-section {
+                flex: 1;
+                order: 2;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            .hub-logo-section .logo {
+                max-height: 150px;
+            }
+            
+            .hub-logo-section .subtitle {
+                font-size: 28px;
+            }
+            
+            .hub-actions {
+                order: 3;
+                flex-shrink: 0;
+            }
+            
+            /* padding-top устанавливается динамически через JavaScript */
         }
 
-        /* Буква М с точками над ней */
-        .letter-m {
-            position: relative;
-            display: inline-block;
+        @media (max-width: 1023px) and (min-width: 769px) {
+            .hub {
+                padding: 15px 30px;
+            }
+            
+            .hub-content {
+                max-width: 100%;
+            }
+            
+            .hub-logo-section {
+                flex: 1;
+                order: 2;
+            }
+            
+            .hub-logo-section .logo {
+                max-height: 120px;
+            }
+            
+            .hub-logo-section .subtitle {
+                font-size: 22px;
+            }
+            
+            .hub-actions {
+                order: 3;
+                margin-left: auto;
+            }
+            
+            /* padding-top устанавливается динамически через JavaScript */
         }
 
-        /* Зеленая точка (левая) - над левой верхушкой М */
-        .letter-m::before {
-            content: '';
-            position: absolute;
-            top: clamp(-3px, -0.4vw, -6px); /* Адаптивная позиция сверху */
-            left: 20%;
-            transform: translateX(calc(-50% - clamp(3px, 0.5vw, 6px))); /* Адаптивный сдвиг */
-            width: clamp(25px, 3vw, 40px); /* Адаптивный размер */
-            height: clamp(25px, 3vw, 40px);
-            background: #abf67c; /* Новая зеленая */
-            border-radius: 50%;
-            z-index: 10;
-            box-shadow: 
-                clamp(1.5px, 0.17vw, 2.5px) clamp(0.7px, 0.08vw, 1.2px) 0 0 #000,
-                clamp(0.7px, 0.08vw, 1.2px) clamp(1.5px, 0.17vw, 2.5px) 0 0 #000,
-                clamp(-0.7px, -0.08vw, -1.2px) clamp(0.7px, 0.08vw, 1.2px) 0 0 #000,
-                clamp(0.4px, 0.04vw, 0.6px) clamp(-0.7px, -0.08vw, -1.2px) 0 0 #000,
-                clamp(-1.1px, -0.12vw, -1.8px) clamp(0.4px, 0.04vw, 0.6px) 0 0 #000,
-                clamp(1.1px, 0.12vw, 1.8px) clamp(-0.4px, -0.04vw, -0.6px) 0 0 #000,
-                clamp(-0.4px, -0.04vw, -0.6px) clamp(1.1px, 0.12vw, 1.8px) 0 0 #000;
+        @media (max-width: 768px) {
+            .hub {
+                padding: 12px 20px;
+            }
+            
+            .hub-content {
+                max-width: 100%;
+                justify-content: center;
+            }
+            
+            .hub-logo-section {
+                flex: 1 1 100%;
+                order: 1;
+                width: 100%;
+            }
+            
+            .hub-logo-section .logo {
+                max-height: 80px;
+            }
+            
+            .hub-logo-section .subtitle {
+                font-size: 18px;
+            }
+            
+            .hub-actions {
+                order: 2;
+                margin: 10px auto 0;
+            }
+            
+            /* padding-top устанавливается динамически через JavaScript */
         }
 
-        /* Розовая точка (правая) - над правой верхушкой М */
-        .letter-m::after {
-            content: '';
-            position: absolute;
-            top: clamp(-3px, -0.4vw, -6px); /* Адаптивная позиция сверху */
-            left: 70%;
-            transform: translateX(calc(-50% + clamp(2px, 0.3vw, 4px))); /* Адаптивный сдвиг */
-            width: clamp(25px, 3vw, 40px); /* Адаптивный размер */
-            height: clamp(25px, 3vw, 40px);
-            background: #fb6c6b; /* Новая розовая */
-            border-radius: 50%;
-            z-index: 10;
-            box-shadow: 
-                clamp(-1.5px, -0.17vw, -2.5px) clamp(0.7px, 0.08vw, 1.2px) 0 0 #000,
-                clamp(-0.7px, -0.08vw, -1.2px) clamp(1.5px, 0.17vw, 2.5px) 0 0 #000,
-                clamp(0.7px, 0.08vw, 1.2px) clamp(0.7px, 0.08vw, 1.2px) 0 0 #000,
-                clamp(-0.4px, -0.04vw, -0.6px) clamp(-0.7px, -0.08vw, -1.2px) 0 0 #000,
-                clamp(1.1px, 0.12vw, 1.8px) clamp(0.4px, 0.04vw, 0.6px) 0 0 #000,
-                clamp(-1.1px, -0.12vw, -1.8px) clamp(-0.4px, -0.04vw, -0.6px) 0 0 #000,
-                clamp(0.4px, 0.04vw, 0.6px) clamp(1.1px, 0.12vw, 1.8px) 0 0 #000;
-        }
-
-        /* Подзаголовок */
-        .subtitle {
-            font-family: 'Caveat', cursive;
-            font-size: 52px;
-            color: #393639;
-            margin-bottom: 30px;
-            font-weight: 400;
-            animation: fadeInDown 1s ease;
-            text-shadow: none;
-            position: relative;
-            display: block;
-            text-align: center;
+        @media (max-width: 480px) {
+            .hub {
+                padding: 10px 15px;
+            }
+            
+            .hub-logo-section .logo {
+                max-height: 60px;
+            }
+            
+            .hub-logo-section .subtitle {
+                font-size: 16px;
+            }
+            
+            /* padding-top устанавливается динамически через JavaScript */
         }
 
         /* Декоративные волнистые элементы */
         .container::before {
             content: '';
             position: absolute;
-            top: -50px;
+            /* top устанавливается динамически через JavaScript */
             left: -50px;
             width: 200px;
             height: 200px;
-            background: #abf67c; /* Новая зеленая */
+            background: #d6fbbf; /* Парящий элемент */
             border-radius: 50% 40% 60% 30%;
             opacity: 0.4;
             z-index: -1;
             animation: wobble 6s ease-in-out infinite;
+            pointer-events: none;
         }
 
         .container::after {
@@ -158,11 +278,12 @@
             right: -80px;
             width: 250px;
             height: 250px;
-            background: #fb6c6b; /* Новая розовая */
+            background: #fececd; /* Парящий элемент */
             border-radius: 40% 50% 30% 60%;
             opacity: 0.3;
             z-index: -1;
             animation: wobble 8s ease-in-out infinite reverse;
+            pointer-events: none;
         }
 
         @keyframes wobble {
@@ -207,80 +328,8 @@
             min-height: 0;
         }
 
-        /* Пустые карточки (placeholder) - стиль СКОРО */
-        .quiz-card.empty {
-            background: #FFFFFF; /* Белый фон */
-            border: none;
-            cursor: pointer;
-            box-shadow: 
-                0 6px 0px rgba(56, 54, 56, 0.3),
-                0 8px 16px rgba(56, 54, 56, 0.1);
-            transition: background-color 0.3s ease;
-        }
-
-        .quiz-card.empty:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 
-                0 8px 0px rgba(56, 54, 56, 0.4),
-                0 12px 24px rgba(56, 54, 56, 0.15);
-            background: rgba(255, 255, 255, 0.9); /* Белый полупрозрачный при наведении */
-        }
-
-        .quiz-card.empty:hover .quiz-title,
-        .quiz-card.empty:hover .quiz-subtitle,
-        .quiz-card.empty:hover .quiz-info-item,
-        .quiz-card.empty:hover .quiz-info-item span {
-            color: #393639;
-            filter: brightness(1.1);
-        }
-
-        .quiz-card.empty .quiz-icon {
-            display: none;
-        }
-
-        .quiz-card.empty .quiz-title {
-            color: #393639;
-            font-family: 'Days One', sans-serif;
-            font-weight: 700;
-            font-size: 32px;
-            opacity: 1;
-            text-transform: uppercase;
-        }
-
-        .quiz-card.empty .quiz-subtitle {
-            color: #393639;
-            font-family: 'Days One', sans-serif;
-            font-weight: 400;
-            font-size: 26px;
-            margin-top: 8px;
-            opacity: 1;
-        }
-
-        .quiz-card.empty .quiz-description {
-            display: none;
-        }
-
-        .quiz-card.empty .quiz-info {
-            font-family: 'Caveat', cursive;
-            font-size: 30px;
-            border-top: none;
-            padding-top: 0;
-        }
-
-        .quiz-card.empty .quiz-info-item {
-            font-family: 'Caveat', cursive;
-            color: #393639;
-        }
-
-        .quiz-card.empty .quiz-info-item span:last-child {
-            font-family: 'Caveat', cursive;
-            font-weight: 400;
-            font-size: 30px;
-            color: #393639;
-        }
-
         /* Первый доступный квиз - специальный стиль (зеленая карточка) */
-        .quiz-card:not(.empty):nth-child(1) {
+        .quiz-card:nth-child(1) {
             background: #abf67c; /* Новый зеленый фон */
             border: none;
             box-shadow: 
@@ -288,7 +337,7 @@
                 0 8px 16px rgba(47, 185, 93, 0.1);
         }
 
-        .quiz-card:not(.empty):nth-child(1):hover {
+        .quiz-card:nth-child(1):hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
                 0 8px 0px rgba(47, 185, 93, 0.4),
@@ -296,26 +345,26 @@
             background: rgba(171, 246, 124, 0.9);
         }
 
-        .quiz-card:not(.empty):nth-child(1):hover .quiz-title,
-        .quiz-card:not(.empty):nth-child(1):hover .quiz-subtitle,
-        .quiz-card:not(.empty):nth-child(1):hover .quiz-info-item,
-        .quiz-card:not(.empty):nth-child(1):hover .quiz-info-item span {
+        .quiz-card:nth-child(1):hover .quiz-title,
+        .quiz-card:nth-child(1):hover .quiz-subtitle,
+        .quiz-card:nth-child(1):hover .quiz-info-item,
+        .quiz-card:nth-child(1):hover .quiz-info-item span {
             color: #2fb95d;
             filter: brightness(1.1);
         }
 
-        .quiz-card:not(.empty):nth-child(1):hover div[style*="Caveat"] {
+        .quiz-card:nth-child(1):hover div[style*="Caveat"] {
             filter: brightness(1.1) !important;
         }
 
-        .quiz-card:not(.empty):nth-child(1) .quiz-title {
+        .quiz-card:nth-child(1) .quiz-title {
             color: #2fb95d;
             font-family: 'Days One', sans-serif;
             font-weight: 700;
             font-size: 28px;
         }
 
-        .quiz-card:not(.empty):nth-child(1) .quiz-subtitle {
+        .quiz-card:nth-child(1) .quiz-subtitle {
             color: #2fb95d;
             font-family: 'Days One', sans-serif;
             font-weight: 400;
@@ -323,34 +372,34 @@
             margin-top: 8px;
         }
 
-        .quiz-card:not(.empty):nth-child(1) .quiz-divider {
+        .quiz-card:nth-child(1) .quiz-divider {
             display: none;
         }
 
-        .quiz-card:not(.empty):nth-child(1) .quiz-icon {
+        .quiz-card:nth-child(1) .quiz-icon {
             display: none;
         }
 
-        .quiz-card:not(.empty):nth-child(1) .quiz-info {
+        .quiz-card:nth-child(1) .quiz-info {
             font-family: 'Caveat', cursive;
             font-size: 30px;
             border-top: none;
             padding-top: 0;
         }
 
-        .quiz-card:not(.empty):nth-child(1) .quiz-info-item {
+        .quiz-card:nth-child(1) .quiz-info-item {
             font-family: 'Caveat', cursive;
             color: #393639;
         }
 
-        .quiz-card:not(.empty):nth-child(1) .quiz-info-item span:last-child {
+        .quiz-card:nth-child(1) .quiz-info-item span:last-child {
             font-family: 'Caveat', cursive;
             font-weight: 400;
             font-size: 30px;
         }
         
         /* Цвет Caveat фраз на зеленой карточке */
-        .quiz-card:not(.empty):nth-child(1) div[style*="Caveat"] {
+        .quiz-card:nth-child(1) div[style*="Caveat"] {
             color: #354fba !important;
         }
 
@@ -363,43 +412,43 @@
         }
 
 
-        /* Вторая карточка (Анастасия) - розовый стиль */
-        .quiz-card:not(.empty):nth-child(2) {
-            background: #fb6c6b; /* Новый розовый фон */
+        /* Вторая карточка - розовый стиль */
+        .quiz-card:nth-child(2) {
+            background: #f68a7c; /* Розовый фон */
             border: none;
             box-shadow: 
                 0 6px 0px rgba(250, 87, 52, 0.3),
                 0 8px 16px rgba(250, 87, 52, 0.1);
         }
 
-        .quiz-card:not(.empty):nth-child(2):hover {
+        .quiz-card:nth-child(2):hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
                 0 8px 0px rgba(250, 87, 52, 0.4),
                 0 12px 24px rgba(250, 87, 52, 0.15);
-            background: rgba(251, 108, 107, 0.9);
+            background: rgba(246, 138, 124, 0.9);
         }
 
-        .quiz-card:not(.empty):nth-child(2):hover .quiz-title,
-        .quiz-card:not(.empty):nth-child(2):hover .quiz-subtitle,
-        .quiz-card:not(.empty):nth-child(2):hover .quiz-info-item,
-        .quiz-card:not(.empty):nth-child(2):hover .quiz-info-item span {
+        .quiz-card:nth-child(2):hover .quiz-title,
+        .quiz-card:nth-child(2):hover .quiz-subtitle,
+        .quiz-card:nth-child(2):hover .quiz-info-item,
+        .quiz-card:nth-child(2):hover .quiz-info-item span {
             color: #fa5734;
             filter: brightness(1.1);
         }
 
-        .quiz-card:not(.empty):nth-child(2):hover div[style*="Caveat"] {
+        .quiz-card:nth-child(2):hover div[style*="Caveat"] {
             filter: brightness(1.1) !important;
         }
 
-        .quiz-card:not(.empty):nth-child(2) .quiz-title {
+        .quiz-card:nth-child(2) .quiz-title {
             color: #fa5734;
             font-family: 'Days One', sans-serif;
             font-weight: 700;
             font-size: 28px;
         }
 
-        .quiz-card:not(.empty):nth-child(2) .quiz-subtitle {
+        .quiz-card:nth-child(2) .quiz-subtitle {
             color: #fa5734;
             font-family: 'Days One', sans-serif;
             font-weight: 400;
@@ -407,34 +456,34 @@
             margin-top: 8px;
         }
 
-        .quiz-card:not(.empty):nth-child(2) .quiz-divider {
+        .quiz-card:nth-child(2) .quiz-divider {
             display: none;
         }
 
-        .quiz-card:not(.empty):nth-child(2) .quiz-icon {
+        .quiz-card:nth-child(2) .quiz-icon {
             display: none;
         }
 
-        .quiz-card:not(.empty):nth-child(2) .quiz-info {
+        .quiz-card:nth-child(2) .quiz-info {
             font-family: 'Caveat', cursive;
             font-size: 30px;
             border-top: none;
             padding-top: 0;
         }
 
-        .quiz-card:not(.empty):nth-child(2) .quiz-info-item {
+        .quiz-card:nth-child(2) .quiz-info-item {
             font-family: 'Caveat', cursive;
             color: #393639;
         }
 
-        .quiz-card:not(.empty):nth-child(2) .quiz-info-item span:last-child {
+        .quiz-card:nth-child(2) .quiz-info-item span:last-child {
             font-family: 'Caveat', cursive;
             font-weight: 400;
             font-size: 24px;
         }
         
         /* Цвет Caveat фраз на розовой карточке */
-        .quiz-card:not(.empty):nth-child(2) div[style*="Caveat"] {
+        .quiz-card:nth-child(2) div[style*="Caveat"] {
             color: #354fba !important;
         }
 
@@ -443,7 +492,7 @@
             font-size: 28px !important;
         }
 
-        .quiz-card:not(.empty):nth-child(n+3) .quiz-subtitle {
+        .quiz-card:nth-child(n+3) .quiz-subtitle {
             color: #393639 !important;
             font-family: 'Days One', sans-serif !important;
             font-weight: 400 !important;
@@ -451,11 +500,11 @@
             margin-top: 8px !important;
         }
 
-        .quiz-card:not(.empty):nth-child(n+3) .quiz-info-item {
+        .quiz-card:nth-child(n+3) .quiz-info-item {
             color: #393639 !important;
         }
 
-        .quiz-card:not(.empty):nth-child(n+3) .quiz-info-item span {
+        .quiz-card:nth-child(n+3) .quiz-info-item span {
             color: #393639 !important;
         }
 
@@ -475,7 +524,7 @@
             opacity: 1;
         }
 
-        .quiz-card:not(.empty):hover {
+        .quiz-card:hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
                 0 8px 0px rgba(0, 0, 0, 0.4),
@@ -484,16 +533,16 @@
         }
 
         /* Текст становится ярче при наведении */
-        .quiz-card:not(.empty):hover .quiz-title,
-        .quiz-card:not(.empty):hover .quiz-subtitle,
-        .quiz-card:not(.empty):hover .quiz-info-item,
-        .quiz-card:not(.empty):hover .quiz-info-item span {
+        .quiz-card:hover .quiz-title,
+        .quiz-card:hover .quiz-subtitle,
+        .quiz-card:hover .quiz-info-item,
+        .quiz-card:hover .quiz-info-item span {
             color: #000;
             filter: brightness(1.1);
         }
         
         /* Тень для первой карточки при наведении - цвет текста */
-        .quiz-card:not(.empty):nth-child(1):hover {
+        .quiz-card:nth-child(1):hover {
             box-shadow: 
                 0 8px 0px rgba(0, 193, 89, 0.4),
                 0 12px 24px rgba(0, 193, 89, 0.15);
@@ -585,38 +634,13 @@
             font-family: 'Days One', sans-serif;
         }
 
-        /* Coming soon стиль */
-        .quiz-card.coming-soon {
-            opacity: 0.6;
-            cursor: not-allowed;
-            position: relative;
-        }
-
-        .quiz-card.coming-soon::after {
-            content: 'Скоро';
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255, 193, 7, 0.9);
-            color: #333;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            font-family: 'Open Sans', sans-serif;
-        }
-
-        .quiz-card.coming-soon:hover {
-            transform: none;
-        }
-
-        /* Загрузка и ошибки в стиле Teen Talk */
+        /* Загрузка и ошибки */
         .loading {
             text-align: center;
             padding: 60px 40px;
             font-size: 22px;
             color: #000;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             font-weight: 700;
             text-shadow: 2px 2px 0px #A8E063;
             position: relative;
@@ -641,7 +665,7 @@
             border-radius: 25px;
             margin: 20px 0;
             text-align: center;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             font-weight: 700;
             box-shadow: 0 6px 0px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2);
         }
@@ -671,78 +695,17 @@
 
         /* Меню выбора персонажа */
         .character-menu {
-            position: fixed;
-            top: 40px;
-            right: 50px;
-            z-index: 1000;
+            position: relative;
+            display: inline-block;
+            z-index: 1001;
             overflow: visible;
         }
 
-        .character-menu-button {
-            position: relative;
-        }
-
-        .character-menu-button {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #f2cfc9; /* Цвет по умолчанию для happy персонажа */
-            cursor: pointer;
-            transition: background 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 
-                2px 1px 0 0 #000,
-                1px 2px 0 0 #000,
-                -1px 1px 0 0 #000,
-                0.5px -1px 0 0 #000,
-                -1.5px 0.5px 0 0 #000,
-                1.5px -0.5px 0 0 #000,
-                -0.5px 1.5px 0 0 #000,
-                0 4px 0px rgba(0, 0, 0, 0.3), 
-                0 6px 12px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-
-        .character-menu-button:hover {
-            transform: scale(1.1);
-            box-shadow: 
-                2px 1px 0 0 #000,
-                1px 2px 0 0 #000,
-                -1px 1px 0 0 #000,
-                0.5px -1px 0 0 #000,
-                -1.5px 0.5px 0 0 #000,
-                1.5px -0.5px 0 0 #000,
-                -0.5px 1.5px 0 0 #000,
-                0 6px 0px rgba(0, 0, 0, 0.4), 
-                0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .character-menu-button.active {
-            box-shadow: 
-                2px 1px 0 0 #000,
-                1px 2px 0 0 #000,
-                -1px 1px 0 0 #000,
-                0.5px -1px 0 0 #000,
-                -1.5px 0.5px 0 0 #000,
-                1.5px -0.5px 0 0 #000,
-                -0.5px 1.5px 0 0 #000,
-                0 0 0 4px #A8E063, 
-                0 6px 0px rgba(0, 0, 0, 0.4), 
-                0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Заливка персонажа в кружке - цвет будет меняться динамически */
-        #selected-character circle {
-            transition: fill 0.3s ease;
-        }
 
         /* Стрелка вниз под кнопкой персонажа (нарисованная маркером) */
         .character-menu-arrow {
             position: absolute;
-            top: 70px;
+            top: calc(100% + 5px);
             left: 50%;
             transform: translateX(-50%);
             width: 0;
@@ -751,6 +714,7 @@
             border-right: 10px solid transparent;
             border-top: 14px solid #000;
             animation: bounceDown 1.5s ease-in-out infinite;
+            display: none;
             filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.3)) 
                     drop-shadow(-1px 1px 0 rgba(0,0,0,0.3));
             cursor: pointer;
@@ -768,9 +732,8 @@
 
         .character-menu-dropdown {
             position: absolute;
-            top: 90px;
-            left: 50%;
-            transform: translateX(-50%);
+            top: calc(100% + 10px);
+            right: 0;
             background: transparent;
             padding: 0;
             display: flex;
@@ -795,30 +758,23 @@
             max-height: none;
             transition: opacity 0.2s ease, visibility 0.2s ease;
             overflow: visible;
+            display: flex;
         }
 
         .character-option {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.2s ease, transform 0.3s ease, opacity 0.3s ease;
-            background: #ffebc9;
+            background: transparent;
             position: relative;
             flex-shrink: 0;
             opacity: 0;
             transform: translateY(-20px);
-            box-shadow: 
-                2px 1px 0 0 #000,
-                1px 2px 0 0 #000,
-                -1px 1px 0 0 #000,
-                0.5px -1px 0 0 #000,
-                -1.5px 0.5px 0 0 #000,
-                1.5px -0.5px 0 0 #000,
-                -0.5px 1.5px 0 0 #000;
         }
 
         .character-menu-dropdown.active .character-option {
@@ -870,15 +826,7 @@
         }
 
         .character-option.selected {
-            box-shadow: 
-                2px 1px 0 0 #000,
-                1px 2px 0 0 #000,
-                -1px 1px 0 0 #000,
-                0.5px -1px 0 0 #000,
-                -1.5px 0.5px 0 0 #000,
-                1.5px -0.5px 0 0 #000,
-                -0.5px 1.5px 0 0 #000,
-                0 0 0 3px #A8E063;
+            /* Выделение выбранного персонажа - без дополнительных обводок */
         }
 
         .character-preview {
@@ -917,83 +865,66 @@
 
         /* Адаптивность */
         @media (max-width: 1024px) {
-            .main-title .hey {
-                font-size: 96px;
-                letter-spacing: 12px;
-            }
-
-            .subtitle {
-                font-size: 44px;
-            }
-
             .quizzes-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 18px;
             }
 
-            .quiz-card:not(.empty):nth-child(1) .quiz-title {
+            .quiz-card:nth-child(1) .quiz-title {
                 font-size: clamp(24px, 3.5vw, 32px); /* Адаптивный размер с сохранением пропорций */
             }
 
-            .quiz-card:not(.empty):nth-child(2) .quiz-title {
+            .quiz-card:nth-child(2) .quiz-title {
                 font-size: clamp(22px, 3.2vw, 30px);
             }
 
-            .quiz-card:not(.empty):nth-child(3) .quiz-title {
+            .quiz-card:nth-child(3) .quiz-title {
                 font-size: clamp(22px, 3.2vw, 30px);
             }
 
-            .quiz-card:not(.empty):nth-child(4) .quiz-title {
+            .quiz-card:nth-child(4) .quiz-title {
                 font-size: clamp(22px, 3.2vw, 30px);
             }
 
-            .quiz-card.empty .quiz-title {
+            .quiz-card .quiz-title {
                 font-size: clamp(24px, 3.5vw, 32px);
             }
 
-            .quiz-card:not(.empty):nth-child(1) .quiz-subtitle,
-            .quiz-card:not(.empty):nth-child(2) .quiz-subtitle,
-            .quiz-card:not(.empty):nth-child(3) .quiz-subtitle,
-            .quiz-card:not(.empty):nth-child(4) .quiz-subtitle,
-            .quiz-card.empty .quiz-subtitle {
+            .quiz-card:nth-child(1) .quiz-subtitle,
+            .quiz-card:nth-child(2) .quiz-subtitle,
+            .quiz-card:nth-child(3) .quiz-subtitle,
+            .quiz-card:nth-child(4) .quiz-subtitle,
+            .quiz-card .quiz-subtitle {
                 font-size: clamp(18px, 2.8vw, 26px);
             }
 
-            .quiz-card:not(.empty):nth-child(1) .quiz-info,
-            .quiz-card:not(.empty):nth-child(2) .quiz-info,
-            .quiz-card:not(.empty):nth-child(3) .quiz-info,
-            .quiz-card:not(.empty):nth-child(4) .quiz-info,
-            .quiz-card.empty .quiz-info {
+            .quiz-card:nth-child(1) .quiz-info,
+            .quiz-card:nth-child(2) .quiz-info,
+            .quiz-card:nth-child(3) .quiz-info,
+            .quiz-card:nth-child(4) .quiz-info,
+            .quiz-card .quiz-info {
                 font-size: clamp(20px, 3.2vw, 30px);
             }
 
-            .quiz-card:not(.empty):nth-child(1) .quiz-info-item span:last-child,
-            .quiz-card:not(.empty):nth-child(2) .quiz-info-item span:last-child,
-            .quiz-card:not(.empty):nth-child(3) .quiz-info-item span:last-child,
-            .quiz-card:not(.empty):nth-child(4) .quiz-info-item span:last-child,
-            .quiz-card.empty .quiz-info-item span:last-child {
+            .quiz-card:nth-child(1) .quiz-info-item span:last-child,
+            .quiz-card:nth-child(2) .quiz-info-item span:last-child,
+            .quiz-card:nth-child(3) .quiz-info-item span:last-child,
+            .quiz-card:nth-child(4) .quiz-info-item span:last-child,
+            .quiz-card .quiz-info-item span:last-child {
                 font-size: clamp(20px, 3.2vw, 30px);
             }
 
-            .quiz-card:not(.empty):nth-child(1) div[style*="Caveat"],
-            .quiz-card:not(.empty):nth-child(2) div[style*="Caveat"],
-            .quiz-card:not(.empty):nth-child(3) div[style*="Caveat"],
-            .quiz-card:not(.empty):nth-child(4) div[style*="Caveat"] {
-                font-size: clamp(16px, 2.5vw, 24px) !important;
+            .quiz-card:nth-child(1) div[style*="Caveat"],
+            .quiz-card:nth-child(2) div[style*="Caveat"],
+            .quiz-card:nth-child(3) div[style*="Caveat"],
+            .quiz-card:nth-child(4) div[style*="Caveat"] {
+                font-size: clamp(18px, 2.5vw, 28px) !important;
             }
 
             /* Точки наследуют адаптивные размеры из основных стилей */
         }
 
         @media (max-width: 768px) {
-            .main-title .hey {
-                font-size: 76px;
-                letter-spacing: 10px;
-            }
-
-            .subtitle {
-                font-size: 38px;
-            }
 
             .quizzes-grid {
                 grid-template-columns: 1fr; /* 1 карточка в ряд */
@@ -1012,54 +943,54 @@
                 margin: 0 auto; /* Центрируем каждую карточку */
             }
 
-            .quiz-card:not(.empty):nth-child(1) .quiz-title {
+            .quiz-card:nth-child(1) .quiz-title {
                 font-size: clamp(20px, 6vw, 28px); /* Плавное масштабирование для планшетов */
             }
 
-            .quiz-card:not(.empty):nth-child(2) .quiz-title {
+            .quiz-card:nth-child(2) .quiz-title {
                 font-size: clamp(18px, 5.5vw, 26px);
             }
 
-            .quiz-card:not(.empty):nth-child(3) .quiz-title {
+            .quiz-card:nth-child(3) .quiz-title {
                 font-size: clamp(18px, 5.5vw, 26px);
             }
 
-            .quiz-card:not(.empty):nth-child(4) .quiz-title {
+            .quiz-card:nth-child(4) .quiz-title {
                 font-size: clamp(18px, 5.5vw, 26px);
             }
 
-            .quiz-card.empty .quiz-title {
+            .quiz-card .quiz-title {
                 font-size: clamp(20px, 6vw, 28px);
             }
 
-            .quiz-card:not(.empty):nth-child(1) .quiz-subtitle,
-            .quiz-card:not(.empty):nth-child(2) .quiz-subtitle,
-            .quiz-card:not(.empty):nth-child(3) .quiz-subtitle,
-            .quiz-card:not(.empty):nth-child(4) .quiz-subtitle,
-            .quiz-card.empty .quiz-subtitle {
+            .quiz-card:nth-child(1) .quiz-subtitle,
+            .quiz-card:nth-child(2) .quiz-subtitle,
+            .quiz-card:nth-child(3) .quiz-subtitle,
+            .quiz-card:nth-child(4) .quiz-subtitle,
+            .quiz-card .quiz-subtitle {
                 font-size: clamp(16px, 5vw, 24px);
             }
 
-            .quiz-card:not(.empty):nth-child(1) .quiz-info,
-            .quiz-card:not(.empty):nth-child(2) .quiz-info,
-            .quiz-card:not(.empty):nth-child(3) .quiz-info,
-            .quiz-card:not(.empty):nth-child(4) .quiz-info,
-            .quiz-card.empty .quiz-info {
+            .quiz-card:nth-child(1) .quiz-info,
+            .quiz-card:nth-child(2) .quiz-info,
+            .quiz-card:nth-child(3) .quiz-info,
+            .quiz-card:nth-child(4) .quiz-info,
+            .quiz-card .quiz-info {
                 font-size: clamp(20px, 6.5vw, 30px);
             }
 
-            .quiz-card:not(.empty):nth-child(1) .quiz-info-item span:last-child,
-            .quiz-card:not(.empty):nth-child(2) .quiz-info-item span:last-child,
-            .quiz-card:not(.empty):nth-child(3) .quiz-info-item span:last-child,
-            .quiz-card:not(.empty):nth-child(4) .quiz-info-item span:last-child,
-            .quiz-card.empty .quiz-info-item span:last-child {
+            .quiz-card:nth-child(1) .quiz-info-item span:last-child,
+            .quiz-card:nth-child(2) .quiz-info-item span:last-child,
+            .quiz-card:nth-child(3) .quiz-info-item span:last-child,
+            .quiz-card:nth-child(4) .quiz-info-item span:last-child,
+            .quiz-card .quiz-info-item span:last-child {
                 font-size: clamp(18px, 6vw, 28px);
             }
 
-            .quiz-card:not(.empty):nth-child(1) div[style*="Caveat"],
-            .quiz-card:not(.empty):nth-child(2) div[style*="Caveat"],
-            .quiz-card:not(.empty):nth-child(3) div[style*="Caveat"] {
-                font-size: clamp(16px, 5.5vw, 26px) !important;
+            .quiz-card:nth-child(1) div[style*="Caveat"],
+            .quiz-card:nth-child(2) div[style*="Caveat"],
+            .quiz-card:nth-child(3) div[style*="Caveat"] {
+                font-size: clamp(18px, 5.5vw, 28px) !important;
             }
 
             .quiz-title {
@@ -1068,38 +999,6 @@
 
             .quiz-info-item span:last-child {
                 font-size: 18px;
-            }
-
-            .letter-m::before,
-            .letter-m::after {
-                width: 27px;
-                height: 27px;
-                top: -4px;
-                box-shadow: 
-                    1.5px 0.75px 0 0 #000,
-                    0.75px 1.5px 0 0 #000,
-                    -0.75px 0.75px 0 0 #000,
-                    0.375px -0.75px 0 0 #000,
-                    -1.125px 0.375px 0 0 #000,
-                    1.125px -0.375px 0 0 #000,
-                    -0.375px 1.125px 0 0 #000;
-            }
-
-            .character-menu {
-                top: 40px;
-                right: 30px;
-            }
-
-            .character-menu-button {
-                width: 50px;
-                height: 50px;
-            }
-
-            .character-menu-arrow {
-                top: 60px;
-                border-left-width: 8px;
-                border-right-width: 8px;
-                border-top-width: 12px;
             }
 
             .character-menu-dropdown {
@@ -1114,14 +1013,6 @@
         }
 
         @media (max-width: 480px) {
-            .main-title .hey {
-                font-size: 56px;
-                letter-spacing: 6px;
-            }
-
-            .subtitle {
-                font-size: 28px;
-            }
 
             .quizzes-grid {
                 grid-template-columns: 1fr; /* 1 карточка в ряд */
@@ -1141,55 +1032,55 @@
                 margin: 0 auto; /* Центрируем каждую карточку */
             }
 
-            .quiz-card:not(.empty):nth-child(1) .quiz-title {
+            .quiz-card:nth-child(1) .quiz-title {
                 font-size: clamp(16px, 8vw, 24px); /* Более агрессивное масштабирование для мобильных */
             }
 
-            .quiz-card:not(.empty):nth-child(2) .quiz-title {
+            .quiz-card:nth-child(2) .quiz-title {
                 font-size: clamp(14px, 7.5vw, 22px);
             }
 
-            .quiz-card:not(.empty):nth-child(3) .quiz-title {
+            .quiz-card:nth-child(3) .quiz-title {
                 font-size: clamp(14px, 7.5vw, 22px);
             }
 
-            .quiz-card:not(.empty):nth-child(4) .quiz-title {
+            .quiz-card:nth-child(4) .quiz-title {
                 font-size: clamp(14px, 7.5vw, 22px);
             }
 
-            .quiz-card.empty .quiz-title {
+            .quiz-card .quiz-title {
                 font-size: clamp(16px, 8vw, 24px);
             }
 
-            .quiz-card:not(.empty):nth-child(1) .quiz-subtitle,
-            .quiz-card:not(.empty):nth-child(2) .quiz-subtitle,
-            .quiz-card:not(.empty):nth-child(3) .quiz-subtitle,
-            .quiz-card:not(.empty):nth-child(4) .quiz-subtitle,
-            .quiz-card.empty .quiz-subtitle {
+            .quiz-card:nth-child(1) .quiz-subtitle,
+            .quiz-card:nth-child(2) .quiz-subtitle,
+            .quiz-card:nth-child(3) .quiz-subtitle,
+            .quiz-card:nth-child(4) .quiz-subtitle,
+            .quiz-card .quiz-subtitle {
                 font-size: clamp(12px, 6.5vw, 20px);
             }
 
-            .quiz-card:not(.empty):nth-child(1) .quiz-info,
-            .quiz-card:not(.empty):nth-child(2) .quiz-info,
-            .quiz-card:not(.empty):nth-child(3) .quiz-info,
-            .quiz-card:not(.empty):nth-child(4) .quiz-info,
-            .quiz-card.empty .quiz-info {
+            .quiz-card:nth-child(1) .quiz-info,
+            .quiz-card:nth-child(2) .quiz-info,
+            .quiz-card:nth-child(3) .quiz-info,
+            .quiz-card:nth-child(4) .quiz-info,
+            .quiz-card .quiz-info {
                 font-size: clamp(16px, 8.5vw, 26px);
             }
 
-            .quiz-card:not(.empty):nth-child(1) .quiz-info-item span:last-child,
-            .quiz-card:not(.empty):nth-child(2) .quiz-info-item span:last-child,
-            .quiz-card:not(.empty):nth-child(3) .quiz-info-item span:last-child,
-            .quiz-card:not(.empty):nth-child(4) .quiz-info-item span:last-child,
-            .quiz-card.empty .quiz-info-item span:last-child {
+            .quiz-card:nth-child(1) .quiz-info-item span:last-child,
+            .quiz-card:nth-child(2) .quiz-info-item span:last-child,
+            .quiz-card:nth-child(3) .quiz-info-item span:last-child,
+            .quiz-card:nth-child(4) .quiz-info-item span:last-child,
+            .quiz-card .quiz-info-item span:last-child {
                 font-size: clamp(14px, 7.5vw, 24px);
             }
 
-            .quiz-card:not(.empty):nth-child(1) div[style*="Caveat"],
-            .quiz-card:not(.empty):nth-child(2) div[style*="Caveat"],
-            .quiz-card:not(.empty):nth-child(3) div[style*="Caveat"],
-            .quiz-card:not(.empty):nth-child(4) div[style*="Caveat"] {
-                font-size: clamp(12px, 7vw, 22px) !important;
+            .quiz-card:nth-child(1) div[style*="Caveat"],
+            .quiz-card:nth-child(2) div[style*="Caveat"],
+            .quiz-card:nth-child(3) div[style*="Caveat"],
+            .quiz-card:nth-child(4) div[style*="Caveat"] {
+                font-size: clamp(14px, 7vw, 28px) !important;
             }
 
             .quiz-title {
@@ -1200,55 +1091,7 @@
                 font-size: 16px;
             }
 
-            .letter-m::before,
-            .letter-m::after {
-                width: 23px;
-                height: 23px;
-                top: -3px;
-                box-shadow: 
-                    1.25px 0.625px 0 0 #000,
-                    0.625px 1.25px 0 0 #000,
-                    -0.625px 0.625px 0 0 #000,
-                    0.3125px -0.625px 0 0 #000,
-                    -0.9375px 0.3125px 0 0 #000,
-                    0.9375px -0.3125px 0 0 #000,
-                    -0.3125px 0.9375px 0 0 #000;
-            }
 
-            .letter-m::before {
-                left: 18%;
-                transform: translateX(calc(-50% - 4px));
-            }
-
-            .letter-m::after {
-                left: 72%;
-                transform: translateX(calc(-50% + 2.5px));
-                box-shadow: 
-                    -1.25px 0.625px 0 0 #000,
-                    -0.625px 1.25px 0 0 #000,
-                    0.625px 0.625px 0 0 #000,
-                    -0.3125px -0.625px 0 0 #000,
-                    0.9375px 0.3125px 0 0 #000,
-                    -0.9375px -0.3125px 0 0 #000,
-                    0.3125px 0.9375px 0 0 #000;
-            }
-
-            .character-menu {
-                top: 30px;
-                right: 15px;
-            }
-
-            .character-menu-button {
-                width: 45px;
-                height: 45px;
-            }
-
-            .character-menu-arrow {
-                top: 55px;
-                border-left-width: 7px;
-                border-right-width: 7px;
-                border-top-width: 10px;
-            }
 
             .character-menu-dropdown {
                 left: 50%;
@@ -1259,52 +1102,43 @@
                 min-width: auto;
             }
 
-            .container::before,
+            .container::before {
+                top: 120px; /* Ниже HUB на маленьких экранах */
+                width: 150px;
+                height: 150px;
+            }
+            
             .container::after {
                 width: 150px;
                 height: 150px;
             }
-        }
-
-        /* Дополнительная адаптивность для очень маленьких экранов */
-        @media (max-width: 320px) {
-            .main-title .hey {
-                font-size: clamp(40px, 12vw, 56px);
-                letter-spacing: clamp(3px, 1.5vw, 6px);
-            }
             
-            /* Точки масштабируются еще меньше для очень маленьких экранов */
-            .letter-m::before,
-            .letter-m::after {
-                width: clamp(18px, 5.5vw, 25px);
-                height: clamp(18px, 5.5vw, 25px);
-                top: clamp(-2px, -0.6vw, -3px);
-            }
+            /* padding-top для контейнера уже задан в медиа-запросе выше */
         }
     </style>
 </head>
 <body>
-
-    <!-- Меню выбора персонажа -->
-    <div class="character-menu">
-        <div class="character-menu-button" id="character-menu-button">
-            <svg id="selected-character" width="50" height="50" viewBox="0 0 100 100">
-                <!-- Персонаж по умолчанию будет добавлен через JS -->
-            </svg>
-        </div>
-        <div class="character-menu-arrow" id="character-menu-arrow"></div>
-        <div class="character-menu-dropdown" id="character-menu-dropdown">
-            <!-- Персонажи будут добавлены через JS -->
+    <!-- HUB блок -->
+    <div class="hub" id="hub">
+        <div class="hub-content">
+            <div class="hub-logo-section">
+                <img src="/images/logo.png" alt="ВМЕСТЕ" class="logo">
+                <p class="subtitle">хорошие люди объединяются играми</p>
+            </div>
+            <div class="hub-actions">
+                <div class="character-menu">
+                    <a href="#" class="hub-button" id="login-button">Войти</a>
+                    <div class="character-menu-arrow" id="character-menu-arrow"></div>
+                    <div class="character-menu-dropdown" id="character-menu-dropdown">
+                        <!-- Персонажи будут добавлены через JS -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+ 
 
     <div class="container">
-        <!-- Заголовок в стиле "вместе" -->
-        <div class="main-title">
-            <span class="hey">В<span class="letter-m">М</span>ЕСТЕ</span>
-        </div>
-        <p class="subtitle">хорошие люди объединяются играми</p>
-        
         <div id="loading" class="loading">Загрузка квизов...</div>
         <div id="error" class="error" style="display: none;"></div>
         <div id="quizzes-grid" class="quizzes-grid" style="display: none;"></div>
@@ -1313,14 +1147,14 @@
     <script>
         // Персонажи - кусочки пазлов (8 штук для квадрата 4x2)
         const characters = [
-            { id: 'happy', name: 'Радость', color: '#A8E6CF', position: 0, emotion: 'happy' }, // Светлый бирюзовый/мятно-зеленый (главный - не меняем)
-            { id: 'wink', name: 'Подмигивашка', color: '#FFB3D9', position: 1, emotion: 'wink' }, // Пастельный розовый (в тон #FF7664)
-            { id: 'smile', name: 'Улыбка', color: '#D4F5A0', position: 2, emotion: 'smile' }, // Пастельный лайм-зеленый (в тон #B4F200)
-            { id: 'grumpy', name: 'Хмурик', color: '#B3E5FC', position: 3, emotion: 'grumpy' }, // Пастельный голубой
-            { id: 'sad', name: 'Грустинка', color: '#FFE082', position: 4, emotion: 'sad' }, // Пастельный желтый (в тон #f9db75)
-            { id: 'surprised', name: 'Удивлёнка', color: '#CE93D8', position: 5, emotion: 'surprised' }, // Лавандовый
-            { id: 'laugh', name: 'Смешинка', color: '#FFAB91', position: 6, emotion: 'laugh' }, // Пастельный коралловый (в тон #FF7664)
-            { id: 'thoughtful', name: 'Думалка', color: '#F48FB1', position: 7, emotion: 'thoughtful' } // Более сочный розовый
+            { id: 'happy', name: 'Радость', color: '#abf67c', position: 0, emotion: 'happy' },
+            { id: 'wink', name: 'Подмигивашка', color: '#c77cf6', position: 1, emotion: 'wink' },
+            { id: 'smile', name: 'Улыбка', color: '#f67cab', position: 2, emotion: 'smile' },
+            { id: 'grumpy', name: 'Хмурик', color: '#7cabf6', position: 3, emotion: 'grumpy' },
+            { id: 'sad', name: 'Грустинка', color: '#7ce8f6', position: 4, emotion: 'sad' },
+            { id: 'surprised', name: 'Удивлёнка', color: '#f68a7c', position: 5, emotion: 'surprised' },
+            { id: 'laugh', name: 'Смешинка', color: '#f2f67c', position: 6, emotion: 'laugh' },
+            { id: 'thoughtful', name: 'Думалка', color: '#8a7cf6', position: 7, emotion: 'thoughtful' }
         ];
 
         let selectedCharacterId = 'happy';
@@ -1379,12 +1213,15 @@
             svg.setAttribute('viewBox', '-10 -10 120 120'); // Расширенный viewBox для волос, выходящих за границы
             svg.setAttribute('overflow', 'visible');
             
-            // Простой круг
+            // Простой круг - полностью заполнен цветом с прозрачностью и черной обводкой
             const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             circle.setAttribute('cx', '50');
             circle.setAttribute('cy', '50');
-            circle.setAttribute('r', '45');
+            circle.setAttribute('r', '50');
             circle.setAttribute('fill', color);
+            circle.setAttribute('stroke', '#000');
+            circle.setAttribute('stroke-width', '3');
+            circle.setAttribute('opacity', '0.7');
             svg.appendChild(circle);
             
             // Рожица в стиле маркера (Caveat) - центрируем в круге
@@ -1397,17 +1234,14 @@
 
         // Инициализация меню персонажей
         function initCharacterMenu() {
-            const menuButton = document.getElementById('character-menu-button');
+            const loginButton = document.getElementById('login-button');
             const menuDropdown = document.getElementById('character-menu-dropdown');
-            const selectedCharacterSVG = document.getElementById('selected-character');
             
             // Устанавливаем персонажа по умолчанию
             const defaultChar = characters.find(c => c.id === selectedCharacterId);
             if (defaultChar) {
-                const svg = createCharacterSVG(defaultChar.color, defaultChar.emotion, defaultChar.position, 50);
-                selectedCharacterSVG.innerHTML = svg.innerHTML;
-                // Устанавливаем цвет фона кнопки
-                menuButton.style.background = defaultChar.color;
+                // Устанавливаем цвет фона кнопки "Войти"
+                loginButton.style.background = defaultChar.color;
             }
             
             // Создаем список персонажей
@@ -1418,18 +1252,19 @@
                 
                 const preview = document.createElement('div');
                 preview.className = 'character-preview';
-                const charSVG = createCharacterSVG(char.color, char.emotion, char.position, 40);
+                const charSVG = createCharacterSVG(char.color, char.emotion, char.position, 32); // Уменьшено на 20% (40 * 0.8 = 32)
                 preview.appendChild(charSVG);
                 
                 option.appendChild(preview);
                 
                 option.addEventListener('click', () => {
                     selectedCharacterId = char.id;
-                    const newSVG = createCharacterSVG(char.color, char.emotion, char.position, 50);
-                    selectedCharacterSVG.innerHTML = newSVG.innerHTML;
                     
-                    // Обновляем цвет фона кнопки
-                    menuButton.style.background = char.color;
+                    // Обновляем цвет фона кнопки "Войти"
+                    loginButton.style.background = char.color;
+                    
+                    // Сохраняем цвет персонажа в localStorage
+                    localStorage.setItem('selectedCharacterColor', char.color);
                     
                     // Обновляем выделение
                     document.querySelectorAll('.character-option').forEach(opt => {
@@ -1439,7 +1274,6 @@
                     
                     // Закрываем меню
                     menuDropdown.classList.remove('active');
-                    menuButton.classList.remove('active');
                     
                     // Сохраняем выбор в localStorage
                     localStorage.setItem('selectedCharacter', char.id);
@@ -1451,32 +1285,20 @@
             // Функция переключения меню
             function toggleMenu() {
                 menuDropdown.classList.toggle('active');
-                menuButton.classList.toggle('active');
             }
             
-            // Обработчик клика на кнопку (мордочку)
-            menuButton.addEventListener('click', (e) => {
+            // Обработчик клика на кнопку "Войти"
+            loginButton.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 toggleMenu();
             });
             
-            // Обработчик клика на стрелку
-            const menuArrow = document.getElementById('character-menu-arrow');
-            if (menuArrow) {
-                menuArrow.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    toggleMenu();
-                });
-            }
-            
             // Закрытие при клике вне меню
             document.addEventListener('click', (e) => {
-                const menuArrow = document.getElementById('character-menu-arrow');
-                if (!menuButton.contains(e.target) && 
-                    !menuDropdown.contains(e.target) && 
-                    (!menuArrow || !menuArrow.contains(e.target))) {
+                const characterMenu = document.querySelector('.character-menu');
+                if (!characterMenu.contains(e.target)) {
                     menuDropdown.classList.remove('active');
-                    menuButton.classList.remove('active');
                 }
             });
             
@@ -1485,10 +1307,23 @@
             if (savedChar && characters.find(c => c.id === savedChar)) {
                 selectedCharacterId = savedChar;
                 const savedCharData = characters.find(c => c.id === savedChar);
-                const svg = createCharacterSVG(savedCharData.color, savedCharData.emotion, savedCharData.position, 50);
-                selectedCharacterSVG.innerHTML = svg.innerHTML;
-                // Устанавливаем цвет фона кнопки
-                menuButton.style.background = savedCharData.color;
+                // Устанавливаем цвет фона кнопки "Войти"
+                loginButton.style.background = savedCharData.color;
+                // Сохраняем цвет в localStorage для других страниц
+                localStorage.setItem('selectedCharacterColor', savedCharData.color);
+                // Обновляем выделение в меню
+                document.querySelectorAll('.character-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                    if (opt.dataset.characterId === savedChar) {
+                        opt.classList.add('selected');
+                    }
+                });
+            } else {
+                // Если нет сохраненного персонажа, устанавливаем цвет по умолчанию
+                const defaultChar = characters.find(c => c.id === selectedCharacterId);
+                if (defaultChar) {
+                    localStorage.setItem('selectedCharacterColor', defaultChar.color);
+                }
             }
         }
 
@@ -1537,6 +1372,9 @@
             console.log('Квизы для отображения:', realQuizzes);
 
             // Создаем карточки только для реальных квизов
+            // Массив цветов для карточек (зеленый и розовый)
+            const cardColors = ['#abf67c', '#f68a7c']; // Зеленый и розовый
+            
             for (let i = 0; i < realQuizzes.length; i++) {
                 const quiz = realQuizzes[i];
                 
@@ -1545,6 +1383,15 @@
                     const card = document.createElement('div');
                     card.className = 'quiz-card';
                     card.style.animationDelay = (i * 0.1) + 's';
+                    
+                    // Случайный выбор цвета карточки (зеленый или розовый)
+                    // Для первой карточки всегда зеленый, для остальных - случайный
+                    const cardColor = i === 0 ? '#abf67c' : cardColors[Math.floor(Math.random() * cardColors.length)];
+                    const isGreen = cardColor === '#abf67c';
+                    const textColor = isGreen ? '#2fb95d' : '#fa5734';
+                    
+                    // Применяем цвет карточки
+                    card.style.background = cardColor;
                     
                     // Объявляем переменные для всех квизов
                     const icon = quiz.icon || '📚';
@@ -1565,48 +1412,48 @@
                     let cardHTML = '';
                     // Поддерживаем как новый ID 'gnu', так и старый 'friends-quiz'
                     if (quiz.id === 'gnu' || quiz.id === 'friends-quiz') {
-                        // Иконка вопроса - маркерный шрифт
+                        // Иконка вопроса - черный цвет
                         const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
                             <text x="20" y="32" 
                                   font-family="Kalam, cursive" 
                                   font-size="36" 
                                   font-weight="700"
-                                  fill="#393639" 
+                                  fill="#000" 
                                   text-anchor="middle">?</text>
                         </svg>`;
                         
                         // Извлекаем время из квиза (по умолчанию 15 секунд для первого квиза)
                         const timeSeconds = avgTime || 15;
                         
-                        // SVG иконка часов "от руки маркером" - рисованные часы
+                        // SVG иконка часов "от руки маркером" - черный цвет
                         const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                             <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
-                                  stroke="#393639" stroke-width="4" fill="none" 
+                                  stroke="#000" stroke-width="4" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
                             <!-- Часовая стрелка (вверх) -->
                             <line x1="16" y1="16" x2="16" y2="10" 
-                                  stroke="#393639" stroke-width="3.5" 
+                                  stroke="#000" stroke-width="3.5" 
                                   stroke-linecap="round"/>
                             <!-- Минутная стрелка (вправо) -->
                             <line x1="16" y1="16" x2="21" y2="21" 
-                                  stroke="#393639" stroke-width="3.5" 
+                                  stroke="#000" stroke-width="3.5" 
                                   stroke-linecap="round"/>
                         </svg>`;
 
                         cardHTML = `
                             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
-                                <div class="quiz-title">ЧЕМПИОНАТ ГНУ</div>
-                                <div class="quiz-subtitle">цели братишек</div>
-                                <div style="font-family: 'Caveat', cursive; font-size: 22px; color: #354fba; margin: 10px 0; text-align: center; transform: rotate(-2deg);">девушки тоже братишки</div>
+                                <div class="quiz-title" style="color: ${textColor};">ЧЕМПИОНАТ ГНУ</div>
+                                <div class="quiz-subtitle" style="color: ${textColor};">цели братишек</div>
+                                <div style="font-family: 'Caveat', cursive; font-size: 28px; color: #354fba; margin: 10px 0; text-align: center; transform: rotate(-2deg);">девушки тоже братишки</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
                                     ${questionIcon}
-                                    <span>15 из ${questionCount}</span>
+                                    <span style="color: #000;">15 из ${questionCount}</span>
                                 </div>
                                 <div class="quiz-info-item">
                                     ${clockIcon}
-                                    <span>по ${timeSeconds} сек</span>
+                                    <span style="color: #000;">по ${timeSeconds} сек</span>
                                 </div>
                             </div>
                         `;
@@ -1619,26 +1466,26 @@
                         const sandLevel = Math.min((timeSeconds / maxTime) * 100, 100);
                         const bottomSandTop = 24 - (9 * (sandLevel / 100)); // Верхняя граница песка внизу (чем больше времени, тем ниже граница)
                         
-                        // SVG иконка песочных часов "от руки маркером"
+                        // SVG иконка песочных часов "от руки маркером" - черный цвет
                         const clockIconSVG = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                             <!-- Верхняя часть песочных часов -->
                             <path d="M 8 4 Q 8 4, 8 8 Q 8 10, 10 12 Q 12 13, 16 13 Q 20 13, 22 12 Q 24 10, 24 8 Q 24 4, 24 4" 
-                                  stroke="#393639" stroke-width="3.5" fill="none" 
+                                  stroke="#000" stroke-width="3.5" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
                             <!-- Узкая часть (горлышко) -->
                             <path d="M 10 13 Q 13 14, 16 14.5 Q 19 14, 22 13" 
-                                  stroke="#393639" stroke-width="3.5" fill="none" 
+                                  stroke="#000" stroke-width="3.5" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
                             <!-- Нижняя часть песочных часов -->
                             <path d="M 8 15 Q 8 15, 8 19 Q 8 21, 10 23 Q 12 24, 16 24 Q 20 24, 22 23 Q 24 21, 24 19 Q 24 15, 24 15" 
-                                  stroke="#393639" stroke-width="3.5" fill="none" 
+                                  stroke="#000" stroke-width="3.5" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
                             <!-- Песок внизу (уровень зависит от времени) -->
                             <path d="M 8 15 Q 8 19, 10 21 Q 12 22, 16 22 Q 20 22, 22 21 Q 24 19, 24 15 L 24 ${bottomSandTop} Q 22 ${bottomSandTop + 2}, 20 ${bottomSandTop + 3} Q 18 ${bottomSandTop + 4}, 16 ${bottomSandTop + 4} Q 14 ${bottomSandTop + 4}, 12 ${bottomSandTop + 3} Q 10 ${bottomSandTop + 2}, 8 ${bottomSandTop} Z" 
-                                  fill="#393639" opacity="0.7"/>
+                                  fill="#000" opacity="0.7"/>
                             <!-- Песок вверху (остаток) -->
                             <path d="M 8 4 Q 8 8, 10 10 Q 12 11, 16 11 Q 20 11, 22 10 Q 24 8, 24 4 L 24 8 Q 22 10, 20 11 Q 18 12, 16 12 Q 14 12, 12 11 Q 10 10, 8 8 Z" 
-                                  fill="#393639" opacity="0.3"/>
+                                  fill="#000" opacity="0.3"/>
                         </svg>`;
                         
                         cardHTML = `
@@ -1667,11 +1514,63 @@
             }
         }
 
+        // Функция для вычисления высоты HUB и установки отступа контейнера
+        function updateContainerPadding() {
+            const hub = document.getElementById('hub');
+            const container = document.querySelector('.container');
+            
+            if (hub && container) {
+                // Получаем высоту HUB
+                const hubHeight = hub.offsetHeight;
+                // Устанавливаем отступ: высота HUB + 40px
+                const paddingTop = hubHeight + 40;
+                container.style.paddingTop = paddingTop + 'px';
+                
+                // Также обновляем позицию парящего элемента
+                let style = document.getElementById('dynamic-hub-spacing');
+                if (!style) {
+                    style = document.createElement('style');
+                    style.id = 'dynamic-hub-spacing';
+                    document.head.appendChild(style);
+                }
+                style.textContent = `
+                    .container::before {
+                        top: ${hubHeight + 20}px !important;
+                    }
+                `;
+            }
+        }
+        
+        // Сохраняем оригинальную функцию loadQuizzes
+        const originalLoadQuizzes = loadQuizzes;
+        
+        // Переопределяем loadQuizzes, чтобы вызывать updateContainerPadding после загрузки
+        loadQuizzes = async function() {
+            await originalLoadQuizzes();
+            setTimeout(updateContainerPadding, 100);
+        };
+        
         // Загружаем квизы при загрузке страницы
         loadQuizzes();
         
         // Инициализируем меню персонажей
         initCharacterMenu();
+        
+        // Вызываем функцию после инициализации меню и загрузки квизов
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(updateContainerPadding, 300); // Задержка для полной загрузки HUB и меню
+            });
+        } else {
+            setTimeout(updateContainerPadding, 300);
+        }
+        
+        // Вызываем функцию при изменении размера окна
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(updateContainerPadding, 100);
+        });
     </script>
 
 </body>
