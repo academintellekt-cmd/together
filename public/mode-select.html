@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор режима - Чемпионат ГНУ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', 'Montserrat', 'Open Sans', sans-serif;
+            min-height: 100vh;
+            background: #F2F2F2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Модальное окно для пароля */
+        .password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .password-modal {
+            background: #FFFFFF;
+            border-radius: 24px;
+            padding: clamp(24px, 4vw, 36px) clamp(20px, 4vw, 32px);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 
+                0 8px 0px rgba(0, 0, 0, 0.2),
+                0 16px 32px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+        }
+
+        .password-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(24px, 5vw, 32px);
+            color: #383638;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: clamp(14px, 3vw, 18px);
+            border: 3px solid #383638;
+            border-radius: 12px;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(20px, 4vw, 24px);
+            text-align: center;
+            margin-bottom: clamp(16px, 3vw, 20px);
+            box-sizing: border-box;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #A8E063;
+            box-shadow: 0 0 0 4px rgba(168, 224, 99, 0.2);
+        }
+
+        .password-buttons {
+            display: flex;
+            gap: clamp(8px, 2vw, 12px);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .password-button {
+            background: #A8E063;
+            color: #383638;
+            border: none;
+            padding: clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 24px);
+            border-radius: 12px;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 3vw, 20px);
+            cursor: pointer;
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+            flex: 1;
+            box-sizing: border-box;
+            min-width: 0;
+        }
+
+        .password-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .password-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .password-button.back {
+            background: #F2F2F2;
+            color: #383638;
+        }
+
+        .password-button.back:hover {
+            background: #E0E0E0;
+        }
+
+        .password-error {
+            color: #ff7664;
+            font-family: 'Nunito', sans-serif;
+            font-size: clamp(14px, 2.5vw, 16px);
+            margin-top: 12px;
+            min-height: 20px;
+            display: none;
+        }
+
+        .password-error.show {
+            display: block;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #A8E063;
+            color: #383638;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-family: 'Days One', sans-serif;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(32px, 6vw, 48px);
+            color: #383638;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-family: 'Caveat', cursive;
+            font-size: clamp(24px, 4vw, 32px);
+            color: #ff7664;
+            margin-bottom: 40px;
+            transform: rotate(-1deg);
+        }
+
+        .mode-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: clamp(20px, 4vw, 28px);
+            margin-top: clamp(30px, 6vw, 50px);
+        }
+
+        .mode-card {
+            background: #FFFFFF;
+            border-radius: clamp(16px, 3vw, 24px);
+            padding: clamp(24px, 5vw, 36px) clamp(20px, 4vw, 32px);
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.15),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            border: none;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: clamp(180px, 35vw, 240px);
+        }
+
+        .mode-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 8px 0px rgba(0, 0, 0, 0.2),
+                0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .mode-card:active {
+            transform: translateY(-4px) scale(1.01);
+        }
+
+        .mode-card.solo {
+            background: #A8E063;
+        }
+
+        .mode-card.multiplayer {
+            background: #FFD500;
+        }
+
+        .mode-icon {
+            font-size: clamp(48px, 10vw, 72px);
+            margin-bottom: clamp(12px, 3vw, 20px);
+            line-height: 1;
+        }
+
+        .mode-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(14px, 2.8vw, 18px);
+            color: #383638;
+            margin-bottom: clamp(8px, 2vw, 14px);
+            text-transform: uppercase;
+            line-height: 1.2;
+            white-space: nowrap;
+            width: 100%;
+            padding: 0 clamp(10px, 2.5vw, 16px);
+            box-sizing: border-box;
+        }
+
+        .mode-description {
+            font-family: 'Nunito', sans-serif;
+            font-size: clamp(14px, 2.8vw, 18px);
+            color: #383638;
+            opacity: 0.85;
+            line-height: 1.4;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .mode-cards {
+                grid-template-columns: 1fr 1fr;
+                gap: clamp(24px, 4vw, 32px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 clamp(10px, 3vw, 20px);
+            }
+
+            .mode-card {
+                padding: clamp(20px, 5vw, 28px) clamp(16px, 4vw, 24px);
+                min-height: clamp(160px, 40vw, 200px);
+            }
+
+            .password-modal {
+                padding: clamp(24px, 5vw, 32px) clamp(20px, 4vw, 28px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Модальное окно для пароля -->
+    <div class="password-overlay" id="passwordOverlay">
+        <div class="password-modal">
+            <h2 class="password-title">Введите пароль</h2>
+            <input 
+                type="password" 
+                class="password-input" 
+                id="passwordInput" 
+                placeholder="Пароль"
+                autocomplete="off"
+                autofocus
+            >
+            <div class="password-buttons">
+                <button class="password-button back" onclick="goBack()">Назад</button>
+                <button class="password-button" onclick="checkPassword()">Войти</button>
+            </div>
+            <div class="password-error" id="passwordError">Неверный пароль. Попробуйте снова.</div>
+        </div>
+    </div>
+
+    <a href="/index.html" class="back-button" onclick="clearPassword()">← Назад</a>
+    
+    <div class="container" id="mainContainer" style="display: none;">
+        <h1 class="title">ЧЕМПИОНАТ ГНУ</h1>
+        <p class="subtitle">выбери режим игры</p>
+        
+        <div class="mode-cards">
+            <div class="mode-card solo" onclick="selectMode('solo')">
+                <div class="mode-icon">🎯</div>
+                <div class="mode-title">Одиночная игра</div>
+                <div class="mode-description">
+                    Играй один и соревнуйся с другими в рейтинге. 15 вопросов из 150.
+                </div>
+            </div>
+            
+            <div class="mode-card multiplayer" onclick="selectMode('multiplayer')">
+                <div class="mode-icon">👥</div>
+                <div class="mode-title">Мультиплеер</div>
+                <div class="mode-description">
+                    Создай комнату и играй с друзьями. QR-код для подключения.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GNU_PASSWORD = '1234';
+        let passwordEntered = false;
+
+        // Проверка пароля из localStorage
+        if (localStorage.getItem('gnuPasswordEntered') === 'true') {
+            passwordEntered = true;
+            document.getElementById('passwordOverlay').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'block';
+        }
+
+        // Обработка Enter в поле пароля
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            const errorDiv = document.getElementById('passwordError');
+            
+            if (password === GNU_PASSWORD) {
+                passwordEntered = true;
+                localStorage.setItem('gnuPasswordEntered', 'true');
+                document.getElementById('passwordOverlay').style.display = 'none';
+                document.getElementById('mainContainer').style.display = 'block';
+                errorDiv.classList.remove('show');
+            } else {
+                errorDiv.classList.add('show');
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        function clearPassword() {
+            // Очищаем пароль при возврате на главную страницу
+            localStorage.removeItem('gnuPasswordVerified');
+            localStorage.removeItem('gnuPasswordEntered');
+        }
+
+        function goBack() {
+            clearPassword();
+            window.location.href = '/index.html';
+        }
+
+        function selectMode(mode) {
+            // Сохраняем флаг, что пароль уже проверен
+            localStorage.setItem('gnuPasswordVerified', 'true');
+            
+            if (mode === 'solo') {
+                // Одиночная игра - открываем solo.html с квизом friends-quiz
+                window.location.href = '/solo.html?quiz=friends-quiz&password=verified';
+            } else if (mode === 'multiplayer') {
+                // Мультиплеер - открываем host.html с квизом gnu-multiplayer
+                window.location.href = '/host.html?quiz=gnu-multiplayer&password=verified';
+            }
+        }
+    </script>
+</body>
+</html>
+

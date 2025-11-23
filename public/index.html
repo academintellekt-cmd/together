@@ -341,75 +341,6 @@
             vertical-align: middle;
         }
 
-        /* Вторая карточка - специальный стиль желтый */
-        .quiz-card:not(.empty):nth-child(2) {
-            background: rgba(255, 213, 0, 0.85); /* Ярко-желтый полупрозрачный как пластиковый стикер */
-            border: none;
-            box-shadow: 
-                0 6px 0px rgba(204, 170, 0, 0.3),
-                0 8px 16px rgba(204, 170, 0, 0.1);
-        }
-
-        .quiz-card:not(.empty):nth-child(2):hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 
-                0 8px 0px rgba(204, 170, 0, 0.4),
-                0 12px 24px rgba(204, 170, 0, 0.15);
-            background: rgba(255, 213, 0, 0.6); /* Ярко-желтый полупрозрачный при наведении */
-        }
-
-        .quiz-card:not(.empty):nth-child(2):hover .quiz-title,
-        .quiz-card:not(.empty):nth-child(2):hover .quiz-subtitle,
-        .quiz-card:not(.empty):nth-child(2):hover .quiz-info-item,
-        .quiz-card:not(.empty):nth-child(2):hover .quiz-info-item span {
-            color: #ff7664;
-            filter: brightness(1.1);
-        }
-
-        .quiz-card:not(.empty):nth-child(2):hover div[style*="Caveat"] {
-            filter: brightness(1.1) !important;
-        }
-
-        .quiz-card:not(.empty):nth-child(2) .quiz-title {
-            color: #ff7664;
-            font-family: 'Days One', sans-serif;
-            font-weight: 700;
-            font-size: 28px;
-        }
-
-        .quiz-card:not(.empty):nth-child(2) .quiz-subtitle {
-            color: #ff7664;
-            font-family: 'Days One', sans-serif;
-            font-weight: 400;
-            font-size: 22px;
-            margin-top: 8px;
-        }
-
-        .quiz-card:not(.empty):nth-child(2) .quiz-divider {
-            display: none;
-        }
-
-        .quiz-card:not(.empty):nth-child(2) .quiz-icon {
-            display: none;
-        }
-
-        .quiz-card:not(.empty):nth-child(2) .quiz-info {
-            font-family: 'Caveat', cursive;
-            font-size: 30px;
-            border-top: none;
-            padding-top: 0;
-        }
-
-        .quiz-card:not(.empty):nth-child(2) .quiz-info-item {
-            font-family: 'Caveat', cursive;
-            color: #383638;
-        }
-
-        .quiz-card:not(.empty):nth-child(2) .quiz-info-item span:last-child {
-            font-family: 'Caveat', cursive;
-            font-weight: 400;
-            font-size: 30px;
-        }
 
         /* Третья карточка - специальный стиль розовый (ТЕСТ-МЕЛОМАН) */
         .quiz-card:not(.empty):nth-child(3) {
@@ -1728,36 +1659,25 @@
             grid.style.display = 'grid';
             grid.innerHTML = '';
 
-            // Создаем 9 слотов (3 в ряд, 3 ряда)
-            const totalSlots = 9;
+            // Создаем только реальные квизы (без пустых карточек "СКОРО")
             const existingQuizzes = quizzes || [];
             
             // Создаем специальную карту для фиксированных квизов
             const fixedQuizzes = {
-                0: existingQuizzes.find(q => q.id === 'friends-quiz'), // Соло-режим в первом слоте
-                1: existingQuizzes.find(q => q.id === 'gnu-multiplayer') // Мультиплеер ГНУ во втором слоте
+                0: existingQuizzes.find(q => q.id === 'friends-quiz') // Чемпионат ГНУ (объединенная карточка)
             };
 
-            for (let i = 0; i < totalSlots; i++) {
-                let quiz = null;
-                
-                // Для первых двух слотов используем фиксированные квизы
-                if (i === 0 || i === 1) {
-                    quiz = fixedQuizzes[i];
-                } else if (i === 2) {
-                    // Третий слот - Тест-эрудит
-                    quiz = existingQuizzes.find(q => q.id === 'general-knowledge') || null;
-                } else if (i === 3) {
-                    // Четвертый слот - меломан (статичный)
-                    quiz = { id: 'meloman', name: 'ТЕСТ-МЕЛОМАН' };
-                } else if (i === 4) {
-                    // Пятый слот - Квиз по Анастасии
-                    quiz = existingQuizzes.find(q => q.id === 'anastasia-quiz') || null;
-                } else {
-                    // Остальные слоты - другие квизы или пустые
-                    const otherQuizzes = existingQuizzes.filter(q => q.id !== 'general-knowledge' && q.id !== 'friends-quiz' && q.id !== 'anastasia-quiz' && q.id !== 'gnu-multiplayer');
-                    quiz = otherQuizzes[i - 5] || null;
-                }
+            // Список реальных квизов для отображения
+            const realQuizzes = [
+                fixedQuizzes[0], // Чемпионат ГНУ
+                existingQuizzes.find(q => q.id === 'general-knowledge'), // Тест-эрудит
+                { id: 'meloman', name: 'ТЕСТ-МЕЛОМАН' }, // Меломан
+                existingQuizzes.find(q => q.id === 'anastasia-quiz') // Квиз по Анастасии
+            ].filter(q => q !== null && q !== undefined);
+
+            // Создаем карточки только для реальных квизов
+            for (let i = 0; i < realQuizzes.length; i++) {
+                const quiz = realQuizzes[i];
                 
                 if (quiz) {
                     // Существующий квиз
@@ -1766,53 +1686,25 @@
                     card.style.animationDelay = (i * 0.1) + 's';
                     
                     // Обработчики кликов для разных типов карточек
-                    if (i === 0) {
-                        // Первая карточка - квиз ГНУ (соло-режим)
+                    if (quiz.id === 'friends-quiz') {
+                        // Чемпионат ГНУ - открывает отдельную страницу
                         card.addEventListener('click', () => {
-                            window.location.href = `/solo.html?quiz=friends-quiz`;
+                            window.location.href = `/gnu-quiz.html`;
                         });
-                    } else if (i === 1) {
-                        // НОВАЯ ВТОРАЯ КАРТОЧКА - Чемпионат ГНУ мультиплеер
+                    } else if (quiz.id === 'general-knowledge') {
+                        // Тест-эрудит - открывает отдельную страницу
                         card.addEventListener('click', () => {
-                            window.location.href = `/host.html?quiz=gnu-multiplayer`;
+                            window.location.href = `/erudit-quiz.html`;
                         });
-                    } else if (i === 2) {
-                        // Третья карточка - Тест-эрудит (бывшая вторая)
+                    } else if (quiz.id === 'meloman') {
+                        // ТЕСТ-МЕЛОМАН - открывает отдельную страницу
                         card.addEventListener('click', () => {
-                            window.location.href = `/host.html?quiz=general-knowledge`;
+                            window.location.href = `/meloman-quiz.html`;
                         });
-                    } else if (i === 3) {
-                        // Четвертая карточка открывает музыкальные гифки (бывшая третья)
+                    } else if (quiz.id === 'anastasia-quiz') {
+                        // Квиз по Анастасии - открывает отдельную страницу
                         card.addEventListener('click', () => {
-                            // Открываем страницу Gifer с тегом "музыка"
-                            const giferUrl = 'https://gifer.com/ru/s/%D0%BC%D1%83%D0%B7%D1%8B%D0%BA%D0%B0';
-                            // Создаем временную ссылку для открытия в новой вкладке
-                            const link = document.createElement('a');
-                            link.href = giferUrl;
-                            link.target = '_blank';
-                            link.rel = 'noopener noreferrer';
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        });
-                    } else if (i === 4) {
-                        // Пятая карточка - Квиз по Анастасии
-                        card.addEventListener('click', () => {
-                            window.location.href = `/host.html?quiz=anastasia-quiz`;
-                        });
-                    } else {
-                        // Остальные карточки открывают гифки из Gifer
-                        card.addEventListener('click', () => {
-                            // Открываем страницу Gifer с тегом "ожидаю"
-                            const giferUrl = 'https://gifer.com/ru/s/%D0%BE%D0%B6%D0%B8%D0%B4%D0%B0%D1%8E';
-                            // Создаем временную ссылку для открытия в новой вкладке
-                            const link = document.createElement('a');
-                            link.href = giferUrl;
-                            link.target = '_blank';
-                            link.rel = 'noopener noreferrer';
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
+                            window.location.href = `/anastasia-quiz.html`;
                         });
                     }
 
@@ -1823,7 +1715,7 @@
 
                     // Специальный стиль для первого квиза
                     let cardHTML = '';
-                    if (i === 0) {
+                    if (quiz.id === 'friends-quiz') {
                         // Иконка вопроса - маркерный шрифт
                         const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
                             <text x="20" y="32" 
@@ -1869,56 +1761,8 @@
                                 </div>
                             </div>
                         `;
-                    } else if (i === 1) {
-                        // НОВАЯ ИГРА: Чемпионат ГНУ Мультиплеер (вторая позиция)
-                        // Иконка вопроса - маркерный шрифт
-                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                            <text x="20" y="32" 
-                                  font-family="Kalam, cursive" 
-                                  font-size="36" 
-                                  font-weight="700"
-                                  fill="#383638" 
-                                  text-anchor="middle">?</text>
-                        </svg>`;
-                        
-                        // Параметры для мультиплеер ГНУ
-                        const timeSeconds = 15; // 15 секунд на вопрос
-                        const questionsInGame = 15; // 15 вопросов в игре
-                        
-                        // SVG иконка часов "от руки маркером" - рисованные часы
-                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
-                                  stroke="#383638" stroke-width="4" fill="none" 
-                                  stroke-linecap="round" stroke-linejoin="round"/>
-                            <!-- Часовая стрелка (вверх) -->
-                            <line x1="16" y1="16" x2="16" y2="10" 
-                                  stroke="#383638" stroke-width="3.5" 
-                                  stroke-linecap="round"/>
-                            <!-- Минутная стрелка (вправо) -->
-                            <line x1="16" y1="16" x2="21" y2="21" 
-                                  stroke="#383638" stroke-width="3.5" 
-                                  stroke-linecap="round"/>
-                        </svg>`;
-
-                        cardHTML = `
-                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
-                                <div class="quiz-title">ЧЕМПИОНАТ ГНУ</div>
-                                <div class="quiz-subtitle">мультиплеер</div>
-                                <div style="font-family: 'Caveat', cursive; font-size: 22px; color: #ff7664; margin: 10px 0; text-align: center; transform: rotate(1.5deg);">цели братишек</div>
-                            </div>
-                            <div class="quiz-info">
-                                <div class="quiz-info-item">
-                                    ${questionIcon}
-                                    <span>15 из 150</span>
-                                </div>
-                                <div class="quiz-info-item">
-                                    ${clockIcon}
-                                    <span>по ${timeSeconds} сек</span>
-                                </div>
-                            </div>
-                        `;
-                    } else if (i === 2) {
-                        // Тест-эрудит (третья позиция)
+                    } else if (quiz.id === 'general-knowledge') {
+                        // Тест-эрудит
                         // Иконка вопроса - маркерный шрифт
                         const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
                             <text x="20" y="32" 
@@ -1966,8 +1810,8 @@
                                 </div>
                             </div>
                         `;
-                    } else if (i === 3) {
-                        // Специальный стиль для четвертой карточки (Меломан)
+                    } else if (quiz.id === 'meloman') {
+                        // Специальный стиль для карточки Меломан
                         // Иконка вопроса - маркерный шрифт
                         const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
                             <text x="20" y="32" 
@@ -2010,8 +1854,8 @@
                                 </div>
                             </div>
                         `;
-                    } else if (i === 4) {
-                        // Специальный стиль для пятой карточки (Квиз по Анастасии)
+                    } else if (quiz.id === 'anastasia-quiz') {
+                        // Специальный стиль для карточки Квиз по Анастасии
                         // Иконка вопроса - маркерный шрифт
                         const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
                             <text x="20" y="32" 
@@ -2109,69 +1953,6 @@
                     }
                     
                     card.innerHTML = cardHTML;
-
-                    grid.appendChild(card);
-                } else {
-                    // Пустой слот (placeholder)
-                    const card = document.createElement('div');
-                    card.className = 'quiz-card empty';
-                    card.style.animationDelay = (i * 0.1) + 's';
-
-                    // Иконка вопроса - маркерный шрифт (как в первом квизе)
-                    const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                        <text x="20" y="32" 
-                              font-family="Kalam, cursive" 
-                              font-size="36" 
-                              font-weight="700"
-                              fill="#383638" 
-                              text-anchor="middle">?</text>
-                    </svg>`;
-                    
-                    // SVG иконка часов "от руки маркером" - рисованные часы (как в первом квизе)
-                    const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
-                              stroke="#383638" stroke-width="4" fill="none" 
-                              stroke-linecap="round" stroke-linejoin="round"/>
-                        <!-- Часовая стрелка (вверх) -->
-                        <line x1="16" y1="16" x2="16" y2="10" 
-                              stroke="#383638" stroke-width="3.5" 
-                              stroke-linecap="round"/>
-                        <!-- Минутная стрелка (вправо) -->
-                        <line x1="16" y1="16" x2="21" y2="21" 
-                              stroke="#383638" stroke-width="3.5" 
-                              stroke-linecap="round"/>
-                    </svg>`;
-
-                    card.innerHTML = `
-                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
-                            <div class="quiz-title">СКОРО</div>
-                            <div class="quiz-subtitle">новый тест здесь</div>
-                        </div>
-                        <div class="quiz-info">
-                            <div class="quiz-info-item">
-                                ${questionIcon}
-                                <span>...</span>
-                            </div>
-                            <div class="quiz-info-item">
-                                ${clockIcon}
-                                <span>...</span>
-                            </div>
-                        </div>
-                    `;
-
-                    // Пустые карточки тоже открывают гифки
-                    card.addEventListener('click', () => {
-                        // Открываем страницу Gifer с тегом "ожидаю"
-                        const giferUrl = 'https://gifer.com/ru/s/%D0%BE%D0%B6%D0%B8%D0%B4%D0%B0%D1%8E';
-                        // Создаем временную ссылку для открытия в новой вкладке
-                        const link = document.createElement('a');
-                        link.href = giferUrl;
-                        link.target = '_blank';
-                        link.rel = 'noopener noreferrer';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    });
 
                     grid.appendChild(card);
                 }

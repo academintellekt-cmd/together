@@ -284,8 +284,26 @@
         // Получение ID квиза из URL
         const urlParams = new URLSearchParams(window.location.search);
         const quizId = urlParams.get('quiz') || 'friends-quiz';
-        const requiredPassword = '1234';
-        let passwordVerified = false;
+        const passwordParam = urlParams.get('password');
+        
+        // Пароли для разных квизов
+        const passwords = {
+            'friends-quiz': '1234',
+            'anastasia-quiz': '1',
+            'general-knowledge': '1'
+        };
+        
+        const requiredPassword = passwords[quizId] || null;
+        
+        // Проверяем, пришел ли пользователь с страницы выбора режима (пароль уже проверен)
+        const storageKeys = {
+            'friends-quiz': 'gnuPasswordVerified',
+            'anastasia-quiz': 'anastasiaPasswordVerified',
+            'general-knowledge': 'eruditPasswordVerified'
+        };
+        
+        const storageKey = storageKeys[quizId];
+        let passwordVerified = passwordParam === 'verified' || (storageKey && localStorage.getItem(storageKey) === 'true');
 
         // Функция показа модального окна для ввода пароля
         function showPasswordModal(callback) {
@@ -346,11 +364,16 @@
             }
         }
 
-        // Проверка пароля для квизов ГНУ
+        // Проверка пароля для квизов, требующих пароль
         async function checkPasswordAndLoad() {
-            // Если это квиз ГНУ, проверяем пароль
-            if (quizId === 'friends-quiz' && !passwordVerified) {
+            // Если квиз требует пароль и пароль еще не проверен, показываем модальное окно
+            // Но если пользователь пришел со страницы выбора режима, пароль уже проверен
+            if (requiredPassword && !passwordVerified) {
                 showPasswordModal(async () => {
+                    // Сохраняем флаг проверки пароля
+                    if (storageKey) {
+                        localStorage.setItem(storageKey, 'true');
+                    }
                     // После ввода правильного пароля загружаем квиз
                     await loadQuiz();
                 });

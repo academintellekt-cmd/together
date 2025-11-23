@@ -1105,6 +1105,10 @@ app.post('/api/create-room', (req, res) => {
   const anastasiaQuiz = 'anastasia-quiz';
   const anastasiaPassword = '1';
   
+  // Проверяем пароль для тест-эрудита
+  const eruditQuiz = 'general-knowledge';
+  const eruditPassword = '1';
+  
   if (gnuQuizzes.includes(quizId)) {
     if (!password || password !== gnuPassword) {
       return res.status(401).json({ error: 'Неверный пароль', requiresPassword: true });
@@ -1113,6 +1117,12 @@ app.post('/api/create-room', (req, res) => {
   
   if (quizId === anastasiaQuiz) {
     if (!password || password !== anastasiaPassword) {
+      return res.status(401).json({ error: 'Неверный пароль', requiresPassword: true });
+    }
+  }
+  
+  if (quizId === eruditQuiz) {
+    if (!password || password !== eruditPassword) {
       return res.status(401).json({ error: 'Неверный пароль', requiresPassword: true });
     }
   }
@@ -1131,7 +1141,7 @@ app.post('/api/create-room', (req, res) => {
     readyPlayers: new Set(), // Игроки, готовые к следующему вопросу
     startTime: null,
     answers: new Map(),
-    password: gnuQuizzes.includes(quizId) ? gnuPassword : (quizId === anastasiaQuiz ? anastasiaPassword : null) // Сохраняем пароль для проверки при подключении игроков
+    password: gnuQuizzes.includes(quizId) ? gnuPassword : (quizId === anastasiaQuiz ? anastasiaPassword : (quizId === eruditQuiz ? eruditPassword : null)) // Сохраняем пароль для проверки при подключении игроков
   };
   rooms.set(roomCode, room);
   res.json({ roomCode });
