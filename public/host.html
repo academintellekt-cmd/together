@@ -13,7 +13,7 @@
         body {
             font-family: 'Montserrat', sans-serif;
             min-height: 100vh;
-            background: #fff2f2;
+            background: #f2f2f2;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -32,7 +32,7 @@
             height: 200px;
             background: #d6fbbf; /* Парящий элемент */
             border-radius: 50% 40% 60% 30%;
-            opacity: 0.4;
+            opacity: 0.9;
             z-index: -1;
             animation: wobble 6s ease-in-out infinite;
             pointer-events: none;
@@ -47,7 +47,7 @@
             height: 250px;
             background: #fececd; /* Парящий элемент */
             border-radius: 40% 50% 30% 60%;
-            opacity: 0.3;
+            opacity: 0.9;
             z-index: -1;
             animation: wobble 8s ease-in-out infinite reverse;
             pointer-events: none;
@@ -86,14 +86,27 @@
         #qrcode {
             display: block;
             margin: 0 auto;
+            width: clamp(250px, 40vw, 400px);
+            height: clamp(250px, 40vw, 400px);
+            max-width: 100%;
+            cursor: pointer;
         }
 
         .qr-container {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            margin: 20px 0;
+            margin: 40px 0 20px 0;
             text-align: center;
+        }
+
+        .qr-instruction {
+            font-family: 'Caveat', cursive;
+            color: #354fba;
+            font-size: clamp(20px, 4vw, 28px);
+            margin: 0 0 20px 0;
+            font-weight: 400;
         }
 
         .qr-placeholder {
@@ -110,19 +123,19 @@
             }
             
             #qrcode {
-                max-width: 200px;
-                height: auto;
+                width: clamp(200px, 50vw, 300px);
+                height: clamp(200px, 50vw, 300px);
             }
         }
 
         @media (max-width: 480px) {
             .qr-container {
-                margin: 10px 0;
+                margin: 25px 0 10px 0;
             }
             
             #qrcode {
-                max-width: 180px;
-                height: auto;
+                width: clamp(180px, 60vw, 250px);
+                height: clamp(180px, 60vw, 250px);
             }
             
             .room-code {
@@ -271,7 +284,7 @@
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 242, 242, 0.95);
+            background: rgba(242, 242, 242, 0.95);
             backdrop-filter: blur(10px);
             padding: 15px 20px;
             z-index: 1000;
@@ -283,8 +296,10 @@
             max-width: 100%;
             margin: 0 auto;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            justify-content: flex-start;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 15px;
             position: relative;
             min-height: 50px;
         }
@@ -487,7 +502,6 @@
             box-shadow: 
                 0 6px 0px rgba(0, 0, 0, 0.3),
                 0 8px 16px rgba(0, 0, 0, 0.15);
-            background: rgba(245, 245, 245, 0.6);
         }
         
         .back-button-hub:active {
@@ -504,6 +518,7 @@
                 max-width: 1400px;
                 margin: 0 auto;
                 justify-content: flex-start;
+                align-items: flex-start;
                 position: relative;
             }
             
@@ -527,7 +542,8 @@
             }
             
             .hub-actions {
-                margin-left: 0;
+                order: 1;
+                flex-shrink: 0;
             }
             
             .hub-game-info {
@@ -542,12 +558,33 @@
             
             .hub-content {
                 max-width: 100%;
-                justify-content: flex-start;
+                justify-content: center;
+            }
+            
+            .hub-logo-section {
+                position: static;
+                transform: none;
+                flex: 1 1 100%;
+                order: 1;
+                width: 100%;
+            }
+            
+            .hub-logo-section .logo {
+                max-height: 80px;
+            }
+            
+            .hub-logo-section .subtitle {
+                font-size: 18px;
             }
             
             .hub-actions {
-                margin: 0;
-                align-self: center;
+                order: 2;
+                margin: 10px 0 0 0;
+            }
+
+            .back-button-hub {
+                padding: 7px 14px;
+                font-size: 13px;
             }
             
             .players-container {
@@ -580,8 +617,17 @@
                 padding: 10px 15px;
             }
             
-            .hub-content {
-                justify-content: flex-start;
+            .hub-logo-section .logo {
+                max-height: 60px;
+            }
+            
+            .hub-logo-section .subtitle {
+                font-size: 16px;
+            }
+
+            .back-button-hub {
+                padding: 6px 12px;
+                font-size: 12px;
             }
             
             .players-container {
@@ -641,10 +687,8 @@
                 Загрузка QR-кода...
             </div>
             <div id="qr-container" class="qr-container" style="display: none;">
+                <p class="qr-instruction">наведи камеру или<br>нажми на QR для подключения</p>
                 <canvas id="qrcode"></canvas>
-            </div>
-            <div id="qr-link" style="display: none; margin: 20px 0; text-align: center;">
-                <a id="player-link" href="#" target="_blank" style="color: white; text-decoration: underline; font-size: 16px;">Ссылка для игроков</a>
             </div>
             
             <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 32px;">
@@ -880,22 +924,13 @@
                 const qrPlaceholder = document.getElementById('qr-placeholder');
                 const qrCanvas = document.getElementById('qrcode');
                 
-                // Показываем ссылку для игроков сразу
-                const qrLink = document.getElementById('qr-link');
-                const playerLink = document.getElementById('player-link');
-                if (qrLink && playerLink) {
-                    playerLink.href = playerUrl;
-                    playerLink.textContent = playerUrl;
-                    qrLink.style.display = 'block';
-                }
-                
                 // Показываем индикатор загрузки
                 qrPlaceholder.style.display = 'block';
                 qrPlaceholder.innerHTML = 'Генерация QR-кода...';
                 qrContainer.style.display = 'none';
                 
                 // Генерируем QR-код через API
-                const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(playerUrl)}`;
+                const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(playerUrl)}`;
                 const img = document.createElement('img');
                 img.src = apiUrl;
                 img.alt = 'QR Code';
@@ -907,22 +942,31 @@
                     try {
                         // Очищаем canvas и рисуем изображение
                         const ctx = qrCanvas.getContext('2d');
-                        qrCanvas.width = 250;
-                        qrCanvas.height = 250;
+                        qrCanvas.width = 400;
+                        qrCanvas.height = 400;
                         // Очищаем canvas
-                        ctx.clearRect(0, 0, 250, 250);
+                        ctx.clearRect(0, 0, 400, 400);
                         // Рисуем белый фон
                         ctx.fillStyle = '#FFFFFF';
-                        ctx.fillRect(0, 0, 250, 250);
+                        ctx.fillRect(0, 0, 400, 400);
                         // Рисуем QR-код
-                        ctx.drawImage(img, 0, 0, 250, 250);
+                        ctx.drawImage(img, 0, 0, 400, 400);
                         qrPlaceholder.style.display = 'none';
                         qrContainer.style.display = 'flex';
                         console.log('QR-код успешно сгенерирован через API');
+                        
+                        // Добавляем обработчик клика на QR-код для открытия ссылки
+                        qrCanvas.onclick = function() {
+                            window.open(playerUrl, '_blank');
+                        };
                     } catch (error) {
                         console.error('Ошибка при отрисовке QR-кода:', error);
                         // Если не получилось нарисовать на canvas, просто показываем изображение
                         qrContainer.innerHTML = '';
+                        img.style.cursor = 'pointer';
+                        img.onclick = function() {
+                            window.open(playerUrl, '_blank');
+                        };
                         qrContainer.appendChild(img);
                         qrPlaceholder.style.display = 'none';
                         qrContainer.style.display = 'flex';
@@ -1028,15 +1072,6 @@
                     roomCodeElement.style.display = 'none';
                     console.log('Код комнаты установлен:', roomCode);
                     
-                    // Показываем IP-адрес для подключения
-                    if (serverUrl && serverUrl !== window.location.origin) {
-                        const ipInfo = document.createElement('div');
-                        ipInfo.className = 'status';
-                        ipInfo.style.marginTop = '10px';
-                        ipInfo.style.fontSize = '14px';
-                        ipInfo.innerHTML = `Подключение: <strong>${serverUrl}</strong>`;
-                        roomCodeElement.parentNode.insertBefore(ipInfo, roomCodeElement.nextSibling);
-                    }
                     
                     // Генерируем QR-код
                     console.log('Начинаем генерацию QR-кода...');
@@ -1514,14 +1549,51 @@
         }
 
         // Применяем цвет выбранного персонажа к кнопке "Назад"
-        document.addEventListener('DOMContentLoaded', function() {
+        function applyCharacterColorToBackButton() {
             const savedColor = localStorage.getItem('selectedCharacterColor');
             if (savedColor) {
                 const backButton = document.querySelector('.back-button-hub');
                 if (backButton) {
-                    backButton.style.background = savedColor;
+                    // Применяем цвет через CSS с !important для переопределения других стилей
+                    let style = document.getElementById('back-button-character-color');
+                    if (!style) {
+                        style = document.createElement('style');
+                        style.id = 'back-button-character-color';
+                        document.head.appendChild(style);
+                    }
+                    style.textContent = `
+                        .back-button-hub {
+                            background: ${savedColor} !important;
+                        }
+                        .back-button-hub:hover {
+                            background: ${savedColor} !important;
+                            opacity: 0.85;
+                        }
+                    `;
+                    // Также применяем напрямую к элементу
+                    backButton.style.setProperty('background', savedColor, 'important');
                 }
             }
+        }
+
+        // Применяем цвет при загрузке страницы
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                applyCharacterColorToBackButton();
+                setTimeout(applyCharacterColorToBackButton, 100);
+            });
+        } else {
+            applyCharacterColorToBackButton();
+            setTimeout(applyCharacterColorToBackButton, 100);
+        }
+        
+        // Также применяем после полной загрузки страницы
+        window.addEventListener('load', function() {
+            applyCharacterColorToBackButton();
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            
             
             // Проверяем контейнер игроков
             const playersContainer = document.getElementById('players-container');
@@ -1553,5 +1625,6 @@
     </script>
 </body>
 </html>
+
 
 

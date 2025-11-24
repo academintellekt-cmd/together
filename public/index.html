@@ -19,7 +19,7 @@
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
-            background: #fff2f2; /* Новый фон */
+            background: #f2f2f2; /* Новый фон */
         }
         
         /* HUB стили */
@@ -28,7 +28,7 @@
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 242, 242, 0.95);
+            background: #f2f2f2; /* Цвет основного фона сайта */
             backdrop-filter: blur(10px);
             padding: 15px 20px;
             z-index: 1000;
@@ -45,6 +45,7 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+            position: relative;
         }
 
         /* Секция с логотипом и фразой */
@@ -53,9 +54,16 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex: 1;
-            min-width: 0;
+            position: absolute;
+            left: 50%;
+            top: 40px;
+            transform: translateX(-50%);
             gap: 5px;
+            pointer-events: none;
+        }
+        
+        .hub-logo-section * {
+            pointer-events: auto;
         }
 
         .hub-logo-section .logo {
@@ -70,7 +78,7 @@
 
         .hub-logo-section .subtitle {
             font-family: 'Caveat', cursive;
-            font-size: 24px;
+            font-size: clamp(33.6px, 6.3vw, 50.4px); /* Увеличение на 40% */
             color: #393639;
             margin: 0;
             font-weight: 400;
@@ -128,6 +136,20 @@
             z-index: 2;
             text-align: center;
         }
+        
+        /* Отдельный блок для карточек квизов под HUB */
+        .quizzes-section {
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px 20px 20px;
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        
+        .quizzes-section .container {
+            padding: 0;
+        }
 
         /* Общие стили для заголовков */
         h1, h2, h3, h4, h5, h6 {
@@ -154,8 +176,10 @@
             }
             
             .hub-logo-section {
-                flex: 1;
-                order: 2;
+                position: absolute;
+                left: 50%;
+                top: 40px;
+                transform: translateX(-50%);
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -166,7 +190,7 @@
             }
             
             .hub-logo-section .subtitle {
-                font-size: 28px;
+                font-size: clamp(33.6px, 6.3vw, 50.4px); /* Увеличение на 40% */
             }
             
             .hub-actions {
@@ -187,8 +211,10 @@
             }
             
             .hub-logo-section {
-                flex: 1;
-                order: 2;
+                position: absolute;
+                left: 50%;
+                top: 30px;
+                transform: translateX(-50%);
             }
             
             .hub-logo-section .logo {
@@ -196,12 +222,12 @@
             }
             
             .hub-logo-section .subtitle {
-                font-size: 22px;
+                font-size: clamp(33.6px, 6.3vw, 50.4px); /* Увеличение на 40% */
             }
             
             .hub-actions {
                 order: 3;
-                margin-left: auto;
+                flex-shrink: 0;
             }
             
             /* padding-top устанавливается динамически через JavaScript */
@@ -218,6 +244,8 @@
             }
             
             .hub-logo-section {
+                position: static;
+                transform: none;
                 flex: 1 1 100%;
                 order: 1;
                 width: 100%;
@@ -228,7 +256,7 @@
             }
             
             .hub-logo-section .subtitle {
-                font-size: 18px;
+                font-size: clamp(26.88px, 5.04vw, 40.32px); /* Уменьшение на 20% от увеличенного размера */
             }
             
             .hub-actions {
@@ -249,14 +277,14 @@
             }
             
             .hub-logo-section .subtitle {
-                font-size: 16px;
+                font-size: clamp(26.88px, 5.04vw, 40.32px); /* Уменьшение на 20% от увеличенного размера */
             }
             
             /* padding-top устанавливается динамически через JavaScript */
         }
 
         /* Декоративные волнистые элементы */
-        .container::before {
+        .quizzes-section::before {
             content: '';
             position: absolute;
             /* top устанавливается динамически через JavaScript */
@@ -265,13 +293,13 @@
             height: 200px;
             background: #d6fbbf; /* Парящий элемент */
             border-radius: 50% 40% 60% 30%;
-            opacity: 0.4;
+            opacity: 0.9;
             z-index: -1;
             animation: wobble 6s ease-in-out infinite;
             pointer-events: none;
         }
 
-        .container::after {
+        .quizzes-section::after {
             content: '';
             position: absolute;
             bottom: -80px;
@@ -280,7 +308,7 @@
             height: 250px;
             background: #fececd; /* Парящий элемент */
             border-radius: 40% 50% 30% 60%;
-            opacity: 0.3;
+            opacity: 0.9;
             z-index: -1;
             animation: wobble 8s ease-in-out infinite reverse;
             pointer-events: none;
@@ -313,7 +341,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, color 0.3s ease;
             border: none;
             box-shadow: 
-                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 6px 0px rgba(0, 0, 0, 0.15),
                 0 8px 16px rgba(0, 0, 0, 0.1);
             position: relative;
             overflow: hidden; /* Ограничиваем кликабельную область рамкой */
@@ -340,8 +368,8 @@
         .quiz-card:nth-child(1):hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
-                0 8px 0px rgba(47, 185, 93, 0.4),
-                0 12px 24px rgba(47, 185, 93, 0.15);
+                0 8px 0px rgba(0, 0, 0, 0.2),
+                0 12px 24px rgba(0, 0, 0, 0.15);
             background: rgba(171, 246, 124, 0.9);
         }
 
@@ -349,7 +377,7 @@
         .quiz-card:nth-child(1):hover .quiz-subtitle,
         .quiz-card:nth-child(1):hover .quiz-info-item,
         .quiz-card:nth-child(1):hover .quiz-info-item span {
-            color: #2fb95d;
+            color: #373639;
             filter: brightness(1.1);
         }
 
@@ -358,14 +386,14 @@
         }
 
         .quiz-card:nth-child(1) .quiz-title {
-            color: #2fb95d;
+            color: #373639;
             font-family: 'Days One', sans-serif;
             font-weight: 700;
             font-size: 28px;
         }
 
         .quiz-card:nth-child(1) .quiz-subtitle {
-            color: #2fb95d;
+            color: #373639;
             font-family: 'Days One', sans-serif;
             font-weight: 400;
             font-size: 22px;
@@ -424,8 +452,8 @@
         .quiz-card:nth-child(2):hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
-                0 8px 0px rgba(250, 87, 52, 0.4),
-                0 12px 24px rgba(250, 87, 52, 0.15);
+                0 8px 0px rgba(0, 0, 0, 0.2),
+                0 12px 24px rgba(0, 0, 0, 0.15);
             background: rgba(246, 138, 124, 0.9);
         }
 
@@ -433,7 +461,7 @@
         .quiz-card:nth-child(2):hover .quiz-subtitle,
         .quiz-card:nth-child(2):hover .quiz-info-item,
         .quiz-card:nth-child(2):hover .quiz-info-item span {
-            color: #fa5734;
+            color: #373639;
             filter: brightness(1.1);
         }
 
@@ -442,14 +470,14 @@
         }
 
         .quiz-card:nth-child(2) .quiz-title {
-            color: #fa5734;
+            color: #373639;
             font-family: 'Days One', sans-serif;
             font-weight: 700;
             font-size: 28px;
         }
 
         .quiz-card:nth-child(2) .quiz-subtitle {
-            color: #fa5734;
+            color: #373639;
             font-family: 'Days One', sans-serif;
             font-weight: 400;
             font-size: 22px;
@@ -492,20 +520,33 @@
             font-size: 28px !important;
         }
 
+        .quiz-card:nth-child(n+3) .quiz-title {
+            color: #373639 !important;
+            font-family: 'Days One', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 28px !important;
+        }
+
         .quiz-card:nth-child(n+3) .quiz-subtitle {
-            color: #393639 !important;
+            color: #373639 !important;
             font-family: 'Days One', sans-serif !important;
             font-weight: 400 !important;
             font-size: 22px !important;
             margin-top: 8px !important;
         }
 
+        .quiz-card:nth-child(n+3) .quiz-description {
+            color: #373639 !important;
+            font-family: 'Days One', sans-serif !important;
+            font-size: 22px !important;
+        }
+
         .quiz-card:nth-child(n+3) .quiz-info-item {
-            color: #393639 !important;
+            color: #373639 !important;
         }
 
         .quiz-card:nth-child(n+3) .quiz-info-item span {
-            color: #393639 !important;
+            color: #373639 !important;
         }
 
         .quiz-card::before {
@@ -527,7 +568,7 @@
         .quiz-card:hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
-                0 8px 0px rgba(0, 0, 0, 0.4),
+                0 8px 0px rgba(0, 0, 0, 0.2),
                 0 12px 24px rgba(0, 0, 0, 0.15);
             background: rgba(245, 245, 245, 0.6); /* Полупрозрачный при наведении */
         }
@@ -541,15 +582,9 @@
             filter: brightness(1.1);
         }
         
-        /* Тень для первой карточки при наведении - цвет текста */
-        .quiz-card:nth-child(1):hover {
-            box-shadow: 
-                0 8px 0px rgba(0, 193, 89, 0.4),
-                0 12px 24px rgba(0, 193, 89, 0.15);
-        }
 
         .quiz-card:active {
-            transform: translateY(-4px) scale(0.98);
+            transform: translateY(-4px) scale(1.01);
         }
 
         .quiz-icon {
@@ -1102,13 +1137,13 @@
                 min-width: auto;
             }
 
-            .container::before {
+            .quizzes-section::before {
                 top: 120px; /* Ниже HUB на маленьких экранах */
                 width: 150px;
                 height: 150px;
             }
             
-            .container::after {
+            .quizzes-section::after {
                 width: 150px;
                 height: 150px;
             }
@@ -1137,11 +1172,13 @@
         </div>
     </div>
  
-
-    <div class="container">
-        <div id="loading" class="loading">Загрузка квизов...</div>
-        <div id="error" class="error" style="display: none;"></div>
-        <div id="quizzes-grid" class="quizzes-grid" style="display: none;"></div>
+    <!-- Отдельный блок для карточек квизов под HUB -->
+    <div class="quizzes-section">
+        <div class="container">
+            <div id="loading" class="loading">Загрузка квизов...</div>
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="quizzes-grid" class="quizzes-grid" style="display: none;"></div>
+        </div>
     </div>
 
     <script>
@@ -1221,7 +1258,7 @@
             circle.setAttribute('fill', color);
             circle.setAttribute('stroke', '#000');
             circle.setAttribute('stroke-width', '3');
-            circle.setAttribute('opacity', '0.7');
+            circle.setAttribute('opacity', '1');
             svg.appendChild(circle);
             
             // Рожица в стиле маркера (Caveat) - центрируем в круге
@@ -1372,8 +1409,11 @@
             console.log('Квизы для отображения:', realQuizzes);
 
             // Создаем карточки только для реальных квизов
-            // Массив цветов для карточек (зеленый и розовый)
-            const cardColors = ['#abf67c', '#f68a7c']; // Зеленый и розовый
+            // Массив всех цветов персонажей
+            const characterColors = ['#abf67c', '#c77cf6', '#f67cab', '#7cabf6', '#7ce8f6', '#f68a7c', '#f2f67c', '#8a7cf6'];
+            
+            // Массив для отслеживания использованных цветов
+            const usedColors = [];
             
             for (let i = 0; i < realQuizzes.length; i++) {
                 const quiz = realQuizzes[i];
@@ -1384,11 +1424,28 @@
                     card.className = 'quiz-card';
                     card.style.animationDelay = (i * 0.1) + 's';
                     
-                    // Случайный выбор цвета карточки (зеленый или розовый)
-                    // Для первой карточки всегда зеленый, для остальных - случайный
-                    const cardColor = i === 0 ? '#abf67c' : cardColors[Math.floor(Math.random() * cardColors.length)];
-                    const isGreen = cardColor === '#abf67c';
-                    const textColor = isGreen ? '#2fb95d' : '#fa5734';
+                    // Выбор цвета карточки
+                    let cardColor;
+                    if (i === 0) {
+                        // Первая карточка - всегда зеленый
+                        cardColor = '#abf67c';
+                    } else if (i === 1) {
+                        // Вторая карточка - всегда розовый
+                        cardColor = '#f68a7c';
+                    } else {
+                        // Остальные карточки - случайный цвет из персонажей
+                        // Исключаем уже использованные цвета
+                        const availableColors = characterColors.filter(color => !usedColors.includes(color));
+                        if (availableColors.length === 0) {
+                            // Если все цвета использованы, сбрасываем список
+                            usedColors.length = 0;
+                            usedColors.push('#abf67c', '#f68a7c'); // Оставляем первые два использованными
+                            cardColor = characterColors[Math.floor(Math.random() * characterColors.length)];
+                        } else {
+                            cardColor = availableColors[Math.floor(Math.random() * availableColors.length)];
+                        }
+                        usedColors.push(cardColor);
+                    }
                     
                     // Применяем цвет карточки
                     card.style.background = cardColor;
@@ -1442,9 +1499,9 @@
 
                         cardHTML = `
                             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
-                                <div class="quiz-title" style="color: ${textColor};">ЧЕМПИОНАТ ГНУ</div>
-                                <div class="quiz-subtitle" style="color: ${textColor};">цели братишек</div>
-                                <div style="font-family: 'Caveat', cursive; font-size: 28px; color: #354fba; margin: 10px 0; text-align: center; transform: rotate(-2deg);">девушки тоже братишки</div>
+                                <div class="quiz-title" style="color: #373639;">ЧЕМПИОНАТ ГНУ</div>
+                                <div class="quiz-subtitle" style="color: #373639;">цели братишек</div>
+                                <div style="font-family: 'Caveat', cursive; font-size: 28px; color: #354fba; margin: 35px 0 10px 0; text-align: center; transform: rotate(-2deg);">девушки тоже братишки</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
@@ -1514,17 +1571,32 @@
             }
         }
 
-        // Функция для вычисления высоты HUB и установки отступа контейнера
+        // Функция для вычисления высоты HUB и установки отступа блока с карточками
         function updateContainerPadding() {
             const hub = document.getElementById('hub');
-            const container = document.querySelector('.container');
+            const quizzesSection = document.querySelector('.quizzes-section');
             
-            if (hub && container) {
+            if (hub && quizzesSection) {
                 // Получаем высоту HUB
                 const hubHeight = hub.offsetHeight;
-                // Устанавливаем отступ: высота HUB + 40px
-                const paddingTop = hubHeight + 40;
-                container.style.paddingTop = paddingTop + 'px';
+                // Устанавливаем отступ: высота HUB + дополнительный отступ
+                // Для широкой версии (>= 1024px) увеличиваем отступ, чтобы карточки не перекрывались логотипом
+                // Для узкой версии (<= 768px) уменьшаем отступ
+                const isWideScreen = window.innerWidth >= 1024;
+                const isNarrowScreen = window.innerWidth <= 768;
+                let additionalPadding;
+                if (isWideScreen) {
+                    additionalPadding = 200;
+                } else if (isNarrowScreen) {
+                    // Для узких экранов увеличиваем отступ, чтобы опустить карточки ниже
+                    additionalPadding = 60;
+                    quizzesSection.style.marginTop = '0';
+                } else {
+                    additionalPadding = 40;
+                    quizzesSection.style.marginTop = '0';
+                }
+                const paddingTop = hubHeight + additionalPadding;
+                quizzesSection.style.paddingTop = paddingTop + 'px';
                 
                 // Также обновляем позицию парящего элемента
                 let style = document.getElementById('dynamic-hub-spacing');
@@ -1534,7 +1606,7 @@
                     document.head.appendChild(style);
                 }
                 style.textContent = `
-                    .container::before {
+                    .quizzes-section::before {
                         top: ${hubHeight + 20}px !important;
                     }
                 `;

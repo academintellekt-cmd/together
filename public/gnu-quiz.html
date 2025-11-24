@@ -17,7 +17,7 @@
         body {
             font-family: 'Montserrat', sans-serif;
             min-height: 100vh;
-            background: #fff2f2;
+            background: #f2f2f2;
             display: flex;
             align-items: flex-start;
             justify-content: center;
@@ -35,7 +35,7 @@
             height: 200px;
             background: #d6fbbf; /* Парящий элемент */
             border-radius: 50% 40% 60% 30%;
-            opacity: 0.4;
+            opacity: 0.9;
             z-index: -1;
             animation: wobble 6s ease-in-out infinite;
             pointer-events: none;
@@ -50,7 +50,7 @@
             height: 250px;
             background: #fececd; /* Парящий элемент */
             border-radius: 40% 50% 30% 60%;
-            opacity: 0.3;
+            opacity: 0.9;
             z-index: -1;
             animation: wobble 8s ease-in-out infinite reverse;
             pointer-events: none;
@@ -69,7 +69,7 @@
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 242, 242, 0.95);
+            background: #f2f2f2; /* Цвет основного фона сайта */
             backdrop-filter: blur(10px);
             padding: 15px 20px;
             z-index: 1000;
@@ -85,6 +85,7 @@
             align-items: flex-start;
             flex-wrap: wrap;
             gap: 15px;
+            position: relative;
         }
 
         /* Секция с логотипом и фразой */
@@ -93,9 +94,16 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex: 1;
-            min-width: 0;
+            position: absolute;
+            left: 50%;
+            top: 40px;
+            transform: translateX(-50%);
             gap: 5px;
+            pointer-events: none;
+        }
+        
+        .hub-logo-section * {
+            pointer-events: auto;
         }
 
         .hub-logo-section .logo {
@@ -258,7 +266,7 @@
         }
 
         .password-button.back {
-            background: #fff2f2;
+            background: #f2f2f2;
             color: #393639;
         }
 
@@ -283,14 +291,15 @@
             font-family: 'Days One', sans-serif;
             font-size: clamp(32px, 6vw, 48px);
             color: #393639;
+            margin-top: 40px;
             margin-bottom: 10px;
             text-transform: uppercase;
         }
 
         .subtitle {
             font-family: 'Caveat', cursive;
-            font-size: clamp(24px, 4vw, 32px);
-            color: #ff7664;
+            font-size: clamp(24px, 4.5vw, 36px);
+            color: #354fba;
             margin-bottom: 40px;
             transform: rotate(-1deg);
         }
@@ -299,13 +308,13 @@
             display: grid;
             grid-template-columns: 1fr;
             gap: clamp(20px, 4vw, 28px);
-            margin-top: clamp(30px, 6vw, 50px);
+            margin-top: clamp(20px, 6vw, 40px); /* Опущено ниже */
         }
 
         .mode-card {
             background: #FFFFFF;
-            border-radius: clamp(16px, 3vw, 24px);
-            padding: clamp(24px, 5vw, 36px) clamp(20px, 4vw, 32px);
+            border-radius: clamp(12px, 2.5vw, 18px);
+            padding: clamp(18px, 4vw, 28px) clamp(16px, 3.5vw, 24px);
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 
@@ -318,8 +327,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: clamp(180px, 35vw, 240px);
+            justify-content: flex-start;
+            min-height: clamp(140px, 28vw, 180px);
         }
 
         .mode-card:hover {
@@ -334,37 +343,50 @@
         }
 
         .mode-card.solo {
-            background: #a8c8e8;
-            color: #4a6fa5;
+            background: #ABF67C;
+            color: #373639;
         }
 
         .mode-card.multiplayer {
-            background: #e8c8a8;
-            color: #a56f4a;
+            background: #F68A7C;
+            color: #373639;
         }
 
         .mode-icon {
-            font-size: clamp(48px, 10vw, 72px);
-            margin-bottom: clamp(12px, 3vw, 20px);
+            font-size: clamp(36px, 8vw, 56px);
+            margin-bottom: clamp(10px, 2.5vw, 16px);
             line-height: 1;
+            width: clamp(36px, 8vw, 56px);
+            height: clamp(56px, 10vw, 72px); /* Фиксированная высота для выравнивания заголовков */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .mode-icon svg {
+            width: 100%;
+            height: 100%;
         }
 
         .mode-title {
             font-family: 'Days One', sans-serif;
-            font-size: clamp(14px, 2.8vw, 18px);
+            font-size: clamp(12px, 2.4vw, 16px);
             color: #393639;
-            margin-bottom: clamp(8px, 2vw, 14px);
+            margin-bottom: clamp(6px, 1.5vw, 12px);
+            margin-top: 0;
             text-transform: uppercase;
             line-height: 1.2;
             white-space: nowrap;
             width: 100%;
-            padding: 0 clamp(10px, 2.5vw, 16px);
+            padding: 0 clamp(8px, 2vw, 14px);
             box-sizing: border-box;
+            flex-shrink: 0;
         }
 
         .mode-description {
             font-family: 'Montserrat', sans-serif;
-            font-size: clamp(14px, 2.8vw, 18px);
+            font-size: clamp(12px, 2.4vw, 16px);
             color: #393639;
             opacity: 0.85;
             line-height: 1.4;
@@ -377,6 +399,7 @@
             .mode-cards {
                 grid-template-columns: 1fr 1fr;
                 gap: clamp(24px, 4vw, 32px);
+                margin-top: clamp(20px, 6vw, 40px); /* Опущено ниже для широкой версии */
             }
         }
 
@@ -386,8 +409,8 @@
             }
 
             .mode-card {
-                padding: clamp(20px, 5vw, 28px) clamp(16px, 4vw, 24px);
-                min-height: clamp(160px, 40vw, 200px);
+                padding: clamp(16px, 4vw, 24px) clamp(14px, 3.5vw, 20px);
+                min-height: clamp(130px, 35vw, 160px);
             }
 
             .password-modal {
@@ -404,13 +427,15 @@
             .hub-content {
                 max-width: 1400px;
                 margin: 0 auto;
-                justify-content: space-between;
+                justify-content: flex-start;
                 position: relative;
             }
             
             .hub-logo-section {
-                flex: 1;
-                order: 2;
+                position: absolute;
+                left: 50%;
+                top: 40px;
+                transform: translateX(-50%);
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -440,8 +465,10 @@
             }
             
             .hub-logo-section {
-                flex: 1;
-                order: 2;
+                position: absolute;
+                left: 50%;
+                top: 30px;
+                transform: translateX(-50%);
             }
             
             .hub-logo-section .logo {
@@ -454,7 +481,7 @@
             
             .hub-actions {
                 order: 1;
-                margin-left: 0;
+                flex-shrink: 0;
             }
         }
 
@@ -469,6 +496,8 @@
             }
             
             .hub-logo-section {
+                position: static;
+                transform: none;
                 flex: 1 1 100%;
                 order: 1;
                 width: 100%;
@@ -485,7 +514,6 @@
             .hub-actions {
                 order: 2;
                 margin: 10px 0 0 0;
-                align-self: flex-start;
             }
         }
 
@@ -533,7 +561,6 @@
             </div>
             <div class="hub-logo-section">
                 <img src="/images/logo.png" alt="ВМЕСТЕ" class="logo">
-                <p class="subtitle">хорошие люди объединяются играми</p>
             </div>
         </div>
     </div>
@@ -544,18 +571,53 @@
         
         <div class="mode-cards">
             <div class="mode-card solo" onclick="selectMode('solo')">
-                <div class="mode-icon">🎯</div>
+                <div class="mode-icon">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="transform: scale(0.7); transform-origin: center;">
+                        <!-- Один человечек - уменьшен для соответствия высоте трех -->
+                        <circle cx="50" cy="35" r="15" fill="#000" stroke="#000" stroke-width="2"/>
+                        <path d="M 50 50 Q 50 70 50 85" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                        <path d="M 50 60 L 30 75" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                        <path d="M 50 60 L 70 75" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                        <path d="M 50 85 L 35 100" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                        <path d="M 50 85 L 65 100" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    </svg>
+                </div>
                 <div class="mode-title">Одиночная игра</div>
                 <div class="mode-description">
-                    Играй один и соревнуйся с другими в рейтинге. 15 вопросов из 150.
+                    Играй один и соревнуйся с другими в рейтинге.<br>15 вопросов из 150.
                 </div>
             </div>
             
             <div class="mode-card multiplayer" onclick="selectMode('multiplayer')">
-                <div class="mode-icon">👥</div>
+                <div class="mode-icon">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="transform: scale(0.9); transform-origin: center;">
+                        <!-- Три человечка - уменьшены на 10% -->
+                        <!-- Первый (слева) -->
+                        <circle cx="25" cy="30" r="10" fill="#000" stroke="#000" stroke-width="2"/>
+                        <path d="M 25 40 Q 25 55 25 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M 25 50 L 12 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M 25 50 L 38 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M 25 70 L 15 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M 25 70 L 35 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <!-- Второй (центр) -->
+                        <circle cx="50" cy="35" r="12" fill="#000" stroke="#000" stroke-width="2"/>
+                        <path d="M 50 47 Q 50 62 50 77" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 50 57 L 35 70" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 50 57 L 65 70" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 50 77 L 37 92" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 50 77 L 63 92" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                        <!-- Третий (справа) -->
+                        <circle cx="75" cy="30" r="10" fill="#000" stroke="#000" stroke-width="2"/>
+                        <path d="M 75 40 Q 75 55 75 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M 75 50 L 62 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M 75 50 L 88 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M 75 70 L 65 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M 75 70 L 85 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    </svg>
+                </div>
                 <div class="mode-title">Мультиплеер</div>
                 <div class="mode-description">
-                    Создай комнату и играй с друзьями. QR-код для подключения.
+                    Создай комнату и играй с друзьями.<br>QR-код для подключения.
                 </div>
             </div>
         </div>
@@ -579,9 +641,25 @@
                 // Устанавливаем top для парящего элемента: высота HUB + отступ
                 const floatingTop = hubHeight + 20;
                 
-                // Устанавливаем отступ контейнера: высота HUB + 40px
+                // Устанавливаем отступ контейнера: высота HUB + дополнительный отступ
+                // Для широкой версии (>= 1024px) увеличиваем отступ, чтобы контент не перекрывался логотипом
+                // Для узкой версии (<= 768px) уменьшаем отступ и используем отрицательный margin-top
                 if (container) {
-                    const paddingTop = hubHeight + 40;
+                    const isWideScreen = window.innerWidth >= 1024;
+                    const isNarrowScreen = window.innerWidth <= 768;
+                    let additionalPadding;
+                    if (isWideScreen) {
+                        additionalPadding = 120;
+                        container.style.marginTop = '0';
+                    } else if (isNarrowScreen) {
+                        // Для узких экранов используем отрицательный margin-top, чтобы поднять контент выше
+                        additionalPadding = 0;
+                        container.style.marginTop = '-15px'; // Поднимаем контент выше, но чуть ниже
+                    } else {
+                        additionalPadding = 40;
+                        container.style.marginTop = '0';
+                    }
+                    const paddingTop = hubHeight + additionalPadding;
                     container.style.paddingTop = paddingTop + 'px';
                 }
                 

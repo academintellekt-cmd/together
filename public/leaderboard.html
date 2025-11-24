@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Рейтинг - Квиз для друзей</title>
     <link rel="stylesheet" href="/styles/brand-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&display=swap" rel="stylesheet">
     <style>
         .container {
             max-width: 800px;
@@ -12,22 +15,96 @@
         }
 
         .back-button {
-            position: absolute;
+            position: fixed;
             top: 20px;
             left: 20px;
-            z-index: 10;
+            z-index: 1000;
+        }
+
+        @media (min-width: 1024px) {
+            .back-button {
+                top: 20px;
+                left: 40px;
+            }
+        }
+
+        @media (max-width: 1023px) and (min-width: 769px) {
+            .back-button {
+                top: 15px;
+                left: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .back-button {
+                top: 12px;
+                left: 20px;
+            }
+
+            .back-button-hub {
+                padding: 7px 14px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .back-button {
+                top: 10px;
+                left: 15px;
+            }
+
+            .back-button-hub {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+
+        .back-button-hub {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(245, 245, 245, 0.85);
+            border: 2px solid #393639;
+            border-radius: 12px;
+            color: #393639;
+            text-decoration: none;
+            font-family: 'Days One', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .back-button-hub:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+        
+        .back-button-hub:active {
+            transform: translateY(0px);
         }
 
         h1 {
             text-align: center;
             margin-bottom: 20px;
+            margin-top: 60px;
         }
 
         .subtitle {
             text-align: center;
             margin-bottom: 40px;
-            opacity: 0.9;
-            font-size: 18px;
+            font-family: 'Caveat', cursive;
+            color: #354FBA;
+            font-size: clamp(24px, 4.5vw, 36px);
+            font-weight: 400;
         }
 
         .leaderboard-header {
@@ -114,16 +191,20 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            align-items: flex-start;
+            text-align: left;
         }
 
         .player-name {
             font-weight: 600;
             font-size: 20px;
+            text-align: left;
         }
 
         .player-stats {
             font-size: 14px;
             opacity: 0.8;
+            text-align: left;
         }
 
         .player-score {
@@ -176,7 +257,7 @@
     <div class="container">
         <!-- Кнопка назад -->
         <div class="back-button">
-            <a href="/index.html" class="btn" style="text-decoration: none; display: inline-block;">
+            <a href="/index.html" class="back-button-hub">
                 ← Назад
             </a>
         </div>
@@ -290,6 +371,17 @@
         }
 
         document.getElementById('refresh-btn').addEventListener('click', loadLeaderboard);
+
+        // Применяем цвет выбранного персонажа к кнопке "Назад"
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedColor = localStorage.getItem('selectedCharacterColor');
+            if (savedColor) {
+                const backButton = document.querySelector('.back-button-hub');
+                if (backButton) {
+                    backButton.style.background = savedColor;
+                }
+            }
+        });
 
         // Загружаем рейтинг при загрузке страницы
         loadLeaderboard();

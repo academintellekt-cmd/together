@@ -12,7 +12,7 @@
         body {
             font-family: 'Montserrat', sans-serif;
             min-height: 100vh;
-            background: #fff2f2;
+            background: #f2f2f2;
             display: flex;
             align-items: flex-start;
             justify-content: center;
@@ -30,7 +30,7 @@
             height: 200px;
             background: #d6fbbf; /* Парящий элемент */
             border-radius: 50% 40% 60% 30%;
-            opacity: 0.4;
+            opacity: 0.9;
             z-index: -1;
             animation: wobble 6s ease-in-out infinite;
             pointer-events: none;
@@ -45,7 +45,7 @@
             height: 250px;
             background: #fececd; /* Парящий элемент */
             border-radius: 40% 50% 30% 60%;
-            opacity: 0.3;
+            opacity: 0.9;
             z-index: -1;
             animation: wobble 8s ease-in-out infinite reverse;
             pointer-events: none;
@@ -64,7 +64,7 @@
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 242, 242, 0.95);
+            background: rgba(242, 242, 242, 0.95);
             backdrop-filter: blur(10px);
             padding: 15px 20px;
             z-index: 1000;
@@ -76,7 +76,7 @@
             max-width: 100%;
             margin: 0 auto;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             flex-wrap: nowrap;
             gap: 15px;
@@ -90,9 +90,16 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex: 1;
-            min-width: 0;
+            position: absolute;
+            left: 50%;
+            top: 40px;
+            transform: translateX(-50%);
             gap: 5px;
+            pointer-events: none;
+        }
+        
+        .hub-logo-section * {
+            pointer-events: auto;
         }
 
         .hub-logo-section .logo {
@@ -227,6 +234,13 @@
             text-align: center;
         }
 
+        .name-input-screen .subtitle {
+            color: #354FBA;
+            font-family: 'Caveat', cursive;
+            font-size: clamp(24px, 4.5vw, 36px);
+            margin-bottom: 20px;
+        }
+
         .game-screen {
             display: none;
         }
@@ -261,28 +275,57 @@
         }
 
         .answer-feedback.correct {
-            color: var(--color-green-alt);
+            color: #2FB95D;
         }
 
         .answer-feedback.incorrect {
-            color: var(--color-coral);
+            color: #FA5734;
+        }
+
+        .answer-feedback .correct-answer {
+            color: #2FB95D;
+            display: block;
+            margin-top: 8px;
+        }
+
+        .option-btn.correct {
+            background: rgba(47, 185, 93, 0.35);
+            border-color: #2FB95D;
+            box-shadow: 
+                0 4px 0px rgba(47, 185, 93, 0.4),
+                0 8px 16px rgba(47, 185, 93, 0.25);
+        }
+
+        .option-btn.incorrect {
+            background: rgba(250, 87, 52, 0.35);
+            border-color: #FA5734 !important;
+            border-width: 3px;
+            box-shadow: 
+                0 4px 0px rgba(250, 87, 52, 0.4),
+                0 8px 16px rgba(250, 87, 52, 0.25);
         }
 
         .results-screen {
             text-align: center;
             display: none;
+            padding-top: 0;
+        }
+
+        .results-screen h1 {
+            margin-top: 0;
+            margin-bottom: 20px;
         }
 
         .score-display {
             font-size: 72px;
             font-weight: 700;
-            margin: 32px 0;
+            margin: 20px 0;
             color: var(--color-green-alt);
             font-family: 'Days One', sans-serif;
         }
 
         .stats {
-            margin: 32px 0;
+            margin: 20px 0;
         }
 
         .stat-item {
@@ -530,9 +573,9 @@
         <!-- Экран ввода имени -->
         <div id="name-input-screen" class="name-input-screen">
             <h1>🎮 Чемпионат ГНУ</h1>
-            <p class="subtitle">Введите ваше имя</p>
+            <p class="subtitle">придумай псевдоним</p>
             <div class="input-group">
-                <input type="text" id="player-name" placeholder="Ваше имя" maxlength="20" autocomplete="off">
+                <input type="text" id="player-name" placeholder="называйте меня..." maxlength="20" autocomplete="off">
             </div>
             <button class="btn full-width" id="start-btn">Начать игру</button>
             <a href="/leaderboard.html" class="btn full-width" style="margin-top: 20px; background: rgba(0, 193, 89, 0.85); color: white; text-decoration: none; display: inline-block; text-align: center;">
@@ -703,9 +746,22 @@
         });
 
         function startGame() {
+            // Проверяем, что квиз загружен
+            if (!quiz || !quiz.questions || quiz.questions.length === 0) {
+                console.error('Квиз не загружен');
+                alert('Ошибка: квиз не загружен. Пожалуйста, обновите страницу.');
+                return;
+            }
+            
             document.getElementById('name-input-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
             document.getElementById('results-screen').style.display = 'none';
+            
+            // Показываем экран вопроса
+            const questionScreen = document.getElementById('question-screen');
+            if (questionScreen) {
+                questionScreen.style.display = 'block';
+            }
             
             // Показываем информацию об игре в HUB
             const hubGameInfo = document.getElementById('hub-game-info');
@@ -726,9 +782,21 @@
         }
 
         function showQuestion() {
+            // Проверяем, что квиз загружен
+            if (!quiz || !quiz.questions || quiz.questions.length === 0) {
+                console.error('Квиз не загружен в showQuestion');
+                return;
+            }
+            
             if (currentQuestion >= quiz.questions.length) {
                 endGame();
                 return;
+            }
+
+            // Убеждаемся, что экран вопроса виден
+            const questionScreen = document.getElementById('question-screen');
+            if (questionScreen) {
+                questionScreen.style.display = 'block';
             }
 
             const question = quiz.questions[currentQuestion];
@@ -817,16 +885,17 @@
                     options[answerIndex].classList.add('incorrect');
                 }
                 options[question.correct].classList.add('correct');
-                document.getElementById('answer-feedback').textContent = 
-                    `❌ Неправильно! Правильный ответ: ${question.options[question.correct]}`;
-                document.getElementById('answer-feedback').className = 'answer-feedback incorrect';
+                const answerFeedback = document.getElementById('answer-feedback');
+                answerFeedback.className = 'answer-feedback incorrect';
+                answerFeedback.innerHTML = 
+                    `❌ Неправильно!<br><span class="correct-answer">${question.options[question.correct]}</span>`;
             }
 
             // Переход к следующему вопросу через 2 секунды
             setTimeout(() => {
                 currentQuestion++;
                 showQuestion();
-            }, 1000);
+            }, 2000);
         }
 
         async function endGame() {
@@ -873,14 +942,74 @@
 
         // Кнопка "Играть снова"
         document.getElementById('play-again-btn').addEventListener('click', () => {
-            document.getElementById('name-input-screen').style.display = 'block';
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('player-name').value = playerName;
+            // Сбрасываем все переменные игры
+            currentQuestion = 0;
+            score = 0;
+            correctAnswers = 0;
+            startTime = null;
+            timeLeft = 0;
             
-            // Показываем кнопку "Назад" снова
-            const backButton = document.querySelector('.back-button');
-            if (backButton) {
-                backButton.style.display = 'block';
+            // Останавливаем таймер, если он запущен
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            // Очищаем обратную связь
+            const answerFeedback = document.getElementById('answer-feedback');
+            if (answerFeedback) {
+                answerFeedback.textContent = '';
+                answerFeedback.className = 'answer-feedback';
+            }
+            
+            // Очищаем варианты ответов
+            const optionsDiv = document.getElementById('options');
+            if (optionsDiv) {
+                optionsDiv.innerHTML = '';
+            }
+            
+            // Скрываем экран результатов
+            const resultsScreen = document.getElementById('results-screen');
+            if (resultsScreen) {
+                resultsScreen.style.display = 'none';
+            }
+            
+            // Если имя уже есть, сразу запускаем игру заново
+            if (playerName && playerName.trim()) {
+                // Убеждаемся, что квиз загружен перед запуском
+                if (quiz && quiz.questions && quiz.questions.length > 0) {
+                    // Сбрасываем счетчик вопроса перед запуском
+                    currentQuestion = 0;
+                    startGame();
+                } else {
+                    // Если квиз не загружен, показываем экран ввода имени
+                    document.getElementById('name-input-screen').style.display = 'block';
+                    document.getElementById('game-screen').style.display = 'none';
+                    
+                    // Скрываем информацию об игре в HUB
+                    const hubGameInfo = document.getElementById('hub-game-info');
+                    const hubQuestionWrapper = document.getElementById('hub-question-number-wrapper');
+                    if (hubGameInfo) {
+                        hubGameInfo.style.display = 'none';
+                    }
+                    if (hubQuestionWrapper) {
+                        hubQuestionWrapper.style.display = 'none';
+                    }
+                }
+            } else {
+                // Если имени нет, показываем экран ввода имени
+                document.getElementById('name-input-screen').style.display = 'block';
+                document.getElementById('game-screen').style.display = 'none';
+                
+                // Скрываем информацию об игре в HUB
+                const hubGameInfo = document.getElementById('hub-game-info');
+                const hubQuestionWrapper = document.getElementById('hub-question-number-wrapper');
+                if (hubGameInfo) {
+                    hubGameInfo.style.display = 'none';
+                }
+                if (hubQuestionWrapper) {
+                    hubQuestionWrapper.style.display = 'none';
+                }
             }
         });
 
@@ -897,9 +1026,19 @@
                 // Устанавливаем top для парящего элемента: высота HUB + отступ
                 const floatingTop = hubHeight + 20;
                 
-                // Устанавливаем отступ контейнера: высота HUB + минимальный отступ (10px вместо 40px)
+                // Устанавливаем отступ контейнера: высота HUB + дополнительный отступ для опускания элементов
                 if (container) {
-                    const paddingTop = hubHeight + 10;
+                    const isWideScreen = window.innerWidth >= 1024;
+                    const isNarrowScreen = window.innerWidth <= 768;
+                    let additionalPadding;
+                    if (isWideScreen) {
+                        additionalPadding = 50;
+                    } else if (isNarrowScreen) {
+                        additionalPadding = 30;
+                    } else {
+                        additionalPadding = 40;
+                    }
+                    const paddingTop = hubHeight + additionalPadding;
                     container.style.paddingTop = paddingTop + 'px';
                 }
                 

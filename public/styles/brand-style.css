@@ -21,8 +21,8 @@
     --color-lime: #abf67c;
     --color-green: #2fb95d;
     --color-green-alt: #2fb95d;
-    --color-beige: #fff2f2;
-    --color-bg: #fff2f2;
+    --color-beige: #f2f2f2;
+    --color-bg: #f2f2f2;
     --color-white: #FFFFFF;
     --color-black: #000000;
     --color-yellow: #fb906b;
@@ -51,7 +51,7 @@ body::before {
     height: 200px;
     background: #d6fbbf; /* Парящий элемент */
     border-radius: 50% 40% 60% 30%;
-    opacity: 0.4;
+    opacity: 0.9;
     z-index: -1;
     animation: wobble 6s ease-in-out infinite;
     pointer-events: none;
@@ -66,7 +66,7 @@ body::after {
     height: 250px;
     background: #fececd; /* Парящий элемент */
     border-radius: 40% 50% 30% 60%;
-    opacity: 0.3;
+    opacity: 0.9;
     z-index: -1;
     animation: wobble 8s ease-in-out infinite reverse;
     pointer-events: none;
