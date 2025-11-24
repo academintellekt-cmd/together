@@ -47,6 +47,7 @@
 
         .question-screen {
             text-align: center;
+            display: none; /* Скрыт по умолчанию, показывается только при получении реального вопроса */
         }
 
         .question-number {
@@ -80,119 +81,218 @@
         .results-screen {
             text-align: center;
             display: none;
+            padding: 30px 20px;
+        }
+        
+        .results-screen h2 {
+            font-family: 'Days One', sans-serif;
+            font-size: 32px;
+            color: #393639;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .correct-answer {
+            background: linear-gradient(135deg, rgba(0, 193, 89, 0.15) 0%, rgba(0, 193, 89, 0.25) 100%);
+            border: 3px solid #00C159;
+            padding: 25px 30px;
+            border-radius: 16px;
+            margin: 25px auto;
+            max-width: 600px;
+            font-size: 22px;
+            font-family: 'Days One', sans-serif;
+            color: #393639;
+            box-shadow: 
+                0 4px 0px rgba(0, 193, 89, 0.4),
+                0 8px 16px rgba(0, 193, 89, 0.2);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .leaderboard {
+            background: rgba(245, 245, 245, 0.9);
+            border: 3px solid #393639;
+            border-radius: 16px;
+            padding: 25px;
+            margin: 30px auto;
+            max-width: 600px;
+            box-shadow: 
+                0 4px 0px rgba(57, 54, 57, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .leaderboard h3 {
+            font-family: 'Days One', sans-serif;
+            font-size: 24px;
+            color: #393639;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            margin: 10px 0;
+            background: #FFFFFF;
+            border: 2px solid #393639;
+            border-radius: 12px;
+            font-family: 'Days One', sans-serif;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .leaderboard-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.3),
+                0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .leaderboard-item .player-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #393639;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .leaderboard-item .player-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #00C159;
+            text-transform: uppercase;
         }
 
         .score {
-            font-size: 32px;
-            font-weight: bold;
-            margin: 20px 0;
-            font-family: 'Days One', sans-serif;
-            color: var(--color-dark);
-        }
-
-        /* Модальное окно для пароля */
-        .password-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(56, 54, 56, 0.85);
-            z-index: 3000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .password-modal-content {
-            background: #F2F2F2;
-            padding: 30px;
-            border-radius: 25px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            border: 3px solid #383638;
-            box-shadow: 0 6px 0px rgba(0, 193, 89, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2);
-            box-sizing: border-box;
-        }
-
-        .password-modal h2 {
-            margin-bottom: 15px;
-            font-size: 24px;
-            font-family: 'Days One', sans-serif;
-            color: #00C159;
+            font-size: 28px;
             font-weight: 700;
-        }
-
-        .password-modal p {
-            margin-bottom: 15px;
-            font-size: 14px;
-            color: #383638;
-            font-family: 'Nunito', sans-serif;
-        }
-
-        .password-modal input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border-radius: 12px;
-            border: 3px solid #383638;
-            background: #FFFFFF;
-            color: #383638;
-            font-size: 16px;
-            text-align: center;
+            margin: 25px 0;
             font-family: 'Days One', sans-serif;
-            font-weight: 600;
-            letter-spacing: 2px;
-            box-sizing: border-box;
+            color: #393639;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-
-        .password-error {
-            color: #ff7674;
-            margin-bottom: 15px;
-            font-size: 13px;
-            display: none;
-            font-family: 'Nunito', sans-serif;
-            font-weight: 600;
-            min-height: 20px;
-        }
-
-        .password-modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
+        
+        .ready-btn {
+            background: rgba(245, 245, 245, 0.85);
+            color: var(--color-dark);
+            border: none;
+            padding: 14px 32px;
+            font-size: 17px;
+            font-weight: 500;
+            font-family: 'Days One', sans-serif;
+            border-radius: 12px;
+            cursor: pointer;
+            margin: 25px auto;
+            display: block;
             width: 100%;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .ready-btn:hover:not(:disabled) {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 8px 0px rgba(0, 0, 0, 0.4),
+                0 12px 24px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+        
+        .ready-btn:active:not(:disabled) {
+            transform: translateY(-4px) scale(0.98);
+        }
+        
+        /* Красная кнопка по умолчанию (waiting) */
+        .ready-btn {
+            background: #ff7664;
+            color: #FFFFFF;
+        }
+        
+        .ready-btn:hover:not(:disabled) {
+            background: #ff7664;
+        }
+        
+        /* Зеленая кнопка после нажатия (ready) - салатовый и темно-зеленый как кнопка "Следующий вопрос" */
+        .ready-btn.ready {
+            background: #abf67c; /* салатовый */
+            color: #2fb95d; /* темно-зеленый текст */
+            border: 3px solid #2fb95d; /* темно-зеленая граница */
+        }
+        
+        .ready-btn.ready:hover:not(:disabled) {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 8px 0px rgba(47, 185, 93, 0.4),
+                0 12px 24px rgba(47, 185, 93, 0.2);
+            background: #abf67c;
+        }
+        
+        .ready-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        
+        .ready-status {
+            font-family: 'Nunito', sans-serif;
+            font-size: 16px;
+            color: #393639;
+            font-weight: 600;
+            padding: 10px;
+            background: rgba(245, 245, 245, 0.8);
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .final-results {
+            text-align: center;
+            padding: 30px 20px;
+        }
+        
+        .final-results h1 {
+            font-family: 'Days One', sans-serif;
+            font-size: 42px;
+            color: #393639;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .final-results h2 {
+            font-family: 'Days One', sans-serif;
+            font-size: 28px;
+            color: #393639;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .final-results .leaderboard {
+            background: rgba(245, 245, 245, 0.9);
+            border: 3px solid #393639;
+            border-radius: 16px;
+            padding: 25px;
+            margin: 30px auto;
+            max-width: 600px;
+            box-shadow: 
+                0 4px 0px rgba(57, 54, 57, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.1);
         }
 
-        .password-modal-buttons button {
-            flex: 1;
-            min-width: 140px;
-            max-width: 180px;
-            padding: 12px 24px;
-            font-size: 16px;
-            box-sizing: border-box;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
     </style>
 </head>
 <body>
-    <!-- Модальное окно для ввода пароля -->
-    <div id="password-modal" class="password-modal">
-        <div class="password-modal-content">
-            <h2>Введите пароль</h2>
-            <p>Эта комната защищена паролем</p>
-            <input type="password" id="password-input" placeholder="Пароль" autofocus>
-            <div id="password-error" class="password-error"></div>
-            <div class="password-modal-buttons">
-                <button id="password-submit" class="btn" style="background: #00C159; border: 3px solid #383638; color: #FFFFFF; font-weight: 700; padding: 12px 24px; font-size: 16px;">Ввод</button>
-                <button id="password-cancel" class="btn secondary" style="background: #F2F2F2; border: 3px solid #383638; color: #383638; padding: 12px 24px; font-size: 16px;">Отмена</button>
-            </div>
-        </div>
-    </div>
-
     <div class="container">
         <!-- Кнопка назад -->
         <div class="back-button">
@@ -243,17 +343,13 @@
             <!-- Результаты вопроса -->
             <div id="results-screen" class="results-screen">
                 <h2>Результаты вопроса</h2>
-                <div id="correct-answer-display" class="correct-answer" style="margin: 20px 0; font-size: 18px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 12px;"></div>
+                <div id="correct-answer-display" class="correct-answer"></div>
                 <div class="score">
                     Ваш счет: <span id="player-score">0</span>
                     <span id="points-added" style="font-size: 16px; margin-left: 10px; opacity: 0.8;"></span>
                 </div>
-                <div class="leaderboard">
-                    <h3>Таблица лидеров</h3>
-                    <div id="leaderboard"></div>
-                </div>
-                <div id="ready-status" class="status" style="margin: 20px 0;">Ожидание следующего вопроса...</div>
-                <button id="ready-btn" class="btn" style="display: none;">Готов к следующему вопросу</button>
+                <button id="ready-btn" class="ready-btn" style="display: none;">Готов к следующему вопросу</button>
+                <div id="ready-status" class="ready-status" style="display: none; margin-top: 15px;">Ожидание других игроков...</div>
             </div>
 
             <!-- Финальные результаты -->
@@ -301,7 +397,7 @@
         });
 
         // Функция подключения к комнате
-        function connectToRoom(password = null) {
+        function connectToRoom() {
             roomCode = document.getElementById('room-code').value.toUpperCase().trim();
             playerName = document.getElementById('player-name').value.trim();
 
@@ -311,46 +407,10 @@
             }
 
             console.log('Подключение к комнате:', roomCode, 'Игрок:', playerName);
-            socket.emit('player-join', { roomCode, playerName, password });
+            // Подключаемся без пароля - пароль не требуется для игроков
+            socket.emit('player-join', { roomCode, playerName });
         }
 
-        // Функция показа модального окна для ввода пароля
-        function showPasswordModal(callback) {
-            const modal = document.getElementById('password-modal');
-            const passwordInput = document.getElementById('password-input');
-            const passwordError = document.getElementById('password-error');
-            const submitBtn = document.getElementById('password-submit');
-            const cancelBtn = document.getElementById('password-cancel');
-            
-            modal.style.display = 'flex';
-            passwordInput.value = '';
-            passwordError.style.display = 'none';
-            passwordInput.focus();
-            
-            const handleSubmit = () => {
-                const password = passwordInput.value.trim();
-                if (!password) {
-                    passwordError.textContent = 'Введите пароль';
-                    passwordError.style.display = 'block';
-                    return;
-                }
-                modal.style.display = 'none';
-                callback(password);
-            };
-            
-            const handleCancel = () => {
-                modal.style.display = 'none';
-            };
-            
-            submitBtn.onclick = handleSubmit;
-            cancelBtn.onclick = handleCancel;
-            
-            passwordInput.onkeypress = (e) => {
-                if (e.key === 'Enter') {
-                    handleSubmit();
-                }
-            };
-        }
 
         // Подключение к комнате
         document.getElementById('connect-btn').addEventListener('click', connectToRoom);
@@ -386,14 +446,8 @@
         });
 
         socket.on('error', (data) => {
-            if (data.requiresPassword) {
-                // Показываем модальное окно для ввода пароля
-                showPasswordModal((password) => {
-                    connectToRoom(password);
-                });
-            } else {
-                showError(data.message);
-            }
+            // Не показываем модальное окно для пароля - подключаемся без пароля
+            showError(data.message);
         });
 
         // Начало игры
@@ -403,6 +457,11 @@
             gameScreen.style.display = 'block';
             gameScreen.style.animation = 'fadeIn 0.5s ease-in';
             hasAnswered = false;
+            
+            // Скрываем все экраны до получения реального вопроса
+            document.getElementById('question-screen').style.display = 'none';
+            document.getElementById('results-screen').style.display = 'none';
+            document.getElementById('final-results').style.display = 'none';
             
             // Скрываем кнопку "Назад" во время игры
             const backButton = document.querySelector('.back-button');
@@ -642,59 +701,26 @@
                 const pointsAdded = document.getElementById('points-added');
                 if (pointsEarned > 0) {
                     pointsAdded.textContent = `(+${pointsEarned})`;
-                    pointsAdded.style.color = 'var(--success)';
+                    pointsAdded.style.color = '#00C159';
                     pointsAdded.style.fontWeight = '600';
                 } else {
                     pointsAdded.textContent = `(+0)`;
-                    pointsAdded.style.color = 'var(--gray-400)';
+                    pointsAdded.style.color = '#666';
                 }
                 
                 // Сохраняем текущий счет для следующего раунда
                 window.previousPlayerScore = newScore;
             }
 
-            // Таблица лидеров с прибавленными баллами
-            const leaderboard = document.getElementById('leaderboard');
-            leaderboard.innerHTML = '';
-            data.players.forEach((player, index) => {
-                const item = document.createElement('div');
-                let className = 'leaderboard-item';
-                if (index === 0) className += ' first';
-                else if (index === 1) className += ' second';
-                else if (index === 2) className += ' third';
-                
-                item.className = className;
-                item.style.animationDelay = (index * 0.1) + 's';
-                
-                // Находим прибавленные баллы для этого игрока
-                let pointsDisplay = '';
-                if (player.name === playerName) {
-                    // Вычисляем прибавленные очки из разницы счетов
-                    const previousScore = window.previousPlayerScore || 0;
-                    const pointsEarned = player.score - previousScore;
-                    // Показываем "+X" только если ответ был правильный
-                    if (pointsEarned > 0 && window.lastAnswerData && window.lastAnswerData.isCorrect) {
-                        pointsDisplay = ` <span style="color: var(--success); font-weight: 600;">(+${pointsEarned})</span>`;
-                    }
-                    // Если ответ неправильный - ничего не показываем
-                    // Сохраняем текущий счет для следующего раунда
-                    window.previousPlayerScore = player.score;
-                }
-                
-                item.innerHTML = `
-                    <span>${index + 1}. ${player.name}</span>
-                    <span>${player.score} очков${pointsDisplay}</span>
-                `;
-                leaderboard.appendChild(item);
-            });
-
-            // Показываем кнопку готовности
+            // Показываем кнопку готовности (красная по умолчанию)
             const readyBtn = document.getElementById('ready-btn');
             const readyStatus = document.getElementById('ready-status');
             readyBtn.style.display = 'block';
             readyBtn.disabled = false;
-            readyBtn.textContent = 'Готов к следующему вопросу';
-            readyStatus.textContent = 'Нажмите кнопку, когда будете готовы к следующему вопросу';
+            readyBtn.classList.remove('ready'); // Убираем класс ready, чтобы кнопка была красной
+            readyBtn.textContent = 'Готов к следующему вопросу?';
+            readyStatus.style.display = 'none';
+            isReady = false; // Сбрасываем флаг готовности
         });
 
         // Кнопка готовности
@@ -704,9 +730,11 @@
             isReady = true;
             socket.emit('player-ready', roomCode);
             readyBtn.disabled = true;
-            readyBtn.textContent = '✅ Готов! Ожидание других игроков...';
+            readyBtn.classList.add('ready'); // Делаем кнопку зеленой
+            readyBtn.textContent = 'Готов! Ожидание игроков...';
             const readyStatus = document.getElementById('ready-status');
-            readyStatus.textContent = 'Вы готовы! Ожидание других игроков...';
+            readyStatus.style.display = 'block';
+            readyStatus.textContent = 'Ожидание игроков...';
         });
 
         // Статус готовности
@@ -715,8 +743,10 @@
                 const readyBtn = document.getElementById('ready-btn');
                 const readyStatus = document.getElementById('ready-status');
                 readyBtn.disabled = true;
-                readyBtn.textContent = 'Готов! Ожидание других игроков...';
-                readyStatus.textContent = `Вы готовы! Ожидание других игроков... (${data.readyCount}/${data.totalPlayers})`;
+                readyBtn.classList.add('ready'); // Убеждаемся, что кнопка зеленая
+                readyBtn.textContent = 'Готов! Ожидание игроков...';
+                readyStatus.style.display = 'block';
+                readyStatus.textContent = `Ожидание игроков... (${data.readyCount}/${data.totalPlayers})`;
             }
         });
 
@@ -741,19 +771,20 @@
             
             data.results.forEach((player, index) => {
                 const item = document.createElement('div');
-                let className = 'leaderboard-item';
-                if (index === 0) className += ' first';
-                else if (index === 1) className += ' second';
-                else if (index === 2) className += ' third';
-                
-                item.className = className;
+                item.className = 'leaderboard-item';
                 item.style.animationDelay = (index * 0.1) + 's';
                 
                 const message = finalMessages[index] || '';
-                item.innerHTML = `
-                    <span>${index + 1}. ${player.name} ${message}</span>
-                    <span>${player.score} очков</span>
-                `;
+                const playerNameSpan = document.createElement('span');
+                playerNameSpan.className = 'player-name';
+                playerNameSpan.textContent = `${index + 1}. ${player.name} ${message}`;
+                
+                const playerScoreSpan = document.createElement('span');
+                playerScoreSpan.className = 'player-score';
+                playerScoreSpan.textContent = `${player.score} очков`;
+                
+                item.appendChild(playerNameSpan);
+                item.appendChild(playerScoreSpan);
                 leaderboard.appendChild(item);
             });
         });

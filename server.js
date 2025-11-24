@@ -873,13 +873,81 @@ app.post('/api/create-room', (req, res) => {
     }
   }
   const roomCode = generateRoomCode();
+  
+  // Для мультиплеера выбираем 15 случайных вопросов из всех доступных
+  // Если создается комната через /api/create-room, это всегда мультиплеер
+  let questionsForRoom = [...quiz.questions];
+  const questionsPerGame = quiz.gameSettings?.questionsPerGame || 15;
+  
+  // При создании комнаты это всегда мультиплеер (комнаты создаются только для мультиплеера)
+  const isMultiplayer = true;
+  
+  console.log(`🔵 Создание комнаты ${roomCode}: quizId=${quizId}, всего вопросов=${quiz.questions.length}, будет выбрано=${questionsPerGame}, isMultiplayer=${isMultiplayer}`);
+  
+  // ВСЕГДА выбираем 15 вопросов для мультиплеера (комнаты создаются только для мультиплеера)
+  if (quiz.questions.length > questionsPerGame) {
+    // Используем алгоритм Fisher-Yates для правильного перемешивания
+    const shuffled = [...quiz.questions];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    // Берем нужное количество вопросов (15 для мультиплеера)
+    questionsForRoom = shuffled.slice(0, questionsPerGame);
+    
+    console.log(`✅ Для мультиплеера выбрано ${questionsPerGame} случайных вопросов из ${quiz.questions.length} для комнаты ${roomCode}`);
+    
+    // Перемешиваем варианты ответов для каждого выбранного вопроса
+    questionsForRoom = questionsForRoom.map((q, index) => {
+      // Создаем глубокую копию вопроса
+      const questionCopy = {
+        ...q,
+        options: [...q.options],
+        id: index + 1
+      };
+      
+      // Перемешиваем варианты ответов
+      if (questionCopy.options.length > 0 && questionCopy.correct >= 0) {
+        // Сохраняем правильный ответ
+        const correctAnswer = questionCopy.options[questionCopy.correct];
+        
+        // Перемешиваем все варианты
+        const shuffledOptions = questionCopy.options.sort(() => Math.random() - 0.5);
+        
+        // Находим новый индекс правильного ответа
+        const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
+        
+        // Обновляем вопрос
+        questionCopy.options = shuffledOptions;
+        questionCopy.correct = newCorrectIndex;
+      }
+      
+      // Убеждаемся, что звездочки удалены из всех вариантов ответов
+      questionCopy.options = questionCopy.options.map(option => {
+        let cleanOption = option.toString();
+        cleanOption = cleanOption.replace(/[★*]$/, '');
+        cleanOption = cleanOption.replace(/^\*\s*/, '');
+        cleanOption = cleanOption.trim();
+        return cleanOption;
+      });
+      
+      return questionCopy;
+    });
+    
+    console.log(`✅ Для мультиплеера выбрано ${questionsPerGame} случайных вопросов из ${quiz.questions.length} для комнаты ${roomCode}`);
+  } else {
+    console.log(`⚠️ ВНИМАНИЕ: Условие не выполнено! quiz.questions.length=${quiz.questions.length}, questionsPerGame=${questionsPerGame}`);
+    console.log(`⚠️ Используются ВСЕ вопросы (${questionsForRoom.length}) вместо ${questionsPerGame}`);
+  }
+  
   const room = {
     code: roomCode,
     host: null,
     players: [],
     gameState: 'lobby', // lobby, playing, question, results, finished
     currentQuestion: 0,
-    questions: [...quiz.questions],
+    questions: questionsForRoom,
     quizId: quizId,
     quizName: quiz.name,
     readyPlayers: new Set(), // Игроки, готовые к следующему вопросу
@@ -888,6 +956,10 @@ app.post('/api/create-room', (req, res) => {
     password: quiz.passwordRequired ? quiz.password : null // Сохраняем пароль для проверки при подключении игроков
   };
   rooms.set(roomCode, room);
+  
+  console.log(`📋 Комната ${roomCode} создана: ${questionsForRoom.length} вопросов (из ${quiz.questions.length} доступных)`);
+  console.log(`📋 Первые 3 вопроса комнаты:`, questionsForRoom.slice(0, 3).map(q => q.id || 'no-id'));
+  
   res.json({ roomCode });
 });
 
@@ -914,6 +986,8 @@ io.on('connection', (socket) => {
     const normalizedRoomCode = roomCode ? roomCode.trim().toUpperCase() : '';
     const normalizedPlayerName = playerName ? playerName.trim() : '';
     
+    console.log(`🔵 Игрок пытается подключиться: комната=${normalizedRoomCode}, имя=${normalizedPlayerName}`);
+    
     if (!normalizedRoomCode || !normalizedPlayerName) {
       socket.emit('error', { message: 'Неверные данные: заполните все поля' });
       return;
@@ -921,17 +995,14 @@ io.on('connection', (socket) => {
     
     const room = rooms.get(normalizedRoomCode);
     if (!room) {
+      console.log(`❌ Комната ${normalizedRoomCode} не найдена`);
       socket.emit('error', { message: 'Комната не найдена' });
       return;
     }
 
-    // Проверяем пароль, если комната защищена
-    if (room.password) {
-      if (!password || password !== room.password) {
-        socket.emit('error', { message: 'Неверный пароль', requiresPassword: true });
-        return;
-      }
-    }
+    // Пароль проверяется только при создании комнаты хостом
+    // Игроки подключаются без проверки пароля
+    console.log(`✅ Игрок ${normalizedPlayerName} подключается к комнате ${normalizedRoomCode} (пароль не требуется)`);
 
     // Если игра уже началась, запрещаем подключение
     if (room.gameState !== 'lobby') {
@@ -1004,13 +1075,17 @@ io.on('connection', (socket) => {
     // Отправляем статус ответов (все еще не ответили)
     updateAnswerStatus(roomCode);
 
-    io.to(roomCode).emit('question', {
+    const questionData = {
       question: question.question,
       options: question.options,
       questionNumber: room.currentQuestion + 1,
       totalQuestions: room.questions.length,
       time: question.time
-    });
+    };
+    
+    console.log(`📤 Отправка вопроса ${questionData.questionNumber} из ${questionData.totalQuestions} в комнату ${roomCode}`);
+    
+    io.to(roomCode).emit('question', questionData);
 
     // Таймер для автоматического перехода к результатам
     const timer = setTimeout(() => {
