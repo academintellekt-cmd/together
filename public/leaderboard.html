@@ -40,22 +40,12 @@
                 top: 12px;
                 left: 20px;
             }
-
-            .back-button-hub {
-                padding: 7px 14px;
-                font-size: 13px;
-            }
         }
 
         @media (max-width: 480px) {
             .back-button {
                 top: 10px;
                 left: 15px;
-            }
-
-            .back-button-hub {
-                padding: 6px 12px;
-                font-size: 12px;
             }
         }
 
@@ -396,10 +386,11 @@
             }
             
             if (savedColor) {
-                const backButton = document.querySelector('.back-button-hub');
-                if (backButton) {
-                    backButton.style.background = savedColor;
-                }
+                // Применяем цвет ко всем кнопкам "Назад"
+                const backButtons = document.querySelectorAll('.back-button-hub');
+                backButtons.forEach(button => {
+                    button.style.background = savedColor;
+                });
             }
         });
 

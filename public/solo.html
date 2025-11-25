@@ -1102,10 +1102,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             const savedColor = localStorage.getItem('selectedCharacterColor');
             if (savedColor) {
-                const backButton = document.querySelector('.back-button-hub');
-                if (backButton) {
-                    backButton.style.background = savedColor;
-                }
+                // Применяем цвет ко всем кнопкам "Назад" (широкая и мобильная версия)
+                const backButtons = document.querySelectorAll('.back-button-hub');
+                backButtons.forEach(button => {
+                    button.style.background = savedColor;
+                });
             }
             
             // Обновляем позицию парящих элементов и отступ контейнера после загрузки

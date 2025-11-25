@@ -1572,27 +1572,11 @@
         function applyCharacterColorToBackButton() {
             const savedColor = localStorage.getItem('selectedCharacterColor');
             if (savedColor) {
-                const backButton = document.querySelector('.back-button-hub');
-                if (backButton) {
-                    // Применяем цвет через CSS с !important для переопределения других стилей
-                    let style = document.getElementById('back-button-character-color');
-                    if (!style) {
-                        style = document.createElement('style');
-                        style.id = 'back-button-character-color';
-                        document.head.appendChild(style);
-                    }
-                    style.textContent = `
-                        .back-button-hub {
-                            background: ${savedColor} !important;
-                        }
-                        .back-button-hub:hover {
-                            background: ${savedColor} !important;
-                            opacity: 0.85;
-                        }
-                    `;
-                    // Также применяем напрямую к элементу
-                    backButton.style.setProperty('background', savedColor, 'important');
-                }
+                // Применяем цвет ко всем кнопкам "Назад" (широкая и мобильная версия)
+                const backButtons = document.querySelectorAll('.back-button-hub');
+                backButtons.forEach(button => {
+                    button.style.background = savedColor;
+                });
             }
         }
 

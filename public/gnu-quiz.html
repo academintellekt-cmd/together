@@ -63,7 +63,21 @@
             75% { transform: rotate(3deg) scale(1.05); }
         }
 
-        /* HUB стили */
+        /* Блок кнопки "Назад" - закреплен (только для широкой версии) */
+        .hub-login-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #f2f2f2;
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            z-index: 1001;
+            display: none; /* По умолчанию скрыт, показывается только в широкой версии */
+            border-bottom: none;
+        }
+
+        /* HUB стили (блок с логотипом) */
         .hub {
             position: fixed;
             top: 0;
@@ -75,20 +89,23 @@
             z-index: 1000;
             border-bottom: none;
             box-shadow: none;
+            width: 100%;
+            overflow: visible;
+            min-height: 240px;
         }
 
         .hub-content {
             max-width: 100%;
             margin: 0 auto;
             display: flex;
-            justify-content: flex-start;
-            align-items: flex-start;
+            justify-content: space-between;
+            align-items: center;
             flex-wrap: wrap;
             gap: 15px;
             position: relative;
         }
 
-        /* Секция с логотипом и фразой */
+        /* Секция с логотипом */
         .hub-logo-section {
             display: flex;
             flex-direction: column;
@@ -100,6 +117,10 @@
             transform: translateX(-50%);
             gap: 5px;
             pointer-events: none;
+            width: 100%;
+            max-width: 100%;
+            padding: 0 20px;
+            box-sizing: border-box;
         }
         
         .hub-logo-section * {
@@ -116,22 +137,16 @@
             image-rendering: crisp-edges;
         }
 
-        .hub-logo-section .subtitle {
-            font-family: 'Caveat', cursive;
-            font-size: 24px;
-            color: #393639;
-            margin: 0;
-            font-weight: 400;
-            line-height: 1.2;
-            white-space: nowrap;
-        }
-
         .hub-actions {
             display: flex;
             gap: 10px;
-            align-items: flex-start;
+            align-items: center;
             flex-shrink: 0;
-            align-self: flex-start;
+        }
+        
+        /* Кнопка "Назад" для узкой версии (скрыта в широкой) */
+        .hub-actions-mobile {
+            display: flex;
         }
 
         .back-button-hub {
@@ -420,44 +435,98 @@
 
         /* Адаптивная ширина HUB */
         @media (min-width: 1024px) {
+            /* Показываем отдельный блок для кнопки "Назад" */
+            .hub-login-fixed {
+                display: block;
+                padding: 15px 40px;
+                border-bottom: none;
+            }
+            
+            .hub-login-fixed .hub-actions {
+                max-width: 1400px;
+                margin: 0 auto;
+                display: flex;
+                justify-content: flex-start;
+            }
+            
+            /* Скрываем кнопку в HUB для широкой версии */
+            .hub-actions-mobile {
+                display: none;
+            }
+            
+            /* HUB с логотипом - ниже блока с кнопкой */
             .hub {
-                padding: 20px 40px;
+                padding: 20px 40px 4px 40px;
+                min-height: 260px;
+                overflow: visible;
+                top: 60px; /* Отступ сверху для блока с кнопкой */
             }
             
             .hub-content {
                 max-width: 1400px;
                 margin: 0 auto;
-                justify-content: flex-start;
+                justify-content: center;
                 position: relative;
+                min-height: 240px;
             }
             
             .hub-logo-section {
                 position: absolute;
                 left: 50%;
-                top: 40px;
+                top: 0;
                 transform: translateX(-50%);
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                max-width: calc(100% - 80px);
+                width: auto;
+                padding: 0 20px;
+                box-sizing: border-box;
             }
             
             .hub-logo-section .logo {
-                max-height: 150px;
+                max-height: 250px;
+            }
+        }
+
+        /* Очень широкие экраны */
+        @media (min-width: 1920px) {
+            .hub-login-fixed {
+                padding: 20px 40px;
             }
             
-            .hub-logo-section .subtitle {
-                font-size: 28px;
+            .hub {
+                min-height: 280px;
+                top: 70px; /* Больше отступ для большего блока с кнопкой */
             }
             
-            .hub-actions {
-                order: 1;
-                flex-shrink: 0;
+            .hub-content {
+                min-height: 260px;
+            }
+            
+            .hub-logo-section {
+                max-width: calc(100% - 120px);
+            }
+            
+            .hub-logo-section .logo {
+                max-height: 270px;
             }
         }
 
         @media (max-width: 1023px) and (min-width: 769px) {
+            /* Скрываем отдельный блок кнопки в узкой версии */
+            .hub-login-fixed {
+                display: none;
+            }
+            
+            /* Показываем кнопку в HUB для узкой версии */
+            .hub-actions-mobile {
+                display: flex;
+            }
+            
             .hub {
                 padding: 15px 30px;
+                top: 0; /* Убираем отступ сверху в узкой версии */
             }
             
             .hub-content {
@@ -474,46 +543,56 @@
             .hub-logo-section .logo {
                 max-height: 120px;
             }
-            
-            .hub-logo-section .subtitle {
-                font-size: 22px;
-            }
-            
-            .hub-actions {
-                order: 1;
-                flex-shrink: 0;
-            }
         }
 
         @media (max-width: 768px) {
+            /* Скрываем отдельный блок кнопки в узкой версии */
+            .hub-login-fixed {
+                display: none;
+            }
+            
+            /* Показываем кнопку в HUB для узкой версии */
+            .hub-actions-mobile {
+                display: flex;
+            }
+            
             .hub {
                 padding: 12px 20px;
+                min-height: auto;
+                top: 0; /* Убираем отступ сверху в узкой версии */
             }
             
             .hub-content {
                 max-width: 100%;
-                justify-content: center;
+                justify-content: flex-start;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+                position: relative;
             }
             
-            .hub-logo-section {
-                position: static;
-                transform: none;
-                flex: 1 1 100%;
+            /* Кнопка "Назад" вверху слева */
+            .hub-actions-mobile {
                 order: 1;
+                margin: 0;
+                align-self: flex-start;
+            }
+            
+            /* Логотип ниже кнопки по центру */
+            .hub-logo-section {
+                position: relative;
+                left: auto;
+                top: auto;
+                transform: none;
+                order: 2;
                 width: 100%;
+                margin: 0 auto;
+                align-self: center;
+                padding: 0;
             }
             
             .hub-logo-section .logo {
                 max-height: 80px;
-            }
-            
-            .hub-logo-section .subtitle {
-                font-size: 18px;
-            }
-            
-            .hub-actions {
-                order: 2;
-                margin: 10px 0 0 0;
             }
         }
 
@@ -553,14 +632,22 @@
         </div>
     </div>
 
-    <!-- HUB блок -->
+    <!-- Блок кнопки "Назад" - закреплен (только для широкой версии) -->
+    <div class="hub-login-fixed" id="hub-login-fixed">
+        <div class="hub-actions">
+            <a href="/index.html" class="back-button-hub">← Назад</a>
+        </div>
+    </div>
+
+    <!-- HUB блок с логотипом -->
     <div class="hub" id="hub" style="display: none;">
         <div class="hub-content">
-            <div class="hub-actions">
-                <a href="/index.html" class="back-button-hub">← Назад</a>
-            </div>
             <div class="hub-logo-section">
                 <img src="/images/logo.png" alt="ВМЕСТЕ" class="logo">
+            </div>
+            <!-- Кнопка "Назад" для узкой версии (скрыта в широкой) -->
+            <div class="hub-actions hub-actions-mobile">
+                <a href="/index.html" class="back-button-hub">← Назад</a>
             </div>
         </div>
     </div>
@@ -634,22 +721,29 @@
         // Функция для обновления позиции парящих элементов и отступа контейнера относительно высоты HUB
         function updateFloatingElementsPosition() {
             const hub = document.getElementById('hub');
+            const hubLoginFixed = document.getElementById('hub-login-fixed');
             const container = document.querySelector('.container');
             
             if (hub && hub.style.display !== 'none') {
-                const hubHeight = hub.offsetHeight;
-                // Устанавливаем top для парящего элемента: высота HUB + отступ
-                const floatingTop = hubHeight + 20;
+                const isWideScreen = window.innerWidth >= 1024;
+                const isNarrowScreen = window.innerWidth <= 768;
                 
-                // Устанавливаем отступ контейнера: высота HUB + дополнительный отступ
-                // Для широкой версии (>= 1024px) увеличиваем отступ, чтобы контент не перекрывался логотипом
-                // Для узкой версии (<= 768px) уменьшаем отступ и используем отрицательный margin-top
+                let totalHeight = hub.offsetHeight;
+                
+                // В широкой версии учитываем высоту обоих блоков
+                if (isWideScreen && hubLoginFixed && hubLoginFixed.style.display !== 'none') {
+                    totalHeight += hubLoginFixed.offsetHeight;
+                }
+                
+                // Устанавливаем top для парящего элемента: высота блоков + отступ
+                const floatingTop = totalHeight + 20;
+                
+                // Устанавливаем отступ контейнера: высота блоков + дополнительный отступ
                 if (container) {
-                    const isWideScreen = window.innerWidth >= 1024;
-                    const isNarrowScreen = window.innerWidth <= 768;
                     let additionalPadding;
                     if (isWideScreen) {
-                        additionalPadding = 120;
+                        // Минимальный отступ на широких экранах, чтобы карточки были близко к концу блока с логотипом
+                        additionalPadding = 0;
                         container.style.marginTop = '0';
                     } else if (isNarrowScreen) {
                         // Для узких экранов используем отрицательный margin-top, чтобы поднять контент выше
@@ -659,7 +753,7 @@
                         additionalPadding = 40;
                         container.style.marginTop = '0';
                     }
-                    const paddingTop = hubHeight + additionalPadding;
+                    const paddingTop = totalHeight + additionalPadding;
                     container.style.paddingTop = paddingTop + 'px';
                 }
                 
@@ -683,6 +777,11 @@
             passwordEntered = true;
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('hub').style.display = 'block';
+            // Показываем блок с кнопкой в широкой версии
+            const hubLoginFixed = document.getElementById('hub-login-fixed');
+            if (hubLoginFixed && window.innerWidth >= 1024) {
+                hubLoginFixed.style.display = 'block';
+            }
             document.getElementById('mainContainer').style.display = 'block';
             // Обновляем позицию парящих элементов и отступ контейнера после отображения hub
             setTimeout(updateFloatingElementsPosition, 100);
@@ -704,6 +803,11 @@
                 localStorage.setItem(STORAGE_KEY, 'true');
                 document.getElementById('passwordOverlay').style.display = 'none';
                 document.getElementById('hub').style.display = 'block';
+                // Показываем блок с кнопкой в широкой версии
+                const hubLoginFixed = document.getElementById('hub-login-fixed');
+                if (hubLoginFixed && window.innerWidth >= 1024) {
+                    hubLoginFixed.style.display = 'block';
+                }
                 document.getElementById('mainContainer').style.display = 'block';
                 errorDiv.classList.remove('show');
                 // Обновляем позицию парящих элементов после отображения hub
@@ -741,10 +845,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             const savedColor = localStorage.getItem('selectedCharacterColor');
             if (savedColor) {
-                const backButton = document.querySelector('.back-button-hub');
-                if (backButton) {
-                    backButton.style.background = savedColor;
-                }
+                // Применяем цвет ко всем кнопкам "Назад" (широкая и мобильная версия)
+                const backButtons = document.querySelectorAll('.back-button-hub');
+                backButtons.forEach(button => {
+                    button.style.background = savedColor;
+                });
             }
             
             // Обновляем позицию парящих элементов и отступ контейнера после загрузки
@@ -761,7 +866,19 @@
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(updateFloatingElementsPosition, 100);
+            resizeTimeout = setTimeout(() => {
+                // Показываем/скрываем блок с кнопкой в зависимости от размера экрана
+                const hubLoginFixed = document.getElementById('hub-login-fixed');
+                const hub = document.getElementById('hub');
+                if (hubLoginFixed && hub && hub.style.display !== 'none') {
+                    if (window.innerWidth >= 1024) {
+                        hubLoginFixed.style.display = 'block';
+                    } else {
+                        hubLoginFixed.style.display = 'none';
+                    }
+                }
+                updateFloatingElementsPosition();
+            }, 100);
         });
     </script>
 </body>

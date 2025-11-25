@@ -22,6 +22,19 @@
             background: #f2f2f2; /* Новый фон */
         }
         
+        /* Блок кнопки "Войти" - закреплен (только для широкой версии) */
+        .hub-login-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #f2f2f2;
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            z-index: 1001;
+            display: none; /* По умолчанию скрыт, показывается только в широкой версии */
+        }
+
         /* HUB стили */
         .hub {
             position: fixed;
@@ -173,16 +186,37 @@
 
         /* Адаптивная ширина HUB */
         @media (min-width: 1024px) {
+            /* Показываем отдельный блок для кнопки "Войти" */
+            .hub-login-fixed {
+                display: block;
+                padding: 15px 40px;
+                border-bottom: none;
+            }
+            
+            .hub-login-fixed .hub-actions {
+                max-width: 1400px;
+                margin: 0 auto;
+                display: flex;
+                justify-content: flex-start;
+            }
+            
+            /* Скрываем кнопку в HUB для широкой версии */
+            .hub-actions-mobile {
+                display: none;
+            }
+            
+            /* HUB с логотипом и фразой - ниже блока с кнопкой */
             .hub {
-                padding: 20px 40px;
+                padding: 20px 40px 4px 40px; /* Уменьшен нижний padding на 80% (20px * 0.2 = 4px) */
                 min-height: 260px; /* Увеличиваем минимальную высоту на широких экранах для размещения логотипа и фразы */
                 overflow: visible; /* Разрешаем видимость всего содержимого */
+                top: 60px; /* Отступ сверху для блока с кнопкой */
             }
             
             .hub-content {
                 max-width: 1400px;
                 margin: 0 auto;
-                justify-content: space-between;
+                justify-content: center;
                 position: relative;
                 min-height: 240px; /* Минимальная высота для размещения логотипа и фразы */
             }
@@ -190,7 +224,7 @@
             .hub-logo-section {
                 position: absolute;
                 left: 50%;
-                top: 40px;
+                top: 0;
                 transform: translateX(-50%);
                 display: flex;
                 justify-content: center;
@@ -202,7 +236,7 @@
             }
             
             .hub-logo-section .logo {
-                max-height: 150px;
+                max-height: 250px;
             }
             
             .hub-logo-section .subtitle {
@@ -212,18 +246,19 @@
                 text-overflow: clip;
             }
             
-            .hub-actions {
-                order: 3;
-                flex-shrink: 0;
-            }
-            
             /* padding-top устанавливается динамически через JavaScript */
         }
 
         /* Очень широкие экраны - дополнительная защита от обрезания фразы */
         @media (min-width: 1920px) {
+            .hub-login-fixed {
+                padding: 20px 40px;
+            }
+            
             .hub {
+                padding: 20px 40px 4px 40px; /* Уменьшен нижний padding на 80% (20px * 0.2 = 4px) */
                 min-height: 280px; /* Еще больше высоты для очень широких экранов */
+                top: 70px; /* Больше отступ для большего блока с кнопкой */
             }
             
             .hub-content {
@@ -232,6 +267,11 @@
             
             .hub-logo-section {
                 max-width: calc(100% - 120px); /* Больше отступы для очень широких экранов */
+                top: 0;
+            }
+            
+            .hub-logo-section .logo {
+                max-height: 270px;
             }
             
             .hub-logo-section .subtitle {
@@ -272,21 +312,49 @@
         }
 
         @media (max-width: 768px) {
+            /* Скрываем отдельный блок кнопки в узкой версии */
+            .hub-login-fixed {
+                display: none;
+            }
+            
+            /* Показываем кнопку в HUB для узкой версии */
+            .hub-actions-mobile {
+                display: flex;
+            }
+            
             .hub {
                 padding: 12px 20px;
+                min-height: auto; /* Высота будет определяться содержимым */
+                top: 0; /* Убираем отступ сверху в узкой версии */
             }
             
             .hub-content {
                 max-width: 100%;
-                justify-content: center;
+                justify-content: flex-start;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+                position: relative;
             }
             
-            .hub-logo-section {
-                position: static;
-                transform: none;
-                flex: 1 1 100%;
+            /* Кнопка "Войти" вверху слева */
+            .hub-actions-mobile {
                 order: 1;
+                margin: 0;
+                align-self: flex-start;
+            }
+            
+            /* Логотип и фраза ниже кнопки по центру */
+            .hub-logo-section {
+                position: relative;
+                left: auto;
+                top: auto;
+                transform: none;
+                order: 2;
                 width: 100%;
+                margin: 0 auto;
+                align-self: center;
+                padding: 0;
             }
             
             .hub-logo-section .logo {
@@ -297,17 +365,17 @@
                 font-size: clamp(26.88px, 5.04vw, 40.32px); /* Уменьшение на 20% от увеличенного размера */
             }
             
-            .hub-actions {
-                order: 2;
-                margin: 10px auto 0;
-            }
-            
             /* padding-top устанавливается динамически через JavaScript */
         }
 
         @media (max-width: 480px) {
             .hub {
                 padding: 10px 15px;
+                min-height: auto; /* Высота будет определяться содержимым */
+            }
+            
+            .hub-content {
+                gap: 12px;
             }
             
             .hub-logo-section .logo {
@@ -779,8 +847,8 @@
         .character-menu-arrow {
             position: absolute;
             top: calc(100% + 5px);
-            left: 50%;
-            transform: translateX(-50%);
+            left: 0;
+            transform: translateX(0);
             width: 0;
             height: 0;
             border-left: 10px solid transparent;
@@ -796,23 +864,23 @@
 
         @keyframes bounceDown {
             0%, 100% {
-                transform: translateX(-50%) translateY(0);
+                transform: translateX(0) translateY(0);
             }
             50% {
-                transform: translateX(-50%) translateY(5px);
+                transform: translateX(0) translateY(5px);
             }
         }
 
         .character-menu-dropdown {
             position: absolute;
             top: calc(100% + 10px);
-            right: 0;
+            left: 0;
             background: transparent;
             padding: 0;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            align-items: center;
+            align-items: flex-start;
             white-space: nowrap;
             width: auto;
             min-width: auto;
@@ -1075,8 +1143,7 @@
             }
 
             .character-menu-dropdown {
-                left: 50%;
-                transform: translateX(-50%);
+                left: 0;
                 white-space: nowrap;
                 width: auto;
                 min-width: auto;
@@ -1167,8 +1234,7 @@
 
 
             .character-menu-dropdown {
-                left: 50%;
-                transform: translateX(-50%);
+                left: 0;
                 top: 60px;
                 white-space: nowrap;
                 width: auto;
@@ -1191,18 +1257,32 @@
     </style>
 </head>
 <body>
-    <!-- HUB блок -->
+    <!-- Блок кнопки "Войти" - закреплен (только для широкой версии) -->
+    <div class="hub-login-fixed" id="hub-login-fixed">
+        <div class="hub-actions">
+            <div class="character-menu">
+                <a href="#" class="hub-button" id="login-button">Войти</a>
+                <div class="character-menu-arrow" id="character-menu-arrow"></div>
+                <div class="character-menu-dropdown" id="character-menu-dropdown">
+                    <!-- Персонажи будут добавлены через JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUB блок с логотипом и фразой -->
     <div class="hub" id="hub">
         <div class="hub-content">
             <div class="hub-logo-section">
                 <img src="/images/logo.png" alt="ВМЕСТЕ" class="logo">
                 <p class="subtitle">хорошие люди объединяются играми</p>
             </div>
-            <div class="hub-actions">
+            <!-- Кнопка "Войти" для узкой версии (скрыта в широкой) -->
+            <div class="hub-actions hub-actions-mobile">
                 <div class="character-menu">
-                    <a href="#" class="hub-button" id="login-button">Войти</a>
-                    <div class="character-menu-arrow" id="character-menu-arrow"></div>
-                    <div class="character-menu-dropdown" id="character-menu-dropdown">
+                    <a href="#" class="hub-button" id="login-button-mobile">Войти</a>
+                    <div class="character-menu-arrow" id="character-menu-arrow-mobile"></div>
+                    <div class="character-menu-dropdown" id="character-menu-dropdown-mobile">
                         <!-- Персонажи будут добавлены через JS -->
                     </div>
                 </div>
@@ -1309,71 +1389,103 @@
 
         // Инициализация меню персонажей
         function initCharacterMenu() {
+            // Кнопки для широкой и узкой версии
             const loginButton = document.getElementById('login-button');
+            const loginButtonMobile = document.getElementById('login-button-mobile');
             const menuDropdown = document.getElementById('character-menu-dropdown');
+            const menuDropdownMobile = document.getElementById('character-menu-dropdown-mobile');
+            
+            // Функция для обновления цвета всех кнопок
+            function updateButtonColors(color) {
+                if (loginButton) loginButton.style.background = color;
+                if (loginButtonMobile) loginButtonMobile.style.background = color;
+            }
+            
+            // Функция для закрытия всех меню
+            function closeAllMenus() {
+                if (menuDropdown) menuDropdown.classList.remove('active');
+                if (menuDropdownMobile) menuDropdownMobile.classList.remove('active');
+            }
             
             // Устанавливаем персонажа по умолчанию
             const defaultChar = characters.find(c => c.id === selectedCharacterId);
             if (defaultChar) {
-                // Устанавливаем цвет фона кнопки "Войти"
-                loginButton.style.background = defaultChar.color;
+                updateButtonColors(defaultChar.color);
             }
             
-            // Создаем список персонажей
-            characters.forEach(char => {
-                const option = document.createElement('div');
-                option.className = 'character-option' + (char.id === selectedCharacterId ? ' selected' : '');
-                option.dataset.characterId = char.id;
+            // Функция для инициализации одного меню
+            function initMenu(button, dropdown) {
+                if (!button || !dropdown) return;
                 
-                const preview = document.createElement('div');
-                preview.className = 'character-preview';
-                const charSVG = createCharacterSVG(char.color, char.emotion, char.position, 32); // Уменьшено на 20% (40 * 0.8 = 32)
-                preview.appendChild(charSVG);
-                
-                option.appendChild(preview);
-                
-                option.addEventListener('click', () => {
-                    selectedCharacterId = char.id;
+                // Создаем список персонажей для этого меню
+                characters.forEach(char => {
+                    const option = document.createElement('div');
+                    option.className = 'character-option' + (char.id === selectedCharacterId ? ' selected' : '');
+                    option.dataset.characterId = char.id;
                     
-                    // Обновляем цвет фона кнопки "Войти"
-                    loginButton.style.background = char.color;
+                    const preview = document.createElement('div');
+                    preview.className = 'character-preview';
+                    const charSVG = createCharacterSVG(char.color, char.emotion, char.position, 32);
+                    preview.appendChild(charSVG);
                     
-                    // Сохраняем цвет персонажа в localStorage
-                    localStorage.setItem('selectedCharacterColor', char.color);
+                    option.appendChild(preview);
                     
-                    // Обновляем выделение
-                    document.querySelectorAll('.character-option').forEach(opt => {
-                        opt.classList.remove('selected');
+                    option.addEventListener('click', () => {
+                        selectedCharacterId = char.id;
+                        
+                        // Обновляем цвет всех кнопок
+                        updateButtonColors(char.color);
+                        
+                        // Сохраняем цвет персонажа в localStorage
+                        localStorage.setItem('selectedCharacterColor', char.color);
+                        
+                        // Обновляем выделение во всех меню
+                        document.querySelectorAll('.character-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                            if (opt.dataset.characterId === char.id) {
+                                opt.classList.add('selected');
+                            }
+                        });
+                        
+                        // Закрываем все меню
+                        closeAllMenus();
+                        
+                        // Сохраняем выбор в localStorage
+                        localStorage.setItem('selectedCharacter', char.id);
                     });
-                    option.classList.add('selected');
                     
-                    // Закрываем меню
-                    menuDropdown.classList.remove('active');
-                    
-                    // Сохраняем выбор в localStorage
-                    localStorage.setItem('selectedCharacter', char.id);
+                    dropdown.appendChild(option);
                 });
                 
-                menuDropdown.appendChild(option);
-            });
-            
-            // Функция переключения меню
-            function toggleMenu() {
-                menuDropdown.classList.toggle('active');
+                // Функция переключения меню
+                function toggleMenu() {
+                    closeAllMenus();
+                    dropdown.classList.toggle('active');
+                }
+                
+                // Обработчик клика на кнопку
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleMenu();
+                });
             }
             
-            // Обработчик клика на кнопку "Войти"
-            loginButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                toggleMenu();
-            });
+            // Инициализируем оба меню
+            initMenu(loginButton, menuDropdown);
+            initMenu(loginButtonMobile, menuDropdownMobile);
             
             // Закрытие при клике вне меню
             document.addEventListener('click', (e) => {
-                const characterMenu = document.querySelector('.character-menu');
-                if (!characterMenu.contains(e.target)) {
-                    menuDropdown.classList.remove('active');
+                const characterMenus = document.querySelectorAll('.character-menu');
+                let clickedInside = false;
+                characterMenus.forEach(menu => {
+                    if (menu.contains(e.target)) {
+                        clickedInside = true;
+                    }
+                });
+                if (!clickedInside) {
+                    closeAllMenus();
                 }
             });
             
@@ -1382,9 +1494,7 @@
             if (savedChar && characters.find(c => c.id === savedChar)) {
                 selectedCharacterId = savedChar;
                 const savedCharData = characters.find(c => c.id === savedChar);
-                // Устанавливаем цвет фона кнопки "Войти"
-                loginButton.style.background = savedCharData.color;
-                // Сохраняем цвет в localStorage для других страниц
+                updateButtonColors(savedCharData.color);
                 localStorage.setItem('selectedCharacterColor', savedCharData.color);
                 // Обновляем выделение в меню
                 document.querySelectorAll('.character-option').forEach(opt => {
@@ -1395,7 +1505,6 @@
                 });
             } else {
                 // Если нет сохраненного персонажа, устанавливаем цвет по умолчанию
-                const defaultChar = characters.find(c => c.id === selectedCharacterId);
                 if (defaultChar) {
                     localStorage.setItem('selectedCharacterColor', defaultChar.color);
                 }
@@ -1609,23 +1718,87 @@
             }
         }
 
+        // Функция для адаптации размера фразы под ширину логотипа
+        function adaptSubtitleToLogo() {
+            const logo = document.querySelector('.hub-logo-section .logo');
+            const subtitle = document.querySelector('.hub-logo-section .subtitle');
+            
+            if (!logo || !subtitle) return;
+            
+            // Ждем загрузки изображения
+            function adjustSize() {
+                const logoWidth = logo.offsetWidth;
+                if (logoWidth === 0) return; // Логотип еще не загружен
+                
+                // Сохраняем оригинальный размер шрифта из CSS для начальной точки
+                const baseFontSize = parseFloat(window.getComputedStyle(subtitle).fontSize) || 50;
+                
+                // Используем бинарный поиск для точного подбора размера
+                let minFontSize = 10;
+                let maxFontSize = 200;
+                let bestFontSize = baseFontSize;
+                const tolerance = 2; // Допустимая погрешность в пикселях
+                
+                // Бинарный поиск оптимального размера
+                for (let i = 0; i < 20; i++) { // Максимум 20 итераций
+                    const testFontSize = (minFontSize + maxFontSize) / 2;
+                    subtitle.style.fontSize = testFontSize + 'px';
+                    
+                    // Ждем перерисовки
+                    void subtitle.offsetWidth;
+                    
+                    const subtitleWidth = subtitle.scrollWidth;
+                    
+                    if (Math.abs(subtitleWidth - logoWidth) < tolerance) {
+                        bestFontSize = testFontSize;
+                        break;
+                    } else if (subtitleWidth < logoWidth) {
+                        minFontSize = testFontSize;
+                        bestFontSize = testFontSize;
+                    } else {
+                        maxFontSize = testFontSize;
+                    }
+                }
+                
+                // Устанавливаем найденный размер с небольшим запасом (98% для безопасности)
+                subtitle.style.fontSize = (bestFontSize * 0.98) + 'px';
+            }
+            
+            // Если изображение уже загружено
+            if (logo.complete) {
+                adjustSize();
+            } else {
+                // Ждем загрузки изображения
+                logo.addEventListener('load', adjustSize, { once: true });
+                logo.addEventListener('error', adjustSize, { once: true }); // На случай ошибки загрузки
+            }
+            
+            // Также вызываем сразу (на случай если изображение уже загружено)
+            setTimeout(adjustSize, 100);
+        }
+
         // Функция для вычисления высоты HUB и установки отступа блока с карточками
         function updateContainerPadding() {
             const hub = document.getElementById('hub');
+            const hubLoginFixed = document.getElementById('hub-login-fixed');
             const quizzesSection = document.querySelector('.quizzes-section');
             
             if (hub && quizzesSection) {
-                // Получаем высоту HUB
-                const hubHeight = hub.offsetHeight;
-                // Устанавливаем отступ: высота HUB + дополнительный отступ
-                // Для широкой версии (>= 1024px) увеличиваем отступ, чтобы карточки не перекрывались логотипом
-                // Для узкой версии (<= 768px) уменьшаем отступ
                 const isWideScreen = window.innerWidth >= 1024;
                 const isNarrowScreen = window.innerWidth <= 768;
+                
+                let totalHeight = hub.offsetHeight;
+                
+                // В широкой версии учитываем высоту обоих блоков
+                if (isWideScreen && hubLoginFixed) {
+                    totalHeight += hubLoginFixed.offsetHeight;
+                }
+                
+                // Устанавливаем отступ: высота блоков + дополнительный отступ
                 let additionalPadding;
                 if (isWideScreen) {
-                    // Минимальный отступ на широких экранах, чтобы карточки были близко к HUB
-                    additionalPadding = 40;
+                    // Минимальный отступ на широких экранах, чтобы карточки были близко к концу блока с логотипом
+                    additionalPadding = 0;
                 } else if (isNarrowScreen) {
                     // Для узких экранов увеличиваем отступ, чтобы опустить карточки ниже
                     additionalPadding = 60;
@@ -1634,7 +1807,7 @@
                     additionalPadding = 40;
                     quizzesSection.style.marginTop = '0';
                 }
-                const paddingTop = hubHeight + additionalPadding;
+                const paddingTop = totalHeight + additionalPadding;
                 quizzesSection.style.paddingTop = paddingTop + 'px';
                 
                 // Также обновляем позицию парящего элемента
@@ -1646,7 +1819,7 @@
                 }
                 style.textContent = `
                     .quizzes-section::before {
-                        top: ${hubHeight + 20}px !important;
+                        top: ${totalHeight + 20}px !important;
                     }
                 `;
             }
@@ -1658,7 +1831,10 @@
         // Переопределяем loadQuizzes, чтобы вызывать updateContainerPadding после загрузки
         loadQuizzes = async function() {
             await originalLoadQuizzes();
-            setTimeout(updateContainerPadding, 100);
+            setTimeout(() => {
+                updateContainerPadding();
+                adaptSubtitleToLogo();
+            }, 100);
         };
         
         // Загружаем квизы при загрузке страницы
@@ -1667,20 +1843,34 @@
         // Инициализируем меню персонажей
         initCharacterMenu();
         
-        // Вызываем функцию после инициализации меню и загрузки квизов
+        // Вызываем функции после инициализации меню и загрузки квизов
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(updateContainerPadding, 300); // Задержка для полной загрузки HUB и меню
+                setTimeout(() => {
+                    updateContainerPadding();
+                    adaptSubtitleToLogo();
+                }, 300); // Задержка для полной загрузки HUB и меню
             });
         } else {
-            setTimeout(updateContainerPadding, 300);
+            setTimeout(() => {
+                updateContainerPadding();
+                adaptSubtitleToLogo();
+            }, 300);
         }
         
-        // Вызываем функцию при изменении размера окна
+        // Вызываем функции при изменении размера окна
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(updateContainerPadding, 100);
+            resizeTimeout = setTimeout(() => {
+                updateContainerPadding();
+                adaptSubtitleToLogo();
+            }, 100);
+        });
+        
+        // Также адаптируем при загрузке изображения логотипа
+        window.addEventListener('load', () => {
+            adaptSubtitleToLogo();
         });
     </script>
 
