@@ -578,7 +578,7 @@
                 <input type="text" id="player-name" placeholder="называйте меня..." maxlength="20" autocomplete="off">
             </div>
             <button class="btn full-width" id="start-btn">Начать игру</button>
-            <a href="/leaderboard.html" class="btn full-width" style="margin-top: 20px; background: rgba(0, 193, 89, 0.85); color: white; text-decoration: none; display: inline-block; text-align: center;">
+            <a href="#" id="leaderboard-link-1" class="btn full-width" style="margin-top: 20px; background: rgba(0, 193, 89, 0.85); color: white; text-decoration: none; display: inline-block; text-align: center;">
                 📊 Посмотреть рейтинг
             </a>
         </div>
@@ -611,7 +611,7 @@
                     </div>
                 </div>
                 <button class="btn full-width" id="play-again-btn">Играть снова</button>
-                <a href="/leaderboard.html" class="btn full-width" style="margin-top: 16px; background: rgba(0, 193, 89, 0.85); color: white; text-decoration: none; display: inline-block; text-align: center;">
+                <a href="#" id="leaderboard-link-2" class="btn full-width" style="margin-top: 16px; background: rgba(0, 193, 89, 0.85); color: white; text-decoration: none; display: inline-block; text-align: center;">
                     📊 Посмотреть рейтинг
                 </a>
             </div>
@@ -626,6 +626,7 @@
         let startTime = null;
         let timerInterval = null;
         let timeLeft = 0;
+        let questionStartTime = null; // Время начала текущего вопроса
         let playerName = '';
 
         // Получение ID квиза из URL
@@ -703,6 +704,8 @@
                     throw new Error('Квиз не найден');
                 }
                 quiz = await response.json();
+                // Обновляем ссылки на рейтинг после загрузки квиза
+                updateLeaderboardLinks();
             } catch (error) {
                 console.error('Ошибка загрузки квиза:', error);
                 alert('Не удалось загрузить квиз');
@@ -726,6 +729,25 @@
                 // Для других квизов просто загружаем
                 await loadQuiz();
             }
+            
+            // Устанавливаем ссылки на рейтинг с параметрами
+            updateLeaderboardLinks();
+        }
+        
+        // Функция для обновления ссылок на рейтинг
+        function updateLeaderboardLinks() {
+            let leaderboardUrl = '/leaderboard.html';
+            if (quizId) {
+                leaderboardUrl += `?quiz=${quizId}`;
+                if (passwordParam === 'verified' || passwordVerified) {
+                    leaderboardUrl += '&password=verified';
+                }
+            }
+            
+            const link1 = document.getElementById('leaderboard-link-1');
+            const link2 = document.getElementById('leaderboard-link-2');
+            if (link1) link1.href = leaderboardUrl;
+            if (link2) link2.href = leaderboardUrl;
         }
 
         // Начало игры
@@ -824,6 +846,9 @@
                 optionsDiv.appendChild(btn);
             });
 
+            // Сохраняем время начала вопроса для точного расчета времени ответа
+            questionStartTime = Date.now();
+            
             // Таймер в HUB
             timeLeft = question.time;
             const hubTimer = document.getElementById('hub-timer');
@@ -866,7 +891,10 @@
             options.forEach(btn => btn.disabled = true);
 
             const isCorrect = answerIndex === question.correct;
-            const answerTime = question.time - timeLeft;
+            
+            // Точное время ответа в миллисекундах (используем Date.now() вместо timeLeft для точности)
+            const answerTimeMs = questionStartTime ? (Date.now() - questionStartTime) : 0;
+            const answerTimeSeconds = answerTimeMs / 1000; // Конвертируем в секунды
 
             if (isCorrect) {
                 // Правильный ответ
@@ -875,7 +903,9 @@
                 document.getElementById('answer-feedback').className = 'answer-feedback correct';
                 
                 // Начисление очков
-                const timeBonus = Math.max(0, question.time * 1000 - answerTime * 1000);
+                // Бонус = (время вопроса - время ответа) в миллисекундах
+                // Чем быстрее ответил, тем больше бонус
+                const timeBonus = Math.max(0, question.time * 1000 - answerTimeMs);
                 const points = 100 + Math.floor(timeBonus / 100);
                 score += points;
                 correctAnswers++;
@@ -941,12 +971,13 @@
         }
 
         // Кнопка "Играть снова"
-        document.getElementById('play-again-btn').addEventListener('click', () => {
+        document.getElementById('play-again-btn').addEventListener('click', async () => {
             // Сбрасываем все переменные игры
             currentQuestion = 0;
             score = 0;
             correctAnswers = 0;
             startTime = null;
+            questionStartTime = null;
             timeLeft = 0;
             
             // Останавливаем таймер, если он запущен
@@ -954,6 +985,16 @@
                 clearInterval(timerInterval);
                 timerInterval = null;
             }
+            
+            // Скрываем экраны игры и результатов
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('results-screen').style.display = 'none';
+            
+            // Показываем экран ввода имени
+            document.getElementById('name-input-screen').style.display = 'block';
+            
+            // Перезагружаем квиз с сервера, чтобы получить новые перемешанные вопросы
+            await loadQuiz();
             
             // Очищаем обратную связь
             const answerFeedback = document.getElementById('answer-feedback');

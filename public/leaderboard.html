@@ -257,7 +257,7 @@
     <div class="container">
         <!-- Кнопка назад -->
         <div class="back-button">
-            <a href="/index.html" class="back-button-hub">
+            <a href="#" id="back-link" class="back-button-hub">
                 ← Назад
             </a>
         </div>
@@ -284,6 +284,19 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const quizId = urlParams.get('quiz') || 'friends-quiz';
+        const password = urlParams.get('password') || '';
+        
+        // Определяем URL для кнопки "Назад"
+        function getBackUrl() {
+            // Если есть параметры quiz и password, возвращаем ссылку на solo.html
+            if (quizId && password) {
+                return `/solo.html?quiz=${quizId}&password=${password}`;
+            } else if (quizId) {
+                return `/solo.html?quiz=${quizId}`;
+            }
+            // Иначе возвращаем на главную
+            return '/index.html';
+        }
 
         async function loadLeaderboard() {
             const loading = document.getElementById('loading');
@@ -372,9 +385,16 @@
 
         document.getElementById('refresh-btn').addEventListener('click', loadLeaderboard);
 
-        // Применяем цвет выбранного персонажа к кнопке "Назад"
+        // Применяем цвет выбранного персонажа к кнопке "Назад" и устанавливаем правильную ссылку
         document.addEventListener('DOMContentLoaded', function() {
             const savedColor = localStorage.getItem('selectedCharacterColor');
+            const backLink = document.getElementById('back-link');
+            
+            if (backLink) {
+                // Устанавливаем правильную ссылку для кнопки "Назад"
+                backLink.href = getBackUrl();
+            }
+            
             if (savedColor) {
                 const backButton = document.querySelector('.back-button-hub');
                 if (backButton) {

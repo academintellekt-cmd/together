@@ -1140,8 +1140,12 @@ io.on('connection', (socket) => {
     });
 
     // Начисление очков
+    // Бонус за скорость: чем быстрее ответил, тем больше бонус
+    // Формула: базовые 100 баллов + бонус (время вопроса - время ответа) / 100
     let points = 0;
     if (isCorrect) {
+      // answerTime уже в миллисекундах (Date.now() - room.startTime)
+      // question.time в секундах, поэтому умножаем на 1000
       const timeBonus = Math.max(0, question.time * 1000 - answerTime);
       points = 100 + Math.floor(timeBonus / 100);
       player.score += points;
