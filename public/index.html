@@ -35,6 +35,8 @@
             border-bottom: none;
             box-shadow: none;
             width: 100%;
+            overflow: visible; /* Разрешаем видимость всего содержимого, включая фразу */
+            min-height: 240px; /* Минимальная высота для размещения логотипа и фразы */
         }
 
         .hub-content {
@@ -60,6 +62,10 @@
             transform: translateX(-50%);
             gap: 5px;
             pointer-events: none;
+            width: 100%; /* Полная ширина для центрирования */
+            max-width: 100%; /* Ограничиваем максимальную ширину */
+            padding: 0 20px; /* Отступы по бокам для предотвращения обрезания */
+            box-sizing: border-box;
         }
         
         .hub-logo-section * {
@@ -84,6 +90,9 @@
             font-weight: 400;
             line-height: 1.2;
             white-space: nowrap;
+            overflow: visible; /* Разрешаем видимость всей фразы */
+            text-overflow: clip; /* Не обрезаем текст */
+            max-width: 100%; /* Ограничиваем ширину */
         }
 
         .hub-actions {
@@ -141,7 +150,7 @@
         .quizzes-section {
             width: 100%;
             margin: 0 auto;
-            padding: 40px 20px 20px;
+            padding: 0 20px 20px; /* padding-top устанавливается динамически через JavaScript */
             position: relative;
             z-index: 2;
             text-align: center;
@@ -166,6 +175,8 @@
         @media (min-width: 1024px) {
             .hub {
                 padding: 20px 40px;
+                min-height: 260px; /* Увеличиваем минимальную высоту на широких экранах для размещения логотипа и фразы */
+                overflow: visible; /* Разрешаем видимость всего содержимого */
             }
             
             .hub-content {
@@ -173,6 +184,7 @@
                 margin: 0 auto;
                 justify-content: space-between;
                 position: relative;
+                min-height: 240px; /* Минимальная высота для размещения логотипа и фразы */
             }
             
             .hub-logo-section {
@@ -183,6 +195,10 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                max-width: calc(100% - 80px); /* Учитываем padding контейнера */
+                width: auto;
+                padding: 0 20px; /* Отступы по бокам */
+                box-sizing: border-box;
             }
             
             .hub-logo-section .logo {
@@ -191,6 +207,9 @@
             
             .hub-logo-section .subtitle {
                 font-size: clamp(33.6px, 6.3vw, 50.4px); /* Увеличение на 40% */
+                white-space: nowrap;
+                overflow: visible;
+                text-overflow: clip;
             }
             
             .hub-actions {
@@ -199,6 +218,25 @@
             }
             
             /* padding-top устанавливается динамически через JavaScript */
+        }
+
+        /* Очень широкие экраны - дополнительная защита от обрезания фразы */
+        @media (min-width: 1920px) {
+            .hub {
+                min-height: 280px; /* Еще больше высоты для очень широких экранов */
+            }
+            
+            .hub-content {
+                min-height: 260px;
+            }
+            
+            .hub-logo-section {
+                max-width: calc(100% - 120px); /* Больше отступы для очень широких экранов */
+            }
+            
+            .hub-logo-section .subtitle {
+                font-size: clamp(33.6px, 4vw, 60px); /* Ограничиваем максимальный размер на очень широких экранах */
+            }
         }
 
         @media (max-width: 1023px) and (min-width: 769px) {
@@ -1586,7 +1624,8 @@
                 const isNarrowScreen = window.innerWidth <= 768;
                 let additionalPadding;
                 if (isWideScreen) {
-                    additionalPadding = 200;
+                    // Минимальный отступ на широких экранах, чтобы карточки были близко к HUB
+                    additionalPadding = 40;
                 } else if (isNarrowScreen) {
                     // Для узких экранов увеличиваем отступ, чтобы опустить карточки ниже
                     additionalPadding = 60;

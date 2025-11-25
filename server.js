@@ -1164,12 +1164,12 @@ io.on('connection', (socket) => {
         clearTimeout(questionTimers.get(roomCode));
         questionTimers.delete(roomCode);
       }
-      // Переходим к результатам через небольшую задержку
+      // Переходим к результатам через небольшую задержку (0.75 секунды)
       setTimeout(() => {
         if (room.gameState === 'question') {
           showResults(roomCode);
         }
-      }, 500);
+      }, 750);
     }
   });
 
@@ -1221,6 +1221,26 @@ io.on('connection', (socket) => {
       totalPlayers: room.players.length,
       allReady: allReady
     });
+
+    // Автоматически переходим к следующему вопросу, когда все игроки готовы
+    if (allReady && room.gameState === 'results') {
+      // Небольшая задержка для визуальной обратной связи
+      setTimeout(() => {
+        // Проверяем еще раз, что игра все еще в состоянии results и все готовы
+        const currentRoom = rooms.get(roomCode);
+        if (currentRoom && currentRoom.gameState === 'results') {
+          const currentReadyCount = currentRoom.readyPlayers.size;
+          if (currentReadyCount === currentRoom.players.length && currentRoom.players.length > 0) {
+            currentRoom.currentQuestion++;
+            if (currentRoom.currentQuestion < currentRoom.questions.length) {
+              showQuestion(roomCode);
+            } else {
+              endGame(roomCode);
+            }
+          }
+        }
+      }, 500); // Небольшая задержка для плавности
+    }
   }
 
   // Игрок подтверждает готовность к следующему вопросу

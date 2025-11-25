@@ -81,6 +81,14 @@
             margin: 30px 0;
             font-family: 'Days One', sans-serif;
             color: var(--color-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: all;
+        }
+        
+        .room-code:hover {
+            transform: scale(1.05);
+            color: #00C159;
         }
 
         #qrcode {
@@ -1068,9 +1076,21 @@
                     
                     roomCode = data.roomCode;
                     
-                    // Скрываем код комнаты (не показываем)
-                    roomCodeElement.style.display = 'none';
+                    // Показываем код комнаты и делаем его кликабельным
+                    roomCodeElement.style.display = 'block';
+                    roomCodeElement.textContent = roomCode;
                     console.log('Код комнаты установлен:', roomCode);
+                    
+                    // Добавляем обработчик клика на код комнаты
+                    roomCodeElement.onclick = async () => {
+                        // Получаем URL сервера с IP-адресом
+                        if (!serverUrl) {
+                            await getServerUrl();
+                        }
+                        const baseUrl = serverUrl || window.location.origin;
+                        const playerUrl = `${baseUrl}/player.html?room=${roomCode}`;
+                        window.open(playerUrl, '_blank');
+                    };
                     
                     
                     // Генерируем QR-код

@@ -891,11 +891,11 @@
                     `❌ Неправильно!<br><span class="correct-answer">${question.options[question.correct]}</span>`;
             }
 
-            // Переход к следующему вопросу через 2 секунды
+            // Переход к следующему вопросу через 0.75 секунды
             setTimeout(() => {
                 currentQuestion++;
                 showQuestion();
-            }, 2000);
+            }, 750);
         }
 
         async function endGame() {
