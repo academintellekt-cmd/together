@@ -5,10 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Квиз - Главный экран</title>
     <link rel="stylesheet" href="/styles/brand-style.css">
+    <link rel="stylesheet" href="/styles/hub1.css">
+    <link rel="stylesheet" href="/styles/hub2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
     <style>
         body {
             font-family: 'Montserrat', sans-serif;
@@ -72,23 +77,18 @@
             max-width: 800px;
             width: 100%;
             text-align: center;
-        }
-
-        .room-code {
-            font-size: 72px;
-            font-weight: bold;
-            letter-spacing: 10px;
-            margin: 30px 0;
-            font-family: 'Days One', sans-serif;
-            color: var(--color-dark);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            user-select: all;
+            position: relative;
+            z-index: 1; /* Ниже Hub2 (z-index: 1000), но выше парящих элементов (z-index: -1) */
         }
         
-        .room-code:hover {
-            transform: scale(1.05);
-            color: #00C159;
+        /* Все элементы контента должны быть ниже Hub2 */
+        .lobby-screen,
+        .qr-container,
+        .qr-instruction,
+        #qrcode,
+        .player-link {
+            position: relative;
+            z-index: 1; /* Ниже Hub2 */
         }
 
         #qrcode {
@@ -97,7 +97,21 @@
             width: clamp(250px, 40vw, 400px);
             height: clamp(250px, 40vw, 400px);
             max-width: 100%;
-            cursor: pointer;
+            cursor: default;
+        }
+        
+        .player-link {
+            margin-top: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            color: #354fba;
+            text-decoration: underline;
+            word-break: break-all;
+            max-width: 100%;
+        }
+        
+        .player-link:hover {
+            color: #00C159;
         }
 
         .qr-container {
@@ -146,10 +160,6 @@
                 height: clamp(180px, 60vw, 250px);
             }
             
-            .room-code {
-                font-size: 48px;
-                letter-spacing: 6px;
-            }
         }
 
         .game-screen {
@@ -286,150 +296,24 @@
             margin-bottom: 40px;
         }
 
-        /* HUB стили */
-        .hub {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(242, 242, 242, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 15px 20px;
-            z-index: 1000;
-            border-bottom: none;
-            box-shadow: none;
-        }
-
-        .hub-content {
-            max-width: 100%;
-            margin: 0 auto;
-            display: flex;
-            justify-content: flex-start;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 15px;
-            position: relative;
-            min-height: 50px;
-        }
-
-        /* Контейнер для игроков на странице - сразу после HUB */
-        .players-container {
-            display: flex !important;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            padding: 20px;
-            background: transparent;
-            position: fixed;
-            top: 70px; /* Высота HUB примерно 60-70px */
-            left: 0;
-            right: 0;
-            z-index: 10;
-            min-height: 60px;
-            margin: 0 auto;
-            visibility: visible !important;
-            opacity: 1 !important;
-            pointer-events: none; /* Позволяем кликам проходить сквозь */
-        }
-        
-        .players-container .player-icon {
-            pointer-events: auto; /* Но сами иконки кликабельны */
-        }
-
-        /* Иконка игрока */
-        .player-icon {
-            display: inline-flex !important;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 18px;
-            border-radius: 12px;
-            font-family: 'Days One', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            color: #FFFFFF !important;
-            border: 2px solid;
-            box-shadow: 
-                0 2px 0px rgba(0, 0, 0, 0.2),
-                0 4px 8px rgba(0, 0, 0, 0.1);
-            white-space: nowrap;
-            cursor: default;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            transition: all 0.3s;
-            min-width: 80px;
-            text-align: center;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-
-        .player-icon:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 6px 0px rgba(0, 0, 0, 0.3),
-                0 8px 16px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Состояние ожидания - красный */
-        .player-icon.waiting {
-            background: #ff7664 !important;
-            border-color: #ff7664 !important;
-            color: #FFFFFF !important;
-        }
-
-        /* Состояние готов - зеленый */
-        .player-icon.ready {
-            background: #00C159 !important;
-            border-color: #00C159 !important;
-            color: #FFFFFF !important;
-        }
-
-        .hub-player-initials {
-            font-size: 14px;
-            font-weight: 700;
-            line-height: 1;
-        }
-
-        .hub-actions {
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            flex-shrink: 0;
-            align-self: flex-start;
-        }
-
-        /* Номер вопроса по центру (как в solo.html) */
-        .hub-question-number-wrapper {
+        /* Номер вопроса по центру (для Hub1 во время игры) */
+        .hub1-question-number {
             position: absolute;
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none;
-        }
-
-        .hub-question-number {
             font-family: 'Montserrat', sans-serif;
             font-size: 14px;
             font-weight: 600;
             color: #393639;
             opacity: 0.8;
             white-space: nowrap;
+            display: none;
         }
 
-        /* Элементы игры в HUB (таймер справа) */
-        .hub-game-info {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-shrink: 0;
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .hub-timer {
+        /* Таймер справа (для Hub1 во время игры) */
+        .hub1-timer {
             font-family: 'Days One', sans-serif;
             font-size: 20px;
             font-weight: 700;
@@ -443,19 +327,10 @@
             box-shadow: 
                 0 2px 0px rgba(0, 0, 0, 0.15),
                 0 2px 4px rgba(0, 0, 0, 0.1);
-            color: #393639;
-            min-width: 40px;
-            text-align: center;
-            padding: 4px 12px;
-            background: rgba(245, 245, 245, 0.85);
-            border: 2px solid #393639;
-            border-radius: 8px;
-            box-shadow: 
-                0 2px 0px rgba(0, 0, 0, 0.15),
-                0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
         }
 
-        .hub-timer.urgent {
+        .hub1-timer.urgent {
             color: #ff7664;
             background: rgba(255, 118, 100, 0.15);
             border-color: #ff7664;
@@ -466,7 +341,6 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
-
 
         @keyframes spin {
             from { transform: rotate(0deg); }
@@ -482,214 +356,13 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-        
-        /* Унифицированная кнопка Назад */
-        .back-button-hub {
-            display: inline-block;
-            padding: 8px 16px;
-            background: rgba(245, 245, 245, 0.85);
-            border: 2px solid #393639;
-            border-radius: 12px;
-            color: #393639;
-            text-decoration: none;
-            font-family: 'Days One', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            transition: all 0.3s;
-            box-shadow: 
-                0 2px 0px rgba(0, 0, 0, 0.2),
-                0 4px 8px rgba(0, 0, 0, 0.1);
-            white-space: nowrap;
-            cursor: pointer;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        
-        .back-button-hub:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 6px 0px rgba(0, 0, 0, 0.3),
-                0 8px 16px rgba(0, 0, 0, 0.15);
-        }
-        
-        .back-button-hub:active {
-            transform: translateY(0px);
-        }
-
-        /* Адаптивная ширина HUB */
-        @media (min-width: 1024px) {
-            .hub {
-                padding: 20px 40px;
-            }
-            
-            .hub-content {
-                max-width: 1400px;
-                margin: 0 auto;
-                justify-content: flex-start;
-                align-items: flex-start;
-                position: relative;
-            }
-            
-            .hub-actions {
-                flex-shrink: 0;
-            }
-            
-            .hub-game-info {
-                right: 40px;
-            }
-        }
-
-        @media (max-width: 1023px) and (min-width: 769px) {
-            .hub {
-                padding: 15px 30px;
-            }
-            
-            .hub-content {
-                max-width: 100%;
-                justify-content: flex-start;
-            }
-            
-            .hub-actions {
-                order: 1;
-                flex-shrink: 0;
-            }
-            
-            .hub-game-info {
-                right: 30px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .hub {
-                padding: 12px 20px;
-            }
-            
-            .hub-content {
-                max-width: 100%;
-                justify-content: center;
-            }
-            
-            .hub-logo-section {
-                position: static;
-                transform: none;
-                flex: 1 1 100%;
-                order: 1;
-                width: 100%;
-            }
-            
-            .hub-logo-section .logo {
-                max-height: 80px;
-            }
-            
-            .hub-logo-section .subtitle {
-                font-size: 18px;
-            }
-            
-            .hub-actions {
-                order: 2;
-                margin: 10px 0 0 0;
-            }
-
-            .back-button-hub {
-                padding: 7px 14px;
-                font-size: 13px;
-            }
-            
-            .players-container {
-                padding: 15px 12px;
-                gap: 8px;
-            }
-            
-            .player-icon {
-                padding: 8px 14px;
-                font-size: 12px;
-            }
-            
-            .hub-game-info {
-                right: 20px;
-                gap: 15px;
-            }
-            
-            .hub-question-number {
-                font-size: 12px;
-            }
-            
-            .hub-timer {
-                font-size: 18px;
-                padding: 3px 10px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hub {
-                padding: 10px 15px;
-            }
-            
-            .hub-logo-section .logo {
-                max-height: 60px;
-            }
-            
-            .hub-logo-section .subtitle {
-                font-size: 16px;
-            }
-
-            .back-button-hub {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-            
-            .players-container {
-                padding: 12px 10px;
-                gap: 6px;
-            }
-            
-            .player-icon {
-                padding: 6px 12px;
-                font-size: 11px;
-                min-width: 60px;
-            }
-            
-            .hub-game-info {
-                right: 15px;
-                gap: 10px;
-            }
-            
-            .hub-question-number {
-                font-size: 11px;
-            }
-            
-            .hub-timer {
-                font-size: 16px;
-                padding: 2px 8px;
-            }
-        }
     </style>
 </head>
 <body class="with-hub">
-    <!-- HUB блок -->
-    <div class="hub" id="hub">
-        <div class="hub-content">
-            <div class="hub-actions">
-                <a href="/gnu-quiz.html" class="back-button-hub">← Назад</a>
-            </div>
-            <div class="hub-question-number-wrapper" id="hub-question-number-wrapper" style="display: none;">
-                <div class="hub-question-number" id="hub-question-number">Вопрос 1 из 15</div>
-            </div>
-            <div class="hub-game-info" id="hub-game-info" style="display: none;">
-                <div class="hub-timer" id="hub-timer">15</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Контейнер для игроков на странице -->
-    <div class="players-container" id="players-container">
-        <!-- Игроки будут добавлены динамически -->
-    </div>
 
     <div class="container">
         <!-- Лобби -->
         <div id="lobby-screen" class="lobby-screen">
-            <div id="room-code" class="room-code" style="display: none;"></div>
             <div class="status" style="display: none;"></div>
             <div id="qr-placeholder" class="qr-placeholder" style="display: none;">
                 Загрузка QR-кода...
@@ -697,11 +370,9 @@
             <div id="qr-container" class="qr-container" style="display: none;">
                 <p class="qr-instruction">наведи камеру или<br>нажми на QR для подключения</p>
                 <canvas id="qrcode"></canvas>
+                <a id="player-link" href="#" target="_blank" class="player-link" style="display: none;"></a>
             </div>
             
-            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 32px;">
-                <button id="start-btn" class="btn">Начать игру</button>
-            </div>
         </div>
 
 
@@ -963,19 +634,32 @@
                         qrContainer.style.display = 'flex';
                         console.log('QR-код успешно сгенерирован через API');
                         
-                        // Добавляем обработчик клика на QR-код для открытия ссылки
-                        qrCanvas.onclick = function() {
-                            window.open(playerUrl, '_blank');
-                        };
+                        // Добавляем ссылку под QR-кодом
+                        const playerLink = document.getElementById('player-link');
+                        if (playerLink) {
+                            playerLink.href = playerUrl;
+                            playerLink.textContent = playerUrl;
+                            playerLink.style.display = 'block';
+                        }
                     } catch (error) {
                         console.error('Ошибка при отрисовке QR-кода:', error);
                         // Если не получилось нарисовать на canvas, просто показываем изображение
+                        const qrInstruction = qrContainer.querySelector('.qr-instruction');
                         qrContainer.innerHTML = '';
-                        img.style.cursor = 'pointer';
-                        img.onclick = function() {
-                            window.open(playerUrl, '_blank');
-                        };
+                        if (qrInstruction) {
+                            qrContainer.appendChild(qrInstruction);
+                        }
                         qrContainer.appendChild(img);
+                        
+                        // Добавляем ссылку под QR-кодом
+                        const playerLink = document.createElement('a');
+                        playerLink.id = 'player-link';
+                        playerLink.href = playerUrl;
+                        playerLink.textContent = playerUrl;
+                        playerLink.className = 'player-link';
+                        playerLink.target = '_blank';
+                        qrContainer.appendChild(playerLink);
+                        
                         qrPlaceholder.style.display = 'none';
                         qrContainer.style.display = 'flex';
                     }
@@ -1000,12 +684,10 @@
 
             // Создание комнаты
             async function createRoom(password = null) {
-                const roomCodeElement = document.getElementById('room-code');
                 const qrPlaceholder = document.getElementById('qr-placeholder');
                 
                 try {
                     console.log('Попытка создать комнату...');
-                    roomCodeElement.textContent = 'Подключение к серверу...';
                     
                     // Сначала получаем IP-адрес сервера
                     await getServerUrl();
@@ -1075,23 +757,13 @@
                     }
                     
                     roomCode = data.roomCode;
-                    
-                    // Показываем код комнаты и делаем его кликабельным
-                    roomCodeElement.style.display = 'block';
-                    roomCodeElement.textContent = roomCode;
                     console.log('Код комнаты установлен:', roomCode);
                     
-                    // Добавляем обработчик клика на код комнаты
-                    roomCodeElement.onclick = async () => {
-                        // Получаем URL сервера с IP-адресом
-                        if (!serverUrl) {
-                            await getServerUrl();
-                        }
-                        const baseUrl = serverUrl || window.location.origin;
-                        const playerUrl = `${baseUrl}/player.html?room=${roomCode}`;
-                        window.open(playerUrl, '_blank');
-                    };
-                    
+                    // Показываем кнопку "Начать игру" в Hub1
+                    const hub1StartBtn = document.getElementById('hub1-start-btn') || window.hub1StartButton;
+                    if (hub1StartBtn) {
+                        hub1StartBtn.style.display = 'inline-block';
+                    }
                     
                     // Генерируем QR-код
                     console.log('Начинаем генерацию QR-кода...');
@@ -1101,7 +773,6 @@
                     socket.emit('host-join', roomCode);
                 } catch (error) {
                     console.error('Ошибка создания комнаты:', error);
-                    roomCodeElement.textContent = 'Ошибка подключения';
                     
                     // Показываем подробную ошибку
                     if (qrPlaceholder) {
@@ -1160,15 +831,15 @@
             // Хранилище данных игроков
             let playersData = new Map(); // playerId -> {name, ready}
 
-            // Обновление игроков на странице
+            // Обновление игроков в Hub1
             function updateHub() {
-                const playersContainer = document.getElementById('players-container');
-                if (!playersContainer) {
-                    console.error('Контейнер игроков не найден!');
-                    return;
-                }
-                
-                playersContainer.innerHTML = '';
+                // Удаляем всех игроков из Hub1
+                document.querySelectorAll('.hub1-player-icon').forEach(icon => {
+                    const playerId = icon.dataset.playerId;
+                    if (playerId) {
+                        Hub1.removePlayerIcon(playerId);
+                    }
+                });
                 
                 console.log('Обновление игроков. Всего игроков:', playersData.size);
                 
@@ -1177,77 +848,12 @@
                     return;
                 }
                 
+                // Добавляем игроков в Hub1
                 playersData.forEach((data, playerId) => {
-                    console.log('Создание иконки игрока:', playerId, data);
-                    
-                    const playerIcon = document.createElement('div');
-                    playerIcon.className = 'player-icon';
-                    
-                    // Определяем состояние: ready (зеленый) или waiting (красный)
-                    if (data.ready) {
-                        playerIcon.classList.add('ready');
-                    } else {
-                        playerIcon.classList.add('waiting');
-                    }
-                    
-                    // Добавляем имя игрока
-                    if (data.name && data.name.trim()) {
-                        playerIcon.textContent = data.name;
-                    } else {
-                        playerIcon.textContent = 'Player';
-                    }
-                    
-                    // Убеждаемся, что элемент видим - применяем все стили явно
-                    playerIcon.style.display = 'inline-flex';
-                    playerIcon.style.opacity = '1';
-                    playerIcon.style.visibility = 'visible';
-                    playerIcon.style.position = 'relative';
-                    playerIcon.style.zIndex = '10';
-                    
-                    // Применяем цвета в зависимости от состояния
-                    if (data.ready) {
-                        playerIcon.style.background = '#00C159';
-                        playerIcon.style.borderColor = '#00C159';
-                        playerIcon.style.color = '#FFFFFF';
-                    } else {
-                        playerIcon.style.background = '#ff7664';
-                        playerIcon.style.borderColor = '#ff7664';
-                        playerIcon.style.color = '#FFFFFF';
-                    }
-                    
-                    playersContainer.appendChild(playerIcon);
-                    console.log('Иконка игрока добавлена:', playerIcon.textContent, playerIcon.className);
-                    console.log('Стили иконки:', {
-                        display: playerIcon.style.display,
-                        opacity: playerIcon.style.opacity,
-                        visibility: playerIcon.style.visibility,
-                        background: playerIcon.style.background,
-                        computedDisplay: window.getComputedStyle(playerIcon).display,
-                        computedOpacity: window.getComputedStyle(playerIcon).opacity,
-                        computedVisibility: window.getComputedStyle(playerIcon).visibility
-                    });
+                    console.log('Добавление игрока в Hub1:', playerId, data);
+                    const status = data.ready ? 'ready' : 'waiting';
+                    Hub1.addPlayerIcon(playerId, data.name || 'Player', status);
                 });
-                
-                console.log('Игроков в контейнере:', playersContainer.children.length);
-                
-                // Проверяем видимость контейнера
-                const containerStyles = window.getComputedStyle(playersContainer);
-                console.log('Стили контейнера игроков:', {
-                    display: containerStyles.display,
-                    visibility: containerStyles.visibility,
-                    opacity: containerStyles.opacity,
-                    position: containerStyles.position,
-                    zIndex: containerStyles.zIndex,
-                    width: containerStyles.width,
-                    height: containerStyles.height,
-                    offsetHeight: playersContainer.offsetHeight,
-                    offsetWidth: playersContainer.offsetWidth
-                });
-                
-                // Обновляем позиционирование контента после обновления игроков
-                setTimeout(() => {
-                    updateFloatingElementsPosition();
-                }, 50);
             }
 
             // Подключение хоста
@@ -1281,22 +887,37 @@
                 updateHub();
             });
 
-            // Начало игры
-            document.getElementById('start-btn').addEventListener('click', () => {
+            // Начало игры (обработчик для кнопки в Hub1)
+            function handleStartGame() {
                 if (playersData.size === 0) {
                     alert('Вы добавили всех игроков?');
                     return;
                 }
                 socket.emit('start-game', roomCode);
-            });
+            }
+            
+            // Обработчик для кнопки "Начать игру" в Hub1 (добавляем после создания кнопки)
+            setTimeout(() => {
+                const hub1StartBtn = document.getElementById('hub1-start-btn') || window.hub1StartButton;
+                if (hub1StartBtn) {
+                    hub1StartBtn.addEventListener('click', handleStartGame);
+                }
+            }, 500);
+            
+            // Старый обработчик для обратной совместимости (если кнопка есть на странице)
+            const startBtn = document.getElementById('start-btn');
+            if (startBtn) {
+                startBtn.addEventListener('click', handleStartGame);
+            }
 
             socket.on('game-started', () => {
                 document.getElementById('lobby-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'block';
-                // Скрываем кнопку "Назад" на экране лобби
-                const lobbyBackBtn = document.getElementById('lobby-back-btn');
-                if (lobbyBackBtn) {
-                    lobbyBackBtn.style.display = 'none';
+                
+                // Скрываем кнопку "Начать игру" в Hub1
+                const hub1StartBtn = document.getElementById('hub1-start-btn') || window.hub1StartButton;
+                if (hub1StartBtn) {
+                    hub1StartBtn.style.display = 'none';
                 }
             });
 
@@ -1307,28 +928,42 @@
                 document.getElementById('results-screen').style.display = 'none';
                 document.getElementById('final-results').style.display = 'none';
                 
-                // Показываем номер вопроса и таймер в HUB
-                const hubQuestionWrapper = document.getElementById('hub-question-number-wrapper');
-                const hubGameInfo = document.getElementById('hub-game-info');
-                if (hubQuestionWrapper) {
-                    const hubQuestionNumber = document.getElementById('hub-question-number');
-                    if (hubQuestionNumber) {
-                        hubQuestionNumber.textContent = `Вопрос ${data.questionNumber} из ${data.totalQuestions}`;
+                // Показываем номер вопроса и таймер в Hub1
+                const hub1Content = document.querySelector('.hub1-content');
+                if (hub1Content) {
+                    // Создаем или находим элемент номера вопроса
+                    let hub1QuestionNumber = document.getElementById('hub1-question-number');
+                    if (!hub1QuestionNumber) {
+                        hub1QuestionNumber = document.createElement('div');
+                        hub1QuestionNumber.id = 'hub1-question-number';
+                        hub1QuestionNumber.className = 'hub1-question-number';
+                        hub1Content.appendChild(hub1QuestionNumber);
                     }
-                    hubQuestionWrapper.style.display = 'block';
-                }
-                if (hubGameInfo) {
-                    hubGameInfo.style.display = 'flex';
+                    hub1QuestionNumber.textContent = `Вопрос ${data.questionNumber} из ${data.totalQuestions}`;
+                    hub1QuestionNumber.style.display = 'block';
+                    
+                    // Создаем или находим элемент таймера
+                    let hub1Timer = document.getElementById('hub1-timer');
+                    if (!hub1Timer) {
+                        hub1Timer = document.createElement('div');
+                        hub1Timer.id = 'hub1-timer';
+                        hub1Timer.className = 'hub1-timer';
+                        const hub1ActionsRight = document.getElementById('hub1-actions-right');
+                        if (hub1ActionsRight) {
+                            hub1ActionsRight.appendChild(hub1Timer);
+                        }
+                    }
+                    hub1Timer.style.display = 'inline-block';
                 }
                 
                 document.getElementById('question-num').textContent = data.questionNumber;
                 document.getElementById('total-questions').textContent = data.totalQuestions;
                 document.getElementById('question-text').textContent = data.question;
                 
-                // Обновляем позиционирование контента под HUB
-                setTimeout(() => {
-                    updateFloatingElementsPosition();
-                }, 100);
+                // Обновляем позиционирование контента
+                HubCommon.updateHub2Position();
+                HubCommon.updateContentPadding();
+                HubCommon.updateFloatingElementsPosition();
                 
                 // Сбрасываем статусы игроков
                 playersData.forEach((playerData) => {
@@ -1336,28 +971,28 @@
                 });
                 updateHub();
                 
-                // Таймер (только в HUB, на странице скрыт)
+                // Таймер
                 let timeLeft = data.time;
-                const hubTimer = document.getElementById('hub-timer');
+                const hub1Timer = document.getElementById('hub1-timer');
                 document.getElementById('question-status').textContent = 'Игроки отвечают...';
                 
-                // Обновляем таймер в HUB
-                if (hubTimer) {
-                    hubTimer.textContent = timeLeft;
-                    hubTimer.className = 'hub-timer';
+                // Обновляем таймер в Hub1
+                if (hub1Timer) {
+                    hub1Timer.textContent = timeLeft;
+                    hub1Timer.className = 'hub1-timer';
                 }
                 
                 if (currentTimer) clearInterval(currentTimer);
                 currentTimer = setInterval(() => {
                     timeLeft--;
                     
-                    // Обновляем таймер только в HUB
-                    if (hubTimer) {
-                        hubTimer.textContent = timeLeft;
+                    // Обновляем таймер в Hub1
+                    if (hub1Timer) {
+                        hub1Timer.textContent = timeLeft;
                         if (timeLeft <= 5) {
-                            hubTimer.className = 'hub-timer urgent';
+                            hub1Timer.className = 'hub1-timer urgent';
                         } else {
-                            hubTimer.className = 'hub-timer';
+                            hub1Timer.className = 'hub1-timer';
                         }
                     }
                     
@@ -1396,10 +1031,10 @@
                 // Показываем результаты
                 clearInterval(currentTimer);
                 
-                // Скрываем таймер в HUB, но оставляем номер вопроса
-                const hubGameInfo = document.getElementById('hub-game-info');
-                if (hubGameInfo) {
-                    hubGameInfo.style.display = 'none';
+                // Скрываем таймер в Hub1, но оставляем номер вопроса
+                const hub1Timer = document.getElementById('hub1-timer');
+                if (hub1Timer) {
+                    hub1Timer.style.display = 'none';
                 }
                 
                 document.getElementById('question-screen').style.display = 'none';
@@ -1466,24 +1101,24 @@
 
             // Следующий вопрос
             document.getElementById('next-btn').addEventListener('click', () => {
-                // Показываем таймер в HUB перед следующим вопросом
-                const hubGameInfo = document.getElementById('hub-game-info');
-                if (hubGameInfo) {
-                    hubGameInfo.style.display = 'flex';
+                // Показываем таймер в Hub1 перед следующим вопросом
+                const hub1Timer = document.getElementById('hub1-timer');
+                if (hub1Timer) {
+                    hub1Timer.style.display = 'inline-block';
                 }
                 socket.emit('next-question', roomCode);
             });
 
             // Финальные результаты
             socket.on('game-finished', (data) => {
-            // Скрываем номер вопроса и таймер в HUB
-            const hubQuestionWrapper = document.getElementById('hub-question-number-wrapper');
-            const hubGameInfo = document.getElementById('hub-game-info');
-            if (hubQuestionWrapper) {
-                hubQuestionWrapper.style.display = 'none';
+            // Скрываем номер вопроса и таймер в Hub1
+            const hub1QuestionNumber = document.getElementById('hub1-question-number');
+            const hub1Timer = document.getElementById('hub1-timer');
+            if (hub1QuestionNumber) {
+                hub1QuestionNumber.style.display = 'none';
             }
-            if (hubGameInfo) {
-                hubGameInfo.style.display = 'none';
+            if (hub1Timer) {
+                hub1Timer.style.display = 'none';
             }
             
             document.getElementById('question-screen').style.display = 'none';
@@ -1527,96 +1162,40 @@
             createRoom();
             
         } // конец initApp()
-        // Автоматически создаем комнату при загрузке страницы
-        createRoom();
-        // Функция для обновления позиции парящих элементов и отступа контейнера относительно высоты HUB и игроков
-        function updateFloatingElementsPosition() {
-            const hub = document.getElementById('hub');
-            const playersContainer = document.getElementById('players-container');
-            const container = document.querySelector('.container');
-            
-            if (hub && hub.style.display !== 'none') {
-                const hubHeight = hub.offsetHeight;
-                
-                // Обновляем позицию контейнера игроков относительно HUB
-                if (playersContainer) {
-                    playersContainer.style.top = hubHeight + 'px';
-                }
-                
-                const playersHeight = playersContainer && playersContainer.children.length > 0 ? playersContainer.offsetHeight : 0;
-                // Устанавливаем top для парящего элемента: высота HUB + высота игроков + отступ
-                const floatingTop = hubHeight + playersHeight + 20;
-                
-                // Устанавливаем отступ контейнера: высота HUB + высота игроков + минимальный отступ
-                if (container) {
-                    const paddingTop = hubHeight + playersHeight + 10;
-                    container.style.paddingTop = paddingTop + 'px';
-                }
-                
-                // Создаем или обновляем стиль для парящего элемента
-                let style = document.getElementById('dynamic-floating-position');
-                if (!style) {
-                    style = document.createElement('style');
-                    style.id = 'dynamic-floating-position';
-                    document.head.appendChild(style);
-                }
-                style.textContent = `
-                    body::before {
-                        top: ${floatingTop}px !important;
-                    }
-                `;
-            }
-        }
-
-        // Применяем цвет выбранного персонажа к кнопке "Назад"
-        function applyCharacterColorToBackButton() {
-            const savedColor = localStorage.getItem('selectedCharacterColor');
-            if (savedColor) {
-                // Применяем цвет ко всем кнопкам "Назад" (широкая и мобильная версия)
-                const backButtons = document.querySelectorAll('.back-button-hub');
-                backButtons.forEach(button => {
-                    button.style.background = savedColor;
-                });
-            }
-        }
-
-        // Применяем цвет при загрузке страницы
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                applyCharacterColorToBackButton();
-                setTimeout(applyCharacterColorToBackButton, 100);
-            });
-        } else {
-            applyCharacterColorToBackButton();
-            setTimeout(applyCharacterColorToBackButton, 100);
-        }
         
-        // Также применяем после полной загрузки страницы
-        window.addEventListener('load', function() {
-            applyCharacterColorToBackButton();
+        // Инициализация Hub1 и Hub2 после загрузки socket.io
+        waitForSocketIO(() => {
+            // Инициализация Hub1 и Hub2
+            Hub1.init({
+                showBack: true,
+                backUrl: '/gnu-quiz.html'
+            });
+            
+            Hub2.init();
+            
+            // Добавляем кнопку "Начать игру" в Hub1 справа
+            const startButton = document.createElement('button');
+            startButton.id = 'hub1-start-btn';
+            startButton.className = 'hub1-button';
+            startButton.textContent = 'Начать игру';
+            startButton.style.display = 'none'; // Скрыта по умолчанию
+            
+            // Добавляем кнопку в Hub1 справа
+            const hub1ActionsRight = document.getElementById('hub1-actions-right');
+            if (hub1ActionsRight) {
+                hub1ActionsRight.appendChild(startButton);
+            }
+            
+            // Сохраняем ссылку на кнопку для использования в initApp
+            window.hub1StartButton = startButton;
         });
         
         document.addEventListener('DOMContentLoaded', function() {
-            
-            
-            // Проверяем контейнер игроков
-            const playersContainer = document.getElementById('players-container');
-            if (playersContainer) {
-                console.log('✅ Контейнер игроков найден при загрузке страницы');
-                playersContainer.style.display = 'flex';
-                playersContainer.style.visibility = 'visible';
-                playersContainer.style.opacity = '1';
-            } else {
-                console.error('❌ Контейнер игроков НЕ найден при загрузке страницы!');
-            }
-            
-            // Обновляем позицию парящих элементов и отступ контейнера после загрузки
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => {
-                    setTimeout(updateFloatingElementsPosition, 300);
-                });
-            } else {
-                setTimeout(updateFloatingElementsPosition, 300);
+            // Обновляем позицию Hub2 и отступ контента после загрузки
+            if (typeof HubCommon !== 'undefined') {
+                HubCommon.updateHub2Position();
+                HubCommon.updateContentPadding();
+                HubCommon.updateFloatingElementsPosition();
             }
         });
         
@@ -1624,7 +1203,13 @@
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(updateFloatingElementsPosition, 100);
+            resizeTimeout = setTimeout(() => {
+                if (typeof HubCommon !== 'undefined') {
+                    HubCommon.updateHub2Position();
+                    HubCommon.updateContentPadding();
+                    HubCommon.updateFloatingElementsPosition();
+                }
+            }, 100);
         });
     </script>
 </body>

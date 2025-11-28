@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Квиз - Выбор игры</title>
+    <link rel="stylesheet" href="/styles/hub1.css">
+    <link rel="stylesheet" href="/styles/hub2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Kalam:wght@300;400;700&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -20,157 +22,85 @@
             position: relative;
             overflow-x: hidden;
             background: #f2f2f2; /* Новый фон */
-        }
-        
-        /* Блок кнопки "Войти" - закреплен (только для широкой версии) */
-        .hub-login-fixed {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: #f2f2f2;
-            backdrop-filter: blur(10px);
-            padding: 15px 20px;
-            z-index: 1001;
-            display: none; /* По умолчанию скрыт, показывается только в широкой версии */
-        }
-
-        /* HUB стили */
-        .hub {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: #f2f2f2; /* Цвет основного фона сайта */
-            backdrop-filter: blur(10px);
-            padding: 15px 20px;
-            z-index: 1000;
-            border-bottom: none;
-            box-shadow: none;
-            width: 100%;
-            overflow: visible; /* Разрешаем видимость всего содержимого, включая фразу */
-            min-height: 240px; /* Минимальная высота для размещения логотипа и фразы */
-        }
-
-        .hub-content {
-            max-width: 100%;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            position: relative;
-        }
-
-        /* Секция с логотипом и фразой */
-        .hub-logo-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: absolute;
-            left: 50%;
-            top: 40px;
-            transform: translateX(-50%);
-            gap: 5px;
-            pointer-events: none;
-            width: 100%; /* Полная ширина для центрирования */
-            max-width: 100%; /* Ограничиваем максимальную ширину */
-            padding: 0 20px; /* Отступы по бокам для предотвращения обрезания */
-            box-sizing: border-box;
-        }
-        
-        .hub-logo-section * {
-            pointer-events: auto;
-        }
-
-        .hub-logo-section .logo {
-            max-width: 100%;
-            height: auto;
-            max-height: 150px;
-            width: auto;
-            transform: rotate(-2deg);
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-        }
-
-        .hub-logo-section .subtitle {
-            font-family: 'Caveat', cursive;
-            font-size: clamp(33.6px, 6.3vw, 50.4px); /* Увеличение на 40% */
-            color: #393639;
             margin: 0;
-            font-weight: 400;
-            line-height: 1.2;
-            white-space: nowrap;
-            overflow: visible; /* Разрешаем видимость всей фразы */
-            text-overflow: clip; /* Не обрезаем текст */
-            max-width: 100%; /* Ограничиваем ширину */
-        }
-
-        .hub-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .hub-button {
-            display: inline-block;
-            padding: 8px 16px;
-            background: rgba(245, 245, 245, 0.85);
-            border: 2px solid #393639;
-            border-radius: 12px;
-            color: #393639;
-            text-decoration: none;
-            font-family: 'Days One', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            transition: all 0.3s;
-            box-shadow: 
-                0 2px 0px rgba(0, 0, 0, 0.2),
-                0 4px 8px rgba(0, 0, 0, 0.1);
-            white-space: nowrap;
-            cursor: pointer;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .hub-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 6px 0px rgba(0, 0, 0, 0.3),
-                0 8px 16px rgba(0, 0, 0, 0.15);
-            background: rgba(245, 245, 245, 0.6);
+            padding: 0;
         }
         
-        .hub-button:active {
-            transform: translateY(0px);
-        }
-        
+        /* Контент страницы */
         .container {
             max-width: 1200px;
             width: 100%;
             margin: 0 auto;
-            padding: 40px 20px 20px;
-            /* padding-top устанавливается динамически через JavaScript */
+            padding: 20px;
             position: relative;
-            z-index: 2;
+            z-index: 1;
             text-align: center;
         }
         
-        /* Отдельный блок для карточек квизов под HUB */
+        /* Отдельный блок для карточек квизов под Hub */
         .quizzes-section {
             width: 100%;
-            margin: 0 auto;
-            padding: 0 20px 20px; /* padding-top устанавливается динамически через JavaScript */
+            margin: 0;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 0; /* margin-top устанавливается динамически через JavaScript, должно совпадать с body::before top */
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-bottom: 20px;
+            padding-top: 0;
             position: relative;
-            z-index: 2;
+            z-index: 1;
             text-align: center;
+            box-sizing: border-box;
+            /* Убираем все transition, чтобы позиция устанавливалась мгновенно */
+            transition: none !important;
+            /* Центрируем содержимое, как на gnu-quiz.html */
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
         }
         
         .quizzes-section .container {
-            padding: 0;
+            padding: 0 !important;
+            margin: 0 !important; /* Убираем все отступы - контент начинается сразу после Hub2 */
+            min-height: 0 !important; /* Убираем минимальную высоту */
+            max-height: none !important;
+            height: auto !important;
+            display: block !important;
+            max-width: 1200px; /* Ограничиваем ширину, как на gnu-quiz.html */
+            width: 100%;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+        
+        /* Убеждаемся, что loading и error не занимают место */
+        .quizzes-section .container > #loading,
+        .quizzes-section .container > #error {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            max-height: 0 !important;
+            overflow: hidden !important;
+            visibility: hidden !important;
+            position: absolute !important;
+            top: -9999px !important;
+            left: -9999px !important;
+        }
+        
+        /* Убеждаемся, что quizzes-grid начинается с самого верха */
+        .quizzes-section .container > #quizzes-grid {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        
+        /* Убеждаемся, что первая карточка не имеет отступов */
+        .quizzes-section .container > #quizzes-grid > .quiz-card:first-child {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
         }
 
         /* Общие стили для заголовков */
@@ -184,210 +114,6 @@
             text-align: center;
         }
 
-        /* Адаптивная ширина HUB */
-        @media (min-width: 1024px) {
-            /* Показываем отдельный блок для кнопки "Войти" */
-            .hub-login-fixed {
-                display: block;
-                padding: 15px 40px;
-                border-bottom: none;
-            }
-            
-            .hub-login-fixed .hub-actions {
-                max-width: 1400px;
-                margin: 0 auto;
-                display: flex;
-                justify-content: flex-start;
-            }
-            
-            /* Скрываем кнопку в HUB для широкой версии */
-            .hub-actions-mobile {
-                display: none;
-            }
-            
-            /* HUB с логотипом и фразой - ниже блока с кнопкой */
-            .hub {
-                padding: 20px 40px 4px 40px; /* Уменьшен нижний padding на 80% (20px * 0.2 = 4px) */
-                min-height: 260px; /* Увеличиваем минимальную высоту на широких экранах для размещения логотипа и фразы */
-                overflow: visible; /* Разрешаем видимость всего содержимого */
-                top: 60px; /* Отступ сверху для блока с кнопкой */
-            }
-            
-            .hub-content {
-                max-width: 1400px;
-                margin: 0 auto;
-                justify-content: center;
-                position: relative;
-                min-height: 240px; /* Минимальная высота для размещения логотипа и фразы */
-            }
-            
-            .hub-logo-section {
-                position: absolute;
-                left: 50%;
-                top: 0;
-                transform: translateX(-50%);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                max-width: calc(100% - 80px); /* Учитываем padding контейнера */
-                width: auto;
-                padding: 0 20px; /* Отступы по бокам */
-                box-sizing: border-box;
-            }
-            
-            .hub-logo-section .logo {
-                max-height: 250px;
-            }
-            
-            .hub-logo-section .subtitle {
-                font-size: clamp(33.6px, 6.3vw, 50.4px); /* Увеличение на 40% */
-                white-space: nowrap;
-                overflow: visible;
-                text-overflow: clip;
-            }
-            
-            /* padding-top устанавливается динамически через JavaScript */
-        }
-
-        /* Очень широкие экраны - дополнительная защита от обрезания фразы */
-        @media (min-width: 1920px) {
-            .hub-login-fixed {
-                padding: 20px 40px;
-            }
-            
-            .hub {
-                padding: 20px 40px 4px 40px; /* Уменьшен нижний padding на 80% (20px * 0.2 = 4px) */
-                min-height: 280px; /* Еще больше высоты для очень широких экранов */
-                top: 70px; /* Больше отступ для большего блока с кнопкой */
-            }
-            
-            .hub-content {
-                min-height: 260px;
-            }
-            
-            .hub-logo-section {
-                max-width: calc(100% - 120px); /* Больше отступы для очень широких экранов */
-                top: 0;
-            }
-            
-            .hub-logo-section .logo {
-                max-height: 270px;
-            }
-            
-            .hub-logo-section .subtitle {
-                font-size: clamp(33.6px, 4vw, 60px); /* Ограничиваем максимальный размер на очень широких экранах */
-            }
-        }
-
-        @media (max-width: 1023px) and (min-width: 769px) {
-            .hub {
-                padding: 15px 30px;
-            }
-            
-            .hub-content {
-                max-width: 100%;
-            }
-            
-            .hub-logo-section {
-                position: absolute;
-                left: 50%;
-                top: 30px;
-                transform: translateX(-50%);
-            }
-            
-            .hub-logo-section .logo {
-                max-height: 120px;
-            }
-            
-            .hub-logo-section .subtitle {
-                font-size: clamp(33.6px, 6.3vw, 50.4px); /* Увеличение на 40% */
-            }
-            
-            .hub-actions {
-                order: 3;
-                flex-shrink: 0;
-            }
-            
-            /* padding-top устанавливается динамически через JavaScript */
-        }
-
-        @media (max-width: 768px) {
-            /* Скрываем отдельный блок кнопки в узкой версии */
-            .hub-login-fixed {
-                display: none;
-            }
-            
-            /* Показываем кнопку в HUB для узкой версии */
-            .hub-actions-mobile {
-                display: flex;
-            }
-            
-            .hub {
-                padding: 12px 20px;
-                min-height: auto; /* Высота будет определяться содержимым */
-                top: 0; /* Убираем отступ сверху в узкой версии */
-            }
-            
-            .hub-content {
-                max-width: 100%;
-                justify-content: flex-start;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-                position: relative;
-            }
-            
-            /* Кнопка "Войти" вверху слева */
-            .hub-actions-mobile {
-                order: 1;
-                margin: 0;
-                align-self: flex-start;
-            }
-            
-            /* Логотип и фраза ниже кнопки по центру */
-            .hub-logo-section {
-                position: relative;
-                left: auto;
-                top: auto;
-                transform: none;
-                order: 2;
-                width: 100%;
-                margin: 0 auto;
-                align-self: center;
-                padding: 0;
-            }
-            
-            .hub-logo-section .logo {
-                max-height: 80px;
-            }
-            
-            .hub-logo-section .subtitle {
-                font-size: clamp(26.88px, 5.04vw, 40.32px); /* Уменьшение на 20% от увеличенного размера */
-            }
-            
-            /* padding-top устанавливается динамически через JavaScript */
-        }
-
-        @media (max-width: 480px) {
-            .hub {
-                padding: 10px 15px;
-                min-height: auto; /* Высота будет определяться содержимым */
-            }
-            
-            .hub-content {
-                gap: 12px;
-            }
-            
-            .hub-logo-section .logo {
-                max-height: 60px;
-            }
-            
-            .hub-logo-section .subtitle {
-                font-size: clamp(26.88px, 5.04vw, 40.32px); /* Уменьшение на 20% от увеличенного размера */
-            }
-            
-            /* padding-top устанавливается динамически через JavaScript */
-        }
 
         /* Декоративные волнистые элементы */
         .quizzes-section::before {
@@ -431,11 +157,21 @@
         .quizzes-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-top: 20px;
+            gap: clamp(20px, 4vw, 28px); /* Адаптивный отступ, как на gnu-quiz.html */
+            margin: 0 auto; /* Убираем все отступы - контент начинается сразу после Hub2 */
+            margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
+            padding: 0;
             max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
+            width: 100%;
+            align-items: center; /* Выравнивание по центру вертикально */
+            align-content: center; /* Выравнивание содержимого по центру вертикально */
+            justify-items: center; /* Выравнивание по центру горизонтально */
+        }
+        
+        /* Убираем отступ перед первой карточкой в grid */
+        .quizzes-grid > .quiz-card:first-child {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
         }
 
         /* Карточки квизов в стиле Teen Talk - светлые с черными контурами */
@@ -451,7 +187,7 @@
                 0 8px 16px rgba(0, 0, 0, 0.1);
             position: relative;
             overflow: hidden; /* Ограничиваем кликабельную область рамкой */
-            animation: fadeInUp 0.6s ease;
+            animation: none !important; /* Отключаем анимацию для предотвращения визуального "спускания" */
             animation-fill-mode: both;
             aspect-ratio: 1 / 1;
             display: flex;
@@ -460,6 +196,18 @@
             align-items: center;
             text-align: center;
             min-height: 0;
+            margin: 0; /* Убираем все отступы */
+            opacity: 1 !important; /* Гарантируем, что карточка видна сразу */
+            transform: none !important; /* Убираем любые transform, которые могут создавать визуальный эффект "спускания" */
+        }
+        
+        /* Первая карточка не должна иметь отступов сверху */
+        .quizzes-grid > .quiz-card:first-child {
+            margin-top: 0 !important;
+            padding-top: 25px !important; /* Сохраняем внутренний padding */
+            animation: none !important; /* Отключаем анимацию для первой карточки */
+            opacity: 1 !important;
+            transform: none !important;
         }
 
         /* Первый доступный квиз - специальный стиль (зеленая карточка) */
@@ -621,11 +369,6 @@
             color: #354fba !important;
         }
 
-            font-family: 'Days One', sans-serif !important;
-            font-weight: 700 !important;
-            font-size: 28px !important;
-        }
-
         .quiz-card:nth-child(n+3) .quiz-title {
             color: #373639 !important;
             font-family: 'Days One', sans-serif !important;
@@ -780,6 +523,8 @@
             text-align: center;
             padding: 60px 40px;
             font-size: 22px;
+            margin: 0;
+            display: none; /* По умолчанию скрыт */
             color: #000;
             font-family: 'Montserrat', sans-serif;
             font-weight: 700;
@@ -804,11 +549,12 @@
             color: #FFFFFF;
             padding: 20px;
             border-radius: 25px;
-            margin: 20px 0;
+            margin: 0; /* Убираем отступы */
             text-align: center;
             font-family: 'Montserrat', sans-serif;
             font-weight: 700;
             box-shadow: 0 6px 0px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2);
+            display: none; /* По умолчанию скрыт */
         }
 
         /* Анимации */
@@ -826,12 +572,18 @@
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(0); /* Убираем translateY, чтобы не создавать отступ */
             }
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+        
+        /* Отключаем анимацию для первой карточки, чтобы она не создавала отступ */
+        .quizzes-grid > .quiz-card:first-child {
+            animation: none !important;
+            opacity: 1 !important;
         }
 
         /* Меню выбора персонажа */
@@ -1008,7 +760,11 @@
         @media (max-width: 1024px) {
             .quizzes-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 18px;
+                gap: clamp(24px, 4vw, 32px); /* Адаптивный отступ, как на gnu-quiz.html */
+                margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
+                align-items: center; /* Выравнивание по центру вертикально */
+                align-content: center; /* Выравнивание содержимого по центру вертикально */
+                justify-items: center; /* Выравнивание по центру горизонтально */
             }
 
             .quiz-card:nth-child(1) .quiz-title {
@@ -1069,9 +825,14 @@
 
             .quizzes-grid {
                 grid-template-columns: 1fr; /* 1 карточка в ряд */
-                gap: 25px;
+                gap: clamp(20px, 4vw, 28px); /* Адаптивный отступ, как на gnu-quiz.html */
+                margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
                 max-width: 400px; /* Ограничиваем ширину для центрирования */
-                margin: 0 auto; /* Центрируем по горизонтали */
+                margin-left: auto; /* Центрируем по горизонтали */
+                margin-right: auto; /* Центрируем по горизонтали */
+                align-items: center; /* Выравнивание по центру вертикально */
+                align-content: center; /* Выравнивание содержимого по центру вертикально */
+                justify-items: center; /* Выравнивание по центру горизонтально */
             }
 
             .container {
@@ -1156,9 +917,14 @@
 
             .quizzes-grid {
                 grid-template-columns: 1fr; /* 1 карточка в ряд */
-                gap: 20px;
+                gap: clamp(20px, 4vw, 28px); /* Адаптивный отступ, как на gnu-quiz.html */
+                margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
                 max-width: 350px; /* Уменьшаем максимальную ширину для маленьких экранов */
-                margin: 0 auto; /* Центрируем */
+                margin-left: auto; /* Центрируем */
+                margin-right: auto; /* Центрируем */
+                align-items: center; /* Выравнивание по центру вертикально */
+                align-content: center; /* Выравнивание содержимого по центру вертикально */
+                justify-items: center; /* Выравнивание по центру горизонтально */
             }
 
             .container {
@@ -1257,41 +1023,6 @@
     </style>
 </head>
 <body>
-    <!-- Блок кнопки "Войти" - закреплен (только для широкой версии) -->
-    <div class="hub-login-fixed" id="hub-login-fixed">
-        <div class="hub-actions">
-            <div class="character-menu">
-                <a href="#" class="hub-button" id="login-button">Войти</a>
-                <div class="character-menu-arrow" id="character-menu-arrow"></div>
-                <div class="character-menu-dropdown" id="character-menu-dropdown">
-                    <!-- Персонажи будут добавлены через JS -->
-                </div>
-            </div>
-            <a href="/joystick-test/joystick.html" class="hub-button">🎮 Настройки джойстика</a>
-        </div>
-    </div>
-
-    <!-- HUB блок с логотипом и фразой -->
-    <div class="hub" id="hub">
-        <div class="hub-content">
-            <div class="hub-logo-section">
-                <img src="/images/logo.png" alt="ВМЕСТЕ" class="logo">
-                <p class="subtitle">хорошие люди объединяются играми</p>
-            </div>
-            <!-- Кнопка "Войти" для узкой версии (скрыта в широкой) -->
-            <div class="hub-actions hub-actions-mobile">
-                <div class="character-menu">
-                    <a href="#" class="hub-button" id="login-button-mobile">Войти</a>
-                    <div class="character-menu-arrow" id="character-menu-arrow-mobile"></div>
-                    <div class="character-menu-dropdown" id="character-menu-dropdown-mobile">
-                        <!-- Персонажи будут добавлены через JS -->
-                    </div>
-                </div>
-                <a href="/joystick-test/joystick.html" class="hub-button">🎮 Настройки джойстика</a>
-            </div>
-        </div>
-    </div>
- 
     <!-- Отдельный блок для карточек квизов под HUB -->
     <div class="quizzes-section">
         <div class="container">
@@ -1389,129 +1120,7 @@
             return svg;
         }
 
-        // Инициализация меню персонажей
-        function initCharacterMenu() {
-            // Кнопки для широкой и узкой версии
-            const loginButton = document.getElementById('login-button');
-            const loginButtonMobile = document.getElementById('login-button-mobile');
-            const menuDropdown = document.getElementById('character-menu-dropdown');
-            const menuDropdownMobile = document.getElementById('character-menu-dropdown-mobile');
-            
-            // Функция для обновления цвета всех кнопок
-            function updateButtonColors(color) {
-                if (loginButton) loginButton.style.background = color;
-                if (loginButtonMobile) loginButtonMobile.style.background = color;
-            }
-            
-            // Функция для закрытия всех меню
-            function closeAllMenus() {
-                if (menuDropdown) menuDropdown.classList.remove('active');
-                if (menuDropdownMobile) menuDropdownMobile.classList.remove('active');
-            }
-            
-            // Устанавливаем персонажа по умолчанию
-            const defaultChar = characters.find(c => c.id === selectedCharacterId);
-            if (defaultChar) {
-                updateButtonColors(defaultChar.color);
-            }
-            
-            // Функция для инициализации одного меню
-            function initMenu(button, dropdown) {
-                if (!button || !dropdown) return;
-                
-                // Создаем список персонажей для этого меню
-                characters.forEach(char => {
-                    const option = document.createElement('div');
-                    option.className = 'character-option' + (char.id === selectedCharacterId ? ' selected' : '');
-                    option.dataset.characterId = char.id;
-                    
-                    const preview = document.createElement('div');
-                    preview.className = 'character-preview';
-                    const charSVG = createCharacterSVG(char.color, char.emotion, char.position, 32);
-                    preview.appendChild(charSVG);
-                    
-                    option.appendChild(preview);
-                    
-                    option.addEventListener('click', () => {
-                        selectedCharacterId = char.id;
-                        
-                        // Обновляем цвет всех кнопок
-                        updateButtonColors(char.color);
-                        
-                        // Сохраняем цвет персонажа в localStorage
-                        localStorage.setItem('selectedCharacterColor', char.color);
-                        
-                        // Обновляем выделение во всех меню
-                        document.querySelectorAll('.character-option').forEach(opt => {
-                            opt.classList.remove('selected');
-                            if (opt.dataset.characterId === char.id) {
-                                opt.classList.add('selected');
-                            }
-                        });
-                        
-                        // Закрываем все меню
-                        closeAllMenus();
-                        
-                        // Сохраняем выбор в localStorage
-                        localStorage.setItem('selectedCharacter', char.id);
-                    });
-                    
-                    dropdown.appendChild(option);
-                });
-                
-                // Функция переключения меню
-                function toggleMenu() {
-                    closeAllMenus();
-                    dropdown.classList.toggle('active');
-                }
-                
-                // Обработчик клика на кнопку
-                button.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleMenu();
-                });
-            }
-            
-            // Инициализируем оба меню
-            initMenu(loginButton, menuDropdown);
-            initMenu(loginButtonMobile, menuDropdownMobile);
-            
-            // Закрытие при клике вне меню
-            document.addEventListener('click', (e) => {
-                const characterMenus = document.querySelectorAll('.character-menu');
-                let clickedInside = false;
-                characterMenus.forEach(menu => {
-                    if (menu.contains(e.target)) {
-                        clickedInside = true;
-                    }
-                });
-                if (!clickedInside) {
-                    closeAllMenus();
-                }
-            });
-            
-            // Загружаем сохраненный выбор
-            const savedChar = localStorage.getItem('selectedCharacter');
-            if (savedChar && characters.find(c => c.id === savedChar)) {
-                selectedCharacterId = savedChar;
-                const savedCharData = characters.find(c => c.id === savedChar);
-                updateButtonColors(savedCharData.color);
-                localStorage.setItem('selectedCharacterColor', savedCharData.color);
-                // Обновляем выделение в меню
-                document.querySelectorAll('.character-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                    if (opt.dataset.characterId === savedChar) {
-                        opt.classList.add('selected');
-                    }
-                });
-            } else {
-                // Если нет сохраненного персонажа, устанавливаем цвет по умолчанию
-                if (defaultChar) {
-                    localStorage.setItem('selectedCharacterColor', defaultChar.color);
-                }
-            }
-        }
+        // Инициализация меню персонажей больше не нужна - Hub1 делает это автоматически
 
         // Загрузка списка квизов
         async function loadQuizzes() {
@@ -1720,10 +1329,14 @@
             }
         }
 
-        // Функция для адаптации размера фразы под ширину логотипа
+        // Функция для адаптации размера фразы под ширину логотипа (использует HubCommon)
         function adaptSubtitleToLogo() {
-            const logo = document.querySelector('.hub-logo-section .logo');
-            const subtitle = document.querySelector('.hub-logo-section .subtitle');
+            if (typeof HubCommon !== 'undefined') {
+                HubCommon.adaptSubtitleToLogo();
+                return;
+            }
+            const logo = document.querySelector('.hub2-logo-section .logo');
+            const subtitle = document.querySelector('.hub2-logo-section .subtitle');
             
             if (!logo || !subtitle) return;
             
@@ -1779,51 +1392,17 @@
             setTimeout(adjustSize, 100);
         }
 
-        // Функция для вычисления высоты HUB и установки отступа блока с карточками
+        // Функция для вычисления высоты Hub и установки отступа блока с карточками (использует HubCommon)
         function updateContainerPadding() {
-            const hub = document.getElementById('hub');
-            const hubLoginFixed = document.getElementById('hub-login-fixed');
+            if (typeof HubCommon !== 'undefined') {
+                HubCommon.updateContentPadding('.quizzes-section');
+                HubCommon.updateFloatingElementsPosition();
+                return;
+            }
+            // Fallback для старых версий
             const quizzesSection = document.querySelector('.quizzes-section');
-            
-            if (hub && quizzesSection) {
-                const isWideScreen = window.innerWidth >= 1024;
-                const isNarrowScreen = window.innerWidth <= 768;
-                
-                let totalHeight = hub.offsetHeight;
-                
-                // В широкой версии учитываем высоту обоих блоков
-                if (isWideScreen && hubLoginFixed) {
-                    totalHeight += hubLoginFixed.offsetHeight;
-                }
-                
-                // Устанавливаем отступ: высота блоков + дополнительный отступ
-                let additionalPadding;
-                if (isWideScreen) {
-                    // Минимальный отступ на широких экранах, чтобы карточки были близко к концу блока с логотипом
-                    additionalPadding = 0;
-                } else if (isNarrowScreen) {
-                    // Для узких экранов увеличиваем отступ, чтобы опустить карточки ниже
-                    additionalPadding = 60;
-                    quizzesSection.style.marginTop = '0';
-                } else {
-                    additionalPadding = 40;
-                    quizzesSection.style.marginTop = '0';
-                }
-                const paddingTop = totalHeight + additionalPadding;
-                quizzesSection.style.paddingTop = paddingTop + 'px';
-                
-                // Также обновляем позицию парящего элемента
-                let style = document.getElementById('dynamic-hub-spacing');
-                if (!style) {
-                    style = document.createElement('style');
-                    style.id = 'dynamic-hub-spacing';
-                    document.head.appendChild(style);
-                }
-                style.textContent = `
-                    .quizzes-section::before {
-                        top: ${totalHeight + 20}px !important;
-                    }
-                `;
+            if (quizzesSection) {
+                quizzesSection.style.paddingTop = '0px';
             }
         }
         
@@ -1833,47 +1412,136 @@
         // Переопределяем loadQuizzes, чтобы вызывать updateContainerPadding после загрузки
         loadQuizzes = async function() {
             await originalLoadQuizzes();
-            setTimeout(() => {
-                updateContainerPadding();
-                adaptSubtitleToLogo();
-            }, 100);
+            
+            // Функция для обновления позиции после загрузки карточек
+            const updatePosition = () => {
+                // Ждем отрисовки карточек и обновляем позицию
+                // Используем HubCommon напрямую, если он доступен
+                // Используем несколько requestAnimationFrame для гарантии правильной отрисовки
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            if (typeof HubCommon !== 'undefined') {
+                                // Проверяем, что Hub1 и Hub2 инициализированы
+                                const hub1 = document.getElementById('hub1');
+                                const hub2 = document.getElementById('hub2');
+                                if (hub1 && hub2) {
+                                    HubCommon.updateContentPadding('.quizzes-section');
+                                } else {
+                                    // Если Hub еще не инициализированы, ждем их инициализации
+                                    console.log('loadQuizzes: ожидаем инициализации Hub1 и Hub2...');
+                                    setTimeout(updatePosition, 100);
+                                }
+                            } else {
+                                updateContainerPadding();
+                            }
+                            adaptSubtitleToLogo();
+                        });
+                    });
+                });
+            };
+            
+            updatePosition();
         };
         
-        // Загружаем квизы при загрузке страницы
-        loadQuizzes();
+        // НЕ загружаем квизы сразу - дождемся инициализации Hub1 и Hub2
+        // loadQuizzes() будет вызван после инициализации Hub
         
-        // Инициализируем меню персонажей
-        initCharacterMenu();
+        // Меню персонажей будет инициализировано через Hub1
         
-        // Вызываем функции после инициализации меню и загрузки квизов
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => {
-                    updateContainerPadding();
-                    adaptSubtitleToLogo();
-                }, 300); // Задержка для полной загрузки HUB и меню
-            });
-        } else {
-            setTimeout(() => {
-                updateContainerPadding();
-                adaptSubtitleToLogo();
-            }, 300);
-        }
-        
-        // Вызываем функции при изменении размера окна
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                updateContainerPadding();
-                adaptSubtitleToLogo();
-            }, 100);
-        });
-        
-        // Также адаптируем при загрузке изображения логотипа
+        // Адаптируем при загрузке изображения логотипа
         window.addEventListener('load', () => {
             adaptSubtitleToLogo();
         });
+    </script>
+    
+    <!-- Hub1 и Hub2 скрипты -->
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
+    <script>
+        // Инициализация Hub1 и Hub2 после загрузки скриптов
+        (function() {
+            function initHubs() {
+                try {
+                    // Проверяем, что скрипты загружены
+                    if (typeof Hub1 === 'undefined' || typeof Hub2 === 'undefined' || typeof HubCommon === 'undefined') {
+                        console.warn('Hub скрипты еще не загружены, повторная попытка через 100мс...');
+                        setTimeout(initHubs, 100);
+                        return;
+                    }
+                    
+                    console.log('Инициализация Hub1 и Hub2...');
+                    
+                    // Инициализация Hub1 с кнопкой "Войти" и "Настройки джойстика"
+                    Hub1.init({
+                        showLogin: true,
+                        showJoystick: true
+                    });
+                    
+                    // Инициализация Hub2 с логотипом и фразой
+                    Hub2.init();
+                    
+                    // Обновление позиций - ждем полной отрисовки
+                    // Используем несколько requestAnimationFrame для гарантии правильной отрисовки
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                HubCommon.updateHub2Position();
+                                HubCommon.updateFloatingElementsPosition();
+                                HubCommon.adaptSubtitleToLogo();
+                                
+                                console.log('Hub1 и Hub2 успешно инициализированы');
+                                
+                                // Загружаем квизы ПОСЛЕ инициализации Hub
+                                // Это гарантирует правильный порядок: Hub -> карточки -> обновление позиции
+                                if (typeof loadQuizzes === 'function') {
+                                    loadQuizzes();
+                                }
+                            });
+                        });
+                    });
+                } catch (error) {
+                    console.error('Ошибка при инициализации Hub:', error);
+                }
+            }
+            
+            // Запускаем инициализацию после загрузки DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(initHubs, 200);
+                });
+            } else {
+                // Если документ уже загружен, запускаем сразу
+                setTimeout(initHubs, 200);
+            }
+            
+            // Обновление при изменении размера окна
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if (typeof HubCommon !== 'undefined') {
+                        // Сбрасываем флаг, чтобы разрешить обновление при resize
+                        HubCommon._positionInitialized = false;
+                        HubCommon._lastCorrectMarginTop = null;
+                        
+                        console.log('resize (index.html): обновляем позиции после изменения размера окна');
+                        
+                        // Обновляем позиции в правильном порядке
+                        HubCommon.updateHub2Position();
+                        // Используем requestAnimationFrame для гарантии правильной отрисовки
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                HubCommon.updateContentPadding('.quizzes-section');
+                                HubCommon.updateFloatingElementsPosition();
+                                HubCommon.adaptSubtitleToLogo();
+                            });
+                        });
+                    }
+                }, 100);
+            });
+        })();
     </script>
 
 </body>

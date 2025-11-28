@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чемпионат ГНУ</title>
+    <link rel="stylesheet" href="/styles/brand-style.css">
+    <link rel="stylesheet" href="/styles/hub1.css">
+    <link rel="stylesheet" href="/styles/hub2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -63,131 +66,13 @@
             75% { transform: rotate(3deg) scale(1.05); }
         }
 
-        /* Блок кнопки "Назад" - закреплен (только для широкой версии) */
-        .hub-login-fixed {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: #f2f2f2;
-            backdrop-filter: blur(10px);
-            padding: 15px 20px;
-            z-index: 1001;
-            display: none; /* По умолчанию скрыт, показывается только в широкой версии */
-            border-bottom: none;
-        }
-
-        /* HUB стили (блок с логотипом) */
-        .hub {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: #f2f2f2; /* Цвет основного фона сайта */
-            backdrop-filter: blur(10px);
-            padding: 15px 20px;
-            z-index: 1000;
-            border-bottom: none;
-            box-shadow: none;
-            width: 100%;
-            overflow: visible;
-            min-height: 240px;
-        }
-
-        .hub-content {
-            max-width: 100%;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            position: relative;
-        }
-
-        /* Секция с логотипом */
-        .hub-logo-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: absolute;
-            left: 50%;
-            top: 40px;
-            transform: translateX(-50%);
-            gap: 5px;
-            pointer-events: none;
-            width: 100%;
-            max-width: 100%;
-            padding: 0 20px;
-            box-sizing: border-box;
-        }
-        
-        .hub-logo-section * {
-            pointer-events: auto;
-        }
-
-        .hub-logo-section .logo {
-            max-width: 100%;
-            height: auto;
-            max-height: 150px;
-            width: auto;
-            transform: rotate(-2deg);
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-        }
-
-        .hub-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        
-        /* Кнопка "Назад" для узкой версии (скрыта в широкой) */
-        .hub-actions-mobile {
-            display: flex;
-        }
-
-        .back-button-hub {
-            display: inline-block;
-            padding: 8px 16px;
-            background: rgba(245, 245, 245, 0.85);
-            border: 2px solid #393639;
-            border-radius: 12px;
-            color: #393639;
-            text-decoration: none;
-            font-family: 'Days One', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            transition: all 0.3s;
-            box-shadow: 
-                0 2px 0px rgba(0, 0, 0, 0.2),
-                0 4px 8px rgba(0, 0, 0, 0.1);
-            white-space: nowrap;
-            cursor: pointer;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .back-button-hub:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 6px 0px rgba(0, 0, 0, 0.3),
-                0 8px 16px rgba(0, 0, 0, 0.15);
-            background: rgba(245, 245, 245, 0.6);
-        }
-        
-        .back-button-hub:active {
-            transform: translateY(0px);
-        }
-
         .container {
             max-width: 600px;
             width: 100%;
             text-align: center;
             /* padding-top устанавливается динамически через JavaScript */
             position: relative;
+            z-index: 1; /* Ниже Hub2 */
             margin-top: 0;
             margin-left: auto;
             margin-right: auto;
@@ -433,182 +318,6 @@
             }
         }
 
-        /* Адаптивная ширина HUB */
-        @media (min-width: 1024px) {
-            /* Показываем отдельный блок для кнопки "Назад" */
-            .hub-login-fixed {
-                display: block;
-                padding: 15px 40px;
-                border-bottom: none;
-            }
-            
-            .hub-login-fixed .hub-actions {
-                max-width: 1400px;
-                margin: 0 auto;
-                display: flex;
-                justify-content: flex-start;
-            }
-            
-            /* Скрываем кнопку в HUB для широкой версии */
-            .hub-actions-mobile {
-                display: none;
-            }
-            
-            /* HUB с логотипом - ниже блока с кнопкой */
-            .hub {
-                padding: 20px 40px 4px 40px;
-                min-height: 260px;
-                overflow: visible;
-                top: 60px; /* Отступ сверху для блока с кнопкой */
-            }
-            
-            .hub-content {
-                max-width: 1400px;
-                margin: 0 auto;
-                justify-content: center;
-                position: relative;
-                min-height: 240px;
-            }
-            
-            .hub-logo-section {
-                position: absolute;
-                left: 50%;
-                top: 0;
-                transform: translateX(-50%);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                max-width: calc(100% - 80px);
-                width: auto;
-                padding: 0 20px;
-                box-sizing: border-box;
-            }
-            
-            .hub-logo-section .logo {
-                max-height: 250px;
-            }
-        }
-
-        /* Очень широкие экраны */
-        @media (min-width: 1920px) {
-            .hub-login-fixed {
-                padding: 20px 40px;
-            }
-            
-            .hub {
-                min-height: 280px;
-                top: 70px; /* Больше отступ для большего блока с кнопкой */
-            }
-            
-            .hub-content {
-                min-height: 260px;
-            }
-            
-            .hub-logo-section {
-                max-width: calc(100% - 120px);
-            }
-            
-            .hub-logo-section .logo {
-                max-height: 270px;
-            }
-        }
-
-        @media (max-width: 1023px) and (min-width: 769px) {
-            /* Скрываем отдельный блок кнопки в узкой версии */
-            .hub-login-fixed {
-                display: none;
-            }
-            
-            /* Показываем кнопку в HUB для узкой версии */
-            .hub-actions-mobile {
-                display: flex;
-            }
-            
-            .hub {
-                padding: 15px 30px;
-                top: 0; /* Убираем отступ сверху в узкой версии */
-            }
-            
-            .hub-content {
-                max-width: 100%;
-            }
-            
-            .hub-logo-section {
-                position: absolute;
-                left: 50%;
-                top: 30px;
-                transform: translateX(-50%);
-            }
-            
-            .hub-logo-section .logo {
-                max-height: 120px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            /* Скрываем отдельный блок кнопки в узкой версии */
-            .hub-login-fixed {
-                display: none;
-            }
-            
-            /* Показываем кнопку в HUB для узкой версии */
-            .hub-actions-mobile {
-                display: flex;
-            }
-            
-            .hub {
-                padding: 12px 20px;
-                min-height: auto;
-                top: 0; /* Убираем отступ сверху в узкой версии */
-            }
-            
-            .hub-content {
-                max-width: 100%;
-                justify-content: flex-start;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-                position: relative;
-            }
-            
-            /* Кнопка "Назад" вверху слева */
-            .hub-actions-mobile {
-                order: 1;
-                margin: 0;
-                align-self: flex-start;
-            }
-            
-            /* Логотип ниже кнопки по центру */
-            .hub-logo-section {
-                position: relative;
-                left: auto;
-                top: auto;
-                transform: none;
-                order: 2;
-                width: 100%;
-                margin: 0 auto;
-                align-self: center;
-                padding: 0;
-            }
-            
-            .hub-logo-section .logo {
-                max-height: 80px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hub {
-                padding: 10px 15px;
-            }
-            
-            .hub-logo-section .logo {
-                max-height: 60px;
-            }
-            
-            .hub-logo-section .subtitle {
-                font-size: 16px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -632,26 +341,6 @@
         </div>
     </div>
 
-    <!-- Блок кнопки "Назад" - закреплен (только для широкой версии) -->
-    <div class="hub-login-fixed" id="hub-login-fixed">
-        <div class="hub-actions">
-            <a href="/index.html" class="back-button-hub">← Назад</a>
-        </div>
-    </div>
-
-    <!-- HUB блок с логотипом -->
-    <div class="hub" id="hub" style="display: none;">
-        <div class="hub-content">
-            <div class="hub-logo-section">
-                <img src="/images/logo.png" alt="ВМЕСТЕ" class="logo">
-            </div>
-            <!-- Кнопка "Назад" для узкой версии (скрыта в широкой) -->
-            <div class="hub-actions hub-actions-mobile">
-                <a href="/index.html" class="back-button-hub">← Назад</a>
-            </div>
-        </div>
-    </div>
-    
     <div class="container" id="mainContainer" style="display: none;">
         <h1 class="title">ЧЕМПИОНАТ ГНУ</h1>
         <p class="subtitle">выбери режим игры</p>
@@ -718,57 +407,10 @@
         const VERIFIED_KEY = 'gnuPasswordVerified';
         let passwordEntered = false;
 
-        // Функция для обновления позиции парящих элементов и отступа контейнера относительно высоты HUB
+        // Функция для обновления позиции парящих элементов (используем HubCommon)
         function updateFloatingElementsPosition() {
-            const hub = document.getElementById('hub');
-            const hubLoginFixed = document.getElementById('hub-login-fixed');
-            const container = document.querySelector('.container');
-            
-            if (hub && hub.style.display !== 'none') {
-                const isWideScreen = window.innerWidth >= 1024;
-                const isNarrowScreen = window.innerWidth <= 768;
-                
-                let totalHeight = hub.offsetHeight;
-                
-                // В широкой версии учитываем высоту обоих блоков
-                if (isWideScreen && hubLoginFixed && hubLoginFixed.style.display !== 'none') {
-                    totalHeight += hubLoginFixed.offsetHeight;
-                }
-                
-                // Устанавливаем top для парящего элемента: высота блоков + отступ
-                const floatingTop = totalHeight + 20;
-                
-                // Устанавливаем отступ контейнера: высота блоков + дополнительный отступ
-                if (container) {
-                    let additionalPadding;
-                    if (isWideScreen) {
-                        // Минимальный отступ на широких экранах, чтобы карточки были близко к концу блока с логотипом
-                        additionalPadding = 0;
-                        container.style.marginTop = '0';
-                    } else if (isNarrowScreen) {
-                        // Для узких экранов используем отрицательный margin-top, чтобы поднять контент выше
-                        additionalPadding = 0;
-                        container.style.marginTop = '-15px'; // Поднимаем контент выше, но чуть ниже
-                    } else {
-                        additionalPadding = 40;
-                        container.style.marginTop = '0';
-                    }
-                    const paddingTop = totalHeight + additionalPadding;
-                    container.style.paddingTop = paddingTop + 'px';
-                }
-                
-                // Создаем или обновляем стиль для парящего элемента
-                let style = document.getElementById('dynamic-floating-position');
-                if (!style) {
-                    style = document.createElement('style');
-                    style.id = 'dynamic-floating-position';
-                    document.head.appendChild(style);
-                }
-                style.textContent = `
-                    body::before {
-                        top: ${floatingTop}px !important;
-                    }
-                `;
+            if (typeof HubCommon !== 'undefined') {
+                HubCommon.updateFloatingElementsPosition();
             }
         }
 
@@ -776,15 +418,14 @@
         if (localStorage.getItem(STORAGE_KEY) === 'true') {
             passwordEntered = true;
             document.getElementById('passwordOverlay').style.display = 'none';
-            document.getElementById('hub').style.display = 'block';
-            // Показываем блок с кнопкой в широкой версии
-            const hubLoginFixed = document.getElementById('hub-login-fixed');
-            if (hubLoginFixed && window.innerWidth >= 1024) {
-                hubLoginFixed.style.display = 'block';
-            }
             document.getElementById('mainContainer').style.display = 'block';
-            // Обновляем позицию парящих элементов и отступ контейнера после отображения hub
-            setTimeout(updateFloatingElementsPosition, 100);
+            // Инициализируем Hub1 и Hub2
+            if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined') {
+                initHubs();
+            } else {
+                // Ждем загрузки скриптов
+                setTimeout(initHubs, 100);
+            }
         }
 
         // Обработка Enter в поле пароля
@@ -802,16 +443,15 @@
                 passwordEntered = true;
                 localStorage.setItem(STORAGE_KEY, 'true');
                 document.getElementById('passwordOverlay').style.display = 'none';
-                document.getElementById('hub').style.display = 'block';
-                // Показываем блок с кнопкой в широкой версии
-                const hubLoginFixed = document.getElementById('hub-login-fixed');
-                if (hubLoginFixed && window.innerWidth >= 1024) {
-                    hubLoginFixed.style.display = 'block';
-                }
                 document.getElementById('mainContainer').style.display = 'block';
                 errorDiv.classList.remove('show');
-                // Обновляем позицию парящих элементов после отображения hub
-                setTimeout(updateFloatingElementsPosition, 100);
+                // Инициализируем Hub1 и Hub2
+                if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined') {
+                    initHubs();
+                } else {
+                    // Ждем загрузки скриптов
+                    setTimeout(initHubs, 100);
+                }
             } else {
                 errorDiv.classList.add('show');
                 document.getElementById('passwordInput').value = '';
@@ -841,43 +481,54 @@
                 window.location.href = `/host.html?quiz=${QUIZ_ID}&password=verified`;
             }
         }
-        // Применяем цвет выбранного персонажа к кнопке "Назад"
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedColor = localStorage.getItem('selectedCharacterColor');
-            if (savedColor) {
-                // Применяем цвет ко всем кнопкам "Назад" (широкая и мобильная версия)
-                const backButtons = document.querySelectorAll('.back-button-hub');
-                backButtons.forEach(button => {
-                    button.style.background = savedColor;
-                });
-            }
+    </script>
+    
+    <!-- Hub1 и Hub2 скрипты -->
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
+    <script>
+        // Инициализация Hub1 и Hub2 после проверки пароля
+        function initHubs() {
+            // Инициализация Hub1
+            Hub1.init({
+                showBack: true,
+                backUrl: '/index.html'
+            });
             
-            // Обновляем позицию парящих элементов и отступ контейнера после загрузки
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => {
-                    setTimeout(updateFloatingElementsPosition, 300);
-                });
-            } else {
-                setTimeout(updateFloatingElementsPosition, 300);
+            // Инициализация Hub2
+            Hub2.init();
+            
+            // Обновление позиций
+            HubCommon.updateHub2Position();
+            HubCommon.updateContentPadding();
+            HubCommon.updateFloatingElementsPosition();
+        }
+        
+        // Если пароль уже введен, инициализируем Hub сразу
+        if (localStorage.getItem(STORAGE_KEY) === 'true') {
+            initHubs();
+        }
+        
+        // Обновление при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof HubCommon !== 'undefined') {
+                HubCommon.updateHub2Position();
+                HubCommon.updateContentPadding();
+                HubCommon.updateFloatingElementsPosition();
             }
         });
         
-        // Обновляем позицию при изменении размера окна
+        // Обновление при изменении размера окна
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                // Показываем/скрываем блок с кнопкой в зависимости от размера экрана
-                const hubLoginFixed = document.getElementById('hub-login-fixed');
-                const hub = document.getElementById('hub');
-                if (hubLoginFixed && hub && hub.style.display !== 'none') {
-                    if (window.innerWidth >= 1024) {
-                        hubLoginFixed.style.display = 'block';
-                    } else {
-                        hubLoginFixed.style.display = 'none';
-                    }
+                if (typeof HubCommon !== 'undefined') {
+                    HubCommon.updateHub2Position();
+                    HubCommon.updateContentPadding();
+                    HubCommon.updateFloatingElementsPosition();
                 }
-                updateFloatingElementsPosition();
             }, 100);
         });
     </script>

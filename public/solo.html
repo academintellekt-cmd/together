@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Квиз - Соло режим</title>
     <link rel="stylesheet" href="/styles/brand-style.css">
+    <link rel="stylesheet" href="/styles/hub1.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -58,177 +59,12 @@
             75% { transform: rotate(3deg) scale(1.05); }
         }
 
-        /* HUB стили */
-        .hub {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(242, 242, 242, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 15px 20px;
-            z-index: 1000;
-            border-bottom: none;
-            box-shadow: none;
-        }
-
-        .hub-content {
-            max-width: 100%;
-            margin: 0 auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: nowrap;
-            gap: 15px;
-            position: relative;
-            min-height: 50px;
-        }
-
-        /* Секция с логотипом и фразой */
-        .hub-logo-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: absolute;
-            left: 50%;
-            top: 40px;
-            transform: translateX(-50%);
-            gap: 5px;
-            pointer-events: none;
-        }
-        
-        .hub-logo-section * {
-            pointer-events: auto;
-        }
-
-        .hub-logo-section .logo {
-            max-width: 100%;
-            height: auto;
-            max-height: 150px;
-            width: auto;
-            transform: rotate(-2deg);
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-        }
-
-        .hub-logo-section .subtitle {
-            font-family: 'Caveat', cursive;
-            font-size: 24px;
-            color: #393639;
-            margin: 0;
-            font-weight: 400;
-            line-height: 1.2;
-            white-space: nowrap;
-        }
-
-        .hub-actions {
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            flex-shrink: 0;
-            align-self: flex-start;
-        }
-
-        /* Элементы игры в HUB */
-        .hub-game-info {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-shrink: 0;
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        /* Номер вопроса отдельно по центру */
-        .hub-question-number-wrapper {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
-
-        .hub-question-number {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            color: #393639;
-            opacity: 0.8;
-            white-space: nowrap;
-        }
-
-        .hub-timer {
-            font-family: 'Days One', sans-serif;
-            font-size: 20px;
-            font-weight: 700;
-            color: #393639;
-            min-width: 40px;
-            text-align: center;
-            padding: 4px 12px;
-            background: rgba(245, 245, 245, 0.85);
-            border: 2px solid #393639;
-            border-radius: 8px;
-            box-shadow: 
-                0 2px 0px rgba(0, 0, 0, 0.15),
-                0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .hub-timer.urgent {
-            color: #ff7664;
-            background: rgba(255, 118, 100, 0.15);
-            border-color: #ff7664;
-            animation: pulse 1s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .back-button-hub {
-            display: inline-block;
-            padding: 8px 16px;
-            background: rgba(245, 245, 245, 0.85);
-            border: 2px solid #393639;
-            border-radius: 12px;
-            color: #393639;
-            text-decoration: none;
-            font-family: 'Days One', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            transition: all 0.3s;
-            box-shadow: 
-                0 2px 0px rgba(0, 0, 0, 0.2),
-                0 4px 8px rgba(0, 0, 0, 0.1);
-            white-space: nowrap;
-            cursor: pointer;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        
-        .back-button-hub:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 6px 0px rgba(0, 0, 0, 0.3),
-                0 8px 16px rgba(0, 0, 0, 0.15);
-            background: rgba(245, 245, 245, 0.6);
-        }
-        
-        .back-button-hub:active {
-            transform: translateY(0px);
-        }
-
+        /* Контент страницы */
         .container {
-            max-width: 600px;
             position: relative;
-            /* padding-top устанавливается динамически через JavaScript */
-            margin-top: 0;
-            margin-left: auto;
-            margin-right: auto;
+            z-index: 1;
         }
+
 
         .name-input-screen {
             text-align: center;
@@ -442,100 +278,6 @@
             font-weight: 600;
         }
 
-        /* Адаптивная ширина HUB */
-        @media (min-width: 1024px) {
-            .hub {
-                padding: 20px 40px;
-            }
-            
-            .hub-content {
-                max-width: 1400px;
-                margin: 0 auto;
-                justify-content: flex-start;
-                position: relative;
-            }
-            
-            .hub-actions {
-                flex-shrink: 0;
-            }
-            
-            .hub-game-info {
-                right: 40px;
-            }
-        }
-
-        @media (max-width: 1023px) and (min-width: 769px) {
-            .hub {
-                padding: 15px 30px;
-            }
-            
-            .hub-content {
-                max-width: 100%;
-                justify-content: flex-start;
-            }
-            
-            .hub-actions {
-                margin-left: 0;
-            }
-            
-            .hub-game-info {
-                right: 30px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .hub {
-                padding: 12px 20px;
-            }
-            
-            .hub-content {
-                max-width: 100%;
-                justify-content: flex-start;
-            }
-            
-            .hub-actions {
-                margin: 0;
-                align-self: center;
-            }
-            
-            .hub-game-info {
-                right: 20px;
-                gap: 15px;
-            }
-            
-            .hub-question-number {
-                font-size: 12px;
-            }
-            
-            .hub-timer {
-                font-size: 18px;
-                padding: 3px 10px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hub {
-                padding: 10px 15px;
-            }
-            
-            .hub-content {
-                justify-content: flex-start;
-            }
-            
-            .hub-game-info {
-                right: 15px;
-                gap: 10px;
-            }
-            
-            .hub-question-number {
-                font-size: 11px;
-            }
-            
-            .hub-timer {
-                font-size: 16px;
-                padding: 2px 8px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -553,21 +295,6 @@
         </div>
     </div>
 
-    <!-- HUB блок -->
-    <div class="hub" id="hub">
-        <div class="hub-content">
-            <div class="hub-actions">
-                <a href="/gnu-quiz.html" class="back-button-hub">← Назад</a>
-            </div>
-            <div class="hub-question-number-wrapper" id="hub-question-number-wrapper" style="display: none;">
-                <div class="hub-question-number" id="hub-question-number">Вопрос 1 из 15</div>
-            </div>
-            <div class="hub-game-info" id="hub-game-info" style="display: none;">
-                <div class="hub-timer" id="hub-timer">15</div>
-            </div>
-        </div>
-    </div>
-    
     <div class="container">
         
         <!-- Экран ввода имени -->
@@ -876,14 +603,14 @@
                 questionScreen.style.display = 'block';
             }
             
-            // Показываем информацию об игре в HUB
-            const hubGameInfo = document.getElementById('hub-game-info');
-            const hubQuestionWrapper = document.getElementById('hub-question-number-wrapper');
-            if (hubGameInfo) {
-                hubGameInfo.style.display = 'flex';
+            // Показываем информацию об игре в Hub1
+            const hub1QuestionNumber = document.querySelector('.hub1-question-number');
+            const hub1Timer = document.querySelector('.hub1-timer');
+            if (hub1QuestionNumber) {
+                hub1QuestionNumber.style.display = 'block';
             }
-            if (hubQuestionWrapper) {
-                hubQuestionWrapper.style.display = 'block';
+            if (hub1Timer) {
+                hub1Timer.style.display = 'block';
             }
             
             currentQuestion = 0;
@@ -914,10 +641,10 @@
 
             const question = quiz.questions[currentQuestion];
             
-            // Обновляем номер вопроса в HUB по центру
-            const hubQuestionNumber = document.getElementById('hub-question-number');
-            if (hubQuestionNumber) {
-                hubQuestionNumber.textContent = `Вопрос ${currentQuestion + 1} из ${quiz.questions.length}`;
+            // Обновляем номер вопроса в Hub1 по центру
+            const hub1QuestionNumber = document.querySelector('.hub1-question-number');
+            if (hub1QuestionNumber) {
+                hub1QuestionNumber.textContent = `Вопрос ${currentQuestion + 1} из ${quiz.questions.length}`;
             }
             
             document.getElementById('question-text').textContent = question.question;
@@ -943,24 +670,24 @@
             // Сохраняем время начала вопроса для точного расчета времени ответа
             questionStartTime = Date.now();
             
-            // Таймер в HUB
+            // Таймер в Hub1
             timeLeft = question.time;
-            const hubTimer = document.getElementById('hub-timer');
-            if (hubTimer) {
-                hubTimer.textContent = timeLeft;
-                hubTimer.className = 'hub-timer';
+            const hub1Timer = document.querySelector('.hub1-timer');
+            if (hub1Timer) {
+                hub1Timer.textContent = timeLeft;
+                hub1Timer.classList.remove('urgent');
             }
 
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 timeLeft--;
-                if (hubTimer) {
-                    hubTimer.textContent = timeLeft;
+                if (hub1Timer) {
+                    hub1Timer.textContent = timeLeft;
                     
                     if (timeLeft <= 5) {
-                        hubTimer.className = 'hub-timer urgent';
+                        hub1Timer.classList.add('urgent');
                     } else {
-                        hubTimer.className = 'hub-timer';
+                        hub1Timer.classList.remove('urgent');
                     }
                 }
                 
@@ -1029,14 +756,14 @@
         async function endGame() {
             const timeSpent = Math.floor((Date.now() - startTime) / 1000);
             
-            // Скрываем информацию об игре в HUB
-            const hubGameInfo = document.getElementById('hub-game-info');
-            const hubQuestionWrapper = document.getElementById('hub-question-number-wrapper');
-            if (hubGameInfo) {
-                hubGameInfo.style.display = 'none';
+            // Скрываем информацию об игре в Hub1
+            const hub1QuestionNumber = document.querySelector('.hub1-question-number');
+            const hub1Timer = document.querySelector('.hub1-timer');
+            if (hub1QuestionNumber) {
+                hub1QuestionNumber.style.display = 'none';
             }
-            if (hubQuestionWrapper) {
-                hubQuestionWrapper.style.display = 'none';
+            if (hub1Timer) {
+                hub1Timer.style.display = 'none';
             }
             
             document.getElementById('question-screen').style.display = 'none';
@@ -1125,29 +852,29 @@
                     document.getElementById('name-input-screen').style.display = 'block';
                     document.getElementById('game-screen').style.display = 'none';
                     
-                    // Скрываем информацию об игре в HUB
-                    const hubGameInfo = document.getElementById('hub-game-info');
-                    const hubQuestionWrapper = document.getElementById('hub-question-number-wrapper');
-                    if (hubGameInfo) {
-                        hubGameInfo.style.display = 'none';
-                    }
-                    if (hubQuestionWrapper) {
-                        hubQuestionWrapper.style.display = 'none';
-                    }
+                // Скрываем информацию об игре в Hub1
+                const hub1QuestionNumber = document.querySelector('.hub1-question-number');
+                const hub1Timer = document.querySelector('.hub1-timer');
+                if (hub1QuestionNumber) {
+                    hub1QuestionNumber.style.display = 'none';
+                }
+                if (hub1Timer) {
+                    hub1Timer.style.display = 'none';
+                }
                 }
             } else {
                 // Если имени нет, показываем экран ввода имени
                 document.getElementById('name-input-screen').style.display = 'block';
                 document.getElementById('game-screen').style.display = 'none';
                 
-                // Скрываем информацию об игре в HUB
-                const hubGameInfo = document.getElementById('hub-game-info');
-                const hubQuestionWrapper = document.getElementById('hub-question-number-wrapper');
-                if (hubGameInfo) {
-                    hubGameInfo.style.display = 'none';
+                // Скрываем информацию об игре в Hub1
+                const hub1QuestionNumber = document.querySelector('.hub1-question-number');
+                const hub1Timer = document.querySelector('.hub1-timer');
+                if (hub1QuestionNumber) {
+                    hub1QuestionNumber.style.display = 'none';
                 }
-                if (hubQuestionWrapper) {
-                    hubQuestionWrapper.style.display = 'none';
+                if (hub1Timer) {
+                    hub1Timer.style.display = 'none';
                 }
             }
         });
@@ -1155,73 +882,65 @@
         // Загрузка квиза при загрузке страницы
         // Проверяем пароль и загружаем квиз
         checkPasswordAndLoad();
-        // Функция для обновления позиции парящих элементов и отступа контейнера относительно высоты HUB
-        function updateFloatingElementsPosition() {
-            const hub = document.getElementById('hub');
-            const container = document.querySelector('.container');
+        // Инициализация Hub1
+        function initHubs() {
+            // Инициализация Hub1
+            Hub1.init({
+                showBack: true,
+                backUrl: '/gnu-quiz.html'
+            });
             
-            if (hub && hub.style.display !== 'none') {
-                const hubHeight = hub.offsetHeight;
-                // Устанавливаем top для парящего элемента: высота HUB + отступ
-                const floatingTop = hubHeight + 20;
-                
-                // Устанавливаем отступ контейнера: высота HUB + дополнительный отступ для опускания элементов
-                if (container) {
-                    const isWideScreen = window.innerWidth >= 1024;
-                    const isNarrowScreen = window.innerWidth <= 768;
-                    let additionalPadding;
-                    if (isWideScreen) {
-                        additionalPadding = 50;
-                    } else if (isNarrowScreen) {
-                        additionalPadding = 30;
-                    } else {
-                        additionalPadding = 40;
-                    }
-                    const paddingTop = hubHeight + additionalPadding;
-                    container.style.paddingTop = paddingTop + 'px';
+            // Создаем элементы для номера вопроса и таймера в Hub1
+            const hub1Content = document.querySelector('.hub1-content');
+            if (hub1Content) {
+                // Номер вопроса по центру
+                let hub1QuestionNumber = document.querySelector('.hub1-question-number');
+                if (!hub1QuestionNumber) {
+                    hub1QuestionNumber = document.createElement('div');
+                    hub1QuestionNumber.className = 'hub1-question-number';
+                    hub1QuestionNumber.style.display = 'none';
+                    hub1Content.appendChild(hub1QuestionNumber);
                 }
                 
-                // Создаем или обновляем стиль для парящего элемента
-                let style = document.getElementById('dynamic-floating-position');
-                if (!style) {
-                    style = document.createElement('style');
-                    style.id = 'dynamic-floating-position';
-                    document.head.appendChild(style);
-                }
-                style.textContent = `
-                    body::before {
-                        top: ${floatingTop}px !important;
+                // Таймер справа
+                let hub1Timer = document.querySelector('.hub1-timer');
+                if (!hub1Timer) {
+                    hub1Timer = document.createElement('div');
+                    hub1Timer.className = 'hub1-timer';
+                    hub1Timer.style.display = 'none';
+                    const hub1ActionsRight = document.getElementById('hub1-actions-right');
+                    if (hub1ActionsRight) {
+                        hub1ActionsRight.appendChild(hub1Timer);
                     }
-                `;
+                }
             }
+            
+            // Обновление позиций (только Hub1, без Hub2)
+            HubCommon.updateHub2Position();
+            HubCommon.updateContentPadding();
+            HubCommon.updateFloatingElementsPosition();
         }
-
-        // Применяем цвет выбранного персонажа к кнопке "Назад"
+        
+        // Обновление при загрузке
         document.addEventListener('DOMContentLoaded', function() {
-            const savedColor = localStorage.getItem('selectedCharacterColor');
-            if (savedColor) {
-                // Применяем цвет ко всем кнопкам "Назад" (широкая и мобильная версия)
-                const backButtons = document.querySelectorAll('.back-button-hub');
-                backButtons.forEach(button => {
-                    button.style.background = savedColor;
-                });
-            }
-            
-            // Обновляем позицию парящих элементов и отступ контейнера после загрузки
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => {
-                    setTimeout(updateFloatingElementsPosition, 300);
-                });
-            } else {
-                setTimeout(updateFloatingElementsPosition, 300);
+            if (typeof HubCommon !== 'undefined') {
+                HubCommon.updateHub2Position();
+                HubCommon.updateContentPadding();
+                HubCommon.updateFloatingElementsPosition();
             }
         });
         
-        // Обновляем позицию при изменении размера окна
+        // Обновление при изменении размера окна
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(updateFloatingElementsPosition, 100);
+            resizeTimeout = setTimeout(() => {
+                if (typeof HubCommon !== 'undefined') {
+                    HubCommon.updateHub2Position();
+                    HubCommon.updateContentPadding();
+                    HubCommon.updateFloatingElementsPosition();
+                }
+            }, 100);
         });
         
         // Инициализация джойстика при загрузке страницы
@@ -1229,6 +948,20 @@
             document.addEventListener('DOMContentLoaded', initJoystick);
         } else {
             initJoystick();
+        }
+    </script>
+    
+    <!-- Hub1 скрипты -->
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
+    <script>
+        // Инициализация Hub1 после загрузки
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(initHubs, 100);
+            });
+        } else {
+            setTimeout(initHubs, 100);
         }
     </script>
 </body>
