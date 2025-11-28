@@ -434,6 +434,96 @@
         let playerName = null;
         let currentTimer = null;
         let hasAnswered = false;
+        
+        // Поддержка джойстика
+        let gamepad = null;
+        let joystickConfig = null;
+        let gamepadUpdateInterval = null;
+        
+        // Загрузка конфигурации джойстика
+        function loadJoystickConfig() {
+            const saved = localStorage.getItem('joystickConfig');
+            if (saved) {
+                try {
+                    joystickConfig = JSON.parse(saved);
+                    console.log('✅ Конфигурация джойстика загружена:', joystickConfig);
+                } catch (e) {
+                    console.error('Ошибка загрузки конфигурации джойстика:', e);
+                    joystickConfig = null;
+                }
+            } else {
+                joystickConfig = null;
+            }
+        }
+        
+        // Получение джойстика
+        function getGamepad() {
+            const gamepads = navigator.getGamepads();
+            for (let i = 0; i < gamepads.length; i++) {
+                if (gamepads[i]) {
+                    return gamepads[i];
+                }
+            }
+            return null;
+        }
+        
+        // Обработка нажатий кнопок джойстика
+        function handleGamepadInput() {
+            if (!gamepad || !joystickConfig || !joystickConfig.buttons) return;
+            
+            // Проверяем нажатые кнопки
+            const buttons = joystickConfig.buttons;
+            for (const [command, buttonIndex] of Object.entries(buttons)) {
+                // Проверяем, что кнопка нажата
+                if (gamepad.buttons[buttonIndex] && gamepad.buttons[buttonIndex].pressed) {
+                    // Обработка ответов - только на экране вопроса
+                    const questionScreen = document.getElementById('question-screen');
+                    if (questionScreen && questionScreen.style.display !== 'none' && !hasAnswered) {
+                        // Извлекаем номер кнопки из названия (например, "Кнопка 1" -> 1)
+                        const match = command.match(/Кнопка (\d+)/);
+                        if (match) {
+                            const answerIndex = parseInt(match[1]) - 1; // Кнопка 1 = ответ 0, Кнопка 2 = ответ 1 и т.д.
+                            
+                            // Проверяем, что такой вариант ответа существует
+                            const options = document.querySelectorAll('.option-btn');
+                            if (answerIndex >= 0 && answerIndex < options.length) {
+                                console.log(`🎮 Джойстик: ${command} -> Ответ ${answerIndex + 1}`);
+                                selectAnswer(answerIndex);
+                                return; // Обработали нажатие, выходим
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Обновление состояния джойстика
+        function updateGamepad() {
+            gamepad = getGamepad();
+            if (gamepad) {
+                handleGamepadInput();
+            }
+        }
+        
+        // Инициализация джойстика
+        function initJoystick() {
+            loadJoystickConfig();
+            if (joystickConfig && joystickConfig.buttons) {
+                // Запускаем обновление джойстика
+                gamepadUpdateInterval = setInterval(updateGamepad, 50); // Проверяем каждые 50мс
+                
+                // Обработчики подключения/отключения
+                window.addEventListener('gamepadconnected', (e) => {
+                    console.log('🎮 Джойстик подключен:', e.gamepad.id);
+                    gamepad = e.gamepad;
+                });
+                
+                window.addEventListener('gamepaddisconnected', (e) => {
+                    console.log('🎮 Джойстик отключен:', e.gamepad.id);
+                    gamepad = null;
+                });
+            }
+        }
 
         // Функция показа ошибки
         function showError(message) {
@@ -864,6 +954,13 @@
                 leaderboard.appendChild(item);
             });
         });
+        
+        // Инициализация джойстика при загрузке страницы
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initJoystick);
+        } else {
+            initJoystick();
+        }
     </script>
 </body>
 </html>

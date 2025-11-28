@@ -19,6 +19,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/Geometria', express.static(path.join(__dirname, 'Geometria')));
+app.use('/joystick-test', express.static(path.join(__dirname, 'joystick-test')));
 
 // Хранилище комнат и игроков
 const rooms = new Map();

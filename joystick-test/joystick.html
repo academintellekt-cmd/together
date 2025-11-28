@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройка джойстика - ВМЕСТЕ</title>
+    <link rel="stylesheet" href="/styles/brand-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Блок кнопок - закреплен */
+        .hub-login-fixed {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--color-bg);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            z-index: 1001;
+            display: block;
+            min-height: auto;
+            transition: height 0.3s ease;
+            will-change: height;
+        }
+
+        /* HUB стили */
+        .hub {
+            position: fixed !important;
+            top: 60px; /* Будет обновляться через JavaScript */
+            left: 0;
+            right: 0;
+            background: var(--color-bg);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            z-index: 1000;
+            border-bottom: none;
+            box-shadow: none;
+            width: 100%;
+            overflow: visible;
+            min-height: 240px;
+            transition: top 0.3s ease;
+            will-change: top;
+        }
+
+        .hub-content {
+            max-width: 100%;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 15px;
+            position: relative;
+        }
+        
+        .hub-actions {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            justify-content: space-between;
+            width: 100%;
+            flex-wrap: wrap;
+            min-height: auto;
+        }
+        
+        .hub-actions-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .hub-status {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-dark);
+            background: rgba(245, 245, 245, 0.85);
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 2px solid var(--color-black);
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .hub-status.connected {
+            background: var(--color-green);
+            color: var(--color-white);
+        }
+        
+        .hub-status.disconnected {
+            background: var(--color-coral);
+            color: var(--color-white);
+        }
+        
+        .hub-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(245, 245, 245, 0.85);
+            border: 2px solid var(--color-dark);
+            border-radius: 12px;
+            color: var(--color-dark);
+            text-decoration: none;
+            font-family: 'Days One', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            line-height: 1.2;
+            box-sizing: border-box;
+        }
+        
+        .hub-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+        
+        .hub-button:active {
+            transform: translateY(0px);
+        }
+
+        .hub-logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            left: 50%;
+            top: 40px;
+            transform: translateX(-50%);
+            gap: 5px;
+            pointer-events: none;
+            width: 100%;
+            max-width: 100%;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        
+        .hub-logo-section * {
+            pointer-events: auto;
+        }
+
+        .hub-logo-section .logo {
+            max-width: 100%;
+            height: auto;
+            max-height: 150px;
+            width: auto;
+            transform: rotate(-2deg);
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        .hub-logo-section .subtitle {
+            font-family: 'Caveat', cursive;
+            font-size: clamp(33.6px, 6.3vw, 50.4px);
+            color: var(--color-dark);
+            margin: 0;
+            font-weight: 400;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: clip;
+            max-width: 100%;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+        }
+
+        .back-button-hub {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(245, 245, 245, 0.85);
+            border: 2px solid var(--color-dark);
+            border-radius: 12px;
+            color: var(--color-dark);
+            text-decoration: none;
+            font-family: 'Days One', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .back-button-hub:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+        
+        .back-button-hub:active {
+            transform: translateY(0px);
+        }
+
+        .main-container {
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px 20px 20px;
+            position: relative;
+            z-index: 2;
+            /* padding-top устанавливается динамически через JavaScript */
+        }
+        
+        @media (min-width: 1024px) {
+            .hub-login-fixed {
+                padding: 15px 40px;
+            }
+            
+            .hub-login-fixed .hub-actions {
+                max-width: 1400px;
+                margin: 0 auto;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .hub {
+                padding: 20px 40px 4px 40px;
+                min-height: 260px;
+                /* top будет обновляться через JavaScript */
+            }
+            
+            .hub-content {
+                max-width: 1400px;
+                margin: 0 auto;
+                min-height: 240px;
+            }
+            
+            .hub-logo-section {
+                position: absolute;
+                left: 50%;
+                top: 40px;
+                transform: translateX(-50%);
+                max-width: 100%;
+            }
+            
+            .hub-logo-section .logo {
+                max-height: 150px;
+            }
+            
+            .hub-logo-section .subtitle {
+                font-size: clamp(33.6px, 6.3vw, 50.4px);
+            }
+            
+            .main-container {
+                padding-top: 320px; /* Отступ для двух HUB блоков */
+            }
+        }
+        
+        @media (max-width: 1023px) {
+            .hub-login-fixed {
+                padding: 15px 20px;
+            }
+            
+            .hub-login-fixed .hub-actions {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .hub-actions-left {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .hub {
+                /* top будет обновляться через JavaScript */
+                padding: 12px 20px;
+            }
+            
+            .hub-content {
+                min-height: auto;
+            }
+            
+            .hub-logo-section {
+                position: relative;
+                left: auto;
+                top: auto;
+                transform: none;
+                margin: 10px 0;
+                width: 100%;
+            }
+            
+            .hub-logo-section .logo {
+                max-height: 80px;
+            }
+            
+            .hub-logo-section .subtitle {
+                font-size: clamp(24px, 4.5vw, 36px);
+                white-space: normal;
+                word-wrap: break-word;
+            }
+            
+            .main-container {
+                padding-top: 200px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hub-login-fixed {
+                padding: 12px 15px;
+            }
+            
+            .hub-login-fixed .hub-actions {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            
+            .hub-button {
+                font-size: 12px;
+                padding: 6px 12px;
+                min-width: auto;
+            }
+            
+            .hub-status {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            
+            .hub {
+                min-height: auto;
+                padding: 12px 15px;
+                top: 50px;
+            }
+            
+            .hub-logo-section {
+                position: relative;
+                left: auto;
+                top: auto;
+                transform: none;
+                margin: 8px 0;
+                width: 100%;
+            }
+            
+            .hub-logo-section .logo {
+                max-height: 60px;
+            }
+            
+            .hub-logo-section .subtitle {
+                font-size: clamp(20px, 4vw, 28px);
+                white-space: normal;
+                word-wrap: break-word;
+                line-height: 1.3;
+            }
+            
+            .main-container {
+                padding: 120px 15px 30px;
+            }
+            
+            body::before {
+                top: 150px;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            body::before {
+                top: 340px; /* Ниже двух HUB блоков */
+            }
+        }
+
+        /* Старые стили статуса удалены - теперь используется hub-status */
+
+        .joystick-section {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .stick-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            background: rgba(245, 245, 245, 0.85);
+            border-radius: 50%;
+            border: 3px solid var(--color-black);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stick-center {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: var(--color-green);
+            border-radius: 50%;
+            border: 2px solid var(--color-black);
+            transition: transform 0.1s ease-out;
+            z-index: 2;
+        }
+
+        .stick-center.active {
+            background: var(--color-lime);
+            box-shadow: 0 0 20px rgba(171, 246, 124, 0.6);
+        }
+
+        .stick-directions {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .direction {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(171, 246, 124, 0.3);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
+            transition: all 0.2s;
+            border: 2px solid var(--color-black);
+        }
+
+        .direction.active {
+            background: var(--color-green);
+            color: var(--color-white);
+            transform: scale(1.2);
+            box-shadow: 0 0 15px rgba(47, 185, 93, 0.8);
+        }
+
+        .direction.up {
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .direction.down {
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .direction.left {
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .direction.right {
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 10px;
+            max-width: 100%;
+        }
+
+        .button {
+            min-width: 60px;
+            width: 100%;
+            aspect-ratio: 1;
+            max-width: 90px;
+            background: rgba(245, 245, 245, 0.85);
+            border: 3px solid var(--color-black);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 0.75em;
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            position: relative;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            padding: 4px;
+            text-align: center;
+            word-wrap: break-word;
+            overflow: hidden;
+        }
+        
+        @media (max-width: 768px) {
+            .buttons-grid {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+                gap: 8px;
+            }
+            
+            .button {
+                max-width: 80px;
+                font-size: 0.7em;
+                padding: 3px;
+            }
+        }
+
+        .button.active {
+            background: var(--color-green);
+            color: var(--color-white);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(47, 185, 93, 0.8);
+            border-color: var(--color-green-alt);
+        }
+
+        .button-label {
+            font-size: 0.7em;
+            line-height: 1.2;
+            color: var(--color-dark);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            text-align: center;
+        }
+
+        .button.active .button-label {
+            color: var(--color-white);
+        }
+
+        .calibration-section {
+            margin-bottom: 30px;
+        }
+
+        .calibration-item {
+            background: #f5f5f5;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .calibration-item.active {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+
+        .calibration-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .calibration-info strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .calibration-info span {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .calibration-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .calibration-input input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .calibration-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .axis-info {
+            margin-top: 20px;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9em;
+            color: var(--color-dark);
+            background: rgba(245, 245, 245, 0.85);
+            padding: 10px;
+            border-radius: 12px;
+            border: 3px solid var(--color-black);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .info p {
+            margin: 5px 0;
+        }
+
+        .btn-save {
+            background: var(--color-green);
+            color: var(--color-white);
+            border: 3px solid var(--color-black);
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            font-family: 'Days One', sans-serif;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-reset {
+            background: var(--color-coral);
+            color: var(--color-white);
+            border: 3px solid var(--color-black);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-family: 'Days One', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .all-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .all-buttons .button {
+            width: 100%;
+        }
+
+        .all-axes {
+            margin-top: 20px;
+        }
+
+        .axis-item {
+            background: #f5f5f5;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .axis-item.active {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+
+        .axis-value {
+            font-family: monospace;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .command-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .command-item {
+            background: rgba(245, 245, 245, 0.85);
+            padding: 15px;
+            border-radius: 12px;
+            border: 3px solid var(--color-black);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            font-family: 'Days One', sans-serif;
+        }
+
+        .command-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+
+        .command-item.selected {
+            background: var(--color-green);
+            color: var(--color-white);
+            border-color: var(--color-green-alt);
+            box-shadow: 
+                0 4px 0px rgba(47, 185, 93, 0.3),
+                0 8px 16px rgba(47, 185, 93, 0.2);
+        }
+
+        .command-item.waiting {
+            background: var(--color-yellow);
+            border-color: var(--color-coral);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .command-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
+        }
+
+        .command-assigned {
+            font-size: 0.9em;
+            color: var(--color-dark);
+            margin-top: 5px;
+            font-family: 'Montserrat', sans-serif;
+            opacity: 0.8;
+        }
+
+        .command-item.selected .command-assigned {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .calibration-section h2 {
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .calibration-section p {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--color-dark);
+        }
+        
+        .main-container h1 {
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .assign-mode {
+            background: var(--color-yellow);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-family: 'Montserrat', sans-serif;
+            border: 3px solid var(--color-black);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            color: var(--color-dark);
+        }
+
+        .btn-clear {
+            background: var(--color-coral);
+            color: var(--color-white);
+            border: 2px solid var(--color-black);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8em;
+            font-family: 'Days One', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: all 0.3s;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-clear:hover {
+            transform: translateY(-1px);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.3),
+                0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <!-- Блок кнопок - закреплен -->
+    <div class="hub-login-fixed" id="hub-login-fixed">
+        <div class="hub-actions">
+            <div class="hub-actions-left">
+                <a href="/index.html" class="hub-button">← Назад</a>
+                <button class="hub-button" onclick="saveConfiguration()" style="background: var(--color-green); color: var(--color-white); border-color: var(--color-green-alt); min-width: 120px;">Сохранить</button>
+                <button class="hub-button" onclick="resetConfiguration()" style="background: var(--color-coral); color: var(--color-white); border-color: var(--color-coral-alt); min-width: 120px;">Сбросить</button>
+            </div>
+            <!-- Статус джойстика -->
+            <div id="hub-status" class="hub-status disconnected">
+                Джойстик не подключен
+            </div>
+        </div>
+    </div>
+
+    <!-- HUB блок с логотипом и фразой -->
+    <div class="hub" id="hub">
+        <div class="hub-content">
+            <!-- Логотип и фраза по центру -->
+            <div class="hub-logo-section">
+                <img src="/images/logo.png" alt="ВМЕСТЕ" class="logo">
+                <p class="subtitle">хорошие люди объединяются играми</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="main-container">
+        <h1>Настройка джойстика</h1>
+
+        <!-- Единый экран: калибровка и тест рядом -->
+        <div style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: space-around;">
+            <!-- Левая часть: Калибровка -->
+            <div style="flex: 1; min-width: 400px;">
+                <div class="assign-mode" id="assign-mode" style="display: none;">
+                    ⚠️ Нажмите кнопку на джойстике для назначения
+                </div>
+
+                <div class="calibration-section">
+                    <h2 style="margin-bottom: 15px; font-size: 1.3em;">Калибровка кнопок</h2>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 0.9em;">
+                        Нажмите на кнопку ниже, затем нажмите соответствующую кнопку на джойстике
+                    </p>
+                    <div class="command-list" id="button-commands-list" style="grid-template-columns: repeat(2, 1fr);"></div>
+                </div>
+
+                <div class="calibration-section" style="margin-top: 20px;">
+                    <h2 style="margin-bottom: 15px; font-size: 1.3em;">Калибровка стика</h2>
+                    <div class="command-list" id="stick-commands-list" style="grid-template-columns: repeat(2, 1fr);"></div>
+                </div>
+
+            </div>
+
+            <!-- Правая часть: Тест -->
+            <div style="flex: 1; min-width: 400px;">
+                <h2 style="margin-bottom: 15px; font-size: 1.3em; text-align: center;">Тест</h2>
+                <div class="joystick-section" style="justify-content: center; margin-bottom: 20px;">
+                    <div class="stick-container">
+                        <div class="stick-directions">
+                            <div class="direction up" id="dir-up">↑</div>
+                            <div class="direction down" id="dir-down">↓</div>
+                            <div class="direction left" id="dir-left">←</div>
+                            <div class="direction right" id="dir-right">→</div>
+                        </div>
+                        <div class="stick-center" id="stick-center"></div>
+                    </div>
+                </div>
+
+                <div class="buttons-grid" id="test-buttons-grid" style="grid-template-columns: repeat(5, 1fr); max-width: 100%;">
+                    <!-- Кнопки будут добавлены динамически -->
+                </div>
+
+                <div class="axis-info" id="axis-info" style="margin-top: 15px;">
+                    Ось X: 0.00 | Ось Y: 0.00
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функция для обновления позиции HUB2 относительно HUB1
+        let lastHub1Height = 0;
+        function updateHubPosition() {
+            const hub1 = document.getElementById('hub-login-fixed');
+            const hub2 = document.getElementById('hub');
+            
+            if (hub1 && hub2) {
+                const hub1Height = hub1.offsetHeight;
+                
+                // Обновляем только если высота изменилась
+                if (hub1Height !== lastHub1Height) {
+                    hub2.style.top = hub1Height + 'px';
+                    lastHub1Height = hub1Height;
+                    
+                    // Обновляем padding-top для основного контента
+                    const mainContainer = document.querySelector('.main-container');
+                    if (mainContainer) {
+                        const hub2Height = hub2.offsetHeight;
+                        const totalHeight = hub1Height + hub2Height;
+                        mainContainer.style.paddingTop = (totalHeight + 20) + 'px';
+                    }
+                }
+            }
+        }
+        
+        // Применяем цвет выбранного персонажа к кнопке "Назад"
+        function updateBackButtonColor() {
+            const savedColor = localStorage.getItem('selectedCharacterColor');
+            const backButton = document.querySelector('.hub-button[href="/index.html"]');
+            if (backButton && savedColor) {
+                backButton.style.background = savedColor;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Применяем цвет при загрузке
+            updateBackButtonColor();
+            
+            // Слушаем изменения в localStorage для обновления цвета в реальном времени
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'selectedCharacterColor') {
+                    updateBackButtonColor();
+                }
+            });
+            
+            // Также обновляем при изменении через setItem (для текущей вкладки)
+            const originalSetItem = localStorage.setItem;
+            localStorage.setItem = function(key, value) {
+                originalSetItem.apply(this, arguments);
+                if (key === 'selectedCharacterColor') {
+                    updateBackButtonColor();
+                }
+            };
+            
+            // Обновляем позицию HUB при загрузке
+            updateHubPosition();
+            
+            // Обновляем позицию при изменении размера окна
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(updateHubPosition, 100);
+            });
+            
+            // Обновляем позицию при изменении содержимого (для адаптивности)
+            // Используем debounce для предотвращения частых обновлений
+            let updateTimeout;
+            const observer = new MutationObserver(() => {
+                clearTimeout(updateTimeout);
+                updateTimeout = setTimeout(updateHubPosition, 50);
+            });
+            
+            const hub1 = document.getElementById('hub-login-fixed');
+            if (hub1) {
+                observer.observe(hub1, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['style', 'class'],
+                    characterData: false
+                });
+            }
+            
+            // Убеждаемся, что HUB2 остается fixed при прокрутке
+            // Отключаем любые обновления при прокрутке
+            let scrollTimeout;
+            window.addEventListener('scroll', () => {
+                // Не обновляем позицию при прокрутке, только при изменении размера
+                clearTimeout(scrollTimeout);
+            }, { passive: true });
+        });
+        let gamepad = null;
+        let animationFrame = null;
+        const DEAD_ZONE = 0.15;
+        let selectedCommand = null;
+        let selectedCommandType = null; // 'button' или 'stick'
+        let waitingForInput = false;
+        
+        // Список доступных команд - кнопки 1-10
+        const availableCommands = {
+            buttons: [
+                'Кнопка 1', 'Кнопка 2', 'Кнопка 3', 'Кнопка 4', 'Кнопка 5',
+                'Кнопка 6', 'Кнопка 7', 'Кнопка 8', 'Кнопка 9', 'Кнопка 10'
+            ],
+            stick: [
+                'Вверх', 'Вниз', 'Влево', 'Вправо'
+            ]
+        };
+
+        // Конфигурация: команда -> номер кнопки или направление стика
+        // Инициализируем пустой конфигурацией, но она будет загружена из localStorage при инициализации
+        let configuration = {
+            buttons: {},  // "Кнопка 1" -> 0, "ОК" -> 1, и т.д.
+            axes: {}     // "Вверх" -> "up", "Вниз" -> "down", и т.д.
+        };
+        
+        // Флаг для защиты конфигурации от случайного изменения
+        let configurationLocked = false;
+
+        // Загрузка сохраненной конфигурации
+        function loadConfiguration() {
+            const saved = localStorage.getItem('joystickConfig');
+            if (saved) {
+                try {
+                    const loaded = JSON.parse(saved);
+                    // Сохраняем только если загруженная конфигурация не пустая
+                    if (loaded && (Object.keys(loaded.buttons || {}).length > 0 || Object.keys(loaded.axes || {}).length > 0)) {
+                        // Восстанавливаем структуру, если она отсутствует
+                        configuration = {
+                            buttons: loaded.buttons || {},
+                            axes: loaded.axes || {}
+                        };
+                        console.log('✅ Конфигурация загружена из localStorage:', configuration);
+                        // Блокируем конфигурацию от случайного изменения
+                        configurationLocked = true;
+                    } else {
+                        console.log('📝 Конфигурация пустая, начинаем с нуля');
+                        configurationLocked = false;
+                    }
+                } catch (e) {
+                    console.error('Ошибка загрузки конфигурации:', e);
+                    configurationLocked = false;
+                }
+            } else {
+                console.log('📝 Конфигурация не найдена в localStorage');
+                configurationLocked = false;
+            }
+        }
+
+        // Сохранение конфигурации (автоматическое)
+        function saveConfiguration(silent = false) {
+            // Сохраняем полную копию конфигурации
+            const configToSave = {
+                buttons: { ...configuration.buttons },
+                axes: { ...configuration.axes }
+            };
+            localStorage.setItem('joystickConfig', JSON.stringify(configToSave));
+            // Блокируем конфигурацию после сохранения
+            configurationLocked = true;
+            if (!silent) {
+                alert('✅ Конфигурация сохранена!');
+            }
+            console.log('💾 Конфигурация сохранена и заблокирована:', configToSave);
+            updateTestView();
+        }
+
+        // Сброс конфигурации
+        function resetConfiguration() {
+            if (confirm('Вы уверены, что хотите сбросить конфигурацию?')) {
+                configuration = {
+                    buttons: {},
+                    axes: {}
+                };
+                configurationLocked = false; // Разблокируем для новой калибровки
+                selectedCommand = null;
+                selectedCommandType = null;
+                waitingForInput = false;
+                const assignMode = document.getElementById('assign-mode');
+                if (assignMode) assignMode.style.display = 'none';
+                localStorage.removeItem('joystickConfig');
+                renderCommandLists();
+                updateTestView();
+                alert('Конфигурация сброшена');
+            }
+        }
+
+        // Функция переключения вкладок больше не нужна - все на одном экране
+
+        // Инициализация вида калибровки
+        function initCalibrationView() {
+            console.log('initCalibrationView called');
+            // Небольшая задержка, чтобы убедиться, что DOM готов
+            setTimeout(() => {
+                renderCommandLists();
+                // Обновляем тестовый вид сразу
+                updateTestView();
+            }, 100);
+        }
+
+        // Отрисовка списков команд
+        function renderCommandLists() {
+            const buttonsList = document.getElementById('button-commands-list');
+            const stickList = document.getElementById('stick-commands-list');
+
+            if (!buttonsList || !stickList) {
+                console.log('Элементы не найдены, buttonsList:', buttonsList, 'stickList:', stickList);
+                return;
+            }
+
+            // Кнопки
+            buttonsList.innerHTML = availableCommands.buttons.map(cmd => {
+                const assignedButton = getButtonForCommand(cmd);
+                const cmdEscaped = cmd.replace(/'/g, "\\'");
+                const isSelected = selectedCommand === cmd;
+                const isWaiting = isSelected && waitingForInput;
+                return `
+                    <div class="command-item ${isWaiting ? 'waiting' : isSelected ? 'selected' : ''}" 
+                         onclick="selectCommand('${cmdEscaped}', 'button')">
+                        <div class="command-name">${cmd}</div>
+                        <div class="command-assigned" style="margin-top: 8px; font-size: 0.85em;">
+                            ${assignedButton !== null ? `✅ Назначена` : '❌ Не назначена'}
+                            ${assignedButton !== null ? `<button class="btn-clear" onclick="clearCommand('${cmdEscaped}', 'button'); event.stopPropagation();" style="margin-left: 8px;">✕</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Стик
+            stickList.innerHTML = availableCommands.stick.map(cmd => {
+                const assignedDirection = getDirectionForCommand(cmd);
+                const cmdEscaped = cmd.replace(/'/g, "\\'");
+                const isSelected = selectedCommand === cmd;
+                const isWaiting = isSelected && waitingForInput;
+                return `
+                    <div class="command-item ${isWaiting ? 'waiting' : isSelected ? 'selected' : ''}" 
+                         onclick="selectCommand('${cmdEscaped}', 'stick')">
+                        <div class="command-name">${cmd}</div>
+                        <div class="command-assigned" style="margin-top: 8px; font-size: 0.85em;">
+                            ${assignedDirection ? `✅ Назначена` : '❌ Не назначена'}
+                            ${assignedDirection ? `<button class="btn-clear" onclick="clearCommand('${cmdEscaped}', 'stick'); event.stopPropagation();" style="margin-left: 8px;">✕</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Получить номер кнопки для команды
+        function getButtonForCommand(command) {
+            for (const [cmd, btnIndex] of Object.entries(configuration.buttons)) {
+                if (cmd === command) return btnIndex;
+            }
+            return null;
+        }
+
+        // Получить направление для команды
+        function getDirectionForCommand(command) {
+            for (const [cmd, direction] of Object.entries(configuration.axes)) {
+                if (cmd === command) return direction;
+            }
+            return null;
+        }
+
+        // Выбор команды для назначения
+        function selectCommand(command, type) {
+            console.log('selectCommand called:', command, type);
+            selectedCommand = command;
+            selectedCommandType = type;
+            waitingForInput = true;
+            const assignMode = document.getElementById('assign-mode');
+            if (assignMode) {
+                assignMode.style.display = 'block';
+                assignMode.textContent = 
+                    `⚠️ Режим назначения: Выбрана команда "${command}". ${type === 'button' ? 'Нажмите нужную кнопку на джойстике' : 'Двигайте стик в нужном направлении'}`;
+            }
+            renderCommandLists();
+        }
+
+        // Очистить назначение команды
+        function clearCommand(command, type) {
+            if (type === 'button') {
+                delete configuration.buttons[command];
+            } else {
+                delete configuration.axes[command];
+            }
+            // Автоматически сохраняем конфигурацию после очистки
+            saveConfiguration(true);
+            renderCommandLists();
+        }
+
+        // Назначить кнопку команде (вручную)
+        function assignButtonToCommand(command, buttonIndex) {
+            if (buttonIndex >= 0 && !isNaN(buttonIndex)) {
+                configuration.buttons[command] = buttonIndex;
+                // Автоматически сохраняем конфигурацию
+                saveConfiguration(true);
+                // Сбрасываем режим ожидания, если это была выбранная команда
+                if (selectedCommand === command && selectedCommandType === 'button') {
+                    selectedCommand = null;
+                    selectedCommandType = null;
+                    waitingForInput = false;
+                    const assignMode = document.getElementById('assign-mode');
+                    if (assignMode) assignMode.style.display = 'none';
+                }
+                renderCommandLists();
+            }
+        }
+
+        // Обновление вида калибровки
+        function updateCalibrationView() {
+            if (!gamepad) return;
+
+            // Проверка нажатых кнопок или стика только если ждем ввода
+            if (waitingForInput && selectedCommand && selectedCommandType) {
+                if (selectedCommandType === 'button') {
+                    // Проверка нажатых кнопок
+                    for (let i = 0; i < gamepad.buttons.length; i++) {
+                        if (gamepad.buttons[i] && gamepad.buttons[i].pressed) {
+                            // Найдена нажатая кнопка
+                            configuration.buttons[selectedCommand] = i;
+                            // Автоматически сохраняем конфигурацию
+                            saveConfiguration(true);
+                            selectedCommand = null;
+                            selectedCommandType = null;
+                            waitingForInput = false;
+                            const assignMode = document.getElementById('assign-mode');
+                            if (assignMode) assignMode.style.display = 'none';
+                            renderCommandLists();
+                            break;
+                        }
+                    }
+                } else if (selectedCommandType === 'stick') {
+                    // Проверка стика
+                    const axisX = gamepad.axes[0] || 0;
+                    const axisY = gamepad.axes[1] || 0;
+
+                    if (axisY < -DEAD_ZONE) {
+                        configuration.axes[selectedCommand] = 'up';
+                        saveConfiguration(true);
+                        selectedCommand = null;
+                        selectedCommandType = null;
+                        waitingForInput = false;
+                        const assignMode = document.getElementById('assign-mode');
+                        if (assignMode) assignMode.style.display = 'none';
+                        renderCommandLists();
+                    } else if (axisY > DEAD_ZONE) {
+                        configuration.axes[selectedCommand] = 'down';
+                        saveConfiguration(true);
+                        selectedCommand = null;
+                        selectedCommandType = null;
+                        waitingForInput = false;
+                        const assignMode = document.getElementById('assign-mode');
+                        if (assignMode) assignMode.style.display = 'none';
+                        renderCommandLists();
+                    } else if (axisX < -DEAD_ZONE) {
+                        configuration.axes[selectedCommand] = 'left';
+                        saveConfiguration(true);
+                        selectedCommand = null;
+                        selectedCommandType = null;
+                        waitingForInput = false;
+                        const assignMode = document.getElementById('assign-mode');
+                        if (assignMode) assignMode.style.display = 'none';
+                        renderCommandLists();
+                    } else if (axisX > DEAD_ZONE) {
+                        configuration.axes[selectedCommand] = 'right';
+                        saveConfiguration(true);
+                        selectedCommand = null;
+                        selectedCommandType = null;
+                        waitingForInput = false;
+                        const assignMode = document.getElementById('assign-mode');
+                        if (assignMode) assignMode.style.display = 'none';
+                        renderCommandLists();
+                    }
+                }
+            }
+        }
+
+        // Обновление тестового вида
+        function updateTestView() {
+            if (!gamepad) return;
+
+            const buttonsGrid = document.getElementById('test-buttons-grid');
+            buttonsGrid.innerHTML = '';
+
+            // Создаем кнопки для всех настроенных команд
+            Object.keys(configuration.buttons).forEach(command => {
+                const btnIndex = configuration.buttons[command];
+                const btn = gamepad.buttons[btnIndex];
+                const isPressed = btn && btn.pressed;
+
+                const buttonEl = document.createElement('div');
+                buttonEl.className = `button ${isPressed ? 'active' : ''}`;
+                buttonEl.id = `test-btn-${command}`;
+                // Обрезаем длинные названия для лучшего отображения
+                let displayText = command;
+                if (displayText.length > 10) {
+                    displayText = displayText.substring(0, 8) + '...';
+                }
+                buttonEl.innerHTML = `
+                    <div class="button-label">${displayText}</div>
+                `;
+                buttonsGrid.appendChild(buttonEl);
+            });
+        }
+
+        // Обновление тестовых кнопок
+        function updateTestButtons() {
+            if (!gamepad) return;
+
+            Object.keys(configuration.buttons).forEach(command => {
+                const buttonEl = document.getElementById(`test-btn-${command}`);
+                if (buttonEl) {
+                    const btnIndex = configuration.buttons[command];
+                    const btn = gamepad.buttons[btnIndex];
+                    if (btn && btn.pressed) {
+                        buttonEl.classList.add('active');
+                    } else {
+                        buttonEl.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        // Обновление стика в тесте
+        function updateTestStick() {
+            if (!gamepad) return;
+
+            const axisX = gamepad.axes[0] || 0;
+            const axisY = gamepad.axes[1] || 0;
+
+            document.getElementById('axis-info').textContent = 
+                `Ось X: ${axisX.toFixed(2)} | Ось Y: ${axisY.toFixed(2)}`;
+
+            // Сброс всех направлений
+            document.getElementById('dir-up').classList.remove('active');
+            document.getElementById('dir-down').classList.remove('active');
+            document.getElementById('dir-left').classList.remove('active');
+            document.getElementById('dir-right').classList.remove('active');
+            document.getElementById('stick-center').classList.remove('active');
+
+            // Найти команды для каждого направления
+            let upCommand = null, downCommand = null, leftCommand = null, rightCommand = null;
+            for (const [cmd, direction] of Object.entries(configuration.axes)) {
+                if (direction === 'up') upCommand = cmd;
+                if (direction === 'down') downCommand = cmd;
+                if (direction === 'left') leftCommand = cmd;
+                if (direction === 'right') rightCommand = cmd;
+            }
+
+            // Обновление направлений
+            if (axisY < -DEAD_ZONE && upCommand) {
+                document.getElementById('dir-up').textContent = upCommand;
+                document.getElementById('dir-up').classList.add('active');
+            } else {
+                document.getElementById('dir-up').textContent = '↑';
+            }
+
+            if (axisY > DEAD_ZONE && downCommand) {
+                document.getElementById('dir-down').textContent = downCommand;
+                document.getElementById('dir-down').classList.add('active');
+            } else {
+                document.getElementById('dir-down').textContent = '↓';
+            }
+
+            if (axisX < -DEAD_ZONE && leftCommand) {
+                document.getElementById('dir-left').textContent = leftCommand;
+                document.getElementById('dir-left').classList.add('active');
+            } else {
+                document.getElementById('dir-left').textContent = '←';
+            }
+
+            if (axisX > DEAD_ZONE && rightCommand) {
+                document.getElementById('dir-right').textContent = rightCommand;
+                document.getElementById('dir-right').classList.add('active');
+            } else {
+                document.getElementById('dir-right').textContent = '→';
+            }
+
+            // Движение стика визуально
+            if (Math.abs(axisX) > DEAD_ZONE || Math.abs(axisY) > DEAD_ZONE) {
+                document.getElementById('stick-center').classList.add('active');
+                const maxMove = 60;
+                const moveX = axisX * maxMove;
+                const moveY = axisY * maxMove;
+                document.getElementById('stick-center').style.transform = 
+                    `translate(${moveX}px, ${moveY}px)`;
+            } else {
+                document.getElementById('stick-center').style.transform = 'translate(0, 0)';
+            }
+        }
+
+        // Получение джойстика
+        function getGamepad() {
+            const gamepads = navigator.getGamepads();
+            for (let i = 0; i < gamepads.length; i++) {
+                if (gamepads[i]) {
+                    return gamepads[i];
+                }
+            }
+            return null;
+        }
+
+        // Обновление статуса
+        function updateStatus() {
+            const statusEl = document.getElementById('hub-status');
+            
+            gamepad = getGamepad();
+            
+            const statusText = gamepad ? 'Джойстик подключен' : 'Джойстик не подключен';
+            const statusClass = gamepad ? 'hub-status connected' : 'hub-status disconnected';
+            
+            if (statusEl) {
+                statusEl.textContent = statusText;
+                statusEl.className = statusClass;
+            }
+        }
+
+        // Основной цикл обновления
+        function update() {
+            updateStatus();
+            if (gamepad) {
+                // Всегда обновляем и калибровку, и тест
+                updateCalibrationView();
+                updateTestButtons();
+                updateTestStick();
+            }
+            animationFrame = requestAnimationFrame(update);
+        }
+
+        // Обработчики событий
+        window.addEventListener('gamepadconnected', (e) => {
+            console.log('Джойстик подключен:', e.gamepad.id);
+            updateStatus();
+        });
+
+        window.addEventListener('gamepaddisconnected', (e) => {
+            console.log('Джойстик отключен:', e.gamepad.id);
+            gamepad = null;
+            updateStatus();
+        });
+
+        // Инициализация
+        function initialize() {
+            // Сначала загружаем конфигурацию
+            loadConfiguration();
+            // Затем инициализируем вид калибровки
+            initCalibrationView();
+            // И обновляем тестовый вид, если есть сохраненная конфигурация
+            if (Object.keys(configuration.buttons).length > 0 || Object.keys(configuration.axes).length > 0) {
+                updateTestView();
+            }
+            // Запускаем основной цикл обновления
+            update();
+        }
+
+        // Запускаем инициализацию
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', initialize);
+        } else {
+            initialize();
+        }
+    </script>
+</body>
+</html>
