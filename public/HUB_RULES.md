@@ -298,3 +298,5 @@ HubCommon.updateFloatingElementsPosition(); // Обновить позицию �
 </html>
 ```
 
+
+

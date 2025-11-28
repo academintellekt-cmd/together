@@ -179,3 +179,5 @@ window.addEventListener('resize', () => {
 - `z-index: -1`
 - Динамический `top` (через `HubCommon.updateFloatingElementsPosition()`)
 
+
+

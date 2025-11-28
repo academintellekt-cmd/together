@@ -33,7 +33,7 @@
             margin: 0 auto;
             padding: 20px;
             position: relative;
-            z-index: 1;
+            z-index: 1; /* Ниже Hub2 (z-index: 1000) */
             text-align: center;
         }
         
@@ -49,7 +49,7 @@
             padding-bottom: 20px;
             padding-top: 0;
             position: relative;
-            z-index: 1;
+            z-index: 1; /* Ниже Hub2 (z-index: 1000) */
             text-align: center;
             box-sizing: border-box;
             /* Убираем все transition, чтобы позиция устанавливалась мгновенно */
@@ -153,10 +153,10 @@
             75% { transform: rotate(3deg) scale(1.05); }
         }
 
-        /* Сетка квизов - 3 в ряд */
+        /* Сетка квизов - адаптивная, как на gnu-quiz.html */
         .quizzes-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: 1fr; /* 1 колонка по умолчанию (мобильные) */
             gap: clamp(20px, 4vw, 28px); /* Адаптивный отступ, как на gnu-quiz.html */
             margin: 0 auto; /* Убираем все отступы - контент начинается сразу после Hub2 */
             margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
@@ -177,8 +177,8 @@
         /* Карточки квизов в стиле Teen Talk - светлые с черными контурами */
         .quiz-card {
             background: rgba(245, 245, 245, 0.85); /* Светло-серый фон, полупрозрачный как пластиковый стикер */
-            border-radius: 25px;
-            padding: 25px 20px;
+            border-radius: clamp(12px, 2.5vw, 25px); /* Адаптивный border-radius, как на gnu-quiz.html */
+            padding: clamp(18px, 4vw, 28px) clamp(16px, 3.5vw, 24px); /* Адаптивный padding, как на gnu-quiz.html */
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, color 0.3s ease;
             border: none;
@@ -195,7 +195,7 @@
             justify-content: space-between;
             align-items: center;
             text-align: center;
-            min-height: 0;
+            min-height: clamp(140px, 28vw, 180px); /* Адаптивная минимальная высота, как на gnu-quiz.html */
             margin: 0; /* Убираем все отступы */
             opacity: 1 !important; /* Гарантируем, что карточка видна сразу */
             transform: none !important; /* Убираем любые transform, которые могут создавать визуальный эффект "спускания" */
@@ -437,13 +437,18 @@
         }
 
         .quiz-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
+            font-size: clamp(36px, 8vw, 56px); /* Адаптивный размер, как на gnu-quiz.html */
+            margin-bottom: clamp(10px, 2.5vw, 16px); /* Адаптивный отступ, как на gnu-quiz.html */
             display: block;
             filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
             animation: iconFloat 3s ease-in-out infinite;
             flex-shrink: 0;
             line-height: 1;
+            width: clamp(36px, 8vw, 56px); /* Адаптивная ширина, как на gnu-quiz.html */
+            height: clamp(56px, 10vw, 72px); /* Адаптивная высота, как на gnu-quiz.html */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         @keyframes iconFloat {
@@ -457,41 +462,49 @@
 
         .quiz-title {
             font-family: 'Days One', sans-serif;
-            font-size: 30px;
+            font-size: clamp(12px, 2.4vw, 30px); /* Адаптивный размер, как на gnu-quiz.html */
             font-weight: 700;
-            margin-bottom: 8px;
+            margin-bottom: clamp(6px, 1.5vw, 12px); /* Адаптивный отступ, как на gnu-quiz.html */
             color: #000; /* Черный текст */
-            line-height: 1.1;
+            line-height: 1.2; /* Как на gnu-quiz.html */
             flex-shrink: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+            width: 100%;
+            padding: 0 clamp(8px, 2vw, 14px); /* Адаптивный padding, как на gnu-quiz.html */
+            box-sizing: border-box;
         }
 
         .quiz-description {
-            font-family: 'Days One', sans-serif;
-            font-size: 22px;
-            color: #333;
+            font-family: 'Montserrat', sans-serif; /* Как на gnu-quiz.html */
+            font-size: clamp(12px, 2.4vw, 22px); /* Адаптивный размер, как на gnu-quiz.html */
+            color: #393639; /* Как на gnu-quiz.html */
             margin-bottom: 10px;
-            line-height: 1.5;
+            line-height: 1.4; /* Как на gnu-quiz.html */
             font-weight: 400;
             flex: 1;
             overflow: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2; /* Стандартное свойство для совместимости */
             -webkit-box-orient: vertical;
             min-height: 0;
+            opacity: 0.85; /* Как на gnu-quiz.html */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
         }
 
         .quiz-info {
             display: flex;
             justify-content: space-around;
             margin-top: auto;
-            padding-top: 12px;
+            padding-top: clamp(6px, 1.5vw, 12px); /* Адаптивный отступ, как на gnu-quiz.html */
             border-top: 3px solid #000; /* Черная линия */
-            font-size: 20px;
+            font-size: clamp(12px, 2.4vw, 20px); /* Адаптивный размер, как на gnu-quiz.html */
             width: 100%;
             flex-shrink: 0;
             font-weight: 600;
@@ -514,7 +527,7 @@
 
         .quiz-info-item span:last-child {
             font-weight: 500;
-            font-size: 20px;
+            font-size: clamp(12px, 2.4vw, 20px); /* Адаптивный размер, как на gnu-quiz.html */
             font-family: 'Days One', sans-serif;
         }
 
@@ -720,6 +733,7 @@
 
         .character-option.selected {
             /* Выделение выбранного персонажа - без дополнительных обводок */
+            opacity: 1; /* Гарантируем полную непрозрачность для выбранного элемента */
         }
 
         .character-preview {
@@ -756,15 +770,24 @@
             position: relative;
         }
 
-        /* Адаптивность */
-        @media (max-width: 1024px) {
+        /* Адаптивность - планшеты и десктопы (≥768px) - 2 колонки, как на gnu-quiz.html */
+        @media (min-width: 768px) {
             .quizzes-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: 1fr 1fr; /* 2 колонки на планшетах и десктопах */
                 gap: clamp(24px, 4vw, 32px); /* Адаптивный отступ, как на gnu-quiz.html */
                 margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
                 align-items: center; /* Выравнивание по центру вертикально */
                 align-content: center; /* Выравнивание содержимого по центру вертикально */
                 justify-items: center; /* Выравнивание по центру горизонтально */
+            }
+        }
+        
+        /* Адаптивность - средние экраны (1024px и выше) - можно оставить 2 колонки или сделать 3 */
+        @media (min-width: 1024px) {
+            .quizzes-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 колонки для соответствия gnu-quiz.html */
+                gap: clamp(24px, 4vw, 32px);
+                margin-top: clamp(20px, 6vw, 40px);
             }
 
             .quiz-card:nth-child(1) .quiz-title {
@@ -821,13 +844,13 @@
             /* Точки наследуют адаптивные размеры из основных стилей */
         }
 
-        @media (max-width: 768px) {
-
+        /* Адаптивность - мобильные устройства (≤768px) - 1 колонка, как на gnu-quiz.html */
+        @media (max-width: 767px) {
             .quizzes-grid {
                 grid-template-columns: 1fr; /* 1 карточка в ряд */
                 gap: clamp(20px, 4vw, 28px); /* Адаптивный отступ, как на gnu-quiz.html */
                 margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
-                max-width: 400px; /* Ограничиваем ширину для центрирования */
+                max-width: 600px; /* Ограничиваем ширину для центрирования, как на gnu-quiz.html */
                 margin-left: auto; /* Центрируем по горизонтали */
                 margin-right: auto; /* Центрируем по горизонтали */
                 align-items: center; /* Выравнивание по центру вертикально */
@@ -913,13 +936,17 @@
             /* Точки наследуют адаптивные размеры и позиционирование */
         }
 
+        /* Адаптивность - маленькие экраны (≤480px), как на gnu-quiz.html */
         @media (max-width: 480px) {
+            .container {
+                padding: 0 clamp(10px, 3vw, 20px); /* Адаптивный padding, как на gnu-quiz.html */
+            }
 
             .quizzes-grid {
                 grid-template-columns: 1fr; /* 1 карточка в ряд */
                 gap: clamp(20px, 4vw, 28px); /* Адаптивный отступ, как на gnu-quiz.html */
                 margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
-                max-width: 350px; /* Уменьшаем максимальную ширину для маленьких экранов */
+                max-width: 600px; /* Как на gnu-quiz.html */
                 margin-left: auto; /* Центрируем */
                 margin-right: auto; /* Центрируем */
                 align-items: center; /* Выравнивание по центру вертикально */
@@ -927,13 +954,10 @@
                 justify-items: center; /* Выравнивание по центру горизонтально */
             }
 
-            .container {
-                padding: 90px 10px 15px; /* Еще больше отступ сверху для маленьких экранов */
-            }
-
             .quiz-card {
-                padding: 18px 12px;
-                border-radius: 20px;
+                padding: clamp(16px, 4vw, 24px) clamp(14px, 3.5vw, 20px); /* Адаптивный padding, как на gnu-quiz.html */
+                border-radius: clamp(12px, 2.5vw, 18px); /* Адаптивный border-radius, как на gnu-quiz.html */
+                min-height: clamp(130px, 35vw, 160px); /* Адаптивная минимальная высота, как на gnu-quiz.html */
                 width: 100%;
                 margin: 0 auto; /* Центрируем каждую карточку */
             }
