@@ -4,9 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Выбор режима - Чемпионат ГНУ</title>
+    <link rel="stylesheet" href="/styles/brand-style.css">
+    <link rel="stylesheet" href="/styles/hub1.css">
+    <link rel="stylesheet" href="/styles/hub2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
     <style>
         * {
             margin: 0;
@@ -19,24 +25,80 @@
             min-height: 100vh;
             background: #f2f2f2;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            justify-content: flex-start;
+            padding: 0 20px 20px 20px;
             position: relative;
+            /* padding-bottom будет обновляться динамически через JavaScript для HUB4/HUB5 */
         }
-        
+
+        /* --- Каркас HUB-зон на странице --- */
+
+        /* Базовый класс для любой HUB-зоны */
+        .hub-zone {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* HUB3 — основная зона контента */
+        .hub3 {
+            flex: 1 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* Внутренний контейнер внутри HUB3 */
+        .hub3 > .container {
+            margin: 0 auto;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 2; /* Ниже Hub1 (1001), Hub2 (1000), HUB4/HUB5 (999), но выше парящих элементов (z-index: -1) */
+        }
+
+        /* HUB4 и HUB5 — нижние полосы, фиксированные снизу (как HUB1/HUB2 сверху) */
+        .hub4,
+        .hub5 {
+            position: fixed;
+            left: 0;
+            right: 0;
+            background: var(--hub1-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: var(--hub1-padding);
+            min-height: auto;
+            box-sizing: border-box;
+            width: 100%;
+            z-index: 999; /* Ниже HUB1 (1001) и HUB2 (1000), но выше парящих элементов (z-index: -1) */
+            transition: bottom 0.3s ease;
+            will-change: bottom;
+        }
+
+        /* HUB5 — самая нижняя полоса (фиксирована внизу) */
+        .hub5 {
+            bottom: 0;
+        }
+
+        /* HUB4 — над HUB5 (bottom будет рассчитываться динамически через JavaScript) */
+        .hub4 {
+            bottom: auto; /* Устанавливается динамически через JavaScript в hub-common.js */
+        }
+
         /* Парящие элементы */
         body::before {
             content: '';
             position: fixed;
-            top: 120px;
+            /* top устанавливается динамически через JavaScript */
             left: -50px;
             width: 200px;
             height: 200px;
-            background: #d6fbbf;
+            background: #d6fbbf; /* Парящий элемент */
             border-radius: 50% 40% 60% 30%;
             opacity: 0.9;
-            z-index: -1;
+            z-index: -1; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
             animation: wobble 6s ease-in-out infinite;
             pointer-events: none;
         }
@@ -44,14 +106,14 @@
         body::after {
             content: '';
             position: fixed;
-            bottom: -80px;
+            /* bottom устанавливается динамически через JavaScript */
             right: -80px;
             width: 250px;
             height: 250px;
-            background: #fececd;
+            background: #fececd; /* Парящий элемент */
             border-radius: 40% 50% 30% 60%;
             opacity: 0.9;
-            z-index: -1;
+            z-index: -1; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
             animation: wobble 8s ease-in-out infinite reverse;
             pointer-events: none;
         }
@@ -80,7 +142,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 10000;
             backdrop-filter: blur(5px);
         }
 
@@ -319,9 +381,40 @@
                 padding: clamp(24px, 5vw, 32px) clamp(20px, 4vw, 28px);
             }
         }
+
+        /* Адаптивные стили для HUB4 и HUB5 (соответствуют HUB1) */
+        @media (min-width: 1024px) {
+            .hub4, .hub5 {
+                padding: 15px 40px;
+            }
+        }
+
+        @media (max-width: 1023px) and (min-width: 769px) {
+            .hub4, .hub5 {
+                padding: 15px 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hub4, .hub5 {
+                padding: 12px 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hub4, .hub5 {
+                padding: 10px 12px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .hub4, .hub5 {
+                padding: 10px 10px;
+            }
+        }
     </style>
 </head>
-<body>
+<body class="with-hub">
     <!-- Модальное окно для пароля -->
     <div class="password-overlay" id="passwordOverlay">
         <div class="password-modal">
@@ -342,9 +435,9 @@
         </div>
     </div>
 
-    <a href="/index.html" class="back-button" onclick="clearPassword()">← Назад</a>
-    
-    <div class="container" id="mainContainer" style="display: none;">
+    <!-- HUB3: основная зона контента -->
+    <div class="hub-zone hub3">
+        <div class="container" id="mainContainer" style="display: none;">
         <h1 class="title">ЧЕМПИОНАТ ГНУ</h1>
         <p class="subtitle">выбери режим игры</p>
         
@@ -365,17 +458,60 @@
                 </div>
             </div>
         </div>
+        </div>
+    </div>
+
+    <!-- HUB4: нижняя полоса (fixed, над HUB5) -->
+    <div id="hub4" class="hub-zone hub4">
+        <!-- Здесь позже можно разместить вспомогательные статусы, подсказки, маленькие карточки и т.п. -->
+    </div>
+
+    <!-- HUB5: самая нижняя полоса (fixed, внизу экрана) -->
+    <div id="hub5" class="hub-zone hub5">
+        <!-- Здесь позже можно разместить "Правила хаба", ссылки, переключение режимов -->
     </div>
 
     <script>
         const GNU_PASSWORD = '1234';
         let passwordEntered = false;
 
+        // Инициализация Hub1 и Hub2 после проверки пароля
+        function initHubs() {
+            // Инициализация Hub1
+            Hub1.init({
+                showBack: true,
+                backUrl: '/index.html'
+            });
+            
+            // Инициализация Hub2
+            Hub2.init();
+            
+            // Обновление позиций
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        HubCommon.updateHub2Position();
+                        HubCommon.updateHub4Position();
+                        HubCommon.updateContentPadding('.hub3 > .container');
+                        HubCommon.updateFloatingElementsPosition();
+                        HubCommon.updateBodyPaddingBottom();
+                        HubCommon.adaptSubtitleToLogo();
+                    });
+                });
+            });
+        }
+
         // Проверка пароля из localStorage
         if (localStorage.getItem('gnuPasswordEntered') === 'true') {
             passwordEntered = true;
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'block';
+            // Инициализируем Hub если пароль уже введен
+            if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined') {
+                initHubs();
+            } else {
+                setTimeout(initHubs, 100);
+            }
         }
 
         // Обработка Enter в поле пароля
@@ -395,6 +531,12 @@
                 document.getElementById('passwordOverlay').style.display = 'none';
                 document.getElementById('mainContainer').style.display = 'block';
                 errorDiv.classList.remove('show');
+                // Инициализируем Hub после проверки пароля
+                if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined') {
+                    initHubs();
+                } else {
+                    setTimeout(initHubs, 100);
+                }
             } else {
                 errorDiv.classList.add('show');
                 document.getElementById('passwordInput').value = '';
@@ -425,7 +567,38 @@
                 window.location.href = '/host.html?quiz=gnu-multiplayer&password=verified';
             }
         }
+        
+        // Обновление при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof HubCommon !== 'undefined' && passwordEntered) {
+                HubCommon.updateHub2Position();
+                HubCommon.updateHub4Position();
+                HubCommon.updateContentPadding('.hub3 > .container');
+                HubCommon.updateFloatingElementsPosition();
+                HubCommon.updateBodyPaddingBottom();
+            }
+        });
+        
+        // Обновление при изменении размера окна
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (typeof HubCommon !== 'undefined') {
+                    HubCommon.updateHub2Position();
+                    HubCommon.updateHub4Position();
+                    HubCommon.updateContentPadding('.hub3 > .container');
+                    HubCommon.updateFloatingElementsPosition();
+                    HubCommon.updateBodyPaddingBottom();
+                }
+            }, 100);
+        });
     </script>
+    
+    <!-- Hub1 и Hub2 скрипты -->
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
 </body>
 </html>
 

@@ -218,27 +218,44 @@ const HubCommon = {
     },
     
     /**
-     * Обновляет позицию парящего элемента (body::before)
-     * Парящий элемент ВСЕГДА находится ниже Hub2
+     * Обновляет позицию парящих элементов
+     * body::before - верхний парящий элемент (ниже Hub2)
+     * body::after - нижний парящий элемент (выше Hub4)
      */
     updateFloatingElementsPosition() {
         const hub1 = document.getElementById('hub1');
         const hub2 = document.getElementById('hub2');
+        const hub4 = document.getElementById('hub4');
+        const hub5 = document.getElementById('hub5');
         
-        let totalHeight = 0;
+        let topHeight = 0;
         
         if (hub1 && hub1.style.display !== 'none') {
-            totalHeight += hub1.offsetHeight;
+            topHeight += hub1.offsetHeight;
         }
         
         if (hub2 && hub2.style.display !== 'none') {
-            totalHeight += hub2.offsetHeight;
+            topHeight += hub2.offsetHeight;
         }
         
-        // Парящий элемент начинается сразу после Hub2 (без отступа)
-        const floatingTop = totalHeight;
+        // Парящий элемент сверху начинается сразу после Hub2 (без отступа)
+        const floatingTop = topHeight;
         
-        // Создаем или обновляем стиль для парящего элемента
+        // Вычисляем высоту HUB4 и HUB5 для ограничения нижнего парящего элемента
+        let bottomHeight = 0;
+        if (hub4 && hub4.style.display !== 'none') {
+            bottomHeight += hub4.offsetHeight;
+        }
+        if (hub5 && hub5.style.display !== 'none') {
+            bottomHeight += hub5.offsetHeight;
+        }
+        
+        // Нижний парящий элемент должен заканчиваться там, где начинается HUB4
+        // body::after имеет bottom: -80px по умолчанию, нужно ограничить его высоту
+        const viewportHeight = window.innerHeight;
+        const hub4Top = viewportHeight - bottomHeight; // Позиция начала HUB4 от верха экрана
+        
+        // Создаем или обновляем стиль для парящих элементов
         let style = document.getElementById('dynamic-floating-position');
         if (!style) {
             style = document.createElement('style');
@@ -248,9 +265,58 @@ const HubCommon = {
         style.textContent = `
             body::before {
                 top: ${floatingTop}px !important;
-                z-index: -1 !important; /* Всегда ниже Hub2 (z-index: 1000) и контента (z-index: 1) */
+                z-index: -1 !important; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
+            }
+            body::after {
+                bottom: ${bottomHeight}px !important; /* Нижний край на уровне начала HUB4 */
+                z-index: -1 !important; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
             }
         `;
+    },
+    
+    /**
+     * Обновляет позицию HUB4 относительно HUB5 (аналогично updateHub2Position)
+     * HUB4 располагается над HUB5
+     */
+    updateHub4Position() {
+        const hub4 = document.getElementById('hub4');
+        const hub5 = document.getElementById('hub5');
+        
+        if (hub4 && hub5) {
+            const hub5Height = hub5.offsetHeight;
+            hub4.style.bottom = hub5Height + 'px';
+        } else if (hub4 && !hub5) {
+            // Если HUB5 нет, HUB4 внизу
+            hub4.style.bottom = '0px';
+        }
+    },
+    
+    /**
+     * Обновляет padding-bottom для body, чтобы контент не перекрывался HUB4/HUB5
+     */
+    updateBodyPaddingBottom() {
+        const hub4 = document.getElementById('hub4');
+        const hub5 = document.getElementById('hub5');
+        const body = document.body;
+        
+        let totalHeight = 0;
+        
+        if (hub4 && hub4.style.display !== 'none') {
+            const hub4Height = hub4.offsetHeight || hub4.getBoundingClientRect().height;
+            totalHeight += hub4Height;
+        }
+        
+        if (hub5 && hub5.style.display !== 'none') {
+            const hub5Height = hub5.offsetHeight || hub5.getBoundingClientRect().height;
+            totalHeight += hub5Height;
+        }
+        
+        // Устанавливаем padding-bottom для body, чтобы контент не перекрывался
+        if (totalHeight > 0) {
+            body.style.paddingBottom = totalHeight + 'px';
+        } else {
+            body.style.paddingBottom = '0px';
+        }
     },
     
     /**
@@ -322,11 +388,13 @@ const HubCommon = {
                 
                 // Обновляем позиции в правильном порядке
                 this.updateHub2Position();
+                this.updateHub4Position();
                 // Используем requestAnimationFrame для гарантии правильной отрисовки
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                         this.updateContentPadding();
                         this.updateFloatingElementsPosition();
+                        this.updateBodyPaddingBottom();
                         this.adaptSubtitleToLogo();
                     });
                 });

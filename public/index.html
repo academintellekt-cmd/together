@@ -4,11 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Квиз - Выбор игры</title>
+    <link rel="stylesheet" href="/styles/brand-style.css">
     <link rel="stylesheet" href="/styles/hub1.css">
     <link rel="stylesheet" href="/styles/hub2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Kalam:wght@300;400;700&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
     <style>
         * {
             margin: 0;
@@ -19,63 +23,116 @@
         body {
             font-family: 'Montserrat', sans-serif;
             min-height: 100vh;
+            background: #f2f2f2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px 20px 20px;
             position: relative;
-            overflow-x: hidden;
-            background: #f2f2f2; /* Новый фон */
-            margin: 0;
+            /* padding-bottom будет обновляться динамически через JavaScript для HUB4/HUB5 */
+        }
+
+        /* --- Каркас HUB-зон на странице --- */
+
+        /* Базовый класс для любой HUB-зоны */
+        .hub-zone {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* HUB3 — основная зона контента */
+        .hub3 {
+            flex: 1 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* Внутренний контейнер внутри HUB3 */
+        .hub3 > .container {
+            margin: 0 auto;
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 2; /* Ниже Hub1 (1001), Hub2 (1000), HUB4/HUB5 (999), но выше парящих элементов (z-index: -1) */
+        }
+
+        /* HUB4 и HUB5 — нижние полосы, фиксированные снизу (как HUB1/HUB2 сверху) */
+        .hub4,
+        .hub5 {
+            position: fixed;
+            left: 0;
+            right: 0;
+            background: var(--hub1-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: var(--hub1-padding);
+            min-height: auto;
+            box-sizing: border-box;
+            width: 100%;
+            z-index: 999; /* Ниже HUB1 (1001) и HUB2 (1000), но выше парящих элементов (z-index: -1) */
+            transition: bottom 0.3s ease;
+            will-change: bottom;
+        }
+
+        /* HUB5 — самая нижняя полоса (фиксирована внизу) */
+        .hub5 {
+            bottom: 0;
+        }
+
+        /* HUB4 — над HUB5 (bottom будет рассчитываться динамически через JavaScript) */
+        .hub4 {
+            bottom: auto; /* Устанавливается динамически через JavaScript в hub-common.js */
+        }
+
+        /* Парящие элементы */
+        body::before {
+            content: '';
+            position: fixed;
+            /* top устанавливается динамически через JavaScript */
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: #d6fbbf; /* Парящий элемент */
+            border-radius: 50% 40% 60% 30%;
+            opacity: 0.9;
+            z-index: -1; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
+            animation: wobble 6s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        body::after {
+            content: '';
+            position: fixed;
+            /* bottom устанавливается динамически через JavaScript */
+            right: -80px;
+            width: 250px;
+            height: 250px;
+            background: #fececd; /* Парящий элемент */
+            border-radius: 40% 50% 30% 60%;
+            opacity: 0.9;
+            z-index: -1; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
+            animation: wobble 8s ease-in-out infinite reverse;
+            pointer-events: none;
+        }
+        
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(5deg) scale(1.1); }
+            50% { transform: rotate(-5deg) scale(0.9); }
+            75% { transform: rotate(3deg) scale(1.05); }
+        }
+        
+        /* Стили для контента внутри HUB3 */
+        .hub3 > .container {
             padding: 0;
         }
         
-        /* Контент страницы */
-        .container {
-            max-width: 1200px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 20px;
-            position: relative;
-            z-index: 1; /* Ниже Hub2 (z-index: 1000) */
-            text-align: center;
-        }
-        
-        /* Отдельный блок для карточек квизов под Hub */
-        .quizzes-section {
-            width: 100%;
-            margin: 0;
-            margin-left: auto;
-            margin-right: auto;
-            margin-top: 0; /* margin-top устанавливается динамически через JavaScript, должно совпадать с body::before top */
-            padding-left: 20px;
-            padding-right: 20px;
-            padding-bottom: 20px;
-            padding-top: 0;
-            position: relative;
-            z-index: 1; /* Ниже Hub2 (z-index: 1000) */
-            text-align: center;
-            box-sizing: border-box;
-            /* Убираем все transition, чтобы позиция устанавливалась мгновенно */
-            transition: none !important;
-            /* Центрируем содержимое, как на gnu-quiz.html */
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-        }
-        
-        .quizzes-section .container {
-            padding: 0 !important;
-            margin: 0 !important; /* Убираем все отступы - контент начинается сразу после Hub2 */
-            min-height: 0 !important; /* Убираем минимальную высоту */
-            max-height: none !important;
-            height: auto !important;
-            display: block !important;
-            max-width: 1200px; /* Ограничиваем ширину, как на gnu-quiz.html */
-            width: 100%;
-            margin-left: auto !important;
-            margin-right: auto !important;
-        }
-        
         /* Убеждаемся, что loading и error не занимают место */
-        .quizzes-section .container > #loading,
-        .quizzes-section .container > #error {
+        .hub3 > .container > #loading,
+        .hub3 > .container > #error {
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -90,7 +147,7 @@
         }
         
         /* Убеждаемся, что quizzes-grid начинается с самого верха */
-        .quizzes-section .container > #quizzes-grid {
+        .hub3 > .container > #quizzes-grid {
             margin-top: 0 !important;
             padding-top: 0 !important;
             margin-bottom: 0 !important;
@@ -98,7 +155,7 @@
         }
         
         /* Убеждаемся, что первая карточка не имеет отступов */
-        .quizzes-section .container > #quizzes-grid > .quiz-card:first-child {
+        .hub3 > .container > #quizzes-grid > .quiz-card:first-child {
             margin-top: 0 !important;
             padding-top: 0 !important;
         }
@@ -115,43 +172,6 @@
         }
 
 
-        /* Декоративные волнистые элементы */
-        .quizzes-section::before {
-            content: '';
-            position: absolute;
-            /* top устанавливается динамически через JavaScript */
-            left: -50px;
-            width: 200px;
-            height: 200px;
-            background: #d6fbbf; /* Парящий элемент */
-            border-radius: 50% 40% 60% 30%;
-            opacity: 0.9;
-            z-index: -1;
-            animation: wobble 6s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        .quizzes-section::after {
-            content: '';
-            position: absolute;
-            bottom: -80px;
-            right: -80px;
-            width: 250px;
-            height: 250px;
-            background: #fececd; /* Парящий элемент */
-            border-radius: 40% 50% 30% 60%;
-            opacity: 0.9;
-            z-index: -1;
-            animation: wobble 8s ease-in-out infinite reverse;
-            pointer-events: none;
-        }
-
-        @keyframes wobble {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            25% { transform: rotate(5deg) scale(1.1); }
-            50% { transform: rotate(-5deg) scale(0.9); }
-            75% { transform: rotate(3deg) scale(1.05); }
-        }
 
         /* Сетка квизов - адаптивная, как на gnu-quiz.html */
         .quizzes-grid {
@@ -1031,29 +1051,60 @@
                 min-width: auto;
             }
 
-            .quizzes-section::before {
-                top: 120px; /* Ниже HUB на маленьких экранах */
-                width: 150px;
-                height: 150px;
-            }
-            
-            .quizzes-section::after {
-                width: 150px;
-                height: 150px;
-            }
             
             /* padding-top для контейнера уже задан в медиа-запросе выше */
         }
+
+        /* Адаптивные стили для HUB4 и HUB5 (соответствуют HUB1) */
+        @media (min-width: 1024px) {
+            .hub4, .hub5 {
+                padding: 15px 40px;
+            }
+        }
+
+        @media (max-width: 1023px) and (min-width: 769px) {
+            .hub4, .hub5 {
+                padding: 15px 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hub4, .hub5 {
+                padding: 12px 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hub4, .hub5 {
+                padding: 10px 12px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .hub4, .hub5 {
+                padding: 10px 10px;
+            }
+        }
     </style>
 </head>
-<body>
-    <!-- Отдельный блок для карточек квизов под HUB -->
-    <div class="quizzes-section">
+<body class="with-hub">
+    <!-- HUB3: основная зона контента -->
+    <div class="hub-zone hub3">
         <div class="container">
             <div id="loading" class="loading">Загрузка квизов...</div>
             <div id="error" class="error" style="display: none;"></div>
             <div id="quizzes-grid" class="quizzes-grid" style="display: none;"></div>
         </div>
+    </div>
+
+    <!-- HUB4: нижняя полоса (fixed, над HUB5) -->
+    <div id="hub4" class="hub-zone hub4">
+        <!-- Здесь позже можно разместить вспомогательные статусы, подсказки, маленькие карточки и т.п. -->
+    </div>
+
+    <!-- HUB5: самая нижняя полоса (fixed, внизу экрана) -->
+    <div id="hub5" class="hub-zone hub5">
+        <!-- Здесь позже можно разместить "Правила хаба", ссылки, переключение режимов -->
     </div>
 
     <script>
@@ -1419,14 +1470,9 @@
         // Функция для вычисления высоты Hub и установки отступа блока с карточками (использует HubCommon)
         function updateContainerPadding() {
             if (typeof HubCommon !== 'undefined') {
-                HubCommon.updateContentPadding('.quizzes-section');
+                HubCommon.updateContentPadding('.hub3 > .container');
                 HubCommon.updateFloatingElementsPosition();
                 return;
-            }
-            // Fallback для старых версий
-            const quizzesSection = document.querySelector('.quizzes-section');
-            if (quizzesSection) {
-                quizzesSection.style.paddingTop = '0px';
             }
         }
         
@@ -1450,7 +1496,7 @@
                                 const hub1 = document.getElementById('hub1');
                                 const hub2 = document.getElementById('hub2');
                                 if (hub1 && hub2) {
-                                    HubCommon.updateContentPadding('.quizzes-section');
+                                    HubCommon.updateContentPadding('.hub3 > .container');
                                 } else {
                                     // Если Hub еще не инициализированы, ждем их инициализации
                                     console.log('loadQuizzes: ожидаем инициализации Hub1 и Hub2...');
@@ -1479,10 +1525,6 @@
         });
     </script>
     
-    <!-- Hub1 и Hub2 скрипты -->
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
-    <script src="/scripts/hub2.js"></script>
     <script>
         // Инициализация Hub1 и Hub2 после загрузки скриптов
         (function() {
@@ -1512,7 +1554,10 @@
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
                                 HubCommon.updateHub2Position();
+                                HubCommon.updateHub4Position();
+                                HubCommon.updateContentPadding('.hub3 > .container');
                                 HubCommon.updateFloatingElementsPosition();
+                                HubCommon.updateBodyPaddingBottom();
                                 HubCommon.adaptSubtitleToLogo();
                                 
                                 console.log('Hub1 и Hub2 успешно инициализированы');
@@ -1557,8 +1602,10 @@
                         // Используем requestAnimationFrame для гарантии правильной отрисовки
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
-                                HubCommon.updateContentPadding('.quizzes-section');
+                                HubCommon.updateHub4Position();
+                                HubCommon.updateContentPadding('.hub3 > .container');
                                 HubCommon.updateFloatingElementsPosition();
+                                HubCommon.updateBodyPaddingBottom();
                                 HubCommon.adaptSubtitleToLogo();
                             });
                         });
@@ -1567,6 +1614,10 @@
             });
         })();
     </script>
-
+    
+    <!-- Hub1 и Hub2 скрипты -->
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
 </body>
 </html>

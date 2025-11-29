@@ -25,8 +25,64 @@
             justify-content: flex-start;
             padding: 0 20px 20px 20px;
             position: relative;
+            /* padding-bottom будет обновляться динамически через JavaScript для HUB4/HUB5 */
         }
-        
+
+        /* --- Каркас HUB-зон на странице хоста --- */
+
+        /* Базовый класс для любой HUB-зоны */
+        .hub-zone {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* HUB3 — основная зона контента (лобби, игра, результаты) */
+        .hub3 {
+            flex: 1 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* Внутренний контейнер внутри HUB3 */
+        .hub3 > .container {
+            margin: 0 auto;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 2; /* Ниже Hub1 (1001), Hub2 (1000), HUB4/HUB5 (999), но выше парящих элементов (z-index: -1) */
+        }
+
+        /* HUB4 и HUB5 — нижние полосы, фиксированные снизу (как HUB1/HUB2 сверху) */
+        .hub4,
+        .hub5 {
+            position: fixed;
+            left: 0;
+            right: 0;
+            background: var(--hub1-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: var(--hub1-padding);
+            min-height: auto;
+            box-sizing: border-box;
+            width: 100%;
+            z-index: 999; /* Ниже HUB1 (1001) и HUB2 (1000), но выше парящих элементов (z-index: -1) */
+            /* bottom будет обновляться через JavaScript */
+            transition: bottom 0.3s ease;
+            will-change: bottom;
+        }
+
+        /* HUB5 — самая нижняя полоса (фиксирована внизу) */
+        .hub5 {
+            bottom: 0;
+        }
+
+        /* HUB4 — над HUB5 (bottom будет рассчитываться динамически через JavaScript) */
+        .hub4 {
+            bottom: auto; /* Устанавливается динамически через JavaScript в hub-common.js */
+        }
+
         /* Парящие элементы */
         body::before {
             content: '';
@@ -38,7 +94,7 @@
             background: #d6fbbf; /* Парящий элемент */
             border-radius: 50% 40% 60% 30%;
             opacity: 0.9;
-            z-index: -1;
+            z-index: -1; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
             animation: wobble 6s ease-in-out infinite;
             pointer-events: none;
         }
@@ -53,7 +109,7 @@
             background: #fececd; /* Парящий элемент */
             border-radius: 40% 50% 30% 60%;
             opacity: 0.9;
-            z-index: -1;
+            z-index: -1; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
             animation: wobble 8s ease-in-out infinite reverse;
             pointer-events: none;
         }
@@ -64,21 +120,10 @@
             50% { transform: rotate(-5deg) scale(0.9); }
             75% { transform: rotate(3deg) scale(1.05); }
         }
-
+        
         /* Специфичные стили для страницы хоста */
         .lobby-screen {
             text-align: center;
-        }
-        
-        /* Отступ для контента, чтобы hub и игроки не перекрывали текст */
-        body.with-hub .container {
-            /* padding-top устанавливается динамически через JavaScript */
-            margin: 0 auto;
-            max-width: 800px;
-            width: 100%;
-            text-align: center;
-            position: relative;
-            z-index: 1; /* Ниже Hub2 (z-index: 1000), но выше парящих элементов (z-index: -1) */
         }
         
         /* Все элементы контента должны быть ниже Hub2 */
@@ -379,6 +424,42 @@
             background: #ff5a45 !important;
             color: #FFFFFF !important;
         }
+
+        /* Адаптивные стили для HUB4 и HUB5 (соответствуют HUB1) */
+        @media (min-width: 1024px) {
+            .hub4,
+            .hub5 {
+                padding: 15px 40px;
+            }
+        }
+
+        @media (max-width: 1023px) and (min-width: 769px) {
+            .hub4,
+            .hub5 {
+                padding: 15px 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hub4,
+            .hub5 {
+                padding: 12px 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hub4,
+            .hub5 {
+                padding: 10px 12px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .hub4,
+            .hub5 {
+                padding: 10px 10px;
+            }
+        }
     </style>
 </head>
 <body class="with-hub">
@@ -414,59 +495,72 @@
         </div>
     </div>
 
-    <div class="container">
-        <!-- Лобби -->
-        <div id="lobby-screen" class="lobby-screen">
-            <div class="status" style="display: none;"></div>
-            <div id="qr-placeholder" class="qr-placeholder" style="display: none;">
-                Загрузка QR-кода...
+    <!-- HUB3: основная зона контента (лобби, игра, результаты) -->
+    <div class="hub-zone hub3">
+        <div class="container">
+            <!-- Лобби -->
+            <div id="lobby-screen" class="lobby-screen">
+                <div class="status" style="display: none;"></div>
+                <div id="qr-placeholder" class="qr-placeholder" style="display: none;">
+                    Загрузка QR-кода...
+                </div>
+                <div id="qr-container" class="qr-container" style="display: none;">
+                    <p class="qr-instruction">наведи камеру или<br>нажми на QR для подключения</p>
+                    <canvas id="qrcode"></canvas>
+                    <a id="player-link" href="#" target="_blank" class="player-link" style="display: none;"></a>
+                </div>
+                
             </div>
-            <div id="qr-container" class="qr-container" style="display: none;">
-                <p class="qr-instruction">наведи камеру или<br>нажми на QR для подключения</p>
-                <canvas id="qrcode"></canvas>
-                <a id="player-link" href="#" target="_blank" class="player-link" style="display: none;"></a>
+
+
+            <!-- Модальные окна перенесены выше, вне контейнера -->
+
+            <!-- Игровой экран -->
+            <div id="game-screen" class="game-screen">
+                
+                <!-- Вопрос -->
+                <div id="question-screen" class="question-screen">
+                    <div class="question-number">
+                        Вопрос <span id="question-num">1</span> из <span id="total-questions">10</span>
+                    </div>
+                    <div id="question-text" class="question-text"></div>
+                    <div id="timer" class="timer" style="display: none;">15</div>
+                    <div class="status" id="question-status">Игроки отвечают...</div>
+                </div>
+
+                <!-- Результаты вопроса -->
+                <div id="results-screen" class="results-screen" style="display: none;">
+                    <h2>Результаты вопроса</h2>
+                    <div id="correct-answer" class="correct-answer"></div>
+                    <div class="leaderboard">
+                        <h3>Таблица лидеров</h3>
+                        <div id="leaderboard"></div>
+                    </div>
+                    <button id="next-btn" class="btn" disabled>Следующий вопрос</button>
+                    <div id="next-btn-status" class="status" style="margin-top: 10px; font-size: 14px;"></div>
+                </div>
+
+                <!-- Финальные результаты -->
+                <div id="final-results" class="final-results" style="display: none;">
+                    <h1>Игра завершена!</h1>
+                    <div class="leaderboard">
+                        <h2>Финальные результаты</h2>
+                        <div id="final-leaderboard"></div>
+                    </div>
+                    <button id="restart-btn" class="btn">Новая игра</button>
+                </div>
             </div>
-            
         </div>
+    </div>
 
+    <!-- HUB4: нижняя полоса (fixed, над HUB5, под будущие статусы/подсказки) -->
+    <div id="hub4" class="hub-zone hub4">
+        <!-- Здесь позже можно разместить вспомогательные статусы, подсказки, маленькие карточки и т.п. -->
+    </div>
 
-        <!-- Модальные окна перенесены выше, вне контейнера -->
-
-        <!-- Игровой экран -->
-        <div id="game-screen" class="game-screen">
-            
-            <!-- Вопрос -->
-            <div id="question-screen" class="question-screen">
-                <div class="question-number">
-                    Вопрос <span id="question-num">1</span> из <span id="total-questions">10</span>
-                </div>
-                <div id="question-text" class="question-text"></div>
-                <div id="timer" class="timer" style="display: none;">15</div>
-                <div class="status" id="question-status">Игроки отвечают...</div>
-            </div>
-
-            <!-- Результаты вопроса -->
-            <div id="results-screen" class="results-screen" style="display: none;">
-                <h2>Результаты вопроса</h2>
-                <div id="correct-answer" class="correct-answer"></div>
-                <div class="leaderboard">
-                    <h3>Таблица лидеров</h3>
-                    <div id="leaderboard"></div>
-                </div>
-                <button id="next-btn" class="btn" disabled>Следующий вопрос</button>
-                <div id="next-btn-status" class="status" style="margin-top: 10px; font-size: 14px;"></div>
-            </div>
-
-            <!-- Финальные результаты -->
-            <div id="final-results" class="final-results" style="display: none;">
-                <h1>Игра завершена!</h1>
-                <div class="leaderboard">
-                    <h2>Финальные результаты</h2>
-                    <div id="final-leaderboard"></div>
-                </div>
-                <button id="restart-btn" class="btn">Новая игра</button>
-            </div>
-        </div>
+    <!-- HUB5: самая нижняя полоса (fixed, внизу экрана, под глобальные элементы хаба) -->
+    <div id="hub5" class="hub-zone hub5">
+        <!-- Здесь позже можно разместить "правила хаба", ссылки, переключение режимов и т.д. -->
     </div>
 
     <script>
@@ -1064,8 +1158,10 @@
                 
                 // Обновляем позиционирование контента
                 HubCommon.updateHub2Position();
+                HubCommon.updateHub4Position();
                 HubCommon.updateContentPadding();
                 HubCommon.updateFloatingElementsPosition();
+                HubCommon.updateBodyPaddingBottom();
                 
                 // Сбрасываем статусы игроков
                 playersData.forEach((playerData) => {
@@ -1296,8 +1392,10 @@
             // Обновляем позицию Hub2 и отступ контента после загрузки
             if (typeof HubCommon !== 'undefined') {
                 HubCommon.updateHub2Position();
+                HubCommon.updateHub4Position();
                 HubCommon.updateContentPadding();
                 HubCommon.updateFloatingElementsPosition();
+                HubCommon.updateBodyPaddingBottom();
             }
         });
         
@@ -1308,8 +1406,10 @@
             resizeTimeout = setTimeout(() => {
                 if (typeof HubCommon !== 'undefined') {
                     HubCommon.updateHub2Position();
+                    HubCommon.updateHub4Position();
                     HubCommon.updateContentPadding();
                     HubCommon.updateFloatingElementsPosition();
+                    HubCommon.updateBodyPaddingBottom();
                 }
             }, 100);
         });

@@ -139,6 +139,7 @@
 @media (max-width: 1023px) and (min-width: 769px) {
     .hub2 {
         padding: 15px 30px;
+        min-height: var(--hub2-min-height-desktop);
         background: rgba(242, 242, 242, 0.98) !important; /* Гарантируем непрозрачность на планшетах */
         opacity: 1 !important;
     }

@@ -6,10 +6,119 @@
     <title>Рейтинг - Квиз для друзей</title>
     <link rel="stylesheet" href="/styles/brand-style.css">
     <link rel="stylesheet" href="/styles/hub1.css">
+    <link rel="stylesheet" href="/styles/hub2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
     <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            background: #f2f2f2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px 20px 20px;
+            position: relative;
+            /* padding-bottom будет обновляться динамически через JavaScript для HUB4/HUB5 */
+        }
+
+        /* --- Каркас HUB-зон на странице --- */
+
+        /* Базовый класс для любой HUB-зоны */
+        .hub-zone {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* HUB3 — основная зона контента */
+        .hub3 {
+            flex: 1 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* Внутренний контейнер внутри HUB3 */
+        .hub3 > .container {
+            margin: 0 auto;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 2; /* Ниже Hub1 (1001), Hub2 (1000), HUB4/HUB5 (999), но выше парящих элементов (z-index: -1) */
+        }
+
+        /* HUB4 и HUB5 — нижние полосы, фиксированные снизу (как HUB1/HUB2 сверху) */
+        .hub4,
+        .hub5 {
+            position: fixed;
+            left: 0;
+            right: 0;
+            background: var(--hub1-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: var(--hub1-padding);
+            min-height: auto;
+            box-sizing: border-box;
+            width: 100%;
+            z-index: 999; /* Ниже HUB1 (1001) и HUB2 (1000), но выше парящих элементов (z-index: -1) */
+            transition: bottom 0.3s ease;
+            will-change: bottom;
+        }
+
+        /* HUB5 — самая нижняя полоса (фиксирована внизу) */
+        .hub5 {
+            bottom: 0;
+        }
+
+        /* HUB4 — над HUB5 (bottom будет рассчитываться динамически через JavaScript) */
+        .hub4 {
+            bottom: auto; /* Устанавливается динамически через JavaScript в hub-common.js */
+        }
+
+        /* Парящие элементы */
+        body::before {
+            content: '';
+            position: fixed;
+            /* top устанавливается динамически через JavaScript */
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: #d6fbbf; /* Парящий элемент */
+            border-radius: 50% 40% 60% 30%;
+            opacity: 0.9;
+            z-index: -1; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
+            animation: wobble 6s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        body::after {
+            content: '';
+            position: fixed;
+            /* bottom устанавливается динамически через JavaScript */
+            right: -80px;
+            width: 250px;
+            height: 250px;
+            background: #fececd; /* Парящий элемент */
+            border-radius: 40% 50% 30% 60%;
+            opacity: 0.9;
+            z-index: -1; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
+            animation: wobble 8s ease-in-out infinite reverse;
+            pointer-events: none;
+        }
+        
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(5deg) scale(1.1); }
+            50% { transform: rotate(-5deg) scale(0.9); }
+            75% { transform: rotate(3deg) scale(1.05); }
+        }
+
         .container {
             max-width: 800px;
             position: relative;
@@ -177,7 +286,17 @@
             <p>Пока нет результатов</p>
             <p style="margin-top: 20px; font-size: 16px;">Будьте первым, кто пройдет квиз!</p>
         </div>
+        </div>
+    </div>
 
+    <!-- HUB4: нижняя полоса (fixed, над HUB5) -->
+    <div id="hub4" class="hub-zone hub4">
+        <!-- Здесь позже можно разместить вспомогательные статусы, подсказки, маленькие карточки и т.п. -->
+    </div>
+
+    <!-- HUB5: самая нижняя полоса (fixed, внизу экрана) -->
+    <div id="hub5" class="hub-zone hub5">
+        <!-- Здесь позже можно разместить "Правила хаба", ссылки, переключение режимов -->
     </div>
 
     <script>
@@ -294,8 +413,17 @@
             });
             
             // Обновление позиций (HUB2 не используется на этой странице)
-            HubCommon.updateContentPadding();
-            HubCommon.updateFloatingElementsPosition();
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        HubCommon.updateHub2Position();
+                        HubCommon.updateHub4Position();
+                        HubCommon.updateContentPadding('.hub3 > .container');
+                        HubCommon.updateFloatingElementsPosition();
+                        HubCommon.updateBodyPaddingBottom();
+                    });
+                });
+            });
         }
         
         // Инициализация Hub1 после загрузки
@@ -309,11 +437,27 @@
 
         // Загружаем рейтинг при загрузке страницы
         loadLeaderboard();
+        
+        // Обновление при изменении размера окна
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (typeof HubCommon !== 'undefined') {
+                    HubCommon.updateHub2Position();
+                    HubCommon.updateHub4Position();
+                    HubCommon.updateContentPadding('.hub3 > .container');
+                    HubCommon.updateFloatingElementsPosition();
+                    HubCommon.updateBodyPaddingBottom();
+                }
+            }, 100);
+        });
     </script>
     
-    <!-- Hub1 скрипты -->
+    <!-- Hub1 и Hub2 скрипты -->
     <script src="/scripts/hub-common.js"></script>
     <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
 </body>
 </html>
 
