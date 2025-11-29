@@ -340,41 +340,155 @@ select:focus {
     opacity: 1;
 }
 
-/* === КНОПКИ ВАРИАНТОВ ОТВЕТА === */
+/* === КНОПКИ ВАРИАНТОВ ОТВЕТА С МЕТКАМИ А/Б/В/Г === */
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 30px 0;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .option-btn {
-    width: 100%;
-    background: rgba(245, 245, 245, 0.85);
-    color: var(--color-dark);
-    border: 3px solid var(--color-black);
-    padding: 18px 24px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+    padding: 20px 24px;
     font-size: 17px;
     font-weight: 500;
     font-family: 'Days One', sans-serif;
     border-radius: 14px;
     cursor: pointer;
-    margin: 10px 0;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    min-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+    min-height: 80px;
+    text-align: left;
     box-shadow: 
         0 4px 0px rgba(0, 0, 0, 0.2),
         0 6px 12px rgba(0, 0, 0, 0.1);
-    text-transform: uppercase;
+    border: 3px solid;
+    position: relative;
+    width: 100%;
 }
 
-.option-btn:hover:not(:disabled) {
-    transform: translateY(-4px) scale(1.02);
+.option-label {
+    font-size: 56px;
+    font-weight: 900;
+    font-family: 'Days One', sans-serif;
+    line-height: 1;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+    min-width: 70px;
+    text-align: center;
+}
+
+.option-text {
+    font-size: 18px;
+    font-weight: 500;
+    font-family: 'Days One', sans-serif;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    flex: 1;
+}
+
+/* Кнопка А - Мягкий розовый */
+.option-btn.option-a {
+    background: #FFE5E5;
+    border-color: #FFB3B3;
+    color: #8B3A3A;
+}
+
+.option-btn.option-a:hover:not(:disabled) {
+    background: #FFD9D9;
+    transform: translateY(-4px) scale(1.01);
     box-shadow: 
+        0 6px 0px rgba(255, 179, 179, 0.4),
+        0 8px 16px rgba(255, 179, 179, 0.25);
+}
+
+/* Кнопка Б - Мягкий голубой */
+.option-btn.option-b {
+    background: #E5F0FF;
+    border-color: #B3D9FF;
+    color: #3A5A8B;
+}
+
+.option-btn.option-b:hover:not(:disabled) {
+    background: #D9E9FF;
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 
+        0 6px 0px rgba(179, 217, 255, 0.4),
+        0 8px 16px rgba(179, 217, 255, 0.25);
+}
+
+/* Кнопка В - Мягкий зеленый */
+.option-btn.option-c {
+    background: #E5FFE5;
+    border-color: #B3FFB3;
+    color: #3A8B3A;
+}
+
+.option-btn.option-c:hover:not(:disabled) {
+    background: #D9FFD9;
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 
+        0 6px 0px rgba(179, 255, 179, 0.4),
+        0 8px 16px rgba(179, 255, 179, 0.25);
+}
+
+/* Кнопка Г - Мягкий желтый */
+.option-btn.option-d {
+    background: #FFF9E5;
+    border-color: #FFE5B3;
+    color: #8B6B3A;
+}
+
+.option-btn.option-d:hover:not(:disabled) {
+    background: #FFF5D9;
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 
+        0 6px 0px rgba(255, 229, 179, 0.4),
+        0 8px 16px rgba(255, 229, 179, 0.25);
+}
+
+/* Подсветка при нажатии физической кнопки */
+.option-btn.gamepad-highlight {
+    animation: gamepadPulse 0.3s ease-out;
+    transform: scale(1.1);
+    box-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.8),
         0 6px 0px rgba(0, 0, 0, 0.3),
-        0 8px 16px rgba(0, 0, 0, 0.15);
-    background: rgba(245, 245, 245, 0.6);
+        0 8px 16px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes gamepadPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 
+            0 4px 0px rgba(0, 0, 0, 0.2),
+            0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+    50% {
+        transform: scale(1.15);
+        box-shadow: 
+            0 0 40px rgba(255, 255, 255, 1),
+            0 6px 0px rgba(0, 0, 0, 0.3),
+            0 8px 16px rgba(0, 0, 0, 0.25);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 
+            0 4px 0px rgba(0, 0, 0, 0.2),
+            0 6px 12px rgba(0, 0, 0, 0.1);
+    }
 }
 
 .option-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.7;
     cursor: not-allowed;
 }
 
@@ -387,19 +501,71 @@ select:focus {
 }
 
 .option-btn.correct {
-    background: rgba(0, 193, 89, 0.35);
-    border-color: var(--color-green-alt);
+    background: rgba(47, 185, 93, 0.95) !important;
+    border-color: #1E7A3D !important;
     box-shadow: 
-        0 4px 0px rgba(0, 193, 89, 0.4),
-        0 8px 16px rgba(0, 193, 89, 0.25);
+        0 4px 0px rgba(47, 185, 93, 0.4),
+        0 8px 16px rgba(47, 185, 93, 0.25) !important;
 }
 
 .option-btn.incorrect {
-    background: rgba(255, 118, 116, 0.35);
-    border-color: var(--color-coral);
+    background: rgba(251, 108, 107, 0.95) !important;
+    border-color: #d85a5a !important;
     box-shadow: 
-        0 4px 0px rgba(255, 118, 116, 0.4),
-        0 8px 16px rgba(255, 118, 116, 0.25);
+        0 4px 0px rgba(251, 108, 107, 0.4),
+        0 8px 16px rgba(251, 108, 107, 0.25) !important;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .options {
+        gap: 12px;
+    }
+    
+    .option-btn {
+        min-height: 70px;
+        padding: 16px 20px;
+        gap: 15px;
+    }
+    
+    .option-label {
+        font-size: 48px;
+        min-width: 60px;
+    }
+    
+    .option-text {
+        font-size: 16px;
+    }
+}
+
+/* Изображения вопросов */
+.question-image-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 25px auto;
+    text-align: center;
+}
+
+.question-image {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 16px;
+    object-fit: contain;
+    box-shadow: 
+        0 4px 0px rgba(0, 0, 0, 0.2),
+        0 8px 16px rgba(0, 0, 0, 0.1);
+    border: 3px solid var(--color-black);
+}
+
+@media (max-width: 768px) {
+    .question-image-container {
+        margin: 20px 0;
+    }
+    
+    .question-image {
+        border-radius: 12px;
+    }
 }
 
 /* === ТАЙМЕР === */

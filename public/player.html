@@ -448,17 +448,62 @@
         
         // Загрузка конфигурации джойстика
         function loadJoystickConfig() {
+            console.log('📥 Загрузка конфигурации джойстика из localStorage...');
             const saved = localStorage.getItem('joystickConfig');
-            if (saved) {
-                try {
-                    joystickConfig = JSON.parse(saved);
-                    console.log('✅ Конфигурация джойстика загружена:', joystickConfig);
-                } catch (e) {
-                    console.error('Ошибка загрузки конфигурации джойстика:', e);
-                    joystickConfig = null;
-                }
-            } else {
+            
+            if (!saved) {
+                console.warn('⚠️ Конфигурация джойстика не найдена в localStorage');
                 joystickConfig = null;
+                return false;
+            }
+            
+            try {
+                const parsed = JSON.parse(saved);
+                console.log('📄 Данные из localStorage:', saved);
+                
+                // Проверяем, что конфигурация валидна и содержит кнопки
+                if (parsed && typeof parsed === 'object') {
+                    joystickConfig = {
+                        buttons: parsed.buttons || {},
+                        axes: parsed.axes || {}
+                    };
+                    
+                    console.log('🔍 Распарсенная конфигурация:', joystickConfig);
+                    console.log('🔍 Кнопки в конфигурации:', Object.keys(joystickConfig.buttons));
+                    
+                    // Проверяем наличие кнопок для ответов (Кнопка 1-4)
+                    const answerButtons = ['Кнопка 1', 'Кнопка 2', 'Кнопка 3', 'Кнопка 4'];
+                    const hasAnswerButtons = answerButtons.some(
+                        btn => joystickConfig.buttons[btn] !== undefined
+                    );
+                    
+                    const configuredButtons = answerButtons.filter(
+                        btn => joystickConfig.buttons[btn] !== undefined
+                    );
+                    
+                    if (hasAnswerButtons) {
+                        console.log('✅ Конфигурация джойстика успешно загружена');
+                        console.log('📋 Настроенные кнопки для ответов:', configuredButtons);
+                        configuredButtons.forEach(btn => {
+                            console.log(`   - ${btn} -> физическая кнопка ${joystickConfig.buttons[btn]}`);
+                        });
+                        return true;
+                    } else {
+                        console.warn('⚠️ Конфигурация загружена, но не найдены кнопки для ответов (Кнопка 1-4)');
+                        console.warn('📋 Доступные кнопки в конфигурации:', Object.keys(joystickConfig.buttons));
+                        joystickConfig = null;
+                        return false;
+                    }
+                } else {
+                    console.warn('⚠️ Неверный формат конфигурации джойстика:', typeof parsed);
+                    joystickConfig = null;
+                    return false;
+                }
+            } catch (e) {
+                console.error('❌ Ошибка парсинга конфигурации джойстика:', e);
+                console.error('📄 Сырые данные:', saved);
+                joystickConfig = null;
+                return false;
             }
         }
         
@@ -473,61 +518,191 @@
             return null;
         }
         
+        // Подсветка кнопки при нажатии физической кнопки
+        function highlightOptionByGamepad(buttonIndex) {
+            const buttons = document.querySelectorAll('.option-btn');
+            if (buttons[buttonIndex] && !buttons[buttonIndex].disabled) {
+                buttons[buttonIndex].classList.add('gamepad-highlight');
+                setTimeout(() => {
+                    buttons[buttonIndex].classList.remove('gamepad-highlight');
+                }, 300);
+            }
+        }
+        
+        // Флаг для предотвращения множественных срабатываний
+        let lastPressedButton = null;
+        let lastPressedTime = 0;
+        
         // Обработка нажатий кнопок джойстика
         function handleGamepadInput() {
-            if (!gamepad || !joystickConfig || !joystickConfig.buttons) return;
+            if (!gamepad) {
+                return;
+            }
+            
+            if (!joystickConfig || !joystickConfig.buttons) {
+                return;
+            }
+            
+            // Обработка ответов - только на экране вопроса
+            const questionScreen = document.getElementById('question-screen');
+            if (!questionScreen || questionScreen.style.display === 'none' || hasAnswered) {
+                return;
+            }
             
             // Проверяем нажатые кнопки
             const buttons = joystickConfig.buttons;
+            const currentTime = Date.now();
+            
             for (const [command, buttonIndex] of Object.entries(buttons)) {
                 // Проверяем, что кнопка нажата
                 if (gamepad.buttons[buttonIndex] && gamepad.buttons[buttonIndex].pressed) {
-                    // Обработка ответов - только на экране вопроса
-                    const questionScreen = document.getElementById('question-screen');
-                    if (questionScreen && questionScreen.style.display !== 'none' && !hasAnswered) {
-                        // Извлекаем номер кнопки из названия (например, "Кнопка 1" -> 1)
-                        const match = command.match(/Кнопка (\d+)/);
-                        if (match) {
-                            const answerIndex = parseInt(match[1]) - 1; // Кнопка 1 = ответ 0, Кнопка 2 = ответ 1 и т.д.
+                    // Защита от множественных срабатываний (минимум 300мс между нажатиями)
+                    const buttonKey = `${command}-${buttonIndex}`;
+                    if (lastPressedButton === buttonKey && (currentTime - lastPressedTime) < 300) {
+                        continue;
+                    }
+                    
+                    // Извлекаем номер кнопки из названия (например, "Кнопка 1" -> 1)
+                    const match = command.match(/Кнопка (\d+)/);
+                    if (match) {
+                        const answerIndex = parseInt(match[1]) - 1; // Кнопка 1 = ответ 0, Кнопка 2 = ответ 1 и т.д.
+                        
+                        // Проверяем, что такой вариант ответа существует
+                        const options = document.querySelectorAll('.option-btn');
+                        if (answerIndex >= 0 && answerIndex < options.length) {
+                            lastPressedButton = buttonKey;
+                            lastPressedTime = currentTime;
                             
-                            // Проверяем, что такой вариант ответа существует
-                            const options = document.querySelectorAll('.option-btn');
-                            if (answerIndex >= 0 && answerIndex < options.length) {
-                                console.log(`🎮 Джойстик: ${command} -> Ответ ${answerIndex + 1}`);
+                            // Подсвечиваем кнопку перед выбором ответа
+                            highlightOptionByGamepad(answerIndex);
+                            console.log(`🎮 Джойстик: ${command} (кнопка ${buttonIndex}) -> Ответ ${answerIndex + 1} (${options[answerIndex].querySelector('.option-text')?.textContent || 'неизвестно'})`);
+                            
+                            // Небольшая задержка для визуального эффекта
+                            setTimeout(() => {
                                 selectAnswer(answerIndex);
-                                return; // Обработали нажатие, выходим
-                            }
+                            }, 100);
+                            return; // Обработали нажатие, выходим
+                        } else {
+                            console.warn(`⚠️ Джойстик: Ответ ${answerIndex + 1} не существует (всего вариантов: ${options.length})`);
                         }
                     }
                 }
+            }
+            
+            // Сбрасываем флаг, если ни одна кнопка не нажата
+            let anyButtonPressed = false;
+            for (const [command, buttonIndex] of Object.entries(buttons)) {
+                if (gamepad.buttons[buttonIndex] && gamepad.buttons[buttonIndex].pressed) {
+                    anyButtonPressed = true;
+                    break;
+                }
+            }
+            if (!anyButtonPressed) {
+                lastPressedButton = null;
+            }
+        }
+        
+        // Запуск проверки джойстика
+        function startGamepadCheck() {
+            // Всегда перезагружаем конфигурацию перед запуском (на случай изменений)
+            const configLoaded = loadJoystickConfig();
+            
+            if (gamepadUpdateInterval) {
+                clearInterval(gamepadUpdateInterval);
+            }
+            
+            // Получаем джойстик
+            gamepad = getGamepad();
+            
+            if (!gamepad) {
+                console.warn('⚠️ Джойстик не подключен');
+                return;
+            }
+            
+            if (configLoaded && joystickConfig && joystickConfig.buttons) {
+                const buttonCount = Object.keys(joystickConfig.buttons).filter(k => k.startsWith('Кнопка')).length;
+                console.log(`🎮 Запуск проверки джойстика. Настроено кнопок: ${buttonCount}`);
+                console.log('📋 Конфигурация:', joystickConfig);
+                gamepadUpdateInterval = setInterval(updateGamepad, 50);
+            } else {
+                console.warn('⚠️ Конфигурация джойстика не найдена или неполная. Джойстик не будет работать.');
+                console.warn('💡 Настройте джойстик: /joystick-test/joystick.html');
+            }
+        }
+        
+        // Остановка проверки джойстика
+        function stopGamepadCheck() {
+            if (gamepadUpdateInterval) {
+                clearInterval(gamepadUpdateInterval);
+                gamepadUpdateInterval = null;
             }
         }
         
         // Обновление состояния джойстика
         function updateGamepad() {
-            gamepad = getGamepad();
-            if (gamepad) {
+            // Обновляем ссылку на джойстик каждый раз
+            const currentGamepad = getGamepad();
+            if (currentGamepad) {
+                gamepad = currentGamepad;
                 handleGamepadInput();
             }
         }
         
         // Инициализация джойстика
         function initJoystick() {
-            loadJoystickConfig();
-            if (joystickConfig && joystickConfig.buttons) {
-                // Запускаем обновление джойстика
-                gamepadUpdateInterval = setInterval(updateGamepad, 50); // Проверяем каждые 50мс
+            console.log('🔧 Инициализация джойстика...');
+            
+            // Загружаем конфигурацию при инициализации
+            const configLoaded = loadJoystickConfig();
+            
+            // Проверяем, подключен ли джойстик уже при загрузке страницы
+            const initialGamepad = getGamepad();
+            if (initialGamepad) {
+                console.log('🎮 Джойстик уже подключен при загрузке:', initialGamepad.id);
+                gamepad = initialGamepad;
                 
-                // Обработчики подключения/отключения
-                window.addEventListener('gamepadconnected', (e) => {
-                    console.log('🎮 Джойстик подключен:', e.gamepad.id);
-                    gamepad = e.gamepad;
-                });
+                // Если конфигурация загружена, сразу запускаем проверку
+                if (configLoaded && joystickConfig && joystickConfig.buttons) {
+                    console.log('✅ Конфигурация найдена, запускаем проверку джойстика');
+                    startGamepadCheck();
+                }
+            }
+            
+            // Обработчики подключения/отключения (всегда добавляем)
+            window.addEventListener('gamepadconnected', (e) => {
+                console.log('🎮 Джойстик подключен:', e.gamepad.id);
+                gamepad = e.gamepad;
                 
-                window.addEventListener('gamepaddisconnected', (e) => {
-                    console.log('🎮 Джойстик отключен:', e.gamepad.id);
-                    gamepad = null;
-                });
+                // Перезагружаем конфигурацию на случай, если она изменилась
+                const reloaded = loadJoystickConfig();
+                
+                // Если есть конфигурация, запускаем проверку
+                if (reloaded && joystickConfig && joystickConfig.buttons) {
+                    console.log('✅ Конфигурация загружена, запускаем проверку джойстика');
+                    startGamepadCheck();
+                } else {
+                    console.warn('⚠️ Конфигурация не найдена при подключении джойстика');
+                }
+            });
+            
+            window.addEventListener('gamepaddisconnected', (e) => {
+                console.log('🎮 Джойстик отключен:', e.gamepad.id);
+                gamepad = null;
+                stopGamepadCheck();
+            });
+            
+            // Выводим информацию о конфигурации
+            if (configLoaded && joystickConfig && joystickConfig.buttons) {
+                const buttonCount = Object.keys(joystickConfig.buttons).filter(k => k.startsWith('Кнопка')).length;
+                const configuredButtons = Object.keys(joystickConfig.buttons)
+                    .filter(k => k.startsWith('Кнопка'))
+                    .map(k => `${k} -> кнопка ${joystickConfig.buttons[k]}`)
+                    .join(', ');
+                console.log(`✅ Конфигурация джойстика загружена (${buttonCount} кнопок):`, configuredButtons);
+                console.log('📋 Полная конфигурация:', JSON.stringify(joystickConfig, null, 2));
+            } else {
+                console.warn('⚠️ Конфигурация джойстика не найдена или неполная.');
+                console.warn('💡 Настройте джойстик: откройте /joystick-test/joystick.html и назначьте кнопки 1-4 для ответов А-Г');
             }
         }
 
@@ -691,17 +866,48 @@
             const progress = (questionNum / totalQuestions) * 100;
             document.getElementById('progress-bar').style.width = progress + '%';
             
-            // Варианты ответов - ВСЕГДА создаем активные кнопки
+            // Отображение изображения вопроса
+            let imageContainer = document.getElementById('question-image-container');
+            if (data.image) {
+                if (!imageContainer) {
+                    imageContainer = document.createElement('div');
+                    imageContainer.className = 'question-image-container';
+                    imageContainer.id = 'question-image-container';
+                    const questionText = document.getElementById('question-text');
+                    questionText.parentNode.insertBefore(imageContainer, questionText.nextSibling);
+                }
+                const img = document.createElement('img');
+                img.className = 'question-image';
+                const questionsDir = data.questionsDir || 'gnu';
+                img.src = `/data/media/questions/${questionsDir}/${data.image}`;
+                img.alt = 'Question image';
+                imageContainer.innerHTML = '';
+                imageContainer.appendChild(img);
+            } else if (imageContainer) {
+                imageContainer.innerHTML = '';
+            }
+
+            // Варианты ответов - ВСЕГДА создаем активные кнопки с метками А/Б/В/Г
             const optionsDiv = document.getElementById('options');
             optionsDiv.innerHTML = '';
+            const optionLabels = ['А', 'Б', 'В', 'Г'];
+            const optionClasses = ['option-a', 'option-b', 'option-c', 'option-d'];
+            
             data.options.forEach((option, index) => {
                 const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.textContent = option;
+                btn.className = `option-btn ${optionClasses[index]}`;
+                btn.innerHTML = `
+                    <span class="option-label">${optionLabels[index]}</span>
+                    <span class="option-text">${option}</span>
+                `;
+                btn.dataset.optionIndex = index;
                 btn.disabled = false;
                 btn.onclick = () => selectAnswer(index);
                 optionsDiv.appendChild(btn);
             });
+            
+            // Запускаем проверку джойстика для нового вопроса
+            startGamepadCheck();
 
             // Таймер
             let timeLeft = data.timeLeft !== undefined ? data.timeLeft : data.time;
@@ -754,6 +960,8 @@
         });
 
         function selectAnswer(answerIndex) {
+            // Останавливаем проверку джойстика
+            stopGamepadCheck();
             if (hasAnswered) return;
             hasAnswered = true;
             

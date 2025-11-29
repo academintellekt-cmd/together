@@ -81,6 +81,8 @@ function parseQuestionsFile(content) {
   let currentOptions = [];
   let currentCorrect = -1;
   let currentTime = 15;
+  let currentImage = null;
+  let currentSound = null;
   let isNewFormat = false;
   
   // Определяем формат по первой строке с вопросом
@@ -107,9 +109,15 @@ function parseQuestionsFile(content) {
           currentCorrect = 0;
         }
         
+        if (!currentImage) {
+          console.warn(`Вопрос "${currentQuestion}" не имеет изображения`);
+        }
+        
         questions.push({
           id: questions.length + 1,
           question: currentQuestion,
+          image: currentImage,
+          sound: currentSound || null,
           options: currentOptions,
           correct: currentCorrect,
           time: currentTime
@@ -119,6 +127,8 @@ function parseQuestionsFile(content) {
         currentOptions = [];
         currentCorrect = -1;
         currentTime = 15;
+        currentImage = null;
+        currentSound = null;
       }
       continue;
     }
@@ -135,6 +145,8 @@ function parseQuestionsFile(content) {
           questions.push({
             id: questions.length + 1,
             question: currentQuestion,
+            image: currentImage,
+            sound: currentSound || null,
             options: currentOptions,
             correct: currentCorrect,
             time: currentTime
@@ -145,6 +157,16 @@ function parseQuestionsFile(content) {
         currentOptions = [];
         currentCorrect = -1;
         currentTime = 15;
+        currentImage = null;
+        currentSound = null;
+      }
+      // Изображение
+      else if (line.startsWith('I:')) {
+        currentImage = line.substring(2).trim();
+      }
+      // Звук
+      else if (line.startsWith('S:')) {
+        currentSound = line.substring(2).trim();
       }
       // Правильный ответ
       else if (line.startsWith('A*:')) {
@@ -243,6 +265,8 @@ function parseQuestionsFile(content) {
     questions.push({
       id: questions.length + 1,
       question: currentQuestion,
+      image: currentImage,
+      sound: currentSound || null,
       options: currentOptions,
       correct: currentCorrect,
       time: currentTime
@@ -288,6 +312,43 @@ function loadQuiz(quizId) {
 }
 
 /**
+ * Валидация медиафайлов для квиза
+ */
+function validateQuizMedia(quiz) {
+  const errors = [];
+  const warnings = [];
+  const questionsDir = quiz.questionsDir || quiz.id;
+  const mediaQuestionsPath = path.join(__dirname, '../../data/media/questions', questionsDir);
+  
+  quiz.questions.forEach((q, index) => {
+    if (!q.image) {
+      errors.push(`Вопрос ${index + 1}: отсутствует изображение`);
+    } else {
+      const imagePath = path.join(mediaQuestionsPath, q.image);
+      if (!fs.existsSync(imagePath)) {
+        errors.push(`Вопрос ${index + 1}: файл изображения не найден: ${q.image}`);
+      }
+    }
+    
+    if (q.sound) {
+      const soundPath = path.join(mediaQuestionsPath, q.sound);
+      if (!fs.existsSync(soundPath)) {
+        warnings.push(`Вопрос ${index + 1}: файл звука не найден: ${q.sound}`);
+      }
+    }
+  });
+  
+  if (quiz.backgroundMusic) {
+    const musicPath = path.join(__dirname, '../../data/media/quizzes', quiz.id, quiz.backgroundMusic);
+    if (!fs.existsSync(musicPath)) {
+      warnings.push(`Фоновая музыка не найдена: ${quiz.backgroundMusic}`);
+    }
+  }
+  
+  return { errors, warnings };
+}
+
+/**
  * Загружает все квизы с их вопросами
  */
 function loadAllQuizzes() {
@@ -297,7 +358,7 @@ function loadAllQuizzes() {
   for (const [quizId, config] of Object.entries(configs)) {
     try {
       const questions = loadQuestions(quizId, config.questionsFile);
-      quizzes[quizId] = {
+      const quiz = {
         ...config,
         questions: questions,
         gameSettings: {
@@ -305,6 +366,19 @@ function loadAllQuizzes() {
           totalQuestions: questions.length
         }
       };
+      
+      // Валидация медиафайлов
+      const { errors, warnings } = validateQuizMedia(quiz);
+      if (errors.length > 0) {
+        console.error(`❌ Ошибки валидации квиза ${quizId}:`);
+        errors.forEach(err => console.error(`   - ${err}`));
+      }
+      if (warnings.length > 0) {
+        console.warn(`⚠️ Предупреждения для квиза ${quizId}:`);
+        warnings.forEach(warn => console.warn(`   - ${warn}`));
+      }
+      
+      quizzes[quizId] = quiz;
     } catch (error) {
       console.error(`❌ Ошибка загрузки вопросов для квиза ${quizId}:`, error.message);
     }
