@@ -28,6 +28,17 @@ const players = new Map();
 // Хранилище рейтинга для соло-режима
 let leaderboard = [];
 
+// Константы для масштабируемости
+const MAX_ROOMS = 50; // Максимум активных комнат одновременно
+const MAX_TOTAL_PLAYERS = 500; // Максимум игроков на сервере
+const MAX_LEADERBOARD_ENTRIES = 1000; // Максимум записей рейтинга в памяти
+const ROOM_TIMEOUT = 30 * 60 * 1000; // 30 минут неактивности для очистки комнаты
+const LEADERBOARD_QUEUE_BATCH_SIZE = 10; // Размер батча для записи в Google Sheets
+const LEADERBOARD_QUEUE_INTERVAL = 30 * 1000; // Интервал записи батча (30 секунд)
+
+// Очередь для батчинга записей в Google Sheets
+const leaderboardQueue = [];
+
 // Инициализация рейтинга при запуске сервера
 async function initializeLeaderboard() {
   console.log('🔄 Загрузка рейтинга из Google Sheets...');
@@ -228,6 +239,27 @@ async function loadLeaderboardFromGoogleSheets() {
   } catch (error) {
     console.log('❌ Критическая ошибка при загрузке рейтинга из Google Sheets:', error.message);
     return [];
+  }
+}
+
+// Функция для обработки очереди рейтинга (батчинг)
+async function processLeaderboardQueue() {
+  if (leaderboardQueue.length === 0) return;
+  
+  const batch = leaderboardQueue.splice(0, LEADERBOARD_QUEUE_BATCH_SIZE);
+  console.log(`📤 Запись батча из ${batch.length} записей в Google Sheets...`);
+  
+  // Записываем каждую запись из батча
+  const promises = batch.map(result => writeToGoogleSheets(result));
+  const results = await Promise.allSettled(promises);
+  
+  const successCount = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
+  console.log(`✅ Записано ${successCount}/${batch.length} записей в Google Sheets`);
+  
+  // Если все успешно, обновляем рейтинг из Google Sheets
+  if (successCount === batch.length && batch.length > 0) {
+    console.log('🔄 Обновляем рейтинг из Google Sheets...');
+    await initializeLeaderboard();
   }
 }
 
@@ -676,27 +708,26 @@ app.post('/api/leaderboard', (req, res) => {
   
   leaderboard.push(result);
   
-  // Сортируем по очкам (от большего к меньшему)
-  leaderboard.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    return a.timestamp - b.timestamp; // При одинаковых очках - кто раньше
-  });
-  
-  // Ограничиваем до 100 лучших результатов
-  if (leaderboard.length > 100) {
-    leaderboard.splice(100);
-  }
-
-  // Записываем в Google Sheets (асинхронно, не блокируем ответ)
-  writeToGoogleSheets(result).then(async (success) => {
-    if (success) {
-      console.log('✅ Результат записан в Google Sheets, обновляем рейтинг...');
-      // Обновляем рейтинг после успешной записи
-      await initializeLeaderboard();
+    // Сортируем по очкам (от большего к меньшему)
+    leaderboard.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.timestamp - b.timestamp; // При одинаковых очках - кто раньше
+    });
+    
+    // Ограничиваем до MAX_LEADERBOARD_ENTRIES лучших результатов в памяти
+    // Остальные хранятся только в Google Sheets
+    if (leaderboard.length > MAX_LEADERBOARD_ENTRIES) {
+      leaderboard.splice(MAX_LEADERBOARD_ENTRIES);
+      console.log(`📊 Рейтинг ограничен до ${MAX_LEADERBOARD_ENTRIES} записей в памяти`);
     }
-  }).catch(err => {
-    console.error('Ошибка записи в Google Sheets:', err);
-  });
+
+  // Добавляем в очередь для батчинга (асинхронно, не блокируем ответ)
+  leaderboardQueue.push(result);
+  
+  // Если очередь достигла размера батча, записываем немедленно
+  if (leaderboardQueue.length >= LEADERBOARD_QUEUE_BATCH_SIZE) {
+    processLeaderboardQueue();
+  }
   
   res.json({ success: true, result: result });
 });
@@ -850,6 +881,17 @@ app.get('/api/server-ip', (req, res) => {
 app.post('/api/create-room', (req, res) => {
   const { quizId, password } = req.body;
   
+  // Проверка лимитов перед созданием комнаты
+  if (rooms.size >= MAX_ROOMS) {
+    console.warn(`⚠️ Достигнут лимит комнат: ${rooms.size}/${MAX_ROOMS}`);
+    return res.status(503).json({ error: 'Сервер перегружен. Попробуйте позже.' });
+  }
+  
+  if (players.size >= MAX_TOTAL_PLAYERS) {
+    console.warn(`⚠️ Достигнут лимит игроков: ${players.size}/${MAX_TOTAL_PLAYERS}`);
+    return res.status(503).json({ error: 'Сервер перегружен. Попробуйте позже.' });
+  }
+  
   // Проверяем, что квиз существует
   if (!quizId || !quizzes[quizId]) {
     return res.status(400).json({ error: 'Квиз не найден' });
@@ -954,7 +996,9 @@ app.post('/api/create-room', (req, res) => {
     readyPlayers: new Set(), // Игроки, готовые к следующему вопросу
     startTime: null,
     answers: new Map(),
-    password: quiz.passwordRequired ? quiz.password : null // Сохраняем пароль для проверки при подключении игроков
+    password: quiz.passwordRequired ? quiz.password : null, // Сохраняем пароль для проверки при подключении игроков
+    createdAt: Date.now(), // Время создания комнаты
+    lastActivity: Date.now() // Время последней активности
   };
   rooms.set(roomCode, room);
   
@@ -976,6 +1020,7 @@ io.on('connection', (socket) => {
       return;
     }
     room.host = socket.id;
+    room.lastActivity = Date.now(); // Обновляем активность при подключении хоста
     socket.join(roomCode);
     socket.emit('host-connected', { roomCode, players: room.players });
     console.log(`Хост подключен к комнате ${roomCode}`);
@@ -1027,6 +1072,7 @@ io.on('connection', (socket) => {
     room.players.push(player);
     players.set(socket.id, player);
     socket.join(normalizedRoomCode);
+    room.lastActivity = Date.now(); // Обновляем активность при подключении игрока
     
     socket.emit('player-connected', { playerId: socket.id, roomCode: normalizedRoomCode });
     io.to(normalizedRoomCode).emit('player-list-updated', { players: room.players });
@@ -1042,6 +1088,7 @@ io.on('connection', (socket) => {
     room.currentQuestion = 0;
     room.answers.clear();
     room.players.forEach(p => p.score = 0);
+    room.lastActivity = Date.now(); // Обновляем активность
     
     io.to(roomCode).emit('game-started');
     setTimeout(() => {
@@ -1067,6 +1114,7 @@ io.on('connection', (socket) => {
     room.readyPlayers.clear(); // Сбрасываем готовность при новом вопросе
     const question = room.questions[room.currentQuestion];
     room.startTime = Date.now();
+    room.lastActivity = Date.now(); // Обновляем активность при показе вопроса
 
     // Очищаем предыдущий таймер
     if (questionTimers.has(roomCode)) {
@@ -1131,6 +1179,7 @@ io.on('connection', (socket) => {
     const question = room.questions[room.currentQuestion];
     const isCorrect = answerIndex === question.correct;
     const answerTime = Date.now() - room.startTime;
+    room.lastActivity = Date.now(); // Обновляем активность при ответе игрока
     
     room.answers.set(socket.id, {
       playerId: socket.id,
@@ -1190,6 +1239,7 @@ io.on('connection', (socket) => {
     }
 
     room.gameState = 'results';
+    room.lastActivity = Date.now(); // Обновляем активность при показе результатов
     const question = room.questions[room.currentQuestion];
     const results = Array.from(room.answers.values());
 
@@ -1258,6 +1308,7 @@ io.on('connection', (socket) => {
 
     if (room.gameState === 'results') {
       room.readyPlayers.add(socket.id);
+      room.lastActivity = Date.now(); // Обновляем активность
       console.log(`Игрок ${player.name} готов к следующему вопросу`);
       updateReadyStatus(roomCode);
     }
@@ -1277,6 +1328,7 @@ io.on('connection', (socket) => {
       }
 
       room.currentQuestion++;
+      room.lastActivity = Date.now(); // Обновляем активность при переходе к следующему вопросу
       if (room.currentQuestion < room.questions.length) {
         showQuestion(roomCode);
       } else {
@@ -1291,6 +1343,7 @@ io.on('connection', (socket) => {
     if (!room) return;
 
     room.gameState = 'finished';
+    room.lastActivity = Date.now(); // Обновляем активность
     const finalResults = room.players.sort((a, b) => b.score - a.score);
 
     io.to(roomCode).emit('game-finished', {
@@ -1306,6 +1359,7 @@ io.on('connection', (socket) => {
       if (room) {
         // Удаляем игрока из списка
         room.players = room.players.filter(p => p.id !== socket.id);
+        room.lastActivity = Date.now(); // Обновляем активность при отключении игрока
         io.to(player.roomCode).emit('player-list-updated', { players: room.players });
         console.log(`Игрок ${player.name} отключился и удален из комнаты ${player.roomCode}`);
       }
@@ -1317,12 +1371,67 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 
+// Функция для очистки неактивных комнат
+function cleanupInactiveRooms() {
+  const now = Date.now();
+  let cleanedCount = 0;
+  
+  for (const [code, room] of rooms.entries()) {
+    // Удаляем комнаты, которые завершены и неактивны более ROOM_TIMEOUT
+    if (room.gameState === 'finished' && room.lastActivity) {
+      if (now - room.lastActivity > ROOM_TIMEOUT) {
+        rooms.delete(code);
+        cleanedCount++;
+        console.log(`🗑️ Удалена завершенная комната: ${code}`);
+      }
+    }
+    // Удаляем комнаты в лобби без активности более ROOM_TIMEOUT
+    else if (room.gameState === 'lobby' && room.lastActivity) {
+      if (now - room.lastActivity > ROOM_TIMEOUT) {
+        rooms.delete(code);
+        cleanedCount++;
+        console.log(`🗑️ Удалена неактивная комната в лобби: ${code}`);
+      }
+    }
+  }
+  
+  if (cleanedCount > 0) {
+    console.log(`🧹 Очищено ${cleanedCount} неактивных комнат`);
+  }
+}
+
+// Функция для мониторинга производительности
+function logPerformanceStats() {
+  const memUsage = process.memoryUsage();
+  const memMB = Math.round(memUsage.heapUsed / 1024 / 1024);
+  const memTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
+  
+  console.log(`📊 Статистика производительности:`);
+  console.log(`   Комнаты: ${rooms.size}/${MAX_ROOMS}`);
+  console.log(`   Игроки: ${players.size}/${MAX_TOTAL_PLAYERS}`);
+  console.log(`   Рейтинг в памяти: ${leaderboard.length}/${MAX_LEADERBOARD_ENTRIES}`);
+  console.log(`   Очередь рейтинга: ${leaderboardQueue.length}`);
+  console.log(`   Память: ${memMB} МБ / ${memTotalMB} МБ`);
+  
+  // Предупреждения при высокой нагрузке
+  if (rooms.size > MAX_ROOMS * 0.8) {
+    console.warn(`⚠️ Высокая нагрузка: ${Math.round(rooms.size / MAX_ROOMS * 100)}% комнат занято`);
+  }
+  if (players.size > MAX_TOTAL_PLAYERS * 0.8) {
+    console.warn(`⚠️ Высокая нагрузка: ${Math.round(players.size / MAX_TOTAL_PLAYERS * 100)}% игроков подключено`);
+  }
+  if (memMB > 500) {
+    console.warn(`⚠️ Высокое использование памяти: ${memMB} МБ`);
+  }
+}
+
 // Запуск сервера только если файл запущен напрямую (не импортирован)
 if (require.main === module) {
   server.listen(PORT, async () => {
   console.log(`Сервер запущен на порту ${PORT}`);
     console.log(`Откройте http://localhost:${PORT}/index.html для выбора квиза`);
     console.log(`Или http://localhost:${PORT}/player.html для игроков`);
+    console.log(`📊 Лимиты: ${MAX_ROOMS} комнат, ${MAX_TOTAL_PLAYERS} игроков, ${MAX_LEADERBOARD_ENTRIES} записей рейтинга`);
     
     // Инициализируем рейтинг из Google Sheets
     await initializeLeaderboard();
@@ -1332,6 +1441,23 @@ if (require.main === module) {
       console.log('🔄 Автоматическое обновление рейтинга...');
       await initializeLeaderboard();
     }, 5 * 60 * 1000); // 5 минут
+    
+    // Обработка очереди рейтинга (батчинг) каждые LEADERBOARD_QUEUE_INTERVAL
+    setInterval(() => {
+      if (leaderboardQueue.length > 0) {
+        processLeaderboardQueue();
+      }
+    }, LEADERBOARD_QUEUE_INTERVAL);
+    
+    // Очистка неактивных комнат каждые 5 минут
+    setInterval(() => {
+      cleanupInactiveRooms();
+    }, 5 * 60 * 1000);
+    
+    // Мониторинг производительности каждую минуту
+    setInterval(() => {
+      logPerformanceStats();
+    }, 60 * 1000);
 }).on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     console.error(`Порт ${PORT} уже занят. Попробуйте другой порт:`);
