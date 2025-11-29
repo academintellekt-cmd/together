@@ -42,6 +42,16 @@ npm start
 - Node.js 14+ (скачайте с https://nodejs.org/)
 - npm (устанавливается вместе с Node.js)
 
+## 📚 Документация
+
+Вся документация находится в папке `docs/`:
+
+- **[SETUP.md](docs/SETUP.md)** - Полная инструкция по настройке, деплою, домену, SSL и интеграции с Google Sheets
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Архитектура проекта
+- **[PAGE_STRUCTURE_TEMPLATE.md](docs/PAGE_STRUCTURE_TEMPLATE.md)** - Шаблон структуры страниц
+- **[QUIZ_CREATION_GUIDE.md](docs/QUIZ_CREATION_GUIDE.md)** - Руководство по созданию квизов
+- **[SCALABILITY_ANALYSIS.md](docs/SCALABILITY_ANALYSIS.md)** - Анализ масштабируемости
+
 ## 🌐 Деплой в интернет
 
 Приложение развернуто на сервере **109.107.187.189** с доменом **вместе.fun**.
@@ -53,7 +63,7 @@ npm start
 
 **Пароль:** `t6LP6kJBE_9w663RR=Mc`
 
-📖 **Подробные инструкции по деплою:** см. [DEPLOY_INSTRUCTIONS.md](./DEPLOY_INSTRUCTIONS.md)
+📖 **Подробные инструкции по деплою:** см. [docs/SETUP.md](./docs/SETUP.md)
 
 ## 🎮 Как играть
 
@@ -112,7 +122,9 @@ together/
 │   ├── images/           # Изображения
 │   └── styles/           # Стили
 │       ├── brand-style.css
-│       └── common.css
+│       ├── hub-layout.css
+│       ├── hub1.css
+│       └── hub2.css
 ├── server/               # Серверные утилиты
 │   └── utils/
 │       └── quiz-loader.js # Загрузка квизов
@@ -154,10 +166,13 @@ npm install
 
 ## 📚 Документация
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Архитектура проекта
-- [DEPLOY_INSTRUCTIONS.md](./DEPLOY_INSTRUCTIONS.md) - Инструкции по деплою
-- [QUIZ_CREATION_GUIDE.md](./QUIZ_CREATION_GUIDE.md) - Руководство по созданию квизов
-- [GOOGLE_SHEETS_SETUP.md](./GOOGLE_SHEETS_SETUP.md) - Настройка Google Sheets
+Вся документация находится в папке `docs/`:
+
+- **[SETUP.md](docs/SETUP.md)** - Полная инструкция по настройке, деплою, домену, SSL и интеграции с Google Sheets
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Архитектура проекта
+- **[PAGE_STRUCTURE_TEMPLATE.md](docs/PAGE_STRUCTURE_TEMPLATE.md)** - Шаблон структуры страниц
+- **[QUIZ_CREATION_GUIDE.md](docs/QUIZ_CREATION_GUIDE.md)** - Руководство по созданию квизов
+- **[SCALABILITY_ANALYSIS.md](docs/SCALABILITY_ANALYSIS.md)** - Анализ масштабируемости
 
 ## 🎯 Особенности
 

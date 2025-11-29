@@ -1,9 +1,51 @@
+# Dependencies
 node_modules/
-.DS_Store
-*.log
-.env
-node-v*/
-*.tar.gz
-*.pkg
-*.sh.bak
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+deploy.tar.gz
+*.bak
+*.backup
+
+# Build files
+dist/
+build/
+*.min.js
+*.min.css
+
+# Coverage
+coverage/
+.nyc_output/
+
+# PM2
+.pm2/
+
+# SSL certificates (if stored locally)
+*.pem
+*.key
+*.crt
