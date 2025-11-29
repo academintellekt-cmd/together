@@ -20,6 +20,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/Geometria', express.static(path.join(__dirname, 'Geometria')));
 app.use('/joystick-test', express.static(path.join(__dirname, 'joystick-test')));
+app.use('/data/media', express.static(path.join(__dirname, 'data/media')));
 
 // Хранилище комнат и игроков
 const rooms = new Map();
@@ -27,6 +28,34 @@ const players = new Map();
 
 // Хранилище рейтинга для соло-режима
 let leaderboard = [];
+
+// Seed-based перемешивание для стабильности в сессии
+function seededShuffle(array, seed) {
+  const shuffled = [...array];
+  let rng = seed;
+  
+  // Простой LCG (Linear Congruential Generator)
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    rng = (rng * 9301 + 49297) % 233280;
+    const j = Math.floor((rng / 233280) * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  
+  return shuffled;
+}
+
+// Перемешивание вопросов с seed
+function shuffleQuestions(questions, seed = Date.now()) {
+  return seededShuffle(questions, seed);
+}
+
+// Перемешивание вариантов ответов с seed
+function shuffleOptions(options, correctIndex, seed = Date.now()) {
+  const shuffled = seededShuffle([...options], seed);
+  const correctAnswer = options[correctIndex];
+  const newCorrectIndex = shuffled.indexOf(correctAnswer);
+  return { options: shuffled, correctIndex: newCorrectIndex };
+}
 
 // Константы для масштабируемости
 const MAX_ROOMS = 50; // Максимум активных комнат одновременно
@@ -470,26 +499,24 @@ function loadQuestionsFromFile(filePath) {
 
     console.log(`Загружено ${questions.length} вопросов из файла ${filePath}`);
     
-    // Перемешиваем варианты ответов для каждого вопроса
-    questions.forEach(question => {
-      if (question.options.length > 0 && question.correct >= 0) {
-        // Сохраняем правильный ответ
-        const correctAnswer = question.options[question.correct];
-        
-        // Перемешиваем все варианты
-        const shuffledOptions = question.options.sort(() => Math.random() - 0.5);
-        
-        // Находим новый индекс правильного ответа
-        const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
-        
-        // Обновляем вопрос
-        question.options = shuffledOptions;
-        question.correct = newCorrectIndex;
+    // Генерируем seed для сессии
+    const sessionSeed = Date.now() + Math.floor(Math.random() * 1000);
+    
+    // Перемешиваем варианты ответов для каждого вопроса с seed
+    questions.forEach((question, index) => {
+      if (question.options && question.options.length > 0 && question.correct >= 0) {
+        const { options, correctIndex } = shuffleOptions(
+          question.options,
+          question.correct,
+          sessionSeed + index
+        );
+        question.options = options;
+        question.correct = correctIndex;
       }
     });
 
-    // Перемешиваем вопросы случайным образом
-    const shuffled = questions.sort(() => Math.random() - 0.5);
+    // Перемешиваем вопросы с seed
+    const shuffled = shuffleQuestions(questions, sessionSeed);
     
     // Переназначаем ID для последовательности
     shuffled.forEach((q, index) => {
@@ -617,8 +644,11 @@ app.get('/api/quizzes/:id', (req, res) => {
   // Для квизов с настройкой questionsPerGame выбираем случайные вопросы
   const questionsPerGame = quiz.gameSettings?.questionsPerGame || 15;
   if (quiz.questions.length > questionsPerGame) {
-    // Создаем копию массива и перемешиваем
-    const shuffled = [...quiz.questions].sort(() => Math.random() - 0.5);
+    // Генерируем seed для сессии
+    const sessionSeed = Date.now() + Math.floor(Math.random() * 1000);
+    
+    // Перемешиваем вопросы с seed
+    const shuffled = shuffleQuestions([...quiz.questions], sessionSeed);
     // Берем нужное количество вопросов
     questionsToSend = shuffled.slice(0, questionsPerGame);
     
@@ -631,20 +661,15 @@ app.get('/api/quizzes/:id', (req, res) => {
         id: index + 1
       };
       
-      // Перемешиваем варианты ответов
+      // Перемешиваем варианты ответов с seed
       if (questionCopy.options.length > 0 && questionCopy.correct >= 0) {
-        // Сохраняем правильный ответ
-        const correctAnswer = questionCopy.options[questionCopy.correct];
-        
-        // Перемешиваем все варианты
-        const shuffledOptions = questionCopy.options.sort(() => Math.random() - 0.5);
-        
-        // Находим новый индекс правильного ответа
-        const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
-        
-        // Обновляем вопрос
-        questionCopy.options = shuffledOptions;
-        questionCopy.correct = newCorrectIndex;
+        const { options, correctIndex } = shuffleOptions(
+          questionCopy.options,
+          questionCopy.correct,
+          sessionSeed + index
+        );
+        questionCopy.options = options;
+        questionCopy.correct = correctIndex;
       }
       
       // Убеждаемся, что звездочки удалены из всех вариантов ответов (клиент не должен видеть маркеры)
@@ -730,6 +755,51 @@ app.post('/api/leaderboard', (req, res) => {
   }
   
   res.json({ success: true, result: result });
+});
+
+// Сохранение конфигурации джойстика
+app.post('/api/joystick-config', (req, res) => {
+  try {
+    const config = req.body;
+    const configPath = path.join(__dirname, 'data', 'joystick-config.json');
+    
+    // Создаем директорию, если её нет
+    const dataDir = path.dirname(configPath);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
+    // Сохраняем конфигурацию
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
+    console.log('✅ Конфигурация джойстика сохранена в файл');
+    
+    res.json({ success: true, message: 'Конфигурация сохранена' });
+  } catch (error) {
+    console.error('❌ Ошибка при сохранении конфигурации джойстика:', error);
+    res.status(500).json({ error: 'Ошибка при сохранении конфигурации', details: error.message });
+  }
+});
+
+// Загрузка конфигурации джойстика
+app.get('/api/joystick-config', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, 'data', 'joystick-config.json');
+    
+    if (!fs.existsSync(configPath)) {
+      // Если файла нет, возвращаем пустую конфигурацию
+      return res.json({ buttons: {}, axes: {} });
+    }
+    
+    const configData = fs.readFileSync(configPath, 'utf8');
+    const config = JSON.parse(configData);
+    
+    console.log('✅ Конфигурация джойстика загружена из файла');
+    res.json(config);
+  } catch (error) {
+    console.error('❌ Ошибка при загрузке конфигурации джойстика:', error);
+    // В случае ошибки возвращаем пустую конфигурацию
+    res.json({ buttons: {}, axes: {} });
+  }
 });
 
 // Получение рейтинга
@@ -929,12 +999,11 @@ app.post('/api/create-room', (req, res) => {
   
   // ВСЕГДА выбираем 15 вопросов для мультиплеера (комнаты создаются только для мультиплеера)
   if (quiz.questions.length > questionsPerGame) {
-    // Используем алгоритм Fisher-Yates для правильного перемешивания
-    const shuffled = [...quiz.questions];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
+    // Генерируем seed для сессии на основе времени создания комнаты
+    const sessionSeed = Date.now() + Math.floor(Math.random() * 1000);
+    
+    // Используем seed-based перемешивание для стабильности
+    const shuffled = shuffleQuestions([...quiz.questions], sessionSeed);
     
     // Берем нужное количество вопросов (15 для мультиплеера)
     questionsForRoom = shuffled.slice(0, questionsPerGame);
@@ -950,20 +1019,17 @@ app.post('/api/create-room', (req, res) => {
         id: index + 1
       };
       
-      // Перемешиваем варианты ответов
+      // Перемешиваем варианты ответов с seed
       if (questionCopy.options.length > 0 && questionCopy.correct >= 0) {
-        // Сохраняем правильный ответ
-        const correctAnswer = questionCopy.options[questionCopy.correct];
-        
-        // Перемешиваем все варианты
-        const shuffledOptions = questionCopy.options.sort(() => Math.random() - 0.5);
-        
-        // Находим новый индекс правильного ответа
-        const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
+        const { options, correctIndex } = shuffleOptions(
+          questionCopy.options,
+          questionCopy.correct,
+          sessionSeed + index
+        );
         
         // Обновляем вопрос
-        questionCopy.options = shuffledOptions;
-        questionCopy.correct = newCorrectIndex;
+        questionCopy.options = options;
+        questionCopy.correct = correctIndex;
       }
       
       // Убеждаемся, что звездочки удалены из всех вариантов ответов

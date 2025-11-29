@@ -865,6 +865,8 @@
             <div class="hub-actions-left">
                 <a href="/index.html" class="hub-button">← Назад</a>
                 <button class="hub-button" onclick="saveConfiguration()" style="background: var(--color-green); color: var(--color-white); border-color: var(--color-green-alt); min-width: 120px;">Сохранить</button>
+                <button class="hub-button" onclick="exportConfiguration()" style="background: #667eea; color: var(--color-white); border-color: #5568d3; min-width: 120px;">Экспорт</button>
+                <button class="hub-button" onclick="importConfiguration()" style="background: #9f7aea; color: var(--color-white); border-color: #805ad5; min-width: 120px;">Импорт</button>
                 <button class="hub-button" onclick="resetConfiguration()" style="background: var(--color-coral); color: var(--color-white); border-color: var(--color-coral-alt); min-width: 120px;">Сбросить</button>
             </div>
             <!-- Статус джойстика -->
@@ -937,6 +939,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Скрытый input для импорта конфигурации -->
+    <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="handleImportFile(event)">
 
     <script>
         // Функция для обновления позиции HUB2 относительно HUB1
@@ -1049,44 +1054,67 @@
         };
 
         // Конфигурация: команда -> номер кнопки или направление стика
-        // Инициализируем пустой конфигурацией, но она будет загружена из localStorage при инициализации
+        // Инициализируем пустой конфигурацией, загрузка произойдет асинхронно
         let configuration = {
-            buttons: {},  // "Кнопка 1" -> 0, "ОК" -> 1, и т.д.
-            axes: {}     // "Вверх" -> "up", "Вниз" -> "down", и т.д.
+            buttons: {},
+            axes: {}
         };
+        
+        // Функция загрузки конфигурации с сервера
+        async function loadConfigurationFromServer() {
+            try {
+                const response = await fetch('/api/joystick-config');
+                const serverConfig = await response.json();
+                
+                if (serverConfig && (Object.keys(serverConfig.buttons || {}).length > 0 || Object.keys(serverConfig.axes || {}).length > 0)) {
+                    configuration = {
+                        buttons: { ...(serverConfig.buttons || {}) },
+                        axes: { ...(serverConfig.axes || {}) }
+                    };
+                    
+                    try {
+                        localStorage.setItem('joystickConfig', JSON.stringify(configuration));
+                        console.log(`✅ Конфигурация загружена с сервера (${Object.keys(configuration.buttons).length} кнопок)`);
+                    } catch (e) {
+                        console.warn('⚠️ Не удалось сохранить в localStorage');
+                    }
+                    return true;
+                }
+            } catch (error) {
+                console.warn('⚠️ Ошибка загрузки с сервера, используем localStorage');
+            }
+            
+            return loadConfigurationFromLocalStorage();
+        }
+        
+        // Функция загрузки конфигурации из localStorage
+        function loadConfigurationFromLocalStorage() {
+            try {
+                let saved = localStorage.getItem('joystickConfig') || sessionStorage.getItem('joystickConfig');
+                
+                if (saved) {
+                    const loaded = JSON.parse(saved);
+                    if (loaded && (Object.keys(loaded.buttons || {}).length > 0 || Object.keys(loaded.axes || {}).length > 0)) {
+                        configuration = {
+                            buttons: { ...(loaded.buttons || {}) },
+                            axes: { ...(loaded.axes || {}) }
+                        };
+                        if (saved === sessionStorage.getItem('joystickConfig')) {
+                            localStorage.setItem('joystickConfig', saved);
+                        }
+                        console.log(`✅ Конфигурация загружена (${Object.keys(configuration.buttons).length} кнопок)`);
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.error('❌ Ошибка загрузки конфигурации:', e);
+            }
+            return false;
+        }
+        
         
         // Флаг для защиты конфигурации от случайного изменения
         let configurationLocked = false;
-
-        // Загрузка сохраненной конфигурации
-        function loadConfiguration() {
-            const saved = localStorage.getItem('joystickConfig');
-            if (saved) {
-                try {
-                    const loaded = JSON.parse(saved);
-                    // Сохраняем только если загруженная конфигурация не пустая
-                    if (loaded && (Object.keys(loaded.buttons || {}).length > 0 || Object.keys(loaded.axes || {}).length > 0)) {
-                        // Восстанавливаем структуру, если она отсутствует
-                        configuration = {
-                            buttons: loaded.buttons || {},
-                            axes: loaded.axes || {}
-                        };
-                        console.log('✅ Конфигурация загружена из localStorage:', configuration);
-                        // Блокируем конфигурацию от случайного изменения
-                        configurationLocked = true;
-                    } else {
-                        console.log('📝 Конфигурация пустая, начинаем с нуля');
-                        configurationLocked = false;
-                    }
-                } catch (e) {
-                    console.error('Ошибка загрузки конфигурации:', e);
-                    configurationLocked = false;
-                }
-            } else {
-                console.log('📝 Конфигурация не найдена в localStorage');
-                configurationLocked = false;
-            }
-        }
 
         // Сохранение конфигурации (автоматическое)
         function saveConfiguration(silent = false) {
@@ -1095,13 +1123,61 @@
                 buttons: { ...configuration.buttons },
                 axes: { ...configuration.axes }
             };
-            localStorage.setItem('joystickConfig', JSON.stringify(configToSave));
-            // Блокируем конфигурацию после сохранения
-            configurationLocked = true;
+            
+            const buttonCount = Object.keys(configToSave.buttons).length;
+            const axisCount = Object.keys(configToSave.axes).length;
+            
             if (!silent) {
-                alert('✅ Конфигурация сохранена!');
+                console.log(`💾 Сохранение конфигурации: ${buttonCount} кнопок, ${axisCount} осей`);
             }
-            console.log('💾 Конфигурация сохранена и заблокирована:', configToSave);
+            
+            // Проверяем наличие кнопок для ответов
+            const answerButtons = ['Кнопка 1', 'Кнопка 2', 'Кнопка 3', 'Кнопка 4'];
+            const configuredButtons = answerButtons.filter(btn => configToSave.buttons[btn] !== undefined);
+            
+            // Сохраняем в localStorage и на сервер
+            try {
+                const jsonString = JSON.stringify(configToSave);
+                localStorage.setItem('joystickConfig', jsonString);
+                
+                try {
+                    sessionStorage.setItem('joystickConfig', jsonString);
+                } catch (e) {
+                    // Игнорируем ошибки sessionStorage
+                }
+                
+                console.log(`✅ Конфигурация сохранена (${buttonCount} кнопок, ${axisCount} осей)`);
+                
+                // Сохраняем на сервер (в файл проекта)
+                fetch('/api/joystick-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: jsonString
+                }).catch(() => {
+                    // Игнорируем ошибки сервера
+                });
+            } catch (e) {
+                console.error('❌ Ошибка при сохранении:', e);
+                if (!silent) {
+                    alert(`⚠️ Ошибка при сохранении конфигурации: ${e.message}`);
+                }
+            }
+            
+            // НЕ блокируем конфигурацию - пользователь должен иметь возможность изменять её
+            configurationLocked = false;
+            
+            if (!silent) {
+                if (configuredButtons.length === 4) {
+                    alert('✅ Конфигурация сохранена!\n\nВсе кнопки для ответов настроены. Конфигурация будет автоматически использоваться в игре.');
+                } else if (configuredButtons.length > 0) {
+                    alert(`⚠️ Конфигурация сохранена, но настроено только ${configuredButtons.length} из 4 кнопок для ответов.\n\nРекомендуется настроить все 4 кнопки (Кнопка 1-4) для ответов А-Г.`);
+                } else {
+                    alert('⚠️ Конфигурация сохранена, но не настроены кнопки для ответов.\n\nНастройте кнопки 1-4 для ответов А-Г.');
+                }
+            }
+            
+            // Обновляем отображение после сохранения
+            renderCommandLists();
             updateTestView();
         }
 
@@ -1119,23 +1195,115 @@
                 const assignMode = document.getElementById('assign-mode');
                 if (assignMode) assignMode.style.display = 'none';
                 localStorage.removeItem('joystickConfig');
+                try {
+                    sessionStorage.removeItem('joystickConfig');
+                } catch (e) {
+                    // Игнорируем ошибки sessionStorage
+                }
                 renderCommandLists();
                 updateTestView();
                 alert('Конфигурация сброшена');
             }
         }
 
+        // Экспорт конфигурации в файл
+        function exportConfiguration() {
+            const configToExport = {
+                buttons: { ...configuration.buttons },
+                axes: { ...configuration.axes },
+                version: '1.0',
+                exportDate: new Date().toISOString()
+            };
+            
+            const jsonString = JSON.stringify(configToExport, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `joystick-config-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            console.log('✅ Конфигурация экспортирована в файл');
+            alert('✅ Конфигурация экспортирована в файл!\n\nФайл будет загружен в папку "Загрузки".');
+        }
+
+        // Импорт конфигурации из файла
+        function importConfiguration() {
+            const fileInput = document.getElementById('import-file-input');
+            if (fileInput) {
+                fileInput.click();
+            }
+        }
+
+        // Обработка загруженного файла
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    
+                    // Проверяем структуру данных
+                    if (!imported || (!imported.buttons && !imported.axes)) {
+                        throw new Error('Неверный формат файла конфигурации');
+                    }
+                    
+                    // Восстанавливаем конфигурацию
+                    configuration = {
+                        buttons: { ...(imported.buttons || {}) },
+                        axes: { ...(imported.axes || {}) }
+                    };
+                    
+                    // Сохраняем в localStorage и sessionStorage
+                    const jsonString = JSON.stringify({
+                        buttons: configuration.buttons,
+                        axes: configuration.axes
+                    });
+                    localStorage.setItem('joystickConfig', jsonString);
+                    try {
+                        sessionStorage.setItem('joystickConfig', jsonString);
+                    } catch (e) {
+                        // Игнорируем ошибки sessionStorage
+                    }
+                    
+                    console.log('✅ Конфигурация импортирована из файла');
+                    console.log(`📋 Импортировано кнопок: ${Object.keys(configuration.buttons).length}, осей: ${Object.keys(configuration.axes).length}`);
+                    
+                    // Обновляем отображение
+                    renderCommandLists();
+                    updateTestView();
+                    
+                    alert(`✅ Конфигурация импортирована!\n\nИмпортировано кнопок: ${Object.keys(configuration.buttons).length}, осей: ${Object.keys(configuration.axes).length}`);
+                } catch (error) {
+                    console.error('❌ Ошибка при импорте конфигурации:', error);
+                    alert(`❌ Ошибка при импорте конфигурации:\n\n${error.message}\n\nУбедитесь, что файл имеет правильный формат JSON.`);
+                }
+            };
+            
+            reader.onerror = function() {
+                console.error('❌ Ошибка при чтении файла');
+                alert('❌ Ошибка при чтении файла. Попробуйте еще раз.');
+            };
+            
+            reader.readAsText(file);
+            
+            // Сбрасываем input, чтобы можно было загрузить тот же файл снова
+            event.target.value = '';
+        }
+
         // Функция переключения вкладок больше не нужна - все на одном экране
 
         // Инициализация вида калибровки
         function initCalibrationView() {
-            console.log('initCalibrationView called');
-            // Небольшая задержка, чтобы убедиться, что DOM готов
-            setTimeout(() => {
-                renderCommandLists();
-                // Обновляем тестовый вид сразу
-                updateTestView();
-            }, 100);
+            renderCommandLists();
+            updateTestView();
         }
 
         // Отрисовка списков команд
@@ -1154,12 +1322,18 @@
                 const cmdEscaped = cmd.replace(/'/g, "\\'");
                 const isSelected = selectedCommand === cmd;
                 const isWaiting = isSelected && waitingForInput;
+                
+                // Показываем номер физической кнопки, если назначена
+                const buttonInfo = assignedButton !== null 
+                    ? `✅ Назначена (кнопка ${assignedButton})` 
+                    : '❌ Не назначена';
+                
                 return `
                     <div class="command-item ${isWaiting ? 'waiting' : isSelected ? 'selected' : ''}" 
                          onclick="selectCommand('${cmdEscaped}', 'button')">
                         <div class="command-name">${cmd}</div>
                         <div class="command-assigned" style="margin-top: 8px; font-size: 0.85em;">
-                            ${assignedButton !== null ? `✅ Назначена` : '❌ Не назначена'}
+                            ${buttonInfo}
                             ${assignedButton !== null ? `<button class="btn-clear" onclick="clearCommand('${cmdEscaped}', 'button'); event.stopPropagation();" style="margin-left: 8px;">✕</button>` : ''}
                         </div>
                     </div>
@@ -1172,12 +1346,18 @@
                 const cmdEscaped = cmd.replace(/'/g, "\\'");
                 const isSelected = selectedCommand === cmd;
                 const isWaiting = isSelected && waitingForInput;
+                
+                // Показываем направление, если назначено
+                const directionInfo = assignedDirection 
+                    ? `✅ Назначена (${assignedDirection})` 
+                    : '❌ Не назначена';
+                
                 return `
                     <div class="command-item ${isWaiting ? 'waiting' : isSelected ? 'selected' : ''}" 
                          onclick="selectCommand('${cmdEscaped}', 'stick')">
                         <div class="command-name">${cmd}</div>
                         <div class="command-assigned" style="margin-top: 8px; font-size: 0.85em;">
-                            ${assignedDirection ? `✅ Назначена` : '❌ Не назначена'}
+                            ${directionInfo}
                             ${assignedDirection ? `<button class="btn-clear" onclick="clearCommand('${cmdEscaped}', 'stick'); event.stopPropagation();" style="margin-left: 8px;">✕</button>` : ''}
                         </div>
                     </div>
@@ -1187,14 +1367,24 @@
 
         // Получить номер кнопки для команды
         function getButtonForCommand(command) {
+            if (!configuration || !configuration.buttons) {
+                return null;
+            }
+            
             for (const [cmd, btnIndex] of Object.entries(configuration.buttons)) {
-                if (cmd === command) return btnIndex;
+                if (cmd === command) {
+                    return btnIndex;
+                }
             }
             return null;
         }
 
         // Получить направление для команды
         function getDirectionForCommand(command) {
+            if (!configuration || !configuration.axes) {
+                return null;
+            }
+            
             for (const [cmd, direction] of Object.entries(configuration.axes)) {
                 if (cmd === command) return direction;
             }
@@ -1232,8 +1422,10 @@
         function assignButtonToCommand(command, buttonIndex) {
             if (buttonIndex >= 0 && !isNaN(buttonIndex)) {
                 configuration.buttons[command] = buttonIndex;
-                // Автоматически сохраняем конфигурацию
+                // Автоматически сохраняем конфигурацию (тихо, без alert)
                 saveConfiguration(true);
+                console.log(`✅ Кнопка назначена: ${command} -> физическая кнопка ${buttonIndex}`);
+                
                 // Сбрасываем режим ожидания, если это была выбранная команда
                 if (selectedCommand === command && selectedCommandType === 'button') {
                     selectedCommand = null;
@@ -1258,7 +1450,8 @@
                         if (gamepad.buttons[i] && gamepad.buttons[i].pressed) {
                             // Найдена нажатая кнопка
                             configuration.buttons[selectedCommand] = i;
-                            // Автоматически сохраняем конфигурацию
+                            console.log(`✅ Кнопка назначена: ${selectedCommand} -> физическая кнопка ${i}`);
+                            // Автоматически сохраняем конфигурацию (тихо)
                             saveConfiguration(true);
                             selectedCommand = null;
                             selectedCommandType = null;
@@ -1317,16 +1510,16 @@
 
         // Обновление тестового вида
         function updateTestView() {
-            if (!gamepad) return;
-
             const buttonsGrid = document.getElementById('test-buttons-grid');
+            if (!buttonsGrid) return;
+            
             buttonsGrid.innerHTML = '';
 
-            // Создаем кнопки для всех настроенных команд
-            Object.keys(configuration.buttons).forEach(command => {
+            // Создаем кнопки для всех настроенных команд (даже если джойстик не подключен)
+            Object.keys(configuration.buttons || {}).forEach(command => {
                 const btnIndex = configuration.buttons[command];
-                const btn = gamepad.buttons[btnIndex];
-                const isPressed = btn && btn.pressed;
+                // Проверяем состояние кнопки только если джойстик подключен
+                const isPressed = gamepad && gamepad.buttons[btnIndex] && gamepad.buttons[btnIndex].pressed;
 
                 const buttonEl = document.createElement('div');
                 buttonEl.className = `button ${isPressed ? 'active' : ''}`;
@@ -1480,15 +1673,21 @@
         });
 
         // Инициализация
-        function initialize() {
-            // Сначала загружаем конфигурацию
-            loadConfiguration();
-            // Затем инициализируем вид калибровки
-            initCalibrationView();
-            // И обновляем тестовый вид, если есть сохраненная конфигурация
-            if (Object.keys(configuration.buttons).length > 0 || Object.keys(configuration.axes).length > 0) {
-                updateTestView();
-            }
+        async function initialize() {
+            // Загружаем конфигурацию с сервера или из localStorage
+            await loadConfigurationFromServer();
+            
+            const hasButtons = Object.keys(configuration.buttons || {}).length > 0;
+            const hasAxes = Object.keys(configuration.axes || {}).length > 0;
+            
+            // Инициализируем вид калибровки
+            setTimeout(() => {
+                initCalibrationView();
+                if (hasButtons || hasAxes) {
+                    updateTestView();
+                }
+            }, 200);
+            
             // Запускаем основной цикл обновления
             update();
         }
