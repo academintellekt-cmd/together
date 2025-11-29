@@ -356,9 +356,63 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
+
+        /* Стили для кнопок в модальном окне начала игры */
+        #start-game-confirm {
+            background: #00C159 !important;
+            color: #FFFFFF !important;
+            border-color: #383638 !important;
+        }
+
+        #start-game-confirm:hover {
+            background: #00a049 !important;
+            color: #FFFFFF !important;
+        }
+
+        #start-game-cancel {
+            background: #ff7664 !important;
+            color: #FFFFFF !important;
+            border-color: #383638 !important;
+        }
+
+        #start-game-cancel:hover {
+            background: #ff5a45 !important;
+            color: #FFFFFF !important;
+        }
     </style>
 </head>
 <body class="with-hub">
+
+    <!-- Перенесено наружу, чтобы перекрывать HUB1/HUB2 своим z-index -->
+    <!-- Модальное окно для ввода пароля -->
+    <div id="password-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(56, 54, 56, 0.85); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: #F2F2F2; padding: 30px; border-radius: 25px; text-align: center; max-width: 400px; width: 90%; border: 3px solid #383638; box-shadow: 0 6px 0px rgba(0, 193, 89, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2); box-sizing: border-box;">
+            <h2 style="margin-bottom: 15px; font-size: 24px; font-family: 'Days One', sans-serif; color: #00C159; font-weight: 700;">Введите пароль</h2>
+            <p style="margin-bottom: 15px; font-size: 14px; color: #383638; font-family: 'Nunito', sans-serif;">
+                Эта комната защищена паролем
+            </p>
+            <input type="password" id="password-input" placeholder="Пароль" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 3px solid #383638; background: #FFFFFF; color: #383638; font-size: 16px; text-align: center; font-family: 'Days One', sans-serif; font-weight: 600; letter-spacing: 2px; box-sizing: border-box;" autofocus>
+            <div id="password-error" style="color: #ff7674; margin-bottom: 15px; font-size: 13px; display: none; font-family: 'Nunito', sans-serif; font-weight: 600; min-height: 20px;"></div>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%;">
+                <button id="password-submit" class="btn" style="background: #00C159; border: 3px solid #383638; color: #FFFFFF; font-weight: 700; padding: 12px 24px; font-size: 16px; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Ввод</button>
+                <button id="password-cancel" class="btn secondary" style="background: #F2F2F2; border: 3px solid #383638; color: #383638; padding: 12px 24px; font-size: 16px; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap;">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для подтверждения начала игры -->
+    <div id="start-game-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(56, 54, 56, 0.85); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: #F2F2F2; padding: 30px; border-radius: 25px; text-align: center; max-width: 400px; width: 90%; border: 3px solid #383638; box-shadow: 0 6px 0px rgba(0, 193, 89, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2); box-sizing: border-box; position: relative; z-index: 10001;">
+            <h2 style="margin-bottom: 15px; font-size: 24px; font-family: 'Days One', sans-serif; color: #00C159; font-weight: 700;">Все ли готовы к игре?</h2>
+            <p style="margin-bottom: 20px; font-size: 14px; color: #383638; font-family: 'Nunito', sans-serif;">
+                Убедитесь, что все игроки подключены и готовы начать
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%;">
+                <button id="start-game-confirm" class="hub1-button" style="background: #00C159 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Начать игру</button>
+                <button id="start-game-cancel" class="hub1-button" style="background: #ff7664 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap;">Назад</button>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <!-- Лобби -->
@@ -376,21 +430,7 @@
         </div>
 
 
-        <!-- Модальное окно для ввода пароля -->
-        <div id="password-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(56, 54, 56, 0.85); z-index: 3000; justify-content: center; align-items: center;">
-            <div style="background: #F2F2F2; padding: 30px; border-radius: 25px; text-align: center; max-width: 400px; width: 90%; border: 3px solid #383638; box-shadow: 0 6px 0px rgba(0, 193, 89, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2); box-sizing: border-box;">
-                <h2 style="margin-bottom: 15px; font-size: 24px; font-family: 'Days One', sans-serif; color: #00C159; font-weight: 700;">Введите пароль</h2>
-                <p style="margin-bottom: 15px; font-size: 14px; color: #383638; font-family: 'Nunito', sans-serif;">
-                    Эта комната защищена паролем
-                </p>
-                <input type="password" id="password-input" placeholder="Пароль" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 3px solid #383638; background: #FFFFFF; color: #383638; font-size: 16px; text-align: center; font-family: 'Days One', sans-serif; font-weight: 600; letter-spacing: 2px; box-sizing: border-box;" autofocus>
-                <div id="password-error" style="color: #ff7674; margin-bottom: 15px; font-size: 13px; display: none; font-family: 'Nunito', sans-serif; font-weight: 600; min-height: 20px;"></div>
-                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%;">
-                    <button id="password-submit" class="btn" style="background: #00C159; border: 3px solid #383638; color: #FFFFFF; font-weight: 700; padding: 12px 24px; font-size: 16px; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Ввод</button>
-                    <button id="password-cancel" class="btn secondary" style="background: #F2F2F2; border: 3px solid #383638; color: #383638; padding: 12px 24px; font-size: 16px; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap;">Отмена</button>
-                </div>
-            </div>
-        </div>
+        <!-- Модальные окна перенесены выше, вне контейнера -->
 
         <!-- Игровой экран -->
         <div id="game-screen" class="game-screen">
@@ -571,20 +611,39 @@
             
             socket = io();
 
-            // Получение IP-адреса сервера
+            // Получение IP-адреса сервера (с кэшированием)
+            let serverUrlPromise = null;
             async function getServerUrl() {
-                try {
-                    const response = await fetch('/api/server-ip');
-                    const data = await response.json();
-                    serverUrl = data.url;
-                    console.log('IP сервера:', serverUrl);
-                    return serverUrl;
-                } catch (error) {
-                    console.error('Ошибка получения IP:', error);
-                    // Используем текущий origin как fallback
-                    serverUrl = window.location.origin;
-                    return serverUrl;
+                // Если уже есть запрос в процессе, возвращаем его
+                if (serverUrlPromise) {
+                    return serverUrlPromise;
                 }
+                
+                // Если уже есть результат, возвращаем его
+                if (serverUrl) {
+                    return Promise.resolve(serverUrl);
+                }
+                
+                // Создаем новый запрос
+                serverUrlPromise = (async () => {
+                    try {
+                        const response = await fetch('/api/server-ip');
+                        const data = await response.json();
+                        serverUrl = data.url;
+                        console.log('IP сервера:', serverUrl);
+                        return serverUrl;
+                    } catch (error) {
+                        console.error('Ошибка получения IP:', error);
+                        // Используем текущий origin как fallback
+                        serverUrl = window.location.origin;
+                        return serverUrl;
+                    } finally {
+                        // Очищаем promise после завершения
+                        serverUrlPromise = null;
+                    }
+                })();
+                
+                return serverUrlPromise;
             }
 
             // Генерация QR-кода через API
@@ -689,8 +748,8 @@
                 try {
                     console.log('Попытка создать комнату...');
                     
-                    // Сначала получаем IP-адрес сервера
-                    await getServerUrl();
+                    // Начинаем получение IP-адреса сервера параллельно (не блокируем создание комнаты)
+                    const serverUrlPromise = getServerUrl();
                     
                     // Проверяем, пришел ли пользователь со страницы выбора режима
                     const passwordParam = urlParams.get('password');
@@ -887,6 +946,14 @@
                 updateHub();
             });
 
+            // Функция показа модального окна для подтверждения начала игры
+            function showStartGameModal() {
+                const modal = document.getElementById('start-game-modal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                }
+            }
+            
             // Начало игры (обработчик для кнопки в Hub1)
             function handleStartGame() {
                 if (playersData.size === 0) {
@@ -896,18 +963,53 @@
                 socket.emit('start-game', roomCode);
             }
             
+            // Инициализация модального окна для подтверждения начала игры
+            function initStartGameModal() {
+                const modal = document.getElementById('start-game-modal');
+                const confirmBtn = document.getElementById('start-game-confirm');
+                const cancelBtn = document.getElementById('start-game-cancel');
+                
+                if (confirmBtn) {
+                    confirmBtn.addEventListener('click', () => {
+                        if (modal) {
+                            modal.style.display = 'none';
+                        }
+                        handleStartGame();
+                    });
+                }
+                
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', () => {
+                        if (modal) {
+                            modal.style.display = 'none';
+                        }
+                    });
+                }
+                
+                // Закрытие модального окна при клике вне его области
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            modal.style.display = 'none';
+                        }
+                    });
+                }
+            }
+            
             // Обработчик для кнопки "Начать игру" в Hub1 (добавляем после создания кнопки)
             setTimeout(() => {
                 const hub1StartBtn = document.getElementById('hub1-start-btn') || window.hub1StartButton;
                 if (hub1StartBtn) {
-                    hub1StartBtn.addEventListener('click', handleStartGame);
+                    hub1StartBtn.addEventListener('click', showStartGameModal);
                 }
+                // Инициализируем модальное окно
+                initStartGameModal();
             }, 500);
             
             // Старый обработчик для обратной совместимости (если кнопка есть на странице)
             const startBtn = document.getElementById('start-btn');
             if (startBtn) {
-                startBtn.addEventListener('click', handleStartGame);
+                startBtn.addEventListener('click', showStartGameModal);
             }
 
             socket.on('game-started', () => {

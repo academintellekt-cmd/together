@@ -70,11 +70,29 @@
             text-align: center;
         }
 
+        .name-input-screen h1 {
+            display: inline-block;
+            margin: 0 auto;
+        }
+
         .name-input-screen .subtitle {
             color: #354FBA;
             font-family: 'Caveat', cursive;
             font-size: clamp(24px, 4.5vw, 36px);
             margin-bottom: 20px;
+        }
+
+        .name-input-screen .input-group {
+            display: inline-block;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        .name-input-screen .input-group input {
+            width: 100%;
+            min-width: 200px;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         .game-screen {
@@ -188,7 +206,7 @@
             width: 100%;
             height: 100%;
             background: rgba(56, 54, 56, 0.85);
-            z-index: 3000;
+            z-index: 10000;
             justify-content: center;
             align-items: center;
         }
@@ -278,6 +296,35 @@
             font-weight: 600;
         }
 
+        /* Стиль для неактивной кнопки в HUB1 */
+        .hub1-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Стили для кнопок в модальном окне начала игры */
+        #solo-start-game-confirm {
+            background: #00C159 !important;
+            color: #FFFFFF !important;
+            border-color: #383638 !important;
+        }
+
+        #solo-start-game-confirm:hover {
+            background: #00a049 !important;
+            color: #FFFFFF !important;
+        }
+
+        #solo-start-game-cancel {
+            background: #ff7664 !important;
+            color: #FFFFFF !important;
+            border-color: #383638 !important;
+        }
+
+        #solo-start-game-cancel:hover {
+            background: #ff5a45 !important;
+            color: #FFFFFF !important;
+        }
     </style>
 </head>
 <body>
@@ -295,6 +342,20 @@
         </div>
     </div>
 
+    <!-- Модальное окно для подтверждения начала игры -->
+    <div id="solo-start-game-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(56, 54, 56, 0.85); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: #F2F2F2; padding: 30px; border-radius: 25px; text-align: center; max-width: 400px; width: 90%; border: 3px solid #383638; box-shadow: 0 6px 0px rgba(0, 193, 89, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2); box-sizing: border-box; position: relative; z-index: 10001;">
+            <h2 style="margin-bottom: 15px; font-size: 24px; font-family: 'Days One', sans-serif; color: #00C159; font-weight: 700;">Готовы начать?</h2>
+            <p style="margin-bottom: 20px; font-size: 14px; color: #383638; font-family: 'Nunito', sans-serif;">
+                Проверьте, что вы ввели правильное имя и готовы к игре
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%;">
+                <button id="solo-start-game-confirm" class="hub1-button" style="background: #00C159 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Начать игру</button>
+                <button id="solo-start-game-cancel" class="hub1-button" style="background: #ff7664 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap;">Назад</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         
         <!-- Экран ввода имени -->
@@ -304,10 +365,6 @@
             <div class="input-group">
                 <input type="text" id="player-name" placeholder="называйте меня..." maxlength="20" autocomplete="off">
             </div>
-            <button class="btn full-width" id="start-btn">Начать игру</button>
-            <a href="#" id="leaderboard-link-1" class="btn full-width" style="margin-top: 20px; background: rgba(0, 193, 89, 0.85); color: white; text-decoration: none; display: inline-block; text-align: center;">
-                📊 Посмотреть рейтинг
-            </a>
         </div>
 
         <!-- Экран игры -->
@@ -562,26 +619,19 @@
                 }
             }
             
-            const link1 = document.getElementById('leaderboard-link-1');
+            const hub1LeaderboardBtn = document.getElementById('hub1-leaderboard-btn');
             const link2 = document.getElementById('leaderboard-link-2');
-            if (link1) link1.href = leaderboardUrl;
+            if (hub1LeaderboardBtn) hub1LeaderboardBtn.href = leaderboardUrl;
             if (link2) link2.href = leaderboardUrl;
         }
-
-        // Начало игры
-        document.getElementById('start-btn').addEventListener('click', () => {
-            playerName = document.getElementById('player-name').value.trim();
-            if (!playerName) {
-                alert('Введите ваше имя');
-                return;
-            }
-            startGame();
-        });
 
         // Enter для начала игры
         document.getElementById('player-name').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                document.getElementById('start-btn').click();
+                const hub1StartBtn = document.getElementById('hub1-start-btn');
+                if (hub1StartBtn) {
+                    hub1StartBtn.click();
+                }
             }
         });
 
@@ -602,6 +652,12 @@
             if (questionScreen) {
                 questionScreen.style.display = 'block';
             }
+            
+            // Скрываем кнопки в Hub1 во время игры
+            const hub1StartBtn = document.getElementById('hub1-start-btn');
+            const hub1LeaderboardBtn = document.getElementById('hub1-leaderboard-btn');
+            if (hub1StartBtn) hub1StartBtn.style.display = 'none';
+            if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = 'none';
             
             // Показываем информацию об игре в Hub1
             const hub1QuestionNumber = document.querySelector('.hub1-question-number');
@@ -766,6 +822,12 @@
                 hub1Timer.style.display = 'none';
             }
             
+            // Кнопки остаются скрытыми на экране результатов
+            const hub1StartBtn = document.getElementById('hub1-start-btn');
+            const hub1LeaderboardBtn = document.getElementById('hub1-leaderboard-btn');
+            if (hub1StartBtn) hub1StartBtn.style.display = 'none';
+            if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = 'none';
+            
             document.getElementById('question-screen').style.display = 'none';
             document.getElementById('results-screen').style.display = 'block';
             
@@ -818,6 +880,12 @@
             // Показываем экран ввода имени
             document.getElementById('name-input-screen').style.display = 'block';
             
+            // Показываем кнопки в Hub1 на экране ввода имени
+            const hub1StartBtn = document.getElementById('hub1-start-btn');
+            const hub1LeaderboardBtn = document.getElementById('hub1-leaderboard-btn');
+            if (hub1StartBtn) hub1StartBtn.style.display = '';
+            if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = '';
+            
             // Перезагружаем квиз с сервера, чтобы получить новые перемешанные вопросы
             await loadQuiz();
             
@@ -852,20 +920,32 @@
                     document.getElementById('name-input-screen').style.display = 'block';
                     document.getElementById('game-screen').style.display = 'none';
                     
-                // Скрываем информацию об игре в Hub1
-                const hub1QuestionNumber = document.querySelector('.hub1-question-number');
-                const hub1Timer = document.querySelector('.hub1-timer');
-                if (hub1QuestionNumber) {
-                    hub1QuestionNumber.style.display = 'none';
-                }
-                if (hub1Timer) {
-                    hub1Timer.style.display = 'none';
-                }
+                    // Показываем кнопки в Hub1
+                    const hub1StartBtn = document.getElementById('hub1-start-btn');
+                    const hub1LeaderboardBtn = document.getElementById('hub1-leaderboard-btn');
+                    if (hub1StartBtn) hub1StartBtn.style.display = '';
+                    if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = '';
+                    
+                    // Скрываем информацию об игре в Hub1
+                    const hub1QuestionNumber = document.querySelector('.hub1-question-number');
+                    const hub1Timer = document.querySelector('.hub1-timer');
+                    if (hub1QuestionNumber) {
+                        hub1QuestionNumber.style.display = 'none';
+                    }
+                    if (hub1Timer) {
+                        hub1Timer.style.display = 'none';
+                    }
                 }
             } else {
                 // Если имени нет, показываем экран ввода имени
                 document.getElementById('name-input-screen').style.display = 'block';
                 document.getElementById('game-screen').style.display = 'none';
+                
+                // Показываем кнопки в Hub1
+                const hub1StartBtn = document.getElementById('hub1-start-btn');
+                const hub1LeaderboardBtn = document.getElementById('hub1-leaderboard-btn');
+                if (hub1StartBtn) hub1StartBtn.style.display = '';
+                if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = '';
                 
                 // Скрываем информацию об игре в Hub1
                 const hub1QuestionNumber = document.querySelector('.hub1-question-number');
@@ -915,10 +995,140 @@
                 }
             }
             
+            // Добавляем кнопку "Начать игру" в Hub1 справа
+            const hub1ActionsRight = document.getElementById('hub1-actions-right');
+            if (hub1ActionsRight) {
+                // Кнопка "Начать игру"
+                let startButton = document.getElementById('hub1-start-btn');
+                if (!startButton) {
+                    startButton = document.createElement('button');
+                    startButton.id = 'hub1-start-btn';
+                    startButton.className = 'hub1-button';
+                    startButton.textContent = 'Начать игру';
+                    hub1ActionsRight.appendChild(startButton);
+                }
+                
+                // Кнопка "Рейтинг"
+                let leaderboardButton = document.getElementById('hub1-leaderboard-btn');
+                if (!leaderboardButton) {
+                    leaderboardButton = document.createElement('a');
+                    leaderboardButton.id = 'hub1-leaderboard-btn';
+                    leaderboardButton.className = 'hub1-button';
+                    leaderboardButton.textContent = 'Рейтинг';
+                    leaderboardButton.href = '#';
+                    // Покраска в зеленый цвет из брендбука
+                    leaderboardButton.style.background = '#2fb95d';
+                    leaderboardButton.style.color = '#FFFFFF';
+                    hub1ActionsRight.appendChild(leaderboardButton);
+                }
+                
+                // Функция показа модального окна для подтверждения начала игры
+                function showStartGameModal() {
+                    playerName = document.getElementById('player-name').value.trim();
+                    const modal = document.getElementById('solo-start-game-modal');
+                    const modalTitle = modal.querySelector('h2');
+                    const modalText = modal.querySelector('p');
+                    const confirmBtn = document.getElementById('solo-start-game-confirm');
+                    
+                    if (!playerName) {
+                        // Если имя не введено, показываем модальное окно с предупреждением
+                        if (modalTitle) {
+                            modalTitle.textContent = 'Введите ваше имя';
+                        }
+                        if (modalText) {
+                            modalText.textContent = 'Пожалуйста, введите имя перед началом игры';
+                        }
+                        if (confirmBtn) {
+                            confirmBtn.textContent = 'Понятно';
+                            confirmBtn.onclick = () => {
+                                modal.style.display = 'none';
+                                // Фокусируемся на поле ввода имени
+                                const playerNameInput = document.getElementById('player-name');
+                                if (playerNameInput) {
+                                    playerNameInput.focus();
+                                }
+                            };
+                        }
+                    } else {
+                        // Если имя введено, показываем обычное модальное окно подтверждения
+                        if (modalTitle) {
+                            modalTitle.textContent = 'Готовы начать?';
+                        }
+                        if (modalText) {
+                            modalText.textContent = 'Проверьте, что вы ввели правильное имя и готовы к игре';
+                        }
+                        if (confirmBtn) {
+                            confirmBtn.textContent = 'Начать игру';
+                            confirmBtn.onclick = () => {
+                                modal.style.display = 'none';
+                                startGame();
+                            };
+                        }
+                    }
+                    
+                    if (modal) {
+                        modal.style.display = 'flex';
+                    }
+                }
+                
+                // Инициализация модального окна для подтверждения начала игры
+                function initStartGameModal() {
+                    const modal = document.getElementById('solo-start-game-modal');
+                    const cancelBtn = document.getElementById('solo-start-game-cancel');
+                    
+                    // Обработчик для кнопки "Назад" (всегда одинаковый)
+                    if (cancelBtn) {
+                        cancelBtn.addEventListener('click', () => {
+                            if (modal) {
+                                modal.style.display = 'none';
+                            }
+                        });
+                    }
+                    
+                    // Закрытие модального окна при клике вне его области
+                    if (modal) {
+                        modal.addEventListener('click', (e) => {
+                            if (e.target === modal) {
+                                modal.style.display = 'none';
+                            }
+                        });
+                    }
+                }
+                
+                // Обработчик для кнопки "Начать игру"
+                startButton.addEventListener('click', showStartGameModal);
+                
+                // Инициализируем модальное окно
+                initStartGameModal();
+                
+                // Обработчик для кнопки "Рейтинг"
+                leaderboardButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const leaderboardUrl = leaderboardButton.href;
+                    if (leaderboardUrl && leaderboardUrl !== '#') {
+                        window.location.href = leaderboardUrl;
+                    }
+                });
+            }
+            
             // Обновление позиций (только Hub1, без Hub2)
             HubCommon.updateHub2Position();
             HubCommon.updateContentPadding();
             HubCommon.updateFloatingElementsPosition();
+            
+            // Обновляем ссылку на рейтинг после создания кнопок
+            updateLeaderboardLinks();
+            
+            // Ограничиваем ширину поля ввода шириной заголовка
+            const nameInputScreen = document.getElementById('name-input-screen');
+            if (nameInputScreen) {
+                const h1 = nameInputScreen.querySelector('h1');
+                const inputGroup = nameInputScreen.querySelector('.input-group');
+                if (h1 && inputGroup) {
+                    const h1Width = h1.offsetWidth;
+                    inputGroup.style.maxWidth = h1Width + 'px';
+                }
+            }
         }
         
         // Обновление при загрузке
@@ -939,6 +1149,16 @@
                     HubCommon.updateHub2Position();
                     HubCommon.updateContentPadding();
                     HubCommon.updateFloatingElementsPosition();
+                }
+                // Обновляем ширину поля ввода при изменении размера окна
+                const nameInputScreen = document.getElementById('name-input-screen');
+                if (nameInputScreen) {
+                    const h1 = nameInputScreen.querySelector('h1');
+                    const inputGroup = nameInputScreen.querySelector('.input-group');
+                    if (h1 && inputGroup) {
+                        const h1Width = h1.offsetWidth;
+                        inputGroup.style.maxWidth = h1Width + 'px';
+                    }
                 }
             }, 100);
         });

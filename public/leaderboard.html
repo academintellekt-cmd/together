@@ -5,87 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Рейтинг - Квиз для друзей</title>
     <link rel="stylesheet" href="/styles/brand-style.css">
+    <link rel="stylesheet" href="/styles/hub1.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
     <style>
         .container {
             max-width: 800px;
             position: relative;
         }
 
-        .back-button {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-        }
-
-        @media (min-width: 1024px) {
-            .back-button {
-                top: 20px;
-                left: 40px;
-            }
-        }
-
-        @media (max-width: 1023px) and (min-width: 769px) {
-            .back-button {
-                top: 15px;
-                left: 30px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .back-button {
-                top: 12px;
-                left: 20px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .back-button {
-                top: 10px;
-                left: 15px;
-            }
-        }
-
-        .back-button-hub {
-            display: inline-block;
-            padding: 8px 16px;
-            background: rgba(245, 245, 245, 0.85);
-            border: 2px solid #393639;
-            border-radius: 12px;
-            color: #393639;
-            text-decoration: none;
-            font-family: 'Days One', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            transition: all 0.3s;
-            box-shadow: 
-                0 2px 0px rgba(0, 0, 0, 0.2),
-                0 4px 8px rgba(0, 0, 0, 0.1);
-            white-space: nowrap;
-            cursor: pointer;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        
-        .back-button-hub:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 6px 0px rgba(0, 0, 0, 0.3),
-                0 8px 16px rgba(0, 0, 0, 0.15);
-            background: rgba(245, 245, 245, 0.6);
-        }
-        
-        .back-button-hub:active {
-            transform: translateY(0px);
-        }
 
         h1 {
             text-align: center;
             margin-bottom: 20px;
-            margin-top: 60px;
+            margin-top: 0;
         }
 
         .subtitle {
@@ -97,19 +31,6 @@
             font-weight: 400;
         }
 
-        .leaderboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .refresh-btn {
-            padding: 10px 20px;
-            font-size: 16px;
-        }
 
         .leaderboard-list {
             margin: 32px 0;
@@ -243,22 +164,10 @@
         }
     </style>
 </head>
-<body>
+<body class="with-hub">
     <div class="container">
-        <!-- Кнопка назад -->
-        <div class="back-button">
-            <a href="#" id="back-link" class="back-button-hub">
-                ← Назад
-            </a>
-        </div>
-        
         <h1>🏆 Рейтинг</h1>
         <p class="subtitle">Лучшие результаты в квизе для друзей</p>
-
-        <div class="leaderboard-header">
-            <div></div>
-            <button class="btn refresh-btn" id="refresh-btn">🔄 Обновить</button>
-        </div>
 
         <div id="loading" class="loading">Загрузка рейтинга...</div>
         <div id="error" class="error" style="display: none;"></div>
@@ -373,30 +282,38 @@
             }
         }
 
-        document.getElementById('refresh-btn').addEventListener('click', loadLeaderboard);
-
-        // Применяем цвет выбранного персонажа к кнопке "Назад" и устанавливаем правильную ссылку
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedColor = localStorage.getItem('selectedCharacterColor');
-            const backLink = document.getElementById('back-link');
+        // Инициализация Hub1
+        function initHubs() {
+            // Определяем URL для кнопки "Назад"
+            const backUrl = getBackUrl();
             
-            if (backLink) {
-                // Устанавливаем правильную ссылку для кнопки "Назад"
-                backLink.href = getBackUrl();
-            }
+            // Инициализация Hub1
+            Hub1.init({
+                showBack: true,
+                backUrl: backUrl
+            });
             
-            if (savedColor) {
-                // Применяем цвет ко всем кнопкам "Назад"
-                const backButtons = document.querySelectorAll('.back-button-hub');
-                backButtons.forEach(button => {
-                    button.style.background = savedColor;
-                });
-            }
-        });
+            // Обновление позиций (HUB2 не используется на этой странице)
+            HubCommon.updateContentPadding();
+            HubCommon.updateFloatingElementsPosition();
+        }
+        
+        // Инициализация Hub1 после загрузки
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(initHubs, 100);
+            });
+        } else {
+            setTimeout(initHubs, 100);
+        }
 
         // Загружаем рейтинг при загрузке страницы
         loadLeaderboard();
     </script>
+    
+    <!-- Hub1 скрипты -->
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
 </body>
 </html>
 
