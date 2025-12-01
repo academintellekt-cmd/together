@@ -82,6 +82,74 @@ class DMXController {
         } catch (error) {
           throw new Error(`USB DMX недоступен: ${error.message}`);
         }
+      } else if (interfaceType === 'esp32') {
+        // ESP32 через HTTP
+        try {
+          const axios = require('axios');
+          const esp32Host = this.config.interface.host || '192.168.1.100';
+          const esp32Port = this.config.interface.port || 80;
+          const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
+          
+          // Проверка доступности ESP32
+          axios.get(`${esp32BaseUrl}/api/status`, { timeout: 3000 })
+            .then(() => {
+              console.log(`✅ ESP32 DMX контроллер доступен: ${esp32BaseUrl}`);
+            })
+            .catch((error) => {
+              console.warn(`⚠️ ESP32 недоступен: ${error.message}`);
+              console.warn('   Убедитесь, что ESP32 подключен к WiFi и прошит прошивкой');
+            });
+          
+          this.universe = {
+            update: async (channels) => {
+              try {
+                // Преобразуем каналы в формат для ESP32
+                const channelsObj = {};
+                Object.keys(channels).forEach(channel => {
+                  channelsObj[channel] = channels[channel];
+                });
+                
+                await axios.post(`${esp32BaseUrl}/api/batch`, {
+                  channels: channelsObj
+                }, {
+                  timeout: 1000,
+                  headers: { 'Content-Type': 'application/json' }
+                });
+                
+                this.currentState = { ...this.currentState, ...channels };
+              } catch (error) {
+                // Не логируем каждую ошибку, чтобы не засорять консоль
+                // Только при критических ошибках
+                if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+                  console.warn(`⚠️ ESP32 недоступен: ${error.message}`);
+                }
+              }
+            },
+            updateAll: async (value) => {
+              try {
+                await axios.post(`${esp32BaseUrl}/api/all`, {
+                  action: 'off'
+                }, {
+                  timeout: 1000,
+                  headers: { 'Content-Type': 'application/json' }
+                });
+                
+                for (let i = 1; i <= 512; i++) {
+                  this.currentState[i] = value;
+                }
+              } catch (error) {
+                if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+                  console.warn(`⚠️ ESP32 недоступен: ${error.message}`);
+                }
+              }
+            }
+          };
+          
+          this.isConnected = true;
+          console.log(`✅ DMX ESP32 подключен: ${esp32BaseUrl}`);
+        } catch (error) {
+          throw new Error(`ESP32 DMX недоступен: ${error.message}`);
+        }
       } else {
         throw new Error(`Неизвестный тип интерфейса: ${interfaceType}`);
       }

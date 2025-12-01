@@ -1,0 +1,36 @@
+/*
+ * Файл конфигурации для ESP32 DMX Controller
+ * 
+ * ИНСТРУКЦИЯ:
+ * 1. Скопируйте этот файл в config.h
+ * 2. Заполните ваши данные WiFi
+ * 3. Настройте параметры DMX при необходимости
+ */
+
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// ========== НАСТРОЙКИ WIFI ==========
+// Замените на ваши данные
+#define WIFI_SSID "YOUR_WIFI_SSID"
+#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+
+// ========== НАСТРОЙКИ DMX ==========
+// Пины ESP32 (по умолчанию)
+#define DMX_TX_PIN 0    // DI (Data In) - передача данных
+#define DE_RE_PIN 2     // DE+RE - управление направлением
+
+// Режим тестирования
+// true = без реального DMX (только логирование и веб-интерфейс)
+// false = с реальным DMX оборудованием
+#define TEST_MODE true
+
+// ========== ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ ==========
+// Скорость DMX (стандарт 250000)
+#define DMX_BAUD 250000
+
+// Размер универсума DMX (стандарт 512 каналов)
+#define DMX_UNIVERSE_SIZE 512
+
+#endif
+
