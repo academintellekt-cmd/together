@@ -1,0 +1,287 @@
+/* ============================================
+   УНИВЕРСАЛЬНЫЙ СТИЛЬ ДЛЯ КАРТОЧЕК КВИЗОВ
+   Используется на всех страницах с карточками
+   ============================================ */
+
+/* === БАЗОВЫЙ СТИЛЬ КАРТОЧКИ === */
+.quiz-card {
+    background: rgba(245, 245, 245, 0.85);
+    border-radius: clamp(12px, 2.5vw, 25px);
+    padding: clamp(18px, 4vw, 28px) clamp(16px, 3.5vw, 24px);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, color 0.3s ease;
+    border: none;
+    box-shadow: 
+        0 6px 0px rgba(0, 0, 0, 0.15),
+        0 8px 16px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    min-height: auto; /* Карточка подстраивается под содержимое */
+    margin: 0;
+    opacity: 1;
+    transform: none;
+    width: 100%;
+    text-decoration: none; /* Убираем подчеркивание для ссылок */
+    color: inherit; /* Наследуем цвет текста */
+}
+
+/* Убираем подчеркивание у всех элементов внутри карточки */
+.quiz-card,
+.quiz-card * {
+    text-decoration: none;
+}
+
+.quiz-card a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Эффект при наведении */
+.quiz-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.quiz-card:hover::before {
+    opacity: 1;
+}
+
+.quiz-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 
+        0 8px 0px rgba(0, 0, 0, 0.2),
+        0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.quiz-card:active {
+    transform: translateY(-4px) scale(1.01);
+}
+
+/* === КОНТЕЙНЕР КОНТЕНТА === */
+.quiz-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    padding-top: clamp(12px, 3vw, 20px); /* Отступ сверху для контента */
+}
+
+/* === ЗАГОЛОВОК === */
+.quiz-title {
+    font-family: 'Days One', sans-serif;
+    font-size: clamp(20px, 4vw, 30px);
+    font-weight: 700;
+    margin-bottom: clamp(6px, 1.5vw, 12px);
+    color: #373639;
+    line-height: 1.2;
+    flex-shrink: 0;
+    width: 100%;
+    padding: 0 clamp(8px, 2vw, 14px);
+    box-sizing: border-box;
+    text-decoration: none;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* === ПОДЗАГОЛОВОК === */
+.quiz-subtitle {
+    font-family: 'Days One', sans-serif;
+    font-size: clamp(18px, 3.5vw, 22px);
+    font-weight: 400;
+    color: #373639;
+    margin-top: 8px;
+    margin-bottom: clamp(6px, 1.5vw, 12px);
+    line-height: 1.2;
+    flex-shrink: 0;
+    text-decoration: none;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* === ОПИСАНИЕ === */
+.quiz-description {
+    font-family: 'Days One', sans-serif;
+    font-size: clamp(18px, 3.5vw, 22px);
+    color: #373639;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    font-weight: 400;
+    flex: 1;
+    min-height: 0;
+    opacity: 0.85;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    text-decoration: none;
+    hyphens: auto;
+}
+
+/* === ФРАЗА В СТИЛЕ CAVEAT (опционально) === */
+.quiz-phrase {
+    font-family: 'Caveat', cursive;
+    font-size: clamp(20px, 3.5vw, 28px);
+    color: #354fba;
+    margin: clamp(20px, 4vw, 35px) 0 clamp(8px, 2vw, 10px) 0;
+    text-align: center;
+    transform: rotate(-2deg);
+    flex-shrink: 0;
+}
+
+/* === ВЫДЕЛЕННАЯ ИНФОРМАЦИЯ В СТИЛЕ CAVEAT (опционально) === */
+.quiz-info-highlight {
+    font-family: 'Caveat', cursive;
+    font-size: clamp(20px, 3.5vw, 28px);
+    color: #354fba;
+    margin-top: clamp(12px, 2.5vw, 16px);
+    font-weight: 400;
+    line-height: 1.2;
+    text-align: center;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+/* === ИКОНКА (опционально) === */
+.quiz-icon {
+    font-size: clamp(36px, 8vw, 56px);
+    margin-bottom: clamp(10px, 2.5vw, 16px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    line-height: 1;
+    width: clamp(36px, 8vw, 56px);
+    height: clamp(56px, 10vw, 72px);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    animation: iconFloat 3s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-8px) rotate(5deg);
+    }
+}
+
+/* === ИНФОРМАЦИЯ ВНИЗУ === */
+.quiz-info {
+    display: flex;
+    justify-content: space-around;
+    margin-top: auto;
+    padding-top: clamp(6px, 1.5vw, 12px);
+    border-top: 3px solid #000;
+    font-size: clamp(16px, 3vw, 20px);
+    width: 100%;
+    flex-shrink: 0;
+    font-weight: 600;
+    font-family: 'Days One', sans-serif;
+}
+
+.quiz-info-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #000;
+    font-family: 'Days One', sans-serif;
+}
+
+.quiz-info-icon {
+    font-size: 20px;
+    opacity: 1;
+}
+
+.quiz-info-item span:last-child {
+    font-weight: 500;
+    font-size: clamp(16px, 3vw, 20px);
+    font-family: 'Days One', sans-serif;
+}
+
+/* === СПЕЦИАЛЬНЫЙ СТИЛЬ ДЛЯ КАРТОЧЕК С ФРАЗОЙ В CAVEAT === */
+.quiz-card.has-phrase .quiz-info {
+    font-family: 'Caveat', cursive;
+    font-size: clamp(24px, 4vw, 30px);
+    border-top: none;
+    padding-top: 0;
+}
+
+.quiz-card.has-phrase .quiz-info-item {
+    font-family: 'Caveat', cursive;
+    color: #393639;
+}
+
+.quiz-card.has-phrase .quiz-info-item span:last-child {
+    font-family: 'Caveat', cursive;
+    font-weight: 400;
+    font-size: clamp(24px, 4vw, 30px);
+}
+
+/* === АДАПТИВНОСТЬ === */
+
+/* Планшеты (769px - 1023px) */
+@media (max-width: 1023px) and (min-width: 769px) {
+    .quiz-card {
+        padding: 20px 15px;
+        aspect-ratio: none;
+        min-height: auto;
+    }
+}
+
+/* Мобильные устройства (≤768px) */
+@media (max-width: 768px) {
+    .quiz-card {
+        padding: clamp(16px, 4vw, 24px) clamp(14px, 3.5vw, 20px);
+    }
+}
+
+/* Узкие экраны (≤480px) */
+@media (max-width: 480px) {
+    .quiz-card {
+        padding: clamp(16px, 4vw, 24px) clamp(14px, 3.5vw, 20px);
+        min-height: auto;
+        aspect-ratio: none;
+    }
+
+    .quiz-title {
+        font-size: clamp(22px, 5vw, 28px);
+    }
+
+    .quiz-subtitle {
+        font-size: clamp(20px, 4.5vw, 24px);
+    }
+
+    .quiz-description {
+        font-size: clamp(20px, 4.5vw, 24px);
+    }
+
+    .quiz-info {
+        font-size: clamp(18px, 4vw, 22px);
+    }
+
+    .quiz-info-item span:last-child {
+        font-size: clamp(18px, 4vw, 22px);
+    }
+
+    .quiz-phrase {
+        font-size: clamp(18px, 4vw, 24px);
+    }
+}
+

@@ -863,7 +863,7 @@
     <div class="hub-login-fixed" id="hub-login-fixed">
         <div class="hub-actions">
             <div class="hub-actions-left">
-                <a href="/index.html" class="hub-button">← Назад</a>
+                <a href="/settings.html" class="hub-button">← Назад</a>
                 <button class="hub-button" onclick="saveConfiguration()" style="background: var(--color-green); color: var(--color-white); border-color: var(--color-green-alt); min-width: 120px;">Сохранить</button>
                 <button class="hub-button" onclick="exportConfiguration()" style="background: #667eea; color: var(--color-white); border-color: #5568d3; min-width: 120px;">Экспорт</button>
                 <button class="hub-button" onclick="importConfiguration()" style="background: #9f7aea; color: var(--color-white); border-color: #805ad5; min-width: 120px;">Импорт</button>
@@ -876,8 +876,8 @@
         </div>
     </div>
 
-    <!-- HUB блок с логотипом и фразой -->
-    <div class="hub" id="hub">
+    <!-- HUB блок с логотипом и фразой (скрыт) -->
+    <div class="hub" id="hub" style="display: none;">
         <div class="hub-content">
             <!-- Логотип и фраза по центру -->
             <div class="hub-logo-section">
@@ -944,26 +944,22 @@
     <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="handleImportFile(event)">
 
     <script>
-        // Функция для обновления позиции HUB2 относительно HUB1
+        // Функция для обновления позиции контента относительно HUB1
         let lastHub1Height = 0;
         function updateHubPosition() {
             const hub1 = document.getElementById('hub-login-fixed');
-            const hub2 = document.getElementById('hub');
             
-            if (hub1 && hub2) {
+            if (hub1) {
                 const hub1Height = hub1.offsetHeight;
                 
                 // Обновляем только если высота изменилась
                 if (hub1Height !== lastHub1Height) {
-                    hub2.style.top = hub1Height + 'px';
                     lastHub1Height = hub1Height;
                     
-                    // Обновляем padding-top для основного контента
+                    // Обновляем padding-top для основного контента (Hub2 скрыт, учитываем только Hub1)
                     const mainContainer = document.querySelector('.main-container');
                     if (mainContainer) {
-                        const hub2Height = hub2.offsetHeight;
-                        const totalHeight = hub1Height + hub2Height;
-                        mainContainer.style.paddingTop = (totalHeight + 20) + 'px';
+                        mainContainer.style.paddingTop = (hub1Height + 20) + 'px';
                     }
                 }
             }
@@ -972,7 +968,7 @@
         // Применяем цвет выбранного персонажа к кнопке "Назад"
         function updateBackButtonColor() {
             const savedColor = localStorage.getItem('selectedCharacterColor');
-            const backButton = document.querySelector('.hub-button[href="/index.html"]');
+            const backButton = document.querySelector('.hub-button[href="/settings.html"]');
             if (backButton && savedColor) {
                 backButton.style.background = savedColor;
             }

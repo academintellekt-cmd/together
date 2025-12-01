@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Квиз - Выбор игры</title>
     <link rel="stylesheet" href="/styles/brand-style.css">
+    <link rel="stylesheet" href="/styles/quiz-card.css">
     <link rel="stylesheet" href="/styles/hub1.css">
     <link rel="stylesheet" href="/styles/hub2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -180,7 +181,7 @@
             gap: clamp(20px, 4vw, 28px); /* Адаптивный отступ, как на gnu-quiz.html */
             margin: 0 auto; /* Убираем все отступы - контент начинается сразу после Hub2 */
             margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
-            padding: 0;
+            padding: 0 clamp(16px, 4vw, 24px); /* Отступы от краев экрана */
             max-width: 1200px;
             width: 100%;
             align-items: center; /* Выравнивание по центру вертикально */
@@ -194,32 +195,8 @@
             padding-top: 0 !important;
         }
 
-        /* Карточки квизов в стиле Teen Talk - светлые с черными контурами */
-        .quiz-card {
-            background: rgba(245, 245, 245, 0.85); /* Светло-серый фон, полупрозрачный как пластиковый стикер */
-            border-radius: clamp(12px, 2.5vw, 25px); /* Адаптивный border-radius, как на gnu-quiz.html */
-            padding: clamp(18px, 4vw, 28px) clamp(16px, 3.5vw, 24px); /* Адаптивный padding, как на gnu-quiz.html */
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, color 0.3s ease;
-            border: none;
-            box-shadow: 
-                0 6px 0px rgba(0, 0, 0, 0.15),
-                0 8px 16px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden; /* Ограничиваем кликабельную область рамкой */
-            animation: none !important; /* Отключаем анимацию для предотвращения визуального "спускания" */
-            animation-fill-mode: both;
-            aspect-ratio: 1 / 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            text-align: center;
-            min-height: clamp(140px, 28vw, 180px); /* Адаптивная минимальная высота, как на gnu-quiz.html */
-            margin: 0; /* Убираем все отступы */
-            opacity: 1 !important; /* Гарантируем, что карточка видна сразу */
-            transform: none !important; /* Убираем любые transform, которые могут создавать визуальный эффект "спускания" */
-        }
+        /* Базовые стили карточек вынесены в quiz-card.css */
+        /* Здесь только специфичные стили для цветов карточек */
         
         /* Первая карточка не должна иметь отступов сверху */
         .quizzes-grid > .quiz-card:first-child {
@@ -259,50 +236,14 @@
             filter: brightness(1.1) !important;
         }
 
-        .quiz-card:nth-child(1) .quiz-title {
-            color: #373639;
-            font-family: 'Days One', sans-serif;
-            font-weight: 700;
-            font-size: 28px;
-        }
-
+        /* Стили для первой карточки (цвет текста) */
+        .quiz-card:nth-child(1) .quiz-title,
         .quiz-card:nth-child(1) .quiz-subtitle {
             color: #373639;
-            font-family: 'Days One', sans-serif;
-            font-weight: 400;
-            font-size: 22px;
-            margin-top: 8px;
-        }
-
-        .quiz-card:nth-child(1) .quiz-divider {
-            display: none;
         }
 
         .quiz-card:nth-child(1) .quiz-icon {
             display: none;
-        }
-
-        .quiz-card:nth-child(1) .quiz-info {
-            font-family: 'Caveat', cursive;
-            font-size: 30px;
-            border-top: none;
-            padding-top: 0;
-        }
-
-        .quiz-card:nth-child(1) .quiz-info-item {
-            font-family: 'Caveat', cursive;
-            color: #393639;
-        }
-
-        .quiz-card:nth-child(1) .quiz-info-item span:last-child {
-            font-family: 'Caveat', cursive;
-            font-weight: 400;
-            font-size: 30px;
-        }
-        
-        /* Цвет Caveat фраз на зеленой карточке */
-        .quiz-card:nth-child(1) div[style*="Caveat"] {
-            color: #354fba !important;
         }
 
         /* SVG иконки в стиле "от руки маркером" */
@@ -343,50 +284,14 @@
             filter: brightness(1.1) !important;
         }
 
-        .quiz-card:nth-child(2) .quiz-title {
-            color: #373639;
-            font-family: 'Days One', sans-serif;
-            font-weight: 700;
-            font-size: 28px;
-        }
-
+        /* Стили для второй карточки (цвет текста) */
+        .quiz-card:nth-child(2) .quiz-title,
         .quiz-card:nth-child(2) .quiz-subtitle {
             color: #373639;
-            font-family: 'Days One', sans-serif;
-            font-weight: 400;
-            font-size: 22px;
-            margin-top: 8px;
-        }
-
-        .quiz-card:nth-child(2) .quiz-divider {
-            display: none;
         }
 
         .quiz-card:nth-child(2) .quiz-icon {
             display: none;
-        }
-
-        .quiz-card:nth-child(2) .quiz-info {
-            font-family: 'Caveat', cursive;
-            font-size: 30px;
-            border-top: none;
-            padding-top: 0;
-        }
-
-        .quiz-card:nth-child(2) .quiz-info-item {
-            font-family: 'Caveat', cursive;
-            color: #393639;
-        }
-
-        .quiz-card:nth-child(2) .quiz-info-item span:last-child {
-            font-family: 'Caveat', cursive;
-            font-weight: 400;
-            font-size: 24px;
-        }
-        
-        /* Цвет Caveat фраз на розовой карточке */
-        .quiz-card:nth-child(2) div[style*="Caveat"] {
-            color: #354fba !important;
         }
 
         .quiz-card:nth-child(n+3) .quiz-title {
@@ -471,85 +376,7 @@
             justify-content: center;
         }
 
-        @keyframes iconFloat {
-            0%, 100% {
-                transform: translateY(0) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-8px) rotate(5deg);
-            }
-        }
-
-        .quiz-title {
-            font-family: 'Days One', sans-serif;
-            font-size: clamp(12px, 2.4vw, 30px); /* Адаптивный размер, как на gnu-quiz.html */
-            font-weight: 700;
-            margin-bottom: clamp(6px, 1.5vw, 12px); /* Адаптивный отступ, как на gnu-quiz.html */
-            color: #000; /* Черный текст */
-            line-height: 1.2; /* Как на gnu-quiz.html */
-            flex-shrink: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
-            width: 100%;
-            padding: 0 clamp(8px, 2vw, 14px); /* Адаптивный padding, как на gnu-quiz.html */
-            box-sizing: border-box;
-        }
-
-        .quiz-description {
-            font-family: 'Montserrat', sans-serif; /* Как на gnu-quiz.html */
-            font-size: clamp(12px, 2.4vw, 22px); /* Адаптивный размер, как на gnu-quiz.html */
-            color: #393639; /* Как на gnu-quiz.html */
-            margin-bottom: 10px;
-            line-height: 1.4; /* Как на gnu-quiz.html */
-            font-weight: 400;
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            line-clamp: 2; /* Стандартное свойство для совместимости */
-            -webkit-box-orient: vertical;
-            min-height: 0;
-            opacity: 0.85; /* Как на gnu-quiz.html */
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            max-width: 100%;
-        }
-
-        .quiz-info {
-            display: flex;
-            justify-content: space-around;
-            margin-top: auto;
-            padding-top: clamp(6px, 1.5vw, 12px); /* Адаптивный отступ, как на gnu-quiz.html */
-            border-top: 3px solid #000; /* Черная линия */
-            font-size: clamp(12px, 2.4vw, 20px); /* Адаптивный размер, как на gnu-quiz.html */
-            width: 100%;
-            flex-shrink: 0;
-            font-weight: 600;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .quiz-info-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            color: #000; /* Черный текст */
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .quiz-info-icon {
-            font-size: 20px;
-            opacity: 1;
-        }
-
-        .quiz-info-item span:last-child {
-            font-weight: 500;
-            font-size: clamp(12px, 2.4vw, 20px); /* Адаптивный размер, как на gnu-quiz.html */
-            font-family: 'Days One', sans-serif;
-        }
+        /* Базовые стили для quiz-title, quiz-description, quiz-info и т.д. вынесены в quiz-card.css */
 
         /* Загрузка и ошибки */
         .loading {
@@ -796,6 +623,7 @@
                 grid-template-columns: 1fr 1fr; /* 2 колонки на планшетах и десктопах */
                 gap: clamp(24px, 4vw, 32px); /* Адаптивный отступ, как на gnu-quiz.html */
                 margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
+                padding: 0 clamp(16px, 4vw, 24px); /* Отступы от краев экрана */
                 align-items: center; /* Выравнивание по центру вертикально */
                 align-content: center; /* Выравнивание содержимого по центру вертикально */
                 justify-items: center; /* Выравнивание по центру горизонтально */
@@ -808,6 +636,7 @@
                 grid-template-columns: repeat(2, 1fr); /* 2 колонки для соответствия gnu-quiz.html */
                 gap: clamp(24px, 4vw, 32px);
                 margin-top: clamp(20px, 6vw, 40px);
+                padding: 0 clamp(16px, 4vw, 24px); /* Отступы от краев экрана */
             }
 
             .quiz-card:nth-child(1) .quiz-title {
@@ -884,8 +713,11 @@
 
             .quiz-card {
                 padding: 20px 15px;
-                width: 100%;
+                width: 100%; /* Ширина карточки */
                 margin: 0 auto; /* Центрируем каждую карточку */
+                aspect-ratio: none; /* Убираем фиксированное соотношение сторон для планшетов */
+                min-height: auto; /* Карточка подстраивается под содержимое */
+                max-width: 100%;
             }
 
             .quiz-card:nth-child(1) .quiz-title {
@@ -966,6 +798,7 @@
                 grid-template-columns: 1fr; /* 1 карточка в ряд */
                 gap: clamp(20px, 4vw, 28px); /* Адаптивный отступ, как на gnu-quiz.html */
                 margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
+                padding: 0 clamp(16px, 4vw, 24px); /* Отступы от краев экрана */
                 max-width: 600px; /* Как на gnu-quiz.html */
                 margin-left: auto; /* Центрируем */
                 margin-right: auto; /* Центрируем */
@@ -977,29 +810,31 @@
             .quiz-card {
                 padding: clamp(16px, 4vw, 24px) clamp(14px, 3.5vw, 20px); /* Адаптивный padding, как на gnu-quiz.html */
                 border-radius: clamp(12px, 2.5vw, 18px); /* Адаптивный border-radius, как на gnu-quiz.html */
-                min-height: clamp(130px, 35vw, 160px); /* Адаптивная минимальная высота, как на gnu-quiz.html */
-                width: 100%;
+                min-height: auto; /* Карточка подстраивается под содержимое */
+                aspect-ratio: none; /* Убираем фиксированное соотношение сторон */
+                width: 100%; /* Ширина карточки */
                 margin: 0 auto; /* Центрируем каждую карточку */
+                max-width: 100%;
             }
 
             .quiz-card:nth-child(1) .quiz-title {
-                font-size: clamp(16px, 8vw, 24px); /* Более агрессивное масштабирование для мобильных */
+                font-size: clamp(22px, 5vw, 28px); /* Увеличен минимальный размер для узких экранов */
             }
 
             .quiz-card:nth-child(2) .quiz-title {
-                font-size: clamp(14px, 7.5vw, 22px);
+                font-size: clamp(20px, 4.5vw, 26px);
             }
 
             .quiz-card:nth-child(3) .quiz-title {
-                font-size: clamp(14px, 7.5vw, 22px);
+                font-size: clamp(20px, 4.5vw, 26px);
             }
 
             .quiz-card:nth-child(4) .quiz-title {
-                font-size: clamp(14px, 7.5vw, 22px);
+                font-size: clamp(20px, 4.5vw, 26px);
             }
 
             .quiz-card .quiz-title {
-                font-size: clamp(16px, 8vw, 24px);
+                font-size: clamp(22px, 5vw, 28px);
             }
 
             .quiz-card:nth-child(1) .quiz-subtitle,
@@ -1007,7 +842,11 @@
             .quiz-card:nth-child(3) .quiz-subtitle,
             .quiz-card:nth-child(4) .quiz-subtitle,
             .quiz-card .quiz-subtitle {
-                font-size: clamp(12px, 6.5vw, 20px);
+                font-size: clamp(18px, 4vw, 24px); /* Увеличен минимальный размер */
+            }
+
+            .quiz-description {
+                font-size: clamp(20px, 4.5vw, 24px) !important; /* Увеличен размер для узких экранов */
             }
 
             .quiz-card:nth-child(1) .quiz-info,
@@ -1023,22 +862,26 @@
             .quiz-card:nth-child(3) .quiz-info-item span:last-child,
             .quiz-card:nth-child(4) .quiz-info-item span:last-child,
             .quiz-card .quiz-info-item span:last-child {
-                font-size: clamp(14px, 7.5vw, 24px);
+                font-size: clamp(18px, 4vw, 24px);
             }
 
             .quiz-card:nth-child(1) div[style*="Caveat"],
             .quiz-card:nth-child(2) div[style*="Caveat"],
             .quiz-card:nth-child(3) div[style*="Caveat"],
             .quiz-card:nth-child(4) div[style*="Caveat"] {
-                font-size: clamp(14px, 7vw, 28px) !important;
+                font-size: clamp(18px, 4vw, 28px) !important;
             }
 
             .quiz-title {
-                font-size: 24px;
+                font-size: clamp(22px, 5vw, 28px); /* Адаптивный размер для узких экранов */
             }
 
             .quiz-info-item span:last-child {
-                font-size: 16px;
+                font-size: clamp(18px, 4vw, 22px); /* Увеличен минимальный размер */
+            }
+
+            .quiz-info {
+                font-size: clamp(18px, 4vw, 22px) !important; /* Увеличен размер для узких экранов */
             }
 
 
@@ -1331,22 +1174,24 @@
                         </svg>`;
 
                         cardHTML = `
-                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
-                                <div class="quiz-title" style="color: #373639;">ЧЕМПИОНАТ ГНУ</div>
-                                <div class="quiz-subtitle" style="color: #373639;">цели братишек</div>
-                                <div style="font-family: 'Caveat', cursive; font-size: 28px; color: #354fba; margin: 35px 0 10px 0; text-align: center; transform: rotate(-2deg);">девушки тоже братишки</div>
+                            <div class="quiz-card-content">
+                                <div class="quiz-title">ЧЕМПИОНАТ ГНУ</div>
+                                <div class="quiz-subtitle">цели братишек</div>
+                                <div class="quiz-phrase">девушки тоже братишки</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
                                     ${questionIcon}
-                                    <span style="color: #000;">15 из ${questionCount}</span>
+                                    <span>15 из ${questionCount}</span>
                                 </div>
                                 <div class="quiz-info-item">
                                     ${clockIcon}
-                                    <span style="color: #000;">по ${timeSeconds} сек</span>
+                                    <span>по ${timeSeconds} сек</span>
                                 </div>
                             </div>
                         `;
+                        // Добавляем класс для карточки с фразой
+                        card.classList.add('has-phrase');
                     } else {
                         const descriptionHTML = description ? `<div class="quiz-description">${description}</div>` : '';
                         
@@ -1379,20 +1224,20 @@
                         </svg>`;
                         
                         cardHTML = `
-                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 0; width: 100%;">
-                    <span class="quiz-icon">${icon}</span>
-                    <div class="quiz-title">${quiz.name}</div>
+                            <div class="quiz-card-content">
+                                <span class="quiz-icon">${icon}</span>
+                                <div class="quiz-title">${quiz.name}</div>
                                 ${descriptionHTML}
                             </div>
-                    <div class="quiz-info">
-                        <div class="quiz-info-item">
-                            <span class="quiz-info-icon">❓</span>
-                            <span>${questionCount} вопросов</span>
-                        </div>
-                        <div class="quiz-info-item">
+                            <div class="quiz-info">
+                                <div class="quiz-info-item">
+                                    <span class="quiz-info-icon">❓</span>
+                                    <span>${questionCount} вопросов</span>
+                                </div>
+                                <div class="quiz-info-item">
                                     ${clockIconSVG}
-                            <span>~${avgTime} сек</span>
-                        </div>
+                                    <span>~${avgTime} сек</span>
+                                </div>
                             </div>
                         `;
                     }

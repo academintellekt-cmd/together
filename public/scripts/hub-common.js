@@ -25,7 +25,7 @@ const HubCommon = {
     
     /**
      * Обновляет отступ контента страницы относительно Hub меню
-     * Контент начинается СРАЗУ после Hub2, без промежутка
+     * Контент начинается СРАЗУ после Hub2 (или Hub1, если Hub2 нет), без промежутка
      * Использует ту же логику, что и updateFloatingElementsPosition для синхронизации
      */
     updateContentPadding(containerSelector = '.container') {
@@ -38,18 +38,28 @@ const HubCommon = {
             return;
         }
         
-        // Проверяем, что Hub1 и Hub2 уже инициализированы
-        if (!hub1 || !hub2) {
-            console.warn('updateContentPadding: Hub1 или Hub2 еще не инициализированы, пропускаем');
+        // Проверяем, что Hub1 инициализирован (обязателен)
+        if (!hub1) {
+            console.warn('updateContentPadding: Hub1 еще не инициализирован, пропускаем');
             return;
         }
         
-        // Проверяем, что Hub1 и Hub2 имеют высоту (не скрыты)
+        // Hub2 опционален - если его нет или он скрыт, учитываем только Hub1
+        const hub2Exists = hub2 && hub2.style.display !== 'none' && hub2.offsetHeight > 0;
+        
+        // Проверяем, что Hub1 имеет высоту (не скрыт)
         const hub1Height = hub1.offsetHeight || hub1.getBoundingClientRect().height;
-        const hub2Height = hub2.offsetHeight || hub2.getBoundingClientRect().height;
-        if (hub1Height === 0 || hub2Height === 0) {
-            console.warn('updateContentPadding: Hub1 или Hub2 имеют нулевую высоту, пропускаем');
+        if (hub1Height === 0) {
+            console.warn('updateContentPadding: Hub1 имеет нулевую высоту, пропускаем');
             return;
+        }
+        
+        // Если Hub2 существует, проверяем его высоту
+        if (hub2Exists) {
+            const hub2Height = hub2.offsetHeight || hub2.getBoundingClientRect().height;
+            if (hub2Height === 0) {
+                console.warn('updateContentPadding: Hub2 имеет нулевую высоту, используем только Hub1');
+            }
         }
         
         // Ждем следующего кадра для точного расчета высоты
@@ -64,13 +74,14 @@ const HubCommon = {
                     totalHeight += hub1Height;
                 }
                 
-                if (hub2 && hub2.style.display !== 'none') {
+                // Учитываем Hub2 только если он существует и не скрыт
+                if (hub2Exists && hub2 && hub2.style.display !== 'none') {
                     const hub2Rect = hub2.getBoundingClientRect();
                     const hub2Height = hub2Rect.height || hub2.offsetHeight;
                     totalHeight += hub2Height;
                 }
                 
-                console.log('updateContentPadding: totalHeight =', totalHeight, 'hub1:', hub1?.getBoundingClientRect().height, 'hub2:', hub2?.getBoundingClientRect().height);
+                console.log('updateContentPadding: totalHeight =', totalHeight, 'hub1:', hub1?.getBoundingClientRect().height, 'hub2:', hub2Exists ? hub2?.getBoundingClientRect().height : 'не используется');
                 
                 // БЕЗ дополнительного отступа - контент начинается сразу после Hub2
                 // Используем ту же высоту, что и для парящего элемента

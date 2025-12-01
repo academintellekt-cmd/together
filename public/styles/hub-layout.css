@@ -34,11 +34,12 @@ body {
 /* Внутренний контейнер внутри HUB3 */
 .hub3 > .container {
     margin: 0 auto;
-    max-width: 800px;
+    max-width: 1200px;
     width: 100%;
     text-align: center;
     position: relative;
     z-index: 2; /* Ниже Hub1 (1001), Hub2 (1000), HUB4/HUB5 (999), но выше парящих элементов (z-index: -1) */
+    padding-top: clamp(20px, 6vw, 40px);
 }
 
 /* HUB4 и HUB5 — нижние полосы, фиксированные снизу (как HUB1/HUB2 сверху) */

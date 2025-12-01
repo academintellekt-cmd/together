@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чемпионат ГНУ</title>
     <link rel="stylesheet" href="/styles/brand-style.css">
+    <link rel="stylesheet" href="/styles/quiz-card.css">
     <link rel="stylesheet" href="/styles/hub-layout.css">
     <link rel="stylesheet" href="/styles/hub1.css">
     <link rel="stylesheet" href="/styles/hub2.css">
@@ -19,9 +20,7 @@
         }
 
         /* Специфичные стили для страницы gnu-quiz */
-        .hub3 > .container {
-            max-width: 600px; /* Переопределяем для страницы gnu-quiz */
-        }
+        /* Базовые стили контейнера теперь в hub-layout.css */
 
         /* Модальное окно для пароля */
         .password-overlay {
@@ -153,110 +152,84 @@
             display: grid;
             grid-template-columns: 1fr;
             gap: clamp(20px, 4vw, 28px);
-            margin-top: clamp(20px, 6vw, 40px); /* Опущено ниже */
+            margin: 0 auto;
+            margin-top: clamp(20px, 6vw, 40px);
+            max-width: 800px;
+            width: 100%;
+            padding: 0 clamp(16px, 4vw, 24px); /* Отступы от краев экрана */
         }
 
+        /* Используем универсальные классы из quiz-card.css */
+        /* Здесь только специфичные стили для цветов карточек режимов */
+        
         .mode-card {
-            background: #FFFFFF;
-            border-radius: clamp(12px, 2.5vw, 18px);
-            padding: clamp(18px, 4vw, 28px) clamp(16px, 3.5vw, 24px);
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 
-                0 6px 0px rgba(0, 0, 0, 0.15),
-                0 8px 16px rgba(0, 0, 0, 0.1);
-            border: none;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: clamp(140px, 28vw, 180px);
+            /* Используем класс quiz-card из quiz-card.css */
         }
 
-        .mode-card:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 
-                0 8px 0px rgba(0, 0, 0, 0.2),
-                0 12px 24px rgba(0, 0, 0, 0.15);
-        }
-
-        .mode-card:active {
-            transform: translateY(-4px) scale(1.01);
-        }
-
+        /* Специальные стили для карточек режимов */
         .mode-card.solo {
             background: #ABF67C;
-            color: #373639;
+            box-shadow: 
+                0 6px 0px rgba(47, 185, 93, 0.3),
+                0 8px 16px rgba(47, 185, 93, 0.1);
+        }
+
+        .mode-card.solo:hover {
+            background: rgba(171, 246, 124, 0.9);
         }
 
         .mode-card.multiplayer {
             background: #F68A7C;
+            box-shadow: 
+                0 6px 0px rgba(250, 87, 52, 0.3),
+                0 8px 16px rgba(250, 87, 52, 0.1);
+        }
+
+        .mode-card.multiplayer:hover {
+            background: rgba(246, 138, 124, 0.9);
+        }
+
+        /* Цвет текста для карточек режимов */
+        .mode-card .quiz-title,
+        .mode-card .quiz-description,
+        .mode-card .quiz-subtitle {
             color: #373639;
         }
 
-        .mode-icon {
-            font-size: clamp(36px, 8vw, 56px);
-            margin-bottom: clamp(10px, 2.5vw, 16px);
-            line-height: 1;
-            width: clamp(36px, 8vw, 56px);
-            height: clamp(56px, 10vw, 72px); /* Фиксированная высота для выравнивания заголовков */
+        /* Стили для SVG иконок в карточках режимов */
+        .mode-card .quiz-icon {
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
         }
-        
-        .mode-icon svg {
+
+        .mode-card .quiz-icon svg {
             width: 100%;
             height: 100%;
         }
 
-        .mode-title {
-            font-family: 'Days One', sans-serif;
-            font-size: clamp(12px, 2.4vw, 16px);
-            color: #393639;
-            margin-bottom: clamp(6px, 1.5vw, 12px);
-            margin-top: 0;
-            text-transform: uppercase;
-            line-height: 1.2;
-            white-space: nowrap;
-            width: 100%;
-            padding: 0 clamp(8px, 2vw, 14px);
-            box-sizing: border-box;
-            flex-shrink: 0;
+        /* Улучшенное позиционирование текста в карточках режимов */
+        .mode-card .quiz-description {
+            margin-bottom: clamp(8px, 2vw, 12px);
         }
 
-        .mode-description {
-            font-family: 'Montserrat', sans-serif;
-            font-size: clamp(12px, 2.4vw, 16px);
-            color: #393639;
-            opacity: 0.85;
-            line-height: 1.4;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            max-width: 100%;
+        /* Выделение важной информации в карточках режимов - используем шрифт Caveat как на главной странице */
+        .quiz-info-highlight {
+            font-family: 'Caveat', cursive;
+            font-size: clamp(20px, 3.5vw, 28px);
+            color: #354fba;
+            margin-top: clamp(12px, 2.5vw, 16px);
+            font-weight: 400;
+            line-height: 1.2;
+            text-align: center;
+            flex-shrink: 0;
         }
 
         @media (min-width: 768px) {
             .mode-cards {
-                grid-template-columns: 1fr 1fr;
-                gap: clamp(24px, 4vw, 32px);
-                margin-top: clamp(20px, 6vw, 40px); /* Опущено ниже для широкой версии */
+                grid-template-columns: repeat(2, 1fr);
             }
         }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 0 clamp(10px, 3vw, 20px);
-            }
-
-            .mode-card {
-                padding: clamp(16px, 4vw, 24px) clamp(14px, 3.5vw, 20px);
-                min-height: clamp(130px, 35vw, 160px);
-            }
 
             .password-modal {
                 padding: clamp(24px, 5vw, 32px) clamp(20px, 4vw, 28px);
@@ -294,54 +267,64 @@
         <p class="subtitle">выбери режим игры</p>
         
         <div class="mode-cards">
-            <div class="mode-card solo" onclick="selectMode('solo')">
-                <div class="mode-icon">
-                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="transform: scale(0.7); transform-origin: center;">
-                        <!-- Один человечек - уменьшен для соответствия высоте трех -->
-                        <circle cx="50" cy="35" r="15" fill="#000" stroke="#000" stroke-width="2"/>
-                        <path d="M 50 50 Q 50 70 50 85" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
-                        <path d="M 50 60 L 30 75" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
-                        <path d="M 50 60 L 70 75" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
-                        <path d="M 50 85 L 35 100" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
-                        <path d="M 50 85 L 65 100" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div class="mode-title">Одиночная игра</div>
-                <div class="mode-description">
-                    Играй один и соревнуйся с другими в рейтинге.<br>15 вопросов из 150.
+            <div class="quiz-card mode-card solo" onclick="selectMode('solo')">
+                <div class="quiz-card-content">
+                    <div class="quiz-icon">
+                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="transform: scale(0.7); transform-origin: center;">
+                            <!-- Один человечек - уменьшен для соответствия высоте трех -->
+                            <circle cx="50" cy="35" r="15" fill="#000" stroke="#000" stroke-width="2"/>
+                            <path d="M 50 50 Q 50 70 50 85" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                            <path d="M 50 60 L 30 75" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                            <path d="M 50 60 L 70 75" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                            <path d="M 50 85 L 35 100" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                            <path d="M 50 85 L 65 100" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="quiz-title">Одиночная игра</div>
+                    <div class="quiz-description">
+                        Играй один и соревнуйся с другими в рейтинге
+                    </div>
+                    <div class="quiz-info-highlight">
+                        15 вопросов из 150
+                    </div>
                 </div>
             </div>
             
-            <div class="mode-card multiplayer" onclick="selectMode('multiplayer')">
-                <div class="mode-icon">
-                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="transform: scale(0.9); transform-origin: center;">
-                        <!-- Три человечка - уменьшены на 10% -->
-                        <!-- Первый (слева) -->
-                        <circle cx="25" cy="30" r="10" fill="#000" stroke="#000" stroke-width="2"/>
-                        <path d="M 25 40 Q 25 55 25 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <path d="M 25 50 L 12 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <path d="M 25 50 L 38 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <path d="M 25 70 L 15 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <path d="M 25 70 L 35 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <!-- Второй (центр) -->
-                        <circle cx="50" cy="35" r="12" fill="#000" stroke="#000" stroke-width="2"/>
-                        <path d="M 50 47 Q 50 62 50 77" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                        <path d="M 50 57 L 35 70" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                        <path d="M 50 57 L 65 70" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                        <path d="M 50 77 L 37 92" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                        <path d="M 50 77 L 63 92" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                        <!-- Третий (справа) -->
-                        <circle cx="75" cy="30" r="10" fill="#000" stroke="#000" stroke-width="2"/>
-                        <path d="M 75 40 Q 75 55 75 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <path d="M 75 50 L 62 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <path d="M 75 50 L 88 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <path d="M 75 70 L 65 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <path d="M 75 70 L 85 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div class="mode-title">Мультиплеер</div>
-                <div class="mode-description">
-                    Создай комнату и играй с друзьями.<br>QR-код для подключения.
+            <div class="quiz-card mode-card multiplayer" onclick="selectMode('multiplayer')">
+                <div class="quiz-card-content">
+                    <div class="quiz-icon">
+                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="transform: scale(0.9); transform-origin: center;">
+                            <!-- Три человечка - уменьшены на 10% -->
+                            <!-- Первый (слева) -->
+                            <circle cx="25" cy="30" r="10" fill="#000" stroke="#000" stroke-width="2"/>
+                            <path d="M 25 40 Q 25 55 25 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 25 50 L 12 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 25 50 L 38 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 25 70 L 15 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 25 70 L 35 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <!-- Второй (центр) -->
+                            <circle cx="50" cy="35" r="12" fill="#000" stroke="#000" stroke-width="2"/>
+                            <path d="M 50 47 Q 50 62 50 77" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 50 57 L 35 70" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 50 57 L 65 70" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 50 77 L 37 92" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 50 77 L 63 92" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                            <!-- Третий (справа) -->
+                            <circle cx="75" cy="30" r="10" fill="#000" stroke="#000" stroke-width="2"/>
+                            <path d="M 75 40 Q 75 55 75 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 75 50 L 62 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 75 50 L 88 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 75 70 L 65 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 75 70 L 85 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="quiz-title">Мультиплеер</div>
+                    <div class="quiz-description">
+                        Создай комнату и играй с друзьями
+                    </div>
+                    <div class="quiz-info-highlight">
+                        QR-код для подключения
+                    </div>
                 </div>
             </div>
         </div>
