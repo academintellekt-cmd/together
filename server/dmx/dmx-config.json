@@ -1,0 +1,52 @@
+{
+  "universe": 0,
+  "interface": {
+    "type": "artnet",
+    "host": "127.0.0.1",
+    "port": 6454
+  },
+  "players": {
+    "count": 14,
+    "startAddress": 1,
+    "channelsPerFixture": 3,
+    "type": "RGB",
+    "description": "RGB LED прожекторы над каждым игроком"
+  },
+  "stage": {
+    "spotlights": {
+      "count": 3,
+      "startAddress": 43,
+      "channelsPerFixture": 3,
+      "type": "RGB",
+      "description": "RGB прожекторы для сцены хоста"
+    },
+    "scanners": {
+      "count": 1,
+      "startAddress": 52,
+      "channelsPerFixture": 16,
+      "type": "MOVING_HEAD",
+      "description": "Движущиеся головы/сканеры"
+    },
+    "effects": {
+      "count": 4,
+      "startAddress": 68,
+      "channelsPerFixture": 3,
+      "type": "RGB",
+      "description": "Дополнительные RGB эффекты"
+    }
+  },
+  "colors": {
+    "playerJoined": [100, 100, 255],
+    "correct": [0, 255, 0],
+    "incorrect": [255, 0, 0],
+    "neutral": [255, 255, 255],
+    "waiting": [255, 255, 100],
+    "winner": [255, 215, 0]
+  },
+  "effects": {
+    "pulseSpeed": 500,
+    "fadeSpeed": 300,
+    "flashDuration": 200
+  }
+}
+

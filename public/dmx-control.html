@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMX Пульт управления - ВМЕСТЕ</title>
+    <link rel="stylesheet" href="/styles/brand-style.css">
+    <link rel="stylesheet" href="/styles/hub-layout.css">
+    <link rel="stylesheet" href="/styles/hub1.css">
+    <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            background: var(--color-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px 20px 20px;
+            position: relative;
+        }
+
+        .hub3 {
+            flex: 1 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .hub3 > .container {
+            margin: 0 auto;
+            max-width: 1400px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            padding-top: clamp(20px, 6vw, 40px);
+        }
+
+        .page-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(32px, 6vw, 48px);
+            color: var(--color-dark);
+            margin-bottom: clamp(20px, 4vw, 30px);
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .status-bar {
+            background: rgba(245, 245, 245, 0.85);
+            border-radius: clamp(12px, 2.5vw, 20px);
+            padding: clamp(15px, 3vw, 20px);
+            margin-bottom: clamp(20px, 4vw, 30px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.15),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(14px, 2.5vw, 18px);
+            color: var(--color-dark);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+            transition: all 0.3s;
+        }
+
+        .status-dot.active {
+            background: #00C159;
+            box-shadow: 0 0 10px #00C159;
+        }
+
+        .status-dot.inactive {
+            background: #ff4444;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: clamp(20px, 4vw, 28px);
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(245, 245, 245, 0.85);
+            border-radius: clamp(12px, 2.5vw, 20px);
+            padding: clamp(20px, 4vw, 28px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.15),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 
+                0 8px 0px rgba(0, 0, 0, 0.2),
+                0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            font-family: 'Days One', sans-serif;
+            margin-bottom: 15px;
+            color: var(--color-dark);
+            font-size: clamp(20px, 4vw, 24px);
+            font-weight: 700;
+        }
+
+        .card h3 {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 3vw, 20px);
+            margin-bottom: 10px;
+            color: var(--color-dark);
+        }
+
+        .player-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .player-btn {
+            padding: 10px;
+            border: 3px solid var(--color-dark);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: clamp(14px, 2vw, 16px);
+            text-align: center;
+            font-family: 'Days One', sans-serif;
+            font-weight: 600;
+            color: var(--color-dark);
+        }
+
+        .player-btn:hover {
+            background: var(--color-dark);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .player-btn.active {
+            background: var(--color-dark);
+            color: white;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .color-input {
+            flex: 1;
+            min-width: 80px;
+            padding: clamp(10px, 2vw, 12px);
+            border: 3px solid var(--color-dark);
+            border-radius: 8px;
+            font-size: clamp(14px, 2vw, 16px);
+            font-family: 'Montserrat', sans-serif;
+            text-align: center;
+        }
+
+        .color-preview {
+            width: clamp(50px, 8vw, 60px);
+            height: clamp(35px, 6vw, 40px);
+            border: 3px solid var(--color-dark);
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .btn {
+            padding: clamp(10px, 2vw, 12px) clamp(16px, 3vw, 24px);
+            border: none;
+            border-radius: 8px;
+            font-size: clamp(14px, 2vw, 16px);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            margin: 5px;
+            font-family: 'Days One', sans-serif;
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.2), 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: var(--color-dark);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2a2a2a;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #00C159;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #00a049;
+        }
+
+        .btn-danger {
+            background: #ff4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #cc0000;
+        }
+
+        .btn-warning {
+            background: #ffaa00;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #cc8800;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .preset-btn {
+            padding: 15px;
+            border: 3px solid var(--color-dark);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .preset-btn:hover {
+            background: var(--color-dark);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .log {
+            background: #f5f5f5;
+            border: 3px solid var(--color-dark);
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(12px, 2vw, 14px);
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid var(--color-dark);
+            padding-left: 10px;
+        }
+
+        .log-entry.success {
+            border-left-color: #00C159;
+        }
+
+        .log-entry.error {
+            border-left-color: #ff4444;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .player-grid {
+                grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body class="with-hub">
+    <!-- HUB3: основная зона контента -->
+    <div class="hub-zone hub3">
+        <div class="container">
+            <h1 class="page-title">💡 DMX Пульт управления</h1>
+
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <span>Статус DMX:</span>
+                    <div class="status-dot" id="status-dot"></div>
+                    <span id="status-text">Проверка...</span>
+                </div>
+                <button class="btn btn-primary" onclick="checkStatus()">Обновить статус</button>
+            </div>
+
+            <div class="grid">
+                <!-- Управление игроками -->
+                <div class="card">
+                    <h2>👥 Управление игроками</h2>
+                    <div class="player-grid" id="player-grid"></div>
+                    <div class="color-picker">
+                        <input type="number" id="r-input" class="color-input" placeholder="R" min="0" max="255" value="255">
+                        <input type="number" id="g-input" class="color-input" placeholder="G" min="0" max="255" value="255">
+                        <input type="number" id="b-input" class="color-input" placeholder="B" min="0" max="255" value="255">
+                        <div class="color-preview" id="color-preview"></div>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="setPlayerColor()">Установить цвет</button>
+                        <button class="btn btn-success" onclick="setPlayerEffect('fade')">Плавное затухание</button>
+                        <button class="btn btn-warning" onclick="setPlayerEffect('pulse')">Пульсация</button>
+                        <button class="btn btn-danger" onclick="setPlayerEffect('flash')">Мигание</button>
+                    </div>
+                </div>
+
+                <!-- Управление сценой -->
+                <div class="card">
+                    <h2>🎭 Управление сценой</h2>
+                    <div>
+                        <button class="btn btn-primary" onclick="stageAction('bright')">Яркое освещение</button>
+                        <button class="btn btn-primary" onclick="stageAction('soft')">Мягкое освещение</button>
+                        <button class="btn btn-success" onclick="stageAction('dynamic')">Динамические эффекты</button>
+                        <button class="btn btn-warning" onclick="stageAction('final')">Финальное шоу</button>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <h3>Вспышка сцены</h3>
+                        <div class="color-picker">
+                            <input type="number" id="stage-r" class="color-input" placeholder="R" min="0" max="255" value="255">
+                            <input type="number" id="stage-g" class="color-input" placeholder="G" min="0" max="255" value="0">
+                            <input type="number" id="stage-b" class="color-input" placeholder="B" min="0" max="255" value="0">
+                        </div>
+                        <button class="btn btn-danger" onclick="stageFlash()">Вспышка</button>
+                    </div>
+                </div>
+
+                <!-- Предустановки -->
+                <div class="card">
+                    <h2>⭐ Предустановки</h2>
+                    <div class="preset-grid" id="preset-grid"></div>
+                </div>
+
+                <!-- Эффекты -->
+                <div class="card">
+                    <h2>✨ Эффекты</h2>
+                    <div>
+                        <button class="btn btn-success" onclick="runEffect('wave-players')">Волна по игрокам</button>
+                        <button class="btn btn-warning" onclick="runEffect('rainbow')">Радуга</button>
+                    </div>
+                </div>
+
+                <!-- Общее управление -->
+                <div class="card">
+                    <h2>🔧 Общее управление</h2>
+                    <div>
+                        <button class="btn btn-danger" onclick="allOff()">Все выключить</button>
+                        <button class="btn btn-primary" onclick="setAllColor()">Установить цвет всем</button>
+                    </div>
+                    <div class="color-picker" style="margin-top: 15px;">
+                        <input type="number" id="all-r" class="color-input" placeholder="R" min="0" max="255" value="255">
+                        <input type="number" id="all-g" class="color-input" placeholder="G" min="0" max="255" value="255">
+                        <input type="number" id="all-b" class="color-input" placeholder="B" min="0" max="255" value="255">
+                    </div>
+                </div>
+
+                <!-- Лог -->
+                <div class="card">
+                    <h2>📋 Лог операций</h2>
+                    <div class="log" id="log"></div>
+                    <button class="btn btn-primary" onclick="clearLog()" style="margin-top: 10px;">Очистить лог</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUB4 и HUB5 для нижних полос -->
+    <div id="hub4" class="hub-zone hub4"></div>
+    <div id="hub5" class="hub-zone hub5"></div>
+
+    <script>
+        let selectedPlayer = null;
+        const API_BASE = '/api/dmx';
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            checkStatus();
+            loadPresets();
+            initPlayerGrid();
+            initColorPreview();
+        });
+
+        // Проверка статуса
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                const data = await response.json();
+                
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                
+                if (data.available) {
+                    statusDot.className = 'status-dot active';
+                    statusText.textContent = 'Подключено';
+                    addLog('✅ DMX система доступна', 'success');
+                } else {
+                    statusDot.className = 'status-dot inactive';
+                    statusText.textContent = 'Недоступно';
+                    addLog('❌ DMX система недоступна', 'error');
+                }
+            } catch (error) {
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                statusDot.className = 'status-dot inactive';
+                statusText.textContent = 'Ошибка подключения';
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Инициализация сетки игроков
+        function initPlayerGrid() {
+            const grid = document.getElementById('player-grid');
+            for (let i = 0; i < 14; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'player-btn';
+                btn.textContent = i + 1;
+                btn.onclick = () => selectPlayer(i);
+                grid.appendChild(btn);
+            }
+        }
+
+        // Выбор игрока
+        function selectPlayer(index) {
+            selectedPlayer = index;
+            document.querySelectorAll('.player-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            addLog(`Выбран игрок ${index + 1}`, 'success');
+        }
+
+        // Инициализация превью цвета
+        function initColorPreview() {
+            const inputs = ['r-input', 'g-input', 'b-input'];
+            inputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', updateColorPreview);
+            });
+        }
+
+        function updateColorPreview() {
+            const r = document.getElementById('r-input').value || 0;
+            const g = document.getElementById('g-input').value || 0;
+            const b = document.getElementById('b-input').value || 0;
+            document.getElementById('color-preview').style.background = `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // Установить цвет игрока
+        async function setPlayerColor() {
+            if (selectedPlayer === null) {
+                alert('Выберите игрока');
+                return;
+            }
+
+            const r = parseInt(document.getElementById('r-input').value) || 0;
+            const g = parseInt(document.getElementById('g-input').value) || 0;
+            const b = parseInt(document.getElementById('b-input').value) || 0;
+
+            try {
+                const response = await fetch(`${API_BASE}/player/${selectedPlayer}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ r, g, b })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Игрок ${selectedPlayer + 1}: RGB(${r}, ${g}, ${b})`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Установить эффект игрока
+        async function setPlayerEffect(effect) {
+            if (selectedPlayer === null) {
+                alert('Выберите игрока');
+                return;
+            }
+
+            const r = parseInt(document.getElementById('r-input').value) || 0;
+            const g = parseInt(document.getElementById('g-input').value) || 0;
+            const b = parseInt(document.getElementById('b-input').value) || 0;
+
+            try {
+                const response = await fetch(`${API_BASE}/player/${selectedPlayer}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ r, g, b, effect, duration: 500 })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Игрок ${selectedPlayer + 1}: эффект "${effect}"`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Действие сценой
+        async function stageAction(action) {
+            try {
+                const response = await fetch(`${API_BASE}/stage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Сцена: ${action}`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Вспышка сцены
+        async function stageFlash() {
+            const r = parseInt(document.getElementById('stage-r').value) || 0;
+            const g = parseInt(document.getElementById('stage-g').value) || 0;
+            const b = parseInt(document.getElementById('stage-b').value) || 0;
+
+            try {
+                const response = await fetch(`${API_BASE}/stage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'flash', r, g, b })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Сцена: вспышка RGB(${r}, ${g}, ${b})`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Загрузить предустановки
+        async function loadPresets() {
+            try {
+                const response = await fetch(`${API_BASE}/presets`);
+                const data = await response.json();
+
+                const grid = document.getElementById('preset-grid');
+                grid.innerHTML = '';
+
+                data.presets.forEach(preset => {
+                    const btn = document.createElement('button');
+                    btn.className = 'preset-btn';
+                    btn.innerHTML = `<strong>${preset.name}</strong><br><small>${preset.description}</small>`;
+                    btn.onclick = () => executePreset(preset.id);
+                    grid.appendChild(btn);
+                });
+            } catch (error) {
+                addLog(`❌ Ошибка загрузки предустановок: ${error.message}`, 'error');
+            }
+        }
+
+        // Выполнить предустановку
+        async function executePreset(presetName) {
+            try {
+                const response = await fetch(`${API_BASE}/preset/${presetName}`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Предустановка "${presetName}" применена`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Запустить эффект
+        async function runEffect(effectName) {
+            try {
+                const response = await fetch(`${API_BASE}/effect/${effectName}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ params: {} })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Эффект "${effectName}" запущен`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Все выключить
+        async function allOff() {
+            try {
+                const response = await fetch(`${API_BASE}/all`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'off' })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog('✅ Все DMX приборы выключены', 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Установить цвет всем
+        async function setAllColor() {
+            const r = parseInt(document.getElementById('all-r').value) || 0;
+            const g = parseInt(document.getElementById('all-g').value) || 0;
+            const b = parseInt(document.getElementById('all-b').value) || 0;
+
+            try {
+                const response = await fetch(`${API_BASE}/all`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'set', r, g, b })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Все игроки: RGB(${r}, ${g}, ${b})`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Добавить запись в лог
+        function addLog(message, type = '') {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Очистить лог
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        // Обновление превью цвета при загрузке
+        updateColorPreview();
+    </script>
+
+    <script>
+        // Инициализация Hub1 и Hub2
+        (function() {
+            function initHubs() {
+                try {
+                    if (typeof Hub1 === 'undefined' || typeof Hub2 === 'undefined' || typeof HubCommon === 'undefined') {
+                        console.warn('Hub скрипты еще не загружены, повторная попытка через 100мс...');
+                        setTimeout(initHubs, 100);
+                        return;
+                    }
+                    
+                    console.log('Инициализация Hub1 и Hub2...');
+                    
+                    // Инициализация Hub1 с кнопкой "Назад"
+                    Hub1.init({
+                        showBack: true,
+                        backUrl: '/settings.html'
+                    });
+                    
+                    // Инициализация Hub2 с логотипом и фразой
+                    Hub2.init();
+                    
+                    // Обновление позиций
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                HubCommon.updateHub2Position();
+                                HubCommon.updateHub4Position();
+                                HubCommon.updateContentPadding('.hub3 > .container');
+                                HubCommon.updateFloatingElementsPosition();
+                                HubCommon.updateBodyPaddingBottom();
+                                HubCommon.adaptSubtitleToLogo();
+                                
+                                console.log('Hub1 и Hub2 успешно инициализированы');
+                            });
+                        });
+                    });
+                } catch (error) {
+                    console.error('Ошибка при инициализации Hub:', error);
+                }
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(initHubs, 200);
+                });
+            } else {
+                setTimeout(initHubs, 200);
+            }
+            
+            // Обновление при изменении размера окна
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if (typeof HubCommon !== 'undefined') {
+                        HubCommon._positionInitialized = false;
+                        HubCommon._lastCorrectMarginTop = null;
+                        
+                        HubCommon.updateHub2Position();
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                HubCommon.updateHub4Position();
+                                HubCommon.updateContentPadding('.hub3 > .container');
+                                HubCommon.updateFloatingElementsPosition();
+                                HubCommon.updateBodyPaddingBottom();
+                                HubCommon.adaptSubtitleToLogo();
+                            });
+                        });
+                    }
+                }, 100);
+            });
+        })();
+    </script>
+</body>
+</html>

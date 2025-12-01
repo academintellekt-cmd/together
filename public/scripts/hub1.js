@@ -7,6 +7,7 @@ const Hub1 = {
     config: {
         showLogin: false,
         showJoystick: false,
+        showSettings: false,
         showBack: false,
         backUrl: '/index.html',
         customButtons: []
@@ -71,9 +72,15 @@ const Hub1 = {
             actionsLeft.appendChild(loginButton);
         }
         
+        if (this.config.showSettings) {
+            const settingsButton = this.createButton('⚙️ Настройки', '/settings.html');
+            actionsRight.appendChild(settingsButton);
+        }
+        
+        // Обратная совместимость: showJoystick теперь ведет на настройки
         if (this.config.showJoystick) {
-            const joystickButton = this.createButton('🎮 Настройки джойстика', '/joystick-test/joystick.html');
-            actionsRight.appendChild(joystickButton);
+            const settingsButton = this.createButton('⚙️ Настройки', '/settings.html');
+            actionsRight.appendChild(settingsButton);
         }
         
         // Добавляем пользовательские кнопки

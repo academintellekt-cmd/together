@@ -34,6 +34,7 @@ npm start
 - **Хост (мультиплеер)**: http://localhost:3000/host.html
 - **Игроки**: http://localhost:3000/player.html
 - **Одиночная игра**: http://localhost:3000/solo.html
+- **DMX Пульт управления**: http://localhost:3000/dmx-control.html
 
 ⚠️ **ВАЖНО**: Открывайте через `http://localhost:3000/`, а НЕ через `file://`!
 
@@ -102,6 +103,7 @@ npm start
 - 🔄 Автоматический переход к следующему вопросу (когда все игроки готовы)
 - 📊 Статус ответов игроков на главном экране
 - 🎨 Современный дизайн с брендингом
+- 💡 **DMX система управления освещением** - автоматическое и ручное управление DMX фонарями над игроками и сценой
 
 ## 📁 Структура проекта
 
@@ -126,8 +128,16 @@ together/
 │       ├── hub1.css
 │       └── hub2.css
 ├── server/               # Серверные утилиты
-│   └── utils/
-│       └── quiz-loader.js # Загрузка квизов
+│   ├── utils/
+│   │   └── quiz-loader.js # Загрузка квизов
+│   ├── dmx/              # DMX система управления освещением
+│   │   ├── dmx-controller.js
+│   │   ├── dmx-effects.js
+│   │   ├── dmx-integration.js
+│   │   ├── dmx-presets.js
+│   │   └── dmx-config.json
+│   └── routes/
+│       └── dmx-api.js     # HTTP API для DMX
 ├── data/                  # Данные квизов
 │   ├── quizzes/          # Конфигурации квизов (JSON)
 │   └── questions/        # Вопросы для квизов (TXT)

@@ -6,6 +6,15 @@ const path = require('path');
 const fs = require('fs');
 const { loadAllQuizzes } = require('./server/utils/quiz-loader');
 
+// DMX интеграция
+let dmxIntegration = null;
+try {
+  const { DMXIntegration } = require('./server/dmx/dmx-integration');
+  // Инициализация будет после создания io, rooms, players
+} catch (error) {
+  console.warn('⚠️ DMX модуль недоступен:', error.message);
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -25,6 +34,16 @@ app.use('/data/media', express.static(path.join(__dirname, 'data/media')));
 // Хранилище комнат и игроков
 const rooms = new Map();
 const players = new Map();
+
+// Инициализация DMX интеграции
+try {
+  const { DMXIntegration } = require('./server/dmx/dmx-integration');
+  dmxIntegration = new DMXIntegration(io, rooms, players);
+  console.log('✅ DMX интеграция инициализирована');
+} catch (error) {
+  console.warn('⚠️ DMX интеграция недоступна:', error.message);
+  dmxIntegration = null;
+}
 
 // Хранилище рейтинга для соло-режима
 let leaderboard = [];
@@ -917,6 +936,15 @@ app.post('/api/reload-questions', (req, res) => {
   }
 });
 
+// DMX API routes
+try {
+  const dmxApiRouter = require('./server/routes/dmx-api');
+  app.use('/api/dmx', dmxApiRouter);
+  console.log('✅ DMX API routes зарегистрированы');
+} catch (error) {
+  console.warn('⚠️ DMX API routes недоступны:', error.message);
+}
+
 // Получение IP-адреса сервера
 app.get('/api/server-ip', (req, res) => {
   // Получаем IP-адрес из запроса
@@ -1074,6 +1102,16 @@ app.post('/api/create-room', (req, res) => {
   res.json({ roomCode });
 });
 
+// Инициализация DMX интеграции (после создания io)
+try {
+  const { DMXIntegration } = require('./server/dmx/dmx-integration');
+  dmxIntegration = new DMXIntegration(io, rooms, players);
+  console.log('✅ DMX интеграция инициализирована');
+} catch (error) {
+  console.warn('⚠️ DMX интеграция недоступна:', error.message);
+  dmxIntegration = null;
+}
+
 // Подключение через Socket.io
 io.on('connection', (socket) => {
   console.log('Новое подключение:', socket.id);
@@ -1143,6 +1181,11 @@ io.on('connection', (socket) => {
     socket.emit('player-connected', { playerId: socket.id, roomCode: normalizedRoomCode });
     io.to(normalizedRoomCode).emit('player-list-updated', { players: room.players });
     console.log(`Игрок ${normalizedPlayerName} подключен к комнате ${normalizedRoomCode}`);
+    
+    // DMX: игрок подключился
+    if (dmxIntegration) {
+      dmxIntegration.onPlayerJoin(normalizedRoomCode, socket.id);
+    }
   });
 
   // Хост запускает игру
@@ -1157,6 +1200,12 @@ io.on('connection', (socket) => {
     room.lastActivity = Date.now(); // Обновляем активность
     
     io.to(roomCode).emit('game-started');
+    
+    // DMX: игра началась
+    if (dmxIntegration) {
+      dmxIntegration.onGameStarted(roomCode);
+    }
+    
     setTimeout(() => {
       showQuestion(roomCode);
     }, 2000);
@@ -1201,6 +1250,11 @@ io.on('connection', (socket) => {
     console.log(`📤 Отправка вопроса ${questionData.questionNumber} из ${questionData.totalQuestions} в комнату ${roomCode}`);
     
     io.to(roomCode).emit('question', questionData);
+    
+    // DMX: вопрос показан
+    if (dmxIntegration) {
+      dmxIntegration.onQuestionShown(roomCode);
+    }
 
     // Таймер для автоматического перехода к результатам
     const timer = setTimeout(() => {
@@ -1274,6 +1328,18 @@ io.on('connection', (socket) => {
       newScore: player.score
     });
     
+    // DMX: игрок ответил
+    if (dmxIntegration) {
+      dmxIntegration.onPlayerAnswer(roomCode, socket.id);
+      
+      // DMX: правильный/неправильный ответ
+      if (isCorrect) {
+        dmxIntegration.onCorrectAnswer(roomCode, socket.id);
+      } else {
+        dmxIntegration.onIncorrectAnswer(roomCode, socket.id);
+      }
+    }
+    
     // Обновляем статус ответов
     updateAnswerStatus(roomCode);
     
@@ -1315,6 +1381,11 @@ io.on('connection', (socket) => {
       results: results,
       players: room.players.sort((a, b) => b.score - a.score)
     });
+
+    // DMX: показать результаты
+    if (dmxIntegration) {
+      dmxIntegration.onShowResults(roomCode, results);
+    }
 
     // Не переходим автоматически - ждем подтверждения готовности от всех игроков
     // Обновляем статус готовности (все еще не готовы)
@@ -1415,6 +1486,11 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('game-finished', {
       results: finalResults
     });
+    
+    // DMX: игра завершена
+    if (dmxIntegration) {
+      dmxIntegration.onGameFinished(roomCode, finalResults);
+    }
   }
 
   // Отключение
@@ -1446,6 +1522,10 @@ function cleanupInactiveRooms() {
     // Удаляем комнаты, которые завершены и неактивны более ROOM_TIMEOUT
     if (room.gameState === 'finished' && room.lastActivity) {
       if (now - room.lastActivity > ROOM_TIMEOUT) {
+        // DMX: очистка комнаты
+        if (dmxIntegration) {
+          dmxIntegration.cleanupRoom(code);
+        }
         rooms.delete(code);
         cleanedCount++;
         console.log(`🗑️ Удалена завершенная комната: ${code}`);

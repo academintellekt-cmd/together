@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройки - ВМЕСТЕ</title>
+    <link rel="stylesheet" href="/styles/brand-style.css">
+    <link rel="stylesheet" href="/styles/hub-layout.css">
+    <link rel="stylesheet" href="/styles/hub1.css">
+    <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            background: var(--color-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 20px 20px 20px;
+            position: relative;
+        }
+
+        /* HUB3 - основная зона контента */
+        .hub3 {
+            flex: 1 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .hub3 > .container {
+            margin: 0 auto;
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            padding-top: clamp(20px, 6vw, 40px);
+        }
+
+        .settings-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(32px, 6vw, 48px);
+            color: var(--color-dark);
+            margin-bottom: clamp(20px, 4vw, 30px);
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: clamp(20px, 4vw, 28px);
+            margin: 0 auto;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .settings-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .settings-card {
+            background: rgba(245, 245, 245, 0.85);
+            border-radius: clamp(12px, 2.5vw, 25px);
+            padding: clamp(24px, 5vw, 40px);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.15),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: clamp(180px, 35vw, 250px);
+            aspect-ratio: 1 / 1;
+        }
+
+        .settings-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .settings-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 8px 0px rgba(0, 0, 0, 0.2),
+                0 12px 24px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+
+        .settings-card:hover::before {
+            opacity: 1;
+        }
+
+        .settings-card:active {
+            transform: translateY(-4px) scale(1.01);
+        }
+
+        .settings-card-icon {
+            font-size: clamp(48px, 10vw, 72px);
+            margin-bottom: clamp(12px, 3vw, 20px);
+            display: block;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-8px) rotate(5deg);
+            }
+        }
+
+        .settings-card-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(20px, 4vw, 28px);
+            font-weight: 700;
+            margin-bottom: clamp(8px, 2vw, 12px);
+            color: var(--color-dark);
+            line-height: 1.2;
+        }
+
+        .settings-card-description {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(14px, 2.5vw, 18px);
+            color: var(--color-dark);
+            opacity: 0.85;
+            line-height: 1.4;
+        }
+
+        /* Специальные стили для карточек */
+        .settings-card:nth-child(1) {
+            background: #abf67c;
+            box-shadow: 
+                0 6px 0px rgba(47, 185, 93, 0.3),
+                0 8px 16px rgba(47, 185, 93, 0.1);
+        }
+
+        .settings-card:nth-child(1):hover {
+            background: rgba(171, 246, 124, 0.9);
+        }
+
+        .settings-card:nth-child(2) {
+            background: #f68a7c;
+            box-shadow: 
+                0 6px 0px rgba(250, 87, 52, 0.3),
+                0 8px 16px rgba(250, 87, 52, 0.1);
+        }
+
+        .settings-card:nth-child(2):hover {
+            background: rgba(246, 138, 124, 0.9);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 767px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+                max-width: 600px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .settings-card {
+                padding: clamp(20px, 4vw, 32px);
+                min-height: clamp(160px, 40vw, 220px);
+            }
+        }
+    </style>
+</head>
+<body class="with-hub">
+    <!-- HUB3: основная зона контента -->
+    <div class="hub-zone hub3">
+        <div class="container">
+            <h1 class="settings-title">⚙️ Настройки</h1>
+            <div class="settings-grid">
+                <a href="/joystick-test/joystick.html" class="settings-card">
+                    <span class="settings-card-icon">🎮</span>
+                    <h2 class="settings-card-title">Джойстик</h2>
+                    <p class="settings-card-description">Настройка джойстика и геймпада для управления игрой</p>
+                </a>
+                <a href="/dmx-control.html" class="settings-card">
+                    <span class="settings-card-icon">💡</span>
+                    <h2 class="settings-card-title">DMX Освещение</h2>
+                    <p class="settings-card-description">Управление DMX фонарями и сценическим освещением</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUB4 и HUB5 для нижних полос -->
+    <div id="hub4" class="hub-zone hub4"></div>
+    <div id="hub5" class="hub-zone hub5"></div>
+
+    <script>
+        // Инициализация Hub1 и Hub2
+        (function() {
+            function initHubs() {
+                try {
+                    if (typeof Hub1 === 'undefined' || typeof Hub2 === 'undefined' || typeof HubCommon === 'undefined') {
+                        console.warn('Hub скрипты еще не загружены, повторная попытка через 100мс...');
+                        setTimeout(initHubs, 100);
+                        return;
+                    }
+                    
+                    console.log('Инициализация Hub1 и Hub2...');
+                    
+                    // Инициализация Hub1 с кнопкой "Назад"
+                    Hub1.init({
+                        showBack: true,
+                        backUrl: '/index.html'
+                    });
+                    
+                    // Инициализация Hub2 с логотипом и фразой
+                    Hub2.init();
+                    
+                    // Обновление позиций
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                HubCommon.updateHub2Position();
+                                HubCommon.updateHub4Position();
+                                HubCommon.updateContentPadding('.hub3 > .container');
+                                HubCommon.updateFloatingElementsPosition();
+                                HubCommon.updateBodyPaddingBottom();
+                                HubCommon.adaptSubtitleToLogo();
+                                
+                                console.log('Hub1 и Hub2 успешно инициализированы');
+                            });
+                        });
+                    });
+                } catch (error) {
+                    console.error('Ошибка при инициализации Hub:', error);
+                }
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(initHubs, 200);
+                });
+            } else {
+                setTimeout(initHubs, 200);
+            }
+            
+            // Обновление при изменении размера окна
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if (typeof HubCommon !== 'undefined') {
+                        HubCommon._positionInitialized = false;
+                        HubCommon._lastCorrectMarginTop = null;
+                        
+                        HubCommon.updateHub2Position();
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                HubCommon.updateHub4Position();
+                                HubCommon.updateContentPadding('.hub3 > .container');
+                                HubCommon.updateFloatingElementsPosition();
+                                HubCommon.updateBodyPaddingBottom();
+                                HubCommon.adaptSubtitleToLogo();
+                            });
+                        });
+                    }
+                }, 100);
+            });
+        })();
+    </script>
+</body>
+</html>
+
