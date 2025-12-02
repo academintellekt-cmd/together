@@ -14,18 +14,16 @@
 
 /* Основной контейнер Hub1 */
 .hub1 {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    /* Позиционирование управляется через grid в hub-layout-system.css */
     background: var(--hub1-bg);
     backdrop-filter: blur(10px);
     padding: var(--hub1-padding);
     z-index: var(--hub1-z-index);
-    min-height: auto;
+    min-height: 10vh; /* Минимальная высота для пропорций (10% экрана, в сумме с Hub2 = 25%) */
     transition: height 0.3s ease;
     will-change: height;
     box-sizing: border-box;
+    width: 100%;
 }
 
 /* Контент Hub1 */
@@ -39,6 +37,7 @@
     gap: var(--hub1-button-gap);
     position: relative;
     box-sizing: border-box;
+    padding: 0 clamp(16px, 4vw, 24px); /* Адаптивные отступы от краев экрана, как в основном контенте */
 }
 
 /* Контейнер для кнопок */
@@ -347,123 +346,184 @@
 /* Адаптивность - Mobile (≤768px) */
 @media (max-width: 768px) {
     .hub1 {
-        padding: 12px 15px;
+        padding: clamp(10px, 2vw, 12px) clamp(12px, 3vw, 15px);
+        min-height: auto;
+    }
+    
+    .hub1-content {
+        padding: 0 clamp(12px, 3vw, 16px);
     }
     
     .hub1-actions {
         flex-wrap: nowrap; /* Не переносим, кнопки остаются в одну строку */
-        gap: 6px;
+        gap: clamp(4px, 1vw, 6px);
         justify-content: space-between; /* Кнопки остаются по краям, постепенно сближаются */
     }
     
     .hub1-actions-left {
         flex: 0 1 auto; /* Не растягивается */
         min-width: 0;
+        gap: clamp(4px, 1vw, 6px);
     }
     
     .hub1-actions-right {
         flex: 0 1 auto; /* Не растягивается, остается справа */
         min-width: 0;
         justify-content: flex-start; /* Кнопки внутри группы слева */
+        gap: clamp(4px, 1vw, 6px);
     }
     
     /* Кнопки уменьшаются на мобильных устройствах */
     .hub1-button {
-        font-size: 12px;
-        padding: 6px 12px;
+        font-size: clamp(11px, 2.5vw, 12px);
+        padding: clamp(5px, 1.5vw, 6px) clamp(10px, 2.5vw, 12px);
         min-width: auto;
+        border-width: 1.5px;
+        border-radius: clamp(8px, 2vw, 10px);
     }
     
     .hub1-status {
-        font-size: 12px;
-        padding: 6px 12px;
+        font-size: clamp(11px, 2.5vw, 12px);
+        padding: clamp(5px, 1.5vw, 6px) clamp(10px, 2.5vw, 12px);
+        border-width: 1.5px;
+        border-radius: clamp(8px, 2vw, 10px);
     }
     
     .hub1-player-icon {
-        font-size: 12px;
-        padding: 6px 12px;
+        font-size: clamp(11px, 2.5vw, 12px);
+        padding: clamp(5px, 1.5vw, 6px) clamp(10px, 2.5vw, 12px);
+        border-width: 1.5px;
+        border-radius: clamp(8px, 2vw, 10px);
     }
     
     .hub1-question-number {
-        font-size: 12px;
+        font-size: clamp(11px, 2.5vw, 12px);
     }
     
     .hub1-timer {
-        font-size: 18px;
-        padding: 3px 10px;
+        font-size: clamp(16px, 4vw, 18px);
+        padding: clamp(2px, 1vw, 3px) clamp(8px, 2vw, 10px);
+        border-width: 1.5px;
+        border-radius: clamp(6px, 1.5vw, 8px);
     }
 }
 
 /* Адаптивность - Small Mobile (≤480px) */
 @media (max-width: 480px) {
     .hub1 {
-        padding: 10px 12px;
+        padding: clamp(8px, 2vw, 10px) clamp(10px, 2.5vw, 12px);
+        min-height: auto;
+    }
+    
+    .hub1-content {
+        padding: 0 clamp(10px, 2.5vw, 12px);
     }
     
     .hub1-actions {
         flex-wrap: nowrap; /* Пока не переносим, пробуем уместить в одну строку */
-        gap: 5px;
+        gap: clamp(3px, 1vw, 5px);
         justify-content: space-between; /* Кнопки все еще по краям */
     }
     
     .hub1-actions-left {
         flex: 0 1 auto; /* Не растягивается */
         min-width: 0;
+        gap: clamp(3px, 1vw, 5px);
     }
     
     .hub1-actions-right {
         flex: 0 1 auto; /* Не растягивается, остается справа */
         min-width: 0;
         justify-content: flex-start;
+        gap: clamp(3px, 1vw, 5px);
     }
     
-    /* Кнопки остаются уменьшенными (как на 768px) */
+    /* Кнопки остаются уменьшенными с улучшенной адаптивностью */
     .hub1-button {
-        font-size: 12px;
-        padding: 6px 12px;
+        font-size: clamp(10px, 2.2vw, 12px);
+        padding: clamp(4px, 1.2vw, 6px) clamp(8px, 2.2vw, 12px);
+        border-width: 1.5px;
+        border-radius: clamp(6px, 1.5vw, 8px);
+        letter-spacing: 0.3px;
     }
     
     .hub1-status {
-        font-size: 12px;
-        padding: 6px 12px;
+        font-size: clamp(10px, 2.2vw, 12px);
+        padding: clamp(4px, 1.2vw, 6px) clamp(8px, 2.2vw, 12px);
+        border-width: 1.5px;
+        border-radius: clamp(6px, 1.5vw, 8px);
     }
     
     .hub1-player-icon {
-        font-size: 12px;
-        padding: 6px 12px;
+        font-size: clamp(10px, 2.2vw, 12px);
+        padding: clamp(4px, 1.2vw, 6px) clamp(8px, 2.2vw, 12px);
+        border-width: 1.5px;
+        border-radius: clamp(6px, 1.5vw, 8px);
     }
     
     .hub1-question-number {
-        font-size: 11px;
+        font-size: clamp(10px, 2vw, 11px);
     }
     
     .hub1-timer {
-        font-size: 16px;
-        padding: 2px 8px;
+        font-size: clamp(14px, 3.5vw, 16px);
+        padding: clamp(2px, 0.8vw, 2px) clamp(6px, 1.8vw, 8px);
+        border-width: 1.5px;
+        border-radius: clamp(5px, 1.2vw, 6px);
+        min-width: clamp(35px, 8vw, 40px);
     }
 }
 
 /* Адаптивность - Очень маленькие экраны (≤360px) - перенос на новую строку */
 @media (max-width: 360px) {
     .hub1 {
-        padding: 10px 10px;
+        padding: clamp(8px, 2vw, 10px);
+        min-height: auto;
+    }
+    
+    .hub1-content {
+        padding: 0 clamp(8px, 2vw, 10px);
     }
     
     .hub1-actions {
         flex-wrap: wrap; /* Только на очень маленьких экранах переносим на новую строку */
-        gap: 5px;
+        gap: clamp(4px, 1.2vw, 5px);
         justify-content: flex-start; /* Все кнопки слева после переноса */
     }
     
     .hub1-actions-left {
         width: 100%;
         flex: 1 1 100%;
+        gap: clamp(4px, 1.2vw, 5px);
     }
     
     .hub1-actions-right {
         width: 100%;
         flex: 1 1 100%;
         justify-content: flex-start;
+        gap: clamp(4px, 1.2vw, 5px);
+    }
+    
+    /* Еще более компактные кнопки для очень маленьких экранов */
+    .hub1-button {
+        font-size: clamp(9px, 2vw, 11px);
+        padding: clamp(4px, 1vw, 5px) clamp(7px, 1.8vw, 10px);
+    }
+    
+    .hub1-status {
+        font-size: clamp(9px, 2vw, 11px);
+        padding: clamp(4px, 1vw, 5px) clamp(7px, 1.8vw, 10px);
+    }
+    
+    .hub1-player-icon {
+        font-size: clamp(9px, 2vw, 11px);
+        padding: clamp(4px, 1vw, 5px) clamp(7px, 1.8vw, 10px);
+    }
+    
+    .hub1-timer {
+        font-size: clamp(13px, 3vw, 15px);
+        padding: clamp(2px, 0.6vw, 2px) clamp(5px, 1.5vw, 7px);
+        min-width: clamp(32px, 7vw, 38px);
     }
 }
 

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор режима</title>
+    <link rel="stylesheet" href="/styles/brand-style.css">
+    <link rel="stylesheet" href="/styles/quiz-card.css">
+    <link rel="stylesheet" href="/styles/hub-layout.css">
+    <link rel="stylesheet" href="/styles/hub1.css">
+    <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="stylesheet" href="/styles/hub-layout.css">
+    <link rel="stylesheet" href="/styles/hub-layout-system.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Модальное окно для пароля */
+        .password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .password-modal {
+            background: #FFFFFF;
+            border-radius: 24px;
+            padding: clamp(24px, 4vw, 36px) clamp(20px, 4vw, 32px);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 
+                0 8px 0px rgba(0, 0, 0, 0.2),
+                0 16px 32px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+        }
+
+        .password-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(24px, 5vw, 32px);
+            color: #393639;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: clamp(14px, 3vw, 18px);
+            border: 3px solid #393639;
+            border-radius: 12px;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(20px, 4vw, 24px);
+            text-align: center;
+            margin-bottom: clamp(16px, 3vw, 20px);
+            box-sizing: border-box;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #abf67c;
+            box-shadow: 0 0 0 4px rgba(168, 224, 99, 0.2);
+        }
+
+        .password-buttons {
+            display: flex;
+            gap: clamp(8px, 2vw, 12px);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .password-button {
+            background: #abf67c;
+            color: #2fb95d;
+            border: none;
+            padding: clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 24px);
+            border-radius: 12px;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 3vw, 20px);
+            cursor: pointer;
+            box-shadow: 0 4px 0px rgba(47, 185, 93, 0.3), 0 6px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+            flex: 1;
+            box-sizing: border-box;
+            min-width: 0;
+        }
+
+        .password-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(47, 185, 93, 0.4), 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .password-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .password-button.back {
+            background: #f2f2f2;
+            color: #393639;
+        }
+
+        .password-button.back:hover {
+            background: #E0E0E0;
+        }
+
+        .password-error {
+            color: #ff7664;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(14px, 2.5vw, 16px);
+            margin-top: 12px;
+            min-height: 20px;
+            display: none;
+        }
+
+        .password-error.show {
+            display: block;
+        }
+
+        .title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(32px, 6vw, 48px);
+            color: #393639;
+            margin-top: 40px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-family: 'Caveat', cursive;
+            font-size: clamp(24px, 4.5vw, 36px);
+            color: #354fba;
+            margin-bottom: 40px;
+            transform: rotate(-1deg);
+        }
+
+        .mode-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: clamp(20px, 4vw, 28px);
+            margin: 0 auto;
+            margin-top: clamp(20px, 6vw, 40px);
+            max-width: 800px;
+            width: 100%;
+            padding: 0 clamp(16px, 4vw, 24px);
+        }
+
+        .mode-card.solo {
+            background: #ABF67C;
+            box-shadow: 
+                0 6px 0px rgba(47, 185, 93, 0.3),
+                0 8px 16px rgba(47, 185, 93, 0.1);
+        }
+
+        .mode-card.solo:hover {
+            background: rgba(171, 246, 124, 0.9);
+        }
+
+        .mode-card.multiplayer {
+            background: #F68A7C;
+            box-shadow: 
+                0 6px 0px rgba(250, 87, 52, 0.3),
+                0 8px 16px rgba(250, 87, 52, 0.1);
+        }
+
+        .mode-card.multiplayer:hover {
+            background: rgba(246, 138, 124, 0.9);
+        }
+
+        .mode-card .quiz-title,
+        .mode-card .quiz-description,
+        .mode-card .quiz-subtitle {
+            color: #373639;
+        }
+
+        .mode-card .quiz-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mode-card .quiz-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .mode-card .quiz-description {
+            margin-bottom: clamp(8px, 2vw, 12px);
+        }
+
+        .quiz-info-highlight {
+            font-family: 'Caveat', cursive;
+            font-size: clamp(20px, 3.5vw, 28px);
+            color: #354fba;
+            margin-top: clamp(12px, 2.5vw, 16px);
+            font-weight: 400;
+            line-height: 1.2;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            color: #393639;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            color: #ff7664;
+        }
+
+        @media (min-width: 768px) {
+            .mode-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Скрываем Hub2 на этой странице */
+        #hub2 {
+            display: none !important;
+        }
+        
+        /* Когда Hub2 скрыт, Hub3 занимает его место в grid */
+        body.with-hub {
+            grid-template-rows: 
+                minmax(10vh, auto)  /* Hub1 - минимум 10% экрана */
+                auto;               /* Hub3 занимает место Hub2 */
+        }
+        
+        .hub3 {
+            grid-row: 2; /* Занимает место Hub2 */
+        }
+        
+        /* Обновляем позицию парящих элементов */
+        body.with-hub::before {
+            top: 10vh; /* После Hub1 (без Hub2) */
+        }
+        
+        /* Адаптивность для разных экранов */
+        @media (min-width: 1024px) {
+            body.with-hub {
+                grid-template-rows: 
+                    minmax(10vh, auto)
+                    auto;
+            }
+        }
+        
+        @media (max-width: 1023px) and (min-width: 769px) {
+            body.with-hub {
+                grid-template-rows: 
+                    minmax(10vh, auto)
+                    auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body.with-hub {
+                grid-template-rows: 
+                    minmax(10vh, auto)
+                    auto;
+            }
+            
+            body.with-hub::before {
+                top: clamp(10vh, 12vw, 12vh);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body.with-hub {
+                grid-template-rows: 
+                    minmax(10vh, auto)
+                    auto;
+            }
+            
+            body.with-hub::before {
+                top: clamp(10vh, 12vw, 12vh);
+            }
+        }
+    </style>
+</head>
+<body class="with-hub">
+    <!-- Модальное окно для пароля -->
+    <div class="password-overlay" id="passwordOverlay" style="display: none;">
+        <div class="password-modal">
+            <h2 class="password-title">Введите пароль</h2>
+            <input 
+                type="password" 
+                class="password-input" 
+                id="passwordInput" 
+                placeholder="Пароль"
+                autocomplete="off"
+                autofocus
+            >
+            <div class="password-buttons">
+                <button class="password-button back" onclick="goBack()">Назад</button>
+                <button class="password-button" onclick="checkPassword()">Войти</button>
+            </div>
+            <div class="password-error" id="passwordError">Неверный пароль. Попробуйте снова.</div>
+        </div>
+    </div>
+
+    <!-- HUB3: основная зона контента -->
+    <div class="hub-zone hub3">
+        <div class="container" id="mainContainer" style="display: none;">
+            <div id="loading" class="loading">Загрузка...</div>
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="content" style="display: none;">
+                <h1 class="title" id="quizTitle">КВИЗ</h1>
+                <p class="subtitle" id="quizSubtitle">выбери режим игры</p>
+                
+                <div class="mode-cards" id="modeCards">
+                    <!-- Карточки режимов будут добавлены динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUB4: нижняя полоса (fixed, над HUB5) -->
+    <div id="hub4" class="hub-zone hub4">
+    </div>
+
+    <!-- HUB5: самая нижняя полоса (fixed, внизу экрана) -->
+    <div id="hub5" class="hub-zone hub5">
+    </div>
+
+    <script>
+        // Получаем ID квиза из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const QUIZ_ID = urlParams.get('quiz');
+        let quizConfig = null;
+        let passwordEntered = false;
+
+        // Загружаем информацию о квизе
+        async function loadQuizConfig() {
+            if (!QUIZ_ID) {
+                showError('ID квиза не указан');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/quizzes/${QUIZ_ID}`);
+                if (!response.ok) {
+                    throw new Error('Квиз не найден');
+                }
+                quizConfig = await response.json();
+                
+                // Проверяем, требуется ли пароль
+                if (quizConfig.passwordRequired && quizConfig.password) {
+                    const storageKey = `quiz_${QUIZ_ID}_password`;
+                    if (localStorage.getItem(storageKey) !== 'true') {
+                        document.getElementById('passwordOverlay').style.display = 'flex';
+                        return;
+                    }
+                }
+
+                // Показываем контент
+                displayQuiz();
+            } catch (error) {
+                console.error('Ошибка загрузки квиза:', error);
+                showError('Не удалось загрузить квиз. Убедитесь, что сервер запущен.');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').textContent = message;
+        }
+
+        function displayQuiz() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('mainContainer').style.display = 'block';
+
+            // Устанавливаем заголовок и подзаголовок
+            if (quizConfig.display && quizConfig.display.title) {
+                document.getElementById('quizTitle').textContent = quizConfig.display.title;
+            } else {
+                document.getElementById('quizTitle').textContent = quizConfig.name.toUpperCase();
+            }
+
+            if (quizConfig.display && quizConfig.display.subtitle) {
+                document.getElementById('quizSubtitle').textContent = quizConfig.display.subtitle;
+            }
+
+            // Создаем карточки режимов
+            const modeCards = document.getElementById('modeCards');
+            modeCards.innerHTML = '';
+
+            // Карточка одиночной игры
+            if (quizConfig.soloMode !== false) {
+                const soloCard = createModeCard('solo', 'Одиночная игра', 
+                    'Играй один и соревнуйся с другими в рейтинге',
+                    getSoloIcon(),
+                    getSoloInfo(quizConfig));
+                modeCards.appendChild(soloCard);
+            }
+
+            // Карточка мультиплеера
+            if (quizConfig.multiplayerMode !== false) {
+                const multiplayerCard = createModeCard('multiplayer', 'Мультиплеер',
+                    'Создай комнату и играй с друзьями',
+                    getMultiplayerIcon(),
+                    'QR-код для подключения');
+                modeCards.appendChild(multiplayerCard);
+            }
+
+            // Инициализируем Hub
+            initHubs();
+        }
+
+        function createModeCard(mode, title, description, iconSvg, infoText) {
+            const card = document.createElement('div');
+            card.className = `quiz-card mode-card ${mode}`;
+            card.onclick = () => selectMode(mode);
+
+            card.innerHTML = `
+                <div class="quiz-card-content">
+                    <div class="quiz-icon">
+                        ${iconSvg}
+                    </div>
+                    <div class="quiz-title">${title}</div>
+                    <div class="quiz-description">${description}</div>
+                    <div class="quiz-info-highlight">${infoText}</div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function getSoloIcon() {
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="transform: scale(0.7); transform-origin: center;">
+                <circle cx="50" cy="35" r="15" fill="#000" stroke="#000" stroke-width="2"/>
+                <path d="M 50 50 Q 50 70 50 85" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M 50 60 L 30 75" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M 50 60 L 70 75" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M 50 85 L 35 100" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M 50 85 L 65 100" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+            </svg>`;
+        }
+
+        function getMultiplayerIcon() {
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="transform: scale(0.9); transform-origin: center;">
+                <circle cx="25" cy="30" r="10" fill="#000" stroke="#000" stroke-width="2"/>
+                <path d="M 25 40 Q 25 55 25 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 25 50 L 12 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 25 50 L 38 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 25 70 L 15 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 25 70 L 35 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <circle cx="50" cy="35" r="12" fill="#000" stroke="#000" stroke-width="2"/>
+                <path d="M 50 47 Q 50 62 50 77" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M 50 57 L 35 70" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M 50 57 L 65 70" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M 50 77 L 37 92" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M 50 77 L 63 92" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <circle cx="75" cy="30" r="10" fill="#000" stroke="#000" stroke-width="2"/>
+                <path d="M 75 40 Q 75 55 75 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 75 50 L 62 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 75 50 L 88 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 75 70 L 65 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 75 70 L 85 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+            </svg>`;
+        }
+
+        function getSoloInfo(config) {
+            if (config.display && config.display.questionsDisplay) {
+                const total = config.gameSettings?.totalQuestions || config.questions?.length || 0;
+                const perGame = config.gameSettings?.questionsPerGame || 15;
+                return config.display.questionsDisplay.replace('{total}', total).replace('{count}', perGame);
+            }
+            const total = config.gameSettings?.totalQuestions || config.questions?.length || 0;
+            const perGame = config.gameSettings?.questionsPerGame || 15;
+            return `${perGame} вопросов из ${total}`;
+        }
+
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            const errorDiv = document.getElementById('passwordError');
+            
+            if (password === quizConfig.password) {
+                passwordEntered = true;
+                const storageKey = `quiz_${QUIZ_ID}_password`;
+                localStorage.setItem(storageKey, 'true');
+                document.getElementById('passwordOverlay').style.display = 'none';
+                errorDiv.classList.remove('show');
+                displayQuiz();
+            } else {
+                errorDiv.classList.add('show');
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        function goBack() {
+            window.location.href = '/index.html';
+        }
+
+        function selectMode(mode) {
+            const storageKey = `quiz_${QUIZ_ID}_verified`;
+            localStorage.setItem(storageKey, 'true');
+            
+            if (mode === 'solo') {
+                window.location.href = `/solo.html?quiz=${QUIZ_ID}&password=verified`;
+            } else if (mode === 'multiplayer') {
+                window.location.href = `/host.html?quiz=${QUIZ_ID}&password=verified`;
+            }
+        }
+
+        function initHubs() {
+            if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined') {
+                Hub1.init({
+                    showBack: true,
+                    backUrl: '/index.html'
+                });
+                
+                Hub2.init();
+                
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            // Позиционирование теперь управляется через CSS Grid
+                            
+                            
+                            
+                            
+                            HubCommon.adaptSubtitleToLogo();
+                        });
+                    });
+                });
+            }
+        }
+
+        // Обработка Enter в поле пароля
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        checkPassword();
+                    }
+                });
+            }
+            
+            // Загружаем конфигурацию квиза
+            loadQuizConfig();
+        });
+
+        // Обновление при изменении размера окна
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (typeof HubCommon !== 'undefined') {
+                    // Позиционирование теперь управляется через CSS Grid
+                    
+                    
+                    
+                    
+                }
+            }, 100);
+        });
+    </script>
+    
+    <!-- Hub1 и Hub2 скрипты -->
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
+</body>
+</html>
+

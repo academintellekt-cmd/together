@@ -1,35 +1,27 @@
 /*
- * ESP32 DMX Controller через MAX485 с поддержкой OTA
- * 
- * ВАЖНО: Для первой загрузки этой прошивки все равно нужен USB кабель!
- * После первой загрузки можно обновлять через WiFi.
+ * ESP32 DMX Controller через MAX485
  * 
  * Подключение MAX485 к ESP32:
  * - DI (Data In) -> GPIO0
  * - DE+RE (Data Enable/Receive Enable) -> GPIO2
  * - RO (Receive Out) -> GPIO15 (не используется в режиме передачи)
  * 
- * Протокол: HTTP REST API + OTA обновления
+ * Протокол: HTTP REST API
  * 
  * Для тестирования без DMX оборудования:
  * - Все команды выводятся в Serial Monitor
  * - Встроенный LED (GPIO2) мигает при получении команд
  * - Веб-интерфейс для визуализации состояния каналов
- * - OTA обновления через http://[IP]/update
  */
 
 #include <WiFi.h>
 #include <WebServer.h>
 #include <ArduinoJson.h>
-#include <ArduinoOTA.h>
 
 // ========== КОНФИГУРАЦИЯ ==========
 // Настройки WiFi
 const char* ssid = "YOUR_WIFI_SSID";        // Замените на ваш SSID
 const char* password = "YOUR_WIFI_PASSWORD"; // Замените на ваш пароль
-
-// Настройки OTA (опционально, для безопасности)
-const char* ota_password = "dmx123";  // Пароль для OTA обновлений (можно оставить пустым "")
 
 // Настройки DMX
 #define DMX_UNIVERSE_SIZE 512
@@ -146,18 +138,11 @@ const char* htmlPage = R"(
             border-radius: 8px;
             margin-top: 20px;
         }
-        .ota-section {
-            background: #3a3a3a;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border: 2px solid #00ff00;
-        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>ESP32 DMX Controller</h1>
+        <h1>🎭 ESP32 DMX Controller</h1>
         <p>Тестовый режим - Визуализация каналов</p>
     </div>
     
@@ -167,30 +152,20 @@ const char* htmlPage = R"(
     </div>
     
     <div class="controls">
-        <button onclick=\"refreshChannels()\">Обновить</button>
-        <button onclick=\"clearAll()\">Очистить все</button>
-        <button onclick=\"testPattern()\">Тестовый паттерн</button>
+        <button onclick="refreshChannels()">🔄 Обновить</button>
+        <button onclick="clearAll()">❌ Очистить все</button>
+        <button onclick="testPattern()">✨ Тестовый паттерн</button>
     </div>
     
     <div class="info">
         <strong>Показывать каналы:</strong>
-        <input type=\"number\" id=\"startChannel\" value=\"1\" min=\"1\" max=\"512\" style=\"width: 80px; padding: 5px; margin: 0 10px;\">
+        <input type="number" id="startChannel" value="1" min="1" max="512" style="width: 80px; padding: 5px; margin: 0 10px;">
         <strong>до</strong>
-        <input type=\"number\" id=\"endChannel\" value=\"42\" min=\"1\" max=\"512\" style=\"width: 80px; padding: 5px; margin: 0 10px;\">
-        <button onclick=\"updateView()\">Применить</button>
+        <input type="number" id="endChannel" value="42" min="1" max="512" style="width: 80px; padding: 5px; margin: 0 10px;">
+        <button onclick="updateView()">Применить</button>
     </div>
     
-    <div class="ota-section">
-        <h2>OTA Обновление</h2>
-        <p>Для обновления прошивки через WiFi используйте Arduino IDE:</p>
-        <ol>
-            <li>Tools → Port → [IP адрес ESP32]</li>
-            <li>Sketch → Upload</li>
-        </ol>
-        <p><strong>IP адрес:</strong> <span id="ipAddress">-</span></p>
-    </div>
-    
-    <div class="channel-grid" id=\"channelGrid\"></div>
+    <div class="channel-grid" id="channelGrid"></div>
     
     <script>
         let channels = {};
@@ -198,40 +173,41 @@ const char* htmlPage = R"(
         let endChannel = 42;
         
         function updateView() {
-            startChannel = parseInt(document.getElementById(\"startChannel\").value);
-            endChannel = parseInt(document.getElementById(\"endChannel\").value);
+            startChannel = parseInt(document.getElementById('startChannel').value);
+            endChannel = parseInt(document.getElementById('endChannel').value);
             loadChannels();
         }
         
         function loadChannels() {
-            fetch(\"/api/channels\")
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
+            fetch('/api/channels')
+                .then(r => r.json())
+                .then(data => {
                     channels = data.channels;
                     renderChannels();
-                    document.getElementById(\"lastUpdate\").textContent = new Date().toLocaleTimeString();
-                    document.getElementById(\"status\").textContent = \"Активен\";
+                    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                    document.getElementById('status').textContent = '✅ Активен';
                 })
-                .catch(function(e) {
-                    console.error(\"Ошибка:\", e);
-                    document.getElementById(\"status\").textContent = \"Ошибка подключения\";
+                .catch(e => {
+                    console.error('Ошибка:', e);
+                    document.getElementById('status').textContent = '❌ Ошибка подключения';
                 });
         }
         
         function renderChannels() {
-            const grid = document.getElementById(\"channelGrid\");
-            grid.innerHTML = \"\";
+            const grid = document.getElementById('channelGrid');
+            grid.innerHTML = '';
             
             for (let i = startChannel; i <= endChannel && i <= 512; i++) {
                 const value = channels[i] || 0;
-                const channel = document.createElement(\"div\");
-                channel.className = \"channel\" + (value > 0 ? \" active\" : \"\");
-                const percent = Math.round((value/255)*100);
-                channel.innerHTML = \"<div class=\\\"channel-number\\\">CH \" + i + \"</div>\" +
-                    \"<div class=\\\"channel-value\\\">\" + value + \"</div>\" +
-                    \"<div class=\\\"channel-bar\\\">\" +
-                    \"<div class=\\\"channel-fill\\\" style=\\\"width: \" + percent + \"%\\\"></div>\" +
-                    \"</div>\";
+                const channel = document.createElement('div');
+                channel.className = 'channel' + (value > 0 ? ' active' : '');
+                channel.innerHTML = `
+                    <div class="channel-number">CH ${i}</div>
+                    <div class="channel-value">${value}</div>
+                    <div class="channel-bar">
+                        <div class="channel-fill" style="width: ${(value/255)*100}%"></div>
+                    </div>
+                `;
                 grid.appendChild(channel);
             }
         }
@@ -241,21 +217,14 @@ const char* htmlPage = R"(
         }
         
         function clearAll() {
-            fetch(\"/api/all\", { method: \"POST\", headers: {\"Content-Type\": \"application/json\"}, body: JSON.stringify({action: \"off\"}) })
-                .then(function() { setTimeout(loadChannels, 100); });
+            fetch('/api/all', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action: 'off'}) })
+                .then(() => setTimeout(loadChannels, 100));
         }
         
         function testPattern() {
-            fetch(\"/api/test\", { method: \"POST\" })
-                .then(function() { setTimeout(loadChannels, 100); });
+            fetch('/api/test', { method: 'POST' })
+                .then(() => setTimeout(loadChannels, 100));
         }
-        
-        // Получить IP адрес
-        fetch(\"/api/status\")
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                document.getElementById(\"ipAddress\").textContent = data.ip || \"-\";
-            });
         
         // Автообновление каждые 500мс
         setInterval(loadChannels, 500);
@@ -272,9 +241,15 @@ void setupDMX() {
   digitalWrite(DE_RE_PIN, LOW);
   
   // Настройка Serial для DMX
-  Serial1.begin(DMX_BAUD, SERIAL_8N2, -1, DMX_TX_PIN);
+  // Используем Hardware Serial 1 (UART1)
+  // На ESP32 GPIO0 может использоваться как TX1, но нужно проверить вашу модель
+  // Альтернатива: GPIO17 для TX2 (измените DMX_TX_PIN на 17 и используйте Serial2)
   
-  Serial.println("[OK] DMX инициализирован");
+  // Инициализация Serial1 с GPIO0 как TX
+  // Формат: begin(baud, config, rx_pin, tx_pin)
+  Serial1.begin(DMX_BAUD, SERIAL_8N2, -1, DMX_TX_PIN); // RX=-1 (не используется), TX=GPIO0
+  
+  Serial.println("✅ DMX инициализирован");
   Serial.printf("   TX Pin: GPIO%d\n", DMX_TX_PIN);
   Serial.printf("   DE/RE Pin: GPIO%d\n", DE_RE_PIN);
   Serial.printf("   Baud Rate: %d\n", DMX_BAUD);
@@ -292,7 +267,7 @@ void sendDMXFrame() {
       }
     }
     if (hasData) {
-      Serial.print("[DMX] Frame: ");
+      Serial.print("📤 DMX Frame: ");
       for (int i = 0; i < 10; i++) {
         Serial.printf("CH%d=%d ", i+1, dmxUniverse[i]);
       }
@@ -306,6 +281,7 @@ void sendDMXFrame() {
   delayMicroseconds(10);
   
   // BREAK сигнал (минимум 88 микросекунд LOW)
+  // Для BREAK нужно временно остановить Serial и установить линию в LOW вручную
   Serial1.end();
   pinMode(DMX_TX_PIN, OUTPUT);
   digitalWrite(DMX_TX_PIN, LOW);
@@ -347,7 +323,6 @@ void handleStatus() {
   doc["wifi_ssid"] = WiFi.SSID();
   doc["ip"] = WiFi.localIP().toString();
   doc["channels_total"] = DMX_UNIVERSE_SIZE;
-  doc["ota_enabled"] = true;
   
   String response;
   serializeJson(doc, response);
@@ -376,8 +351,10 @@ void handleSetChannel() {
       dmxUniverse[channel - 1] = value;
       dmxChanged = true;
       
-      Serial.printf("[DMX] Channel %d = %d\n", channel, value);
+      // Логирование для тестирования
+      Serial.printf("📤 DMX: Channel %d = %d\n", channel, value);
       
+      // Мигание LED
       digitalWrite(LED_PIN, HIGH);
       delay(10);
       digitalWrite(LED_PIN, LOW);
@@ -402,9 +379,7 @@ void handleBatchUpdate() {
       int updated = 0;
       
       for (JsonPair kv : channels) {
-        // В ArduinoJson 6 нужно конвертировать ключ в строку, затем в int
-        String channelStr = String(kv.key().c_str());
-        int channel = channelStr.toInt();
+        int channel = kv.key().toInt();
         int value = kv.value().as<int>();
         
         if (channel >= 1 && channel <= DMX_UNIVERSE_SIZE && value >= 0 && value <= 255) {
@@ -415,8 +390,9 @@ void handleBatchUpdate() {
       
       dmxChanged = true;
       
-      Serial.printf("[DMX] Batch: Обновлено %d каналов\n", updated);
+      Serial.printf("📤 DMX Batch: Обновлено %d каналов\n", updated);
       
+      // Мигание LED
       digitalWrite(LED_PIN, HIGH);
       delay(10);
       digitalWrite(LED_PIN, LOW);
@@ -442,7 +418,7 @@ void handleAllOff() {
   }
   dmxChanged = true;
   
-  Serial.println("[DMX] Все каналы выключены");
+  Serial.println("📤 DMX: Все каналы выключены");
   
   server.send(200, "application/json", "{\"success\":true}");
 }
@@ -476,7 +452,7 @@ void handleTestPattern() {
   }
   
   dmxChanged = true;
-  Serial.println("[DMX] Тестовый паттерн применен");
+  Serial.println("📤 DMX: Тестовый паттерн применен");
   
   server.send(200, "application/json", "{\"success\":true}");
 }
@@ -492,10 +468,9 @@ void setup() {
   delay(1000);
   
   Serial.println("\n\n");
-  Serial.println("========================================");
-  Serial.println("  ESP32 DMX Controller через MAX485");
-  Serial.println("  С поддержкой OTA обновлений");
-  Serial.println("========================================");
+  Serial.println("╔══════════════════════════════════════╗");
+  Serial.println("║   ESP32 DMX Controller через MAX485  ║");
+  Serial.println("╚══════════════════════════════════════╝");
   Serial.println();
   
   // Настройка LED
@@ -506,7 +481,7 @@ void setup() {
   setupDMX();
   
   // Подключение к WiFi
-  Serial.print("[WiFi] Подключение к WiFi: ");
+  Serial.print("📡 Подключение к WiFi: ");
   Serial.println(ssid);
   
   WiFi.mode(WIFI_STA);
@@ -523,10 +498,10 @@ void setup() {
   Serial.println();
   
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("[OK] WiFi подключен!");
-    Serial.print("[WiFi] IP адрес: ");
+    Serial.println("✅ WiFi подключен!");
+    Serial.print("📱 IP адрес: ");
     Serial.println(WiFi.localIP());
-    Serial.print("[WiFi] Сигнал: ");
+    Serial.print("📶 Сигнал: ");
     Serial.print(WiFi.RSSI());
     Serial.println(" dBm");
     
@@ -538,57 +513,9 @@ void setup() {
       delay(100);
     }
   } else {
-    Serial.println("[ERROR] Ошибка подключения к WiFi!");
-    Serial.println("[WARN] Проверьте SSID и пароль в коде");
+    Serial.println("❌ Ошибка подключения к WiFi!");
+    Serial.println("⚠️  Проверьте SSID и пароль в коде");
   }
-  
-  // Настройка OTA
-  ArduinoOTA.setHostname("esp32-dmx-controller");
-  
-  if (strlen(ota_password) > 0) {
-    ArduinoOTA.setPassword(ota_password);
-    Serial.println("[OTA] Пароль установлен");
-  } else {
-    Serial.println("[OTA] Пароль не установлен (небезопасно!)");
-  }
-  
-  ArduinoOTA.onStart([]() {
-    String type;
-    if (ArduinoOTA.getCommand() == U_FLASH) {
-      type = "sketch";
-    } else {
-      type = "filesystem";
-    }
-    Serial.println("[OTA] Начало обновления " + type);
-  });
-  
-  ArduinoOTA.onEnd([]() {
-    Serial.println("\n[OTA] Обновление завершено!");
-  });
-  
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("[OTA] Прогресс: %u%%\r", (progress / (total / 100)));
-  });
-  
-  ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("[OTA] Ошибка[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) {
-      Serial.println("Ошибка аутентификации");
-    } else if (error == OTA_BEGIN_ERROR) {
-      Serial.println("Ошибка начала обновления");
-    } else if (error == OTA_CONNECT_ERROR) {
-      Serial.println("Ошибка подключения");
-    } else if (error == OTA_RECEIVE_ERROR) {
-      Serial.println("Ошибка приема данных");
-    } else if (error == OTA_END_ERROR) {
-      Serial.println("Ошибка завершения");
-    }
-  });
-  
-  ArduinoOTA.begin();
-  Serial.println("[OTA] OTA обновления включены");
-  Serial.print("[OTA] Используйте IP: ");
-  Serial.println(WiFi.localIP());
   
   // Настройка HTTP сервера
   server.on("/", handleRoot);
@@ -601,28 +528,26 @@ void setup() {
   server.onNotFound(handleNotFound);
   
   server.begin();
-  Serial.println("[HTTP] HTTP сервер запущен");
+  Serial.println("🌐 HTTP сервер запущен");
   Serial.println();
   
   if (TEST_MODE) {
-    Serial.println("[TEST] РЕЖИМ ТЕСТИРОВАНИЯ АКТИВЕН");
+    Serial.println("⚠️  РЕЖИМ ТЕСТИРОВАНИЯ АКТИВЕН");
     Serial.println("   DMX команды будут только логироваться");
     Serial.println();
   }
   
-  Serial.println("========================================");
-  Serial.println("Готово к работе!");
+  Serial.println("═══════════════════════════════════════");
+  Serial.println("Готов к работе!");
   Serial.println("Откройте в браузере: http://" + WiFi.localIP().toString());
-  Serial.println("OTA обновления: http://" + WiFi.localIP().toString() + "/update");
-  Serial.println("========================================");
+  Serial.println("═══════════════════════════════════════");
   Serial.println();
 }
 
 // ========== LOOP ==========
 
 void loop() {
-  ArduinoOTA.handle();  // Обработка OTA обновлений
-  server.handleClient();  // Обработка HTTP запросов
+  server.handleClient();
   
   // Отправка DMX кадров с нужной частотой
   unsigned long now = millis();
@@ -637,5 +562,4 @@ void loop() {
   // Небольшая задержка для стабильности
   delay(1);
 }
-
 

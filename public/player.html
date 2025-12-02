@@ -7,16 +7,19 @@
     <link rel="stylesheet" href="/styles/brand-style.css">
     <link rel="stylesheet" href="/styles/hub-layout.css">
     <link rel="stylesheet" href="/styles/hub1.css">
+    <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="stylesheet" href="/styles/hub-layout.css">
+    <link rel="stylesheet" href="/styles/hub-layout-system.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Days+One&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
     <style>
         /* Специфичные стили для страницы игрока */
         .hub3 > .container {
             max-width: 500px; /* Переопределяем для страницы игрока */
+            padding: clamp(20px, 6vw, 40px) clamp(16px, 4vw, 24px); /* Адаптивные отступы от краев экрана, как в gnu-quiz.html */
+            box-sizing: border-box;
         }
         .back-button {
             display: none; /* Скрываем старую кнопку, используем Hub1 */
@@ -351,7 +354,7 @@
 
     </style>
 </head>
-<body>
+<body class="with-hub">
     <div class="container">
         <!-- Кнопка назад -->
         <div class="back-button">
@@ -1187,10 +1190,8 @@
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        HubCommon.updateHub2Position();
-                        HubCommon.updateHub4Position();
-                        HubCommon.updateContentPadding('.hub3 > .container');
-                        HubCommon.updateFloatingElementsPosition();
+                        // Позиционирование теперь управляется через CSS Grid
+                        HubCommon.adaptSubtitleToLogo();
                         HubCommon.updateBodyPaddingBottom();
                     });
                 });

@@ -8,12 +8,11 @@
     <link rel="stylesheet" href="/styles/quiz-card.css">
     <link rel="stylesheet" href="/styles/hub1.css">
     <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="stylesheet" href="/styles/hub-layout.css">
+    <link rel="stylesheet" href="/styles/hub-layout-system.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
-    <script src="/scripts/hub2.js"></script>
     <style>
         * {
             margin: 0;
@@ -21,18 +20,8 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            min-height: 100vh;
-            background: #f2f2f2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 0 20px 20px 20px;
-            position: relative;
-            /* padding-bottom будет обновляться динамически через JavaScript для HUB4/HUB5 */
-        }
+        /* Стили body теперь управляются через hub-layout-system.css */
+        /* Удаляем старые стили, которые конфликтуют с grid-системой */
 
         /* --- Каркас HUB-зон на странице --- */
 
@@ -43,50 +32,13 @@
         }
 
         /* HUB3 — основная зона контента */
-        .hub3 {
-            flex: 1 0 auto;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-        }
+        /* Стили управляются через hub-layout.css и hub-layout-system.css */
 
         /* Внутренний контейнер внутри HUB3 */
-        .hub3 > .container {
-            margin: 0 auto;
-            max-width: 1200px;
-            width: 100%;
-            text-align: center;
-            position: relative;
-            z-index: 2; /* Ниже Hub1 (1001), Hub2 (1000), HUB4/HUB5 (999), но выше парящих элементов (z-index: -1) */
-        }
+        /* Стили управляются через hub-layout.css */
 
-        /* HUB4 и HUB5 — нижние полосы, фиксированные снизу (как HUB1/HUB2 сверху) */
-        .hub4,
-        .hub5 {
-            position: fixed;
-            left: 0;
-            right: 0;
-            background: var(--hub1-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: var(--hub1-padding);
-            min-height: auto;
-            box-sizing: border-box;
-            width: 100%;
-            z-index: 999; /* Ниже HUB1 (1001) и HUB2 (1000), но выше парящих элементов (z-index: -1) */
-            transition: bottom 0.3s ease;
-            will-change: bottom;
-        }
-
-        /* HUB5 — самая нижняя полоса (фиксирована внизу) */
-        .hub5 {
-            bottom: 0;
-        }
-
-        /* HUB4 — над HUB5 (bottom будет рассчитываться динамически через JavaScript) */
-        .hub4 {
-            bottom: auto; /* Устанавливается динамически через JavaScript в hub-common.js */
-        }
+        /* HUB4 и HUB5 — нижние полосы, прокручиваются вместе с контентом */
+        /* Стили управляются через hub-layout.css */
 
         /* Парящие элементы */
         body::before {
@@ -127,9 +79,7 @@
         }
         
         /* Стили для контента внутри HUB3 */
-        .hub3 > .container {
-            padding: 0;
-        }
+        /* Padding уже установлен выше, не переопределяем */
         
         /* Убеждаемся, что loading и error не занимают место */
         .hub3 > .container > #loading,
@@ -179,14 +129,19 @@
             display: grid;
             grid-template-columns: 1fr; /* 1 колонка по умолчанию (мобильные) */
             gap: clamp(20px, 4vw, 28px); /* Адаптивный отступ, как на gnu-quiz.html */
-            margin: 0 auto; /* Убираем все отступы - контент начинается сразу после Hub2 */
-            margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
-            padding: 0 clamp(16px, 4vw, 24px); /* Отступы от краев экрана */
+            margin: clamp(20px, 6vw, 40px) auto 0 auto; /* Центрирование по горизонтали, отступ сверху */
+            padding: 0; /* Отступы уже есть у родительского контейнера */
             max-width: 1200px;
             width: 100%;
-            align-items: center; /* Выравнивание по центру вертикально */
+            align-items: stretch; /* Растягиваем карточки на одинаковую высоту */
             align-content: center; /* Выравнивание содержимого по центру вертикально */
-            justify-items: center; /* Выравнивание по центру горизонтально */
+            justify-items: stretch; /* Растягиваем карточки по ширине */
+            box-sizing: border-box;
+        }
+        
+        /* Все карточки в grid должны иметь одинаковую высоту */
+        .quizzes-grid > .quiz-card {
+            height: 100%; /* Занимают всю доступную высоту в grid-ячейке */
         }
         
         /* Убираем отступ перед первой карточкой в grid */
@@ -624,9 +579,9 @@
                 gap: clamp(24px, 4vw, 32px); /* Адаптивный отступ, как на gnu-quiz.html */
                 margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
                 padding: 0 clamp(16px, 4vw, 24px); /* Отступы от краев экрана */
-                align-items: center; /* Выравнивание по центру вертикально */
+                align-items: stretch; /* Растягиваем карточки на одинаковую высоту */
                 align-content: center; /* Выравнивание содержимого по центру вертикально */
-                justify-items: center; /* Выравнивание по центру горизонтально */
+                justify-items: stretch; /* Растягиваем карточки по ширине */
             }
         }
         
@@ -635,8 +590,10 @@
             .quizzes-grid {
                 grid-template-columns: repeat(2, 1fr); /* 2 колонки для соответствия gnu-quiz.html */
                 gap: clamp(24px, 4vw, 32px);
-                margin-top: clamp(20px, 6vw, 40px);
-                padding: 0 clamp(16px, 4vw, 24px); /* Отступы от краев экрана */
+                margin: clamp(20px, 6vw, 40px) auto 0 auto; /* Центрирование по горизонтали, отступ сверху */
+                padding: 0; /* Отступы уже есть у родительского контейнера */
+                align-items: stretch; /* Растягиваем карточки на одинаковую высоту */
+                justify-items: stretch; /* Растягиваем карточки по ширине */
             }
 
             .quiz-card:nth-child(1) .quiz-title {
@@ -698,17 +655,12 @@
             .quizzes-grid {
                 grid-template-columns: 1fr; /* 1 карточка в ряд */
                 gap: clamp(20px, 4vw, 28px); /* Адаптивный отступ, как на gnu-quiz.html */
-                margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
-                max-width: 600px; /* Ограничиваем ширину для центрирования, как на gnu-quiz.html */
-                margin-left: auto; /* Центрируем по горизонтали */
-                margin-right: auto; /* Центрируем по горизонтали */
-                align-items: center; /* Выравнивание по центру вертикально */
+                margin: clamp(20px, 6vw, 40px) auto 0 auto; /* Центрирование по горизонтали, отступ сверху */
+                max-width: 100%; /* Полная ширина с учетом padding родителя */
+                padding: 0; /* Отступы уже есть у родительского контейнера */
+                align-items: stretch; /* Растягиваем карточки на одинаковую высоту */
                 align-content: center; /* Выравнивание содержимого по центру вертикально */
-                justify-items: center; /* Выравнивание по центру горизонтально */
-            }
-
-            .container {
-                padding: 80px 15px 20px; /* Увеличен верхний отступ для меню персонажа */
+                justify-items: stretch; /* Растягиваем карточки по ширине */
             }
 
             .quiz-card {
@@ -716,7 +668,8 @@
                 width: 100%; /* Ширина карточки */
                 margin: 0 auto; /* Центрируем каждую карточку */
                 aspect-ratio: none; /* Убираем фиксированное соотношение сторон для планшетов */
-                min-height: auto; /* Карточка подстраивается под содержимое */
+                min-height: 260px; /* Фиксированная минимальная высота для одинакового размера */
+                height: 100%; /* Занимают всю доступную высоту в grid-ячейке для одинакового размера */
                 max-width: 100%;
             }
 
@@ -790,27 +743,22 @@
 
         /* Адаптивность - маленькие экраны (≤480px), как на gnu-quiz.html */
         @media (max-width: 480px) {
-            .container {
-                padding: 0 clamp(10px, 3vw, 20px); /* Адаптивный padding, как на gnu-quiz.html */
-            }
-
             .quizzes-grid {
                 grid-template-columns: 1fr; /* 1 карточка в ряд */
                 gap: clamp(20px, 4vw, 28px); /* Адаптивный отступ, как на gnu-quiz.html */
-                margin-top: clamp(20px, 6vw, 40px); /* Отступ сверху, как на gnu-quiz.html */
-                padding: 0 clamp(16px, 4vw, 24px); /* Отступы от краев экрана */
-                max-width: 600px; /* Как на gnu-quiz.html */
-                margin-left: auto; /* Центрируем */
-                margin-right: auto; /* Центрируем */
-                align-items: center; /* Выравнивание по центру вертикально */
+                margin: clamp(20px, 6vw, 40px) auto 0 auto; /* Центрирование по горизонтали, отступ сверху */
+                padding: 0; /* Отступы уже есть у родительского контейнера */
+                max-width: 100%; /* Полная ширина с учетом padding родителя */
+                align-items: stretch; /* Растягиваем карточки на одинаковую высоту */
                 align-content: center; /* Выравнивание содержимого по центру вертикально */
-                justify-items: center; /* Выравнивание по центру горизонтально */
+                justify-items: stretch; /* Растягиваем карточки по ширине */
             }
 
             .quiz-card {
                 padding: clamp(16px, 4vw, 24px) clamp(14px, 3.5vw, 20px); /* Адаптивный padding, как на gnu-quiz.html */
                 border-radius: clamp(12px, 2.5vw, 18px); /* Адаптивный border-radius, как на gnu-quiz.html */
-                min-height: auto; /* Карточка подстраивается под содержимое */
+                min-height: 260px; /* Фиксированная минимальная высота для одинакового размера */
+                height: 100%; /* Занимают всю доступную высоту в grid-ячейке для одинакового размера */
                 aspect-ratio: none; /* Убираем фиксированное соотношение сторон */
                 width: 100%; /* Ширина карточки */
                 margin: 0 auto; /* Центрируем каждую карточку */
@@ -1071,6 +1019,7 @@
             // Создаем список квизов для отображения
             // Ищем квиз 'gnu' (новый ID) или 'friends-quiz' (старый ID для обратной совместимости)
             const gnuQuiz = existingQuizzes.find(q => q.id === 'gnu') || existingQuizzes.find(q => q.id === 'friends-quiz');
+            const akademQuiz = existingQuizzes.find(q => q.id === 'akadem');
             
             // Если квиз не найден, выводим ошибку в консоль
             if (!gnuQuiz) {
@@ -1078,8 +1027,10 @@
             }
 
             // Список реальных квизов для отображения
+            // Академгородок должен быть первым
             const realQuizzes = [
-                gnuQuiz // Чемпионат ГНУ
+                akademQuiz, // Академгородок (первый)
+                gnuQuiz // Чемпионат ГНУ (второй)
             ].filter(q => q !== null && q !== undefined);
             
             console.log('Квизы для отображения:', realQuizzes);
@@ -1102,11 +1053,14 @@
                     
                     // Выбор цвета карточки
                     let cardColor;
-                    if (i === 0) {
-                        // Первая карточка - всегда зеленый
+                    // Используем цвет из конфигурации квиза, если есть
+                    if (quiz.colors && quiz.colors.background) {
+                        cardColor = quiz.colors.background;
+                    } else if (i === 0) {
+                        // Первая карточка (академ) - используем цвет из конфигурации или зеленый
                         cardColor = '#abf67c';
                     } else if (i === 1) {
-                        // Вторая карточка - всегда розовый
+                        // Вторая карточка (ГНУ) - используем цвет из конфигурации или розовый
                         cardColor = '#f68a7c';
                     } else {
                         // Остальные карточки - случайный цвет из персонажей
@@ -1138,6 +1092,11 @@
                         // Чемпионат ГНУ - открывает отдельную страницу
                         card.addEventListener('click', () => {
                             window.location.href = `/gnu-quiz.html`;
+                        });
+                    } else {
+                        // Для других квизов - открываем универсальную страницу выбора режима
+                        card.addEventListener('click', () => {
+                            window.location.href = `/quiz-mode-select.html?quiz=${quiz.id}`;
                         });
                     }
 
@@ -1183,6 +1142,59 @@
                                 <div class="quiz-info-item">
                                     ${questionIcon}
                                     <span>15 из ${questionCount}</span>
+                                </div>
+                                <div class="quiz-info-item">
+                                    ${clockIcon}
+                                    <span>по ${timeSeconds} сек</span>
+                                </div>
+                            </div>
+                        `;
+                        // Добавляем класс для карточки с фразой
+                        card.classList.add('has-phrase');
+                    } else if (quiz.id === 'akadem' && quiz.display) {
+                        // Квиз про академгородок - стиль с фразой
+                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                            <text x="20" y="32" 
+                                  font-family="Kalam, cursive" 
+                                  font-size="36" 
+                                  font-weight="700"
+                                  fill="#000" 
+                                  text-anchor="middle">?</text>
+                        </svg>`;
+                        
+                        // Извлекаем время из квиза
+                        const timeSeconds = avgTime || quiz.gameSettings?.defaultTime || 20;
+                        
+                        // SVG иконка часов "от руки маркером" - черный цвет
+                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
+                                  stroke="#000" stroke-width="4" fill="none" 
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+                            <!-- Часовая стрелка (вверх) -->
+                            <line x1="16" y1="16" x2="16" y2="10" 
+                                  stroke="#000" stroke-width="3.5" 
+                                  stroke-linecap="round"/>
+                            <!-- Минутная стрелка (вправо) -->
+                            <line x1="16" y1="16" x2="21" y2="21" 
+                                  stroke="#000" stroke-width="3.5" 
+                                  stroke-linecap="round"/>
+                        </svg>`;
+
+                        // Формируем текст с количеством вопросов
+                        const questionsText = quiz.display.questionsDisplay 
+                            ? quiz.display.questionsDisplay.replace('{total}', questionCount)
+                            : `15 из ${questionCount}`;
+
+                        cardHTML = `
+                            <div class="quiz-card-content">
+                                <div class="quiz-title">${quiz.display.title || quiz.name.toUpperCase()}</div>
+                                <div class="quiz-subtitle">${quiz.display.subtitle || ''}</div>
+                                <div class="quiz-phrase">${quiz.display.phrase || ''}</div>
+                            </div>
+                            <div class="quiz-info">
+                                <div class="quiz-info-item">
+                                    ${questionIcon}
+                                    <span>${questionsText}</span>
                                 </div>
                                 <div class="quiz-info-item">
                                     ${clockIcon}
@@ -1312,13 +1324,10 @@
             setTimeout(adjustSize, 100);
         }
 
-        // Функция для вычисления высоты Hub и установки отступа блока с карточками (использует HubCommon)
+        // Функция больше не нужна - позиционирование управляется через CSS Grid
         function updateContainerPadding() {
-            if (typeof HubCommon !== 'undefined') {
-                HubCommon.updateContentPadding('.hub3 > .container');
-                HubCommon.updateFloatingElementsPosition();
-                return;
-            }
+            // Позиционирование теперь управляется через CSS Grid в hub-layout-system.css
+            return;
         }
         
         // Сохраняем оригинальную функцию loadQuizzes
@@ -1338,15 +1347,8 @@
                         requestAnimationFrame(() => {
                             if (typeof HubCommon !== 'undefined') {
                                 // Проверяем, что Hub1 и Hub2 инициализированы
-                                const hub1 = document.getElementById('hub1');
-                                const hub2 = document.getElementById('hub2');
-                                if (hub1 && hub2) {
-                                    HubCommon.updateContentPadding('.hub3 > .container');
-                                } else {
-                                    // Если Hub еще не инициализированы, ждем их инициализации
-                                    console.log('loadQuizzes: ожидаем инициализации Hub1 и Hub2...');
-                                    setTimeout(updatePosition, 100);
-                                }
+                                // Позиционирование теперь управляется через CSS Grid
+                                // Никаких действий не требуется
                             } else {
                                 updateContainerPadding();
                             }
@@ -1373,6 +1375,13 @@
     <script>
         // Инициализация Hub1 и Hub2 после загрузки скриптов
         (function() {
+            // Обновление позиции Hub2 при полной загрузке страницы
+            window.addEventListener('load', () => {
+                if (typeof HubCommon !== 'undefined') {
+                    HubCommon.updateHub2Position();
+                }
+            });
+            
             function initHubs() {
                 try {
                     // Проверяем, что скрипты загружены
@@ -1398,11 +1407,9 @@
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
+                                // Обновляем позицию Hub2 относительно Hub1
                                 HubCommon.updateHub2Position();
-                                HubCommon.updateHub4Position();
-                                HubCommon.updateContentPadding('.hub3 > .container');
-                                HubCommon.updateFloatingElementsPosition();
-                                HubCommon.updateBodyPaddingBottom();
+                                // Адаптируем размер логотипа
                                 HubCommon.adaptSubtitleToLogo();
                                 
                                 console.log('Hub1 и Hub2 успешно инициализированы');
@@ -1436,24 +1443,12 @@
                 clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(() => {
                     if (typeof HubCommon !== 'undefined') {
-                        // Сбрасываем флаг, чтобы разрешить обновление при resize
-                        HubCommon._positionInitialized = false;
-                        HubCommon._lastCorrectMarginTop = null;
+                        console.log('resize (index.html): обновляем позицию Hub2 и размер логотипа');
                         
-                        console.log('resize (index.html): обновляем позиции после изменения размера окна');
-                        
-                        // Обновляем позиции в правильном порядке
+                        // Обновляем позицию Hub2 относительно Hub1
                         HubCommon.updateHub2Position();
-                        // Используем requestAnimationFrame для гарантии правильной отрисовки
-                        requestAnimationFrame(() => {
-                            requestAnimationFrame(() => {
-                                HubCommon.updateHub4Position();
-                                HubCommon.updateContentPadding('.hub3 > .container');
-                                HubCommon.updateFloatingElementsPosition();
-                                HubCommon.updateBodyPaddingBottom();
-                                HubCommon.adaptSubtitleToLogo();
-                            });
-                        });
+                        // Адаптируем размер логотипа
+                        HubCommon.adaptSubtitleToLogo();
                     }
                 }, 100);
             });

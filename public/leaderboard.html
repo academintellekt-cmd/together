@@ -7,12 +7,11 @@
     <link rel="stylesheet" href="/styles/brand-style.css">
     <link rel="stylesheet" href="/styles/hub1.css">
     <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="stylesheet" href="/styles/hub-layout.css">
+    <link rel="stylesheet" href="/styles/hub-layout-system.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
-    <script src="/scripts/hub2.js"></script>
     <style>
         body {
             font-family: 'Montserrat', sans-serif;
@@ -50,6 +49,8 @@
             width: 100%;
             text-align: center;
             position: relative;
+            padding: clamp(20px, 6vw, 40px) clamp(16px, 4vw, 24px); /* Адаптивные отступы от краев экрана, как в gnu-quiz.html */
+            box-sizing: border-box;
             z-index: 2; /* Ниже Hub1 (1001), Hub2 (1000), HUB4/HUB5 (999), но выше парящих элементов (z-index: -1) */
         }
 
@@ -274,18 +275,20 @@
     </style>
 </head>
 <body class="with-hub">
-    <div class="container">
-        <h1>🏆 Рейтинг</h1>
-        <p class="subtitle">Лучшие результаты в квизе для друзей</p>
+    <!-- HUB3: основная зона контента -->
+    <div class="hub-zone hub3">
+        <div class="container">
+            <h1>🏆 Рейтинг</h1>
+            <p class="subtitle">Лучшие результаты в квизе для друзей</p>
 
-        <div id="loading" class="loading">Загрузка рейтинга...</div>
-        <div id="error" class="error" style="display: none;"></div>
-        <div id="leaderboard-list" class="leaderboard-list" style="display: none;"></div>
-        <div id="empty-state" class="empty-state" style="display: none;">
-            <div class="empty-state-icon">📊</div>
-            <p>Пока нет результатов</p>
-            <p style="margin-top: 20px; font-size: 16px;">Будьте первым, кто пройдет квиз!</p>
-        </div>
+            <div id="loading" class="loading">Загрузка рейтинга...</div>
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="leaderboard-list" class="leaderboard-list" style="display: none;"></div>
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">📊</div>
+                <p>Пока нет результатов</p>
+                <p style="margin-top: 20px; font-size: 16px;">Будьте первым, кто пройдет квиз!</p>
+            </div>
         </div>
     </div>
 
@@ -303,16 +306,44 @@
         const urlParams = new URLSearchParams(window.location.search);
         const quizId = urlParams.get('quiz') || 'friends-quiz';
         const password = urlParams.get('password') || '';
+        let quizName = null;
+        
+        // Загружаем информацию о квизе для отображения названия
+        async function loadQuizInfo() {
+            if (quizId && quizId !== 'friends-quiz') {
+                try {
+                    const response = await fetch(`/api/quizzes/${quizId}`);
+                    if (response.ok) {
+                        const quiz = await response.json();
+                        quizName = quiz.name;
+                        // Обновляем заголовок
+                        const subtitle = document.querySelector('.subtitle');
+                        if (subtitle) {
+                            subtitle.textContent = `Лучшие результаты: ${quizName}`;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка загрузки информации о квизе:', error);
+                }
+            }
+        }
         
         // Определяем URL для кнопки "Назад"
         function getBackUrl() {
+            console.log('🔙 getBackUrl вызвана:', { quizId, password });
+            
             // Если есть параметры quiz и password, возвращаем ссылку на solo.html
             if (quizId && password) {
-                return `/solo.html?quiz=${quizId}&password=${password}`;
+                const url = `/solo.html?quiz=${encodeURIComponent(quizId)}&password=${encodeURIComponent(password)}`;
+                console.log('🔙 Возвращаем URL с паролем:', url);
+                return url;
             } else if (quizId) {
-                return `/solo.html?quiz=${quizId}`;
+                const url = `/solo.html?quiz=${encodeURIComponent(quizId)}`;
+                console.log('🔙 Возвращаем URL без пароля:', url);
+                return url;
             }
             // Иначе возвращаем на главную
+            console.log('🔙 Возвращаем главную страницу');
             return '/index.html';
         }
 
@@ -328,15 +359,22 @@
             emptyState.style.display = 'none';
 
             try {
+                console.log('📊 Загрузка рейтинга для quizId:', quizId);
+                
                 // Сначала обновляем данные на сервере
+                console.log('📊 Обновление данных на сервере...');
                 await fetch('/api/reload-leaderboard');
                 
-                // Затем загружаем обновленные данные
-                const response = await fetch(`/api/leaderboard`);
+                // Затем загружаем обновленные данные с фильтром по quizId
+                const leaderboardUrl = quizId ? `/api/leaderboard?quizId=${encodeURIComponent(quizId)}` : '/api/leaderboard';
+                console.log('📊 Запрос рейтинга по URL:', leaderboardUrl);
+                const response = await fetch(leaderboardUrl);
                 if (!response.ok) {
                     throw new Error('Ошибка загрузки рейтинга');
                 }
                 const results = await response.json();
+                console.log('📊 Получено результатов:', results.length);
+                console.log('📊 Первые результаты:', results.slice(0, 3));
 
                 loading.style.display = 'none';
 
@@ -416,11 +454,11 @@
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        HubCommon.updateHub2Position();
-                        HubCommon.updateHub4Position();
-                        HubCommon.updateContentPadding('.hub3 > .container');
-                        HubCommon.updateFloatingElementsPosition();
-                        HubCommon.updateBodyPaddingBottom();
+                        // Позиционирование теперь управляется через CSS Grid
+                        
+                        
+                        
+                        
                     });
                 });
             });
@@ -435,8 +473,10 @@
             setTimeout(initHubs, 100);
         }
 
-        // Загружаем рейтинг при загрузке страницы
-        loadLeaderboard();
+        // Загружаем информацию о квизе и рейтинг при загрузке страницы
+        loadQuizInfo().then(() => {
+            loadLeaderboard();
+        });
         
         // Обновление при изменении размера окна
         let resizeTimeout;
@@ -444,11 +484,11 @@
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
                 if (typeof HubCommon !== 'undefined') {
-                    HubCommon.updateHub2Position();
-                    HubCommon.updateHub4Position();
-                    HubCommon.updateContentPadding('.hub3 > .container');
-                    HubCommon.updateFloatingElementsPosition();
-                    HubCommon.updateBodyPaddingBottom();
+                    // Позиционирование теперь управляется через CSS Grid
+                    
+                    
+                    
+                    
                 }
             }, 100);
         });

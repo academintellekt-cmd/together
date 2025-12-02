@@ -87,6 +87,69 @@ const LEADERBOARD_QUEUE_INTERVAL = 30 * 1000; // Интервал записи �
 // Очередь для батчинга записей в Google Sheets
 const leaderboardQueue = [];
 
+// Функция для нормализации quizId (конвертация названия в ID)
+// ВАЖНО: quizzes должен быть загружен до использования этой функции
+function normalizeQuizId(quizIdOrName) {
+  if (!quizIdOrName) return null;
+  
+  // Если это уже ID (короткая строка без пробелов или с дефисом), возвращаем как есть
+  if (quizIdOrName === 'gnu' || quizIdOrName === 'friends-quiz' || quizIdOrName === 'akadem') {
+    return quizIdOrName;
+  }
+  
+  // Приводим к нижнему регистру для сравнения
+  const lowerQuizIdOrName = quizIdOrName.toLowerCase().trim();
+  
+  // Проверяем по названиям квизов (если quizzes уже загружен)
+  if (typeof quizzes !== 'undefined' && quizzes) {
+    for (const [id, quiz] of Object.entries(quizzes)) {
+      const quizNameLower = (quiz.name || '').toLowerCase().trim();
+      const quizTitleLower = (quiz.display && quiz.display.title ? quiz.display.title : '').toLowerCase().trim();
+      
+      if (quizNameLower === lowerQuizIdOrName || quizTitleLower === lowerQuizIdOrName) {
+        return id;
+      }
+    }
+  }
+  
+  // Если не нашли совпадение, проверяем частичные совпадения
+  // Проверяем для ГНУ
+  if (lowerQuizIdOrName.includes('гну') || lowerQuizIdOrName.includes('чемпионат') || 
+      lowerQuizIdOrName.includes('братишек') || lowerQuizIdOrName.includes('цели')) {
+    return 'gnu';
+  }
+  // Проверяем для Академгородка - более точные совпадения
+  // Проверяем различные варианты написания
+  const akademPatterns = [
+    'академ',
+    'академгородок',
+    'история и легенды',
+    'история',
+    'легенды'
+  ];
+  
+  // Если содержит "академ" или "академгородок" - это точно академ
+  if (lowerQuizIdOrName.includes('академ') || lowerQuizIdOrName.includes('академгородок')) {
+    console.log(`🔄 normalizeQuizId: "${quizIdOrName}" распознан как "akadem" (содержит "академ")`);
+    return 'akadem';
+  }
+  
+  // Если содержит и "история" и "легенды" - это тоже академ
+  if (lowerQuizIdOrName.includes('история') && lowerQuizIdOrName.includes('легенды')) {
+    console.log(`🔄 normalizeQuizId: "${quizIdOrName}" распознан как "akadem" (содержит "история" и "легенды")`);
+    return 'akadem';
+  }
+  
+  // Если начинается с "академгородок" - это академ
+  if (lowerQuizIdOrName.startsWith('академгородок')) {
+    console.log(`🔄 normalizeQuizId: "${quizIdOrName}" распознан как "akadem" (начинается с "академгородок")`);
+    return 'akadem';
+  }
+  
+  // Если ничего не подошло, возвращаем как есть (может быть старый формат)
+  return quizIdOrName;
+}
+
 // Инициализация рейтинга при запуске сервера
 async function initializeLeaderboard() {
   console.log('🔄 Загрузка рейтинга из Google Sheets...');
@@ -214,8 +277,48 @@ async function loadLeaderboardFromGoogleSheets() {
                     if (data.success && Array.isArray(data.leaderboard)) {
                       console.log(`✅ Загружено ${data.leaderboard.length} записей рейтинга из Google Sheets`);
                       
-                      // Просто возвращаем данные как есть из Google Apps Script
-                      const processedLeaderboard = data.leaderboard;
+                      // Логируем все уникальные quizId ДО нормализации
+                      const originalQuizIds = [...new Set(data.leaderboard.map(e => e.quizId))];
+                      console.log('📊 Уникальные quizId ДО нормализации (из Google Sheets):', originalQuizIds);
+                      console.log('📊 Всего записей из Google Sheets:', data.leaderboard.length);
+                      
+                      // Показываем примеры записей с разными quizId
+                      originalQuizIds.forEach(qid => {
+                        const examples = data.leaderboard.filter(e => e.quizId === qid);
+                        console.log(`📋 Записей с quizId "${qid}": ${examples.length}`);
+                        if (examples.length > 0) {
+                          console.log(`📋 Примеры записей с quizId "${qid}":`, examples.slice(0, 2).map(e => ({ player: e.playerName, score: e.score, quizId: e.quizId })));
+                        }
+                      });
+                      
+                      // Проверяем, есть ли записи, которые могут быть для академгородка
+                      const possibleAkadem = data.leaderboard.filter(e => {
+                        const lower = (e.quizId || '').toLowerCase();
+                        return lower.includes('академ') || lower.includes('история') || lower.includes('легенды');
+                      });
+                      if (possibleAkadem.length > 0) {
+                        console.log(`🔍 Найдено ${possibleAkadem.length} записей, которые могут быть для академгородка:`, possibleAkadem.map(e => ({ player: e.playerName, quizId: e.quizId })));
+                      }
+                      
+                      // Нормализуем quizId для каждой записи
+                      const processedLeaderboard = data.leaderboard.map(entry => {
+                        const originalQuizId = entry.quizId;
+                        const normalizedQuizId = normalizeQuizId(originalQuizId) || originalQuizId;
+                        
+                        // Логируем, если quizId изменился
+                        if (originalQuizId !== normalizedQuizId) {
+                          console.log(`🔄 Нормализация quizId: "${originalQuizId}" -> "${normalizedQuizId}"`);
+                        }
+                        
+                        return {
+                          ...entry,
+                          quizId: normalizedQuizId
+                        };
+                      });
+                      
+                      // Логируем все уникальные quizId после нормализации
+                      const normalizedQuizIds = [...new Set(processedLeaderboard.map(e => e.quizId))];
+                      console.log('📊 Уникальные quizId ПОСЛЕ нормализации:', normalizedQuizIds);
                       
                       if (processedLeaderboard.length > 0) {
                         console.log('📋 Первая запись (обработанная):', JSON.stringify(processedLeaderboard[0], null, 2));
@@ -250,8 +353,48 @@ async function loadLeaderboardFromGoogleSheets() {
             if (data.success && Array.isArray(data.leaderboard)) {
               console.log(`✅ Загружено ${data.leaderboard.length} записей рейтинга из Google Sheets`);
               
-              // Просто возвращаем данные как есть из Google Apps Script
-              const processedLeaderboard = data.leaderboard;
+              // Логируем все уникальные quizId ДО нормализации
+              const originalQuizIds = [...new Set(data.leaderboard.map(e => e.quizId))];
+              console.log('📊 Уникальные quizId ДО нормализации (из Google Sheets):', originalQuizIds);
+              console.log('📊 Всего записей из Google Sheets:', data.leaderboard.length);
+              
+              // Показываем примеры записей с разными quizId
+              originalQuizIds.forEach(qid => {
+                const examples = data.leaderboard.filter(e => e.quizId === qid);
+                console.log(`📋 Записей с quizId "${qid}": ${examples.length}`);
+                if (examples.length > 0) {
+                  console.log(`📋 Примеры записей с quizId "${qid}":`, examples.slice(0, 2).map(e => ({ player: e.playerName, score: e.score, quizId: e.quizId })));
+                }
+              });
+              
+              // Проверяем, есть ли записи, которые могут быть для академгородка
+              const possibleAkadem = data.leaderboard.filter(e => {
+                const lower = (e.quizId || '').toLowerCase();
+                return lower.includes('академ') || lower.includes('история') || lower.includes('легенды');
+              });
+              if (possibleAkadem.length > 0) {
+                console.log(`🔍 Найдено ${possibleAkadem.length} записей, которые могут быть для академгородка:`, possibleAkadem.map(e => ({ player: e.playerName, quizId: e.quizId })));
+              }
+              
+              // Нормализуем quizId для каждой записи
+              const processedLeaderboard = data.leaderboard.map(entry => {
+                const originalQuizId = entry.quizId;
+                const normalizedQuizId = normalizeQuizId(originalQuizId) || originalQuizId;
+                
+                // Логируем, если quizId изменился
+                if (originalQuizId !== normalizedQuizId) {
+                  console.log(`🔄 Нормализация quizId: "${originalQuizId}" -> "${normalizedQuizId}"`);
+                }
+                
+                return {
+                  ...entry,
+                  quizId: normalizedQuizId
+                };
+              });
+              
+              // Логируем все уникальные quizId после нормализации
+              const normalizedQuizIds = [...new Set(processedLeaderboard.map(e => e.quizId))];
+              console.log('📊 Уникальные quizId ПОСЛЕ нормализации:', normalizedQuizIds);
               
               if (processedLeaderboard.length > 0) {
                 console.log('📋 Первая запись (обработанная):', JSON.stringify(processedLeaderboard[0], null, 2));
@@ -829,7 +972,24 @@ app.get('/api/leaderboard', (req, res) => {
   
   // Фильтруем по quizId, если указан
   if (quizId) {
-    results = leaderboard.filter(r => r.quizId === quizId);
+    const normalizedQuizId = normalizeQuizId(quizId);
+    console.log(`🔍 Фильтрация рейтинга: запрошен quizId="${quizId}", нормализован в "${normalizedQuizId}"`);
+    console.log(`📊 Всего записей в рейтинге: ${leaderboard.length}`);
+    
+    // Логируем все уникальные quizId в рейтинге
+    const uniqueQuizIds = [...new Set(leaderboard.map(r => r.quizId))];
+    console.log(`📊 Уникальные quizId в рейтинге:`, uniqueQuizIds);
+    
+    results = leaderboard.filter(r => {
+      const rQuizId = normalizeQuizId(r.quizId);
+      const matches = rQuizId === normalizedQuizId;
+      if (matches) {
+        console.log(`✅ Найдено совпадение: "${r.quizId}" -> "${rQuizId}"`);
+      }
+      return matches;
+    });
+    
+    console.log(`📊 Найдено результатов после фильтрации: ${results.length}`);
   }
   
   // Группируем по игрокам и берем лучший результат каждого

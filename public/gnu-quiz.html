@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="/styles/hub-layout.css">
     <link rel="stylesheet" href="/styles/hub1.css">
     <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="stylesheet" href="/styles/hub-layout.css">
+    <link rel="stylesheet" href="/styles/hub-layout-system.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -161,10 +163,6 @@
 
         /* Используем универсальные классы из quiz-card.css */
         /* Здесь только специфичные стили для цветов карточек режимов */
-        
-        .mode-card {
-            /* Используем класс quiz-card из quiz-card.css */
-        }
 
         /* Специальные стили для карточек режимов */
         .mode-card.solo {
@@ -229,14 +227,75 @@
             .mode-cards {
                 grid-template-columns: repeat(2, 1fr);
             }
-        }
-
+            
             .password-modal {
                 padding: clamp(24px, 5vw, 32px) clamp(20px, 4vw, 28px);
             }
         }
 
         /* Адаптивные стили для HUB4 и HUB5 перенесены в hub-layout.css */
+        
+        /* Скрываем Hub2 на этой странице */
+        #hub2 {
+            display: none !important;
+        }
+        
+        /* Когда Hub2 скрыт, Hub3 занимает его место в grid */
+        body.with-hub {
+            grid-template-rows: 
+                minmax(10vh, auto)  /* Hub1 - минимум 10% экрана */
+                auto;               /* Hub3 занимает место Hub2 */
+        }
+        
+        .hub3 {
+            grid-row: 2; /* Занимает место Hub2 */
+        }
+        
+        /* Обновляем позицию парящих элементов */
+        body.with-hub::before {
+            top: 10vh; /* После Hub1 (без Hub2) */
+        }
+        
+        /* Адаптивность для разных экранов */
+        @media (min-width: 1024px) {
+            body.with-hub {
+                grid-template-rows: 
+                    minmax(10vh, auto)
+                    auto;
+            }
+        }
+        
+        @media (max-width: 1023px) and (min-width: 769px) {
+            body.with-hub {
+                grid-template-rows: 
+                    minmax(10vh, auto)
+                    auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body.with-hub {
+                grid-template-rows: 
+                    minmax(10vh, auto)
+                    auto;
+            }
+            
+            body.with-hub::before {
+                top: clamp(10vh, 12vw, 12vh);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body.with-hub {
+                grid-template-rows: 
+                    minmax(10vh, auto)
+                    auto;
+            }
+            
+            body.with-hub::before {
+                top: clamp(10vh, 12vw, 12vh);
+            }
+        }
     </style>
 </head>
 <body class="with-hub">
@@ -350,10 +409,9 @@
         let passwordEntered = false;
 
         // Функция для обновления позиции парящих элементов (используем HubCommon)
+        // Функция больше не нужна - позиционирование управляется через CSS Grid
         function updateFloatingElementsPosition() {
-            if (typeof HubCommon !== 'undefined') {
-                HubCommon.updateFloatingElementsPosition();
-            }
+            // Позиционирование теперь управляется через CSS Grid в hub-layout-system.css
         }
 
         // Проверка пароля из localStorage
@@ -362,11 +420,15 @@
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'block';
             // Инициализируем Hub1 и Hub2
-            if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined') {
-                initHubs();
+            if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined' && typeof HubCommon !== 'undefined') {
+                setTimeout(initHubs, 100);
             } else {
                 // Ждем загрузки скриптов
-                setTimeout(initHubs, 100);
+                setTimeout(() => {
+                    if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined' && typeof HubCommon !== 'undefined') {
+                        initHubs();
+                    }
+                }, 200);
             }
         }
 
@@ -388,11 +450,15 @@
                 document.getElementById('mainContainer').style.display = 'block';
                 errorDiv.classList.remove('show');
                 // Инициализируем Hub1 и Hub2
-                if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined') {
-                    initHubs();
+                if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined' && typeof HubCommon !== 'undefined') {
+                    setTimeout(initHubs, 100);
                 } else {
                     // Ждем загрузки скриптов
-                    setTimeout(initHubs, 100);
+                    setTimeout(() => {
+                        if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined' && typeof HubCommon !== 'undefined') {
+                            initHubs();
+                        }
+                    }, 200);
                 }
             } else {
                 errorDiv.classList.add('show');
@@ -445,11 +511,9 @@
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
+                        // Обновляем позицию Hub2 относительно Hub1
                         HubCommon.updateHub2Position();
-                        HubCommon.updateHub4Position();
-                        HubCommon.updateContentPadding('.hub3 > .container');
-                        HubCommon.updateFloatingElementsPosition();
-                        HubCommon.updateBodyPaddingBottom();
+                        // Адаптируем размер логотипа
                         HubCommon.adaptSubtitleToLogo();
                     });
                 });
@@ -461,32 +525,29 @@
             initHubs();
         }
         
-        // Обновление при загрузке
+        // Обновление при загрузке (только если Hub1 инициализирован)
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof HubCommon !== 'undefined') {
+            const hub1 = document.getElementById('hub1');
+            if (hub1 && typeof HubCommon !== 'undefined') {
                 HubCommon.updateHub2Position();
-                HubCommon.updateHub4Position();
-                HubCommon.updateContentPadding('.hub3 > .container');
-                HubCommon.updateFloatingElementsPosition();
-                HubCommon.updateBodyPaddingBottom();
+                HubCommon.adaptSubtitleToLogo();
             }
         });
         
-        // Обновление при изменении размера окна
+        // Обновление при изменении размера окна (только если Hub1 инициализирован)
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                if (typeof HubCommon !== 'undefined') {
+                const hub1 = document.getElementById('hub1');
+                if (hub1 && typeof HubCommon !== 'undefined') {
                     HubCommon.updateHub2Position();
-                    HubCommon.updateHub4Position();
-                    HubCommon.updateContentPadding('.hub3 > .container');
-                    HubCommon.updateFloatingElementsPosition();
-                    HubCommon.updateBodyPaddingBottom();
+                    HubCommon.adaptSubtitleToLogo();
                 }
             }, 100);
         });
     </script>
 </body>
 </html>
+
 

@@ -4,17 +4,12 @@
    ============================================ */
 
 /* Базовые стили body для HUB-структуры */
-body {
+/* Grid-структура управляется через hub-layout-system.css */
+body.with-hub {
     font-family: 'Montserrat', sans-serif;
-    min-height: 100vh;
     background: #f2f2f2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 0 20px 20px 20px;
-    position: relative;
-    /* padding-bottom будет обновляться динамически через JavaScript для HUB4/HUB5 */
+    padding: 0;
+    margin: 0;
 }
 
 /* Базовый класс для любой HUB-зоны */
@@ -24,11 +19,12 @@ body {
 }
 
 /* HUB3 — основная зона контента (лобби, игра, результаты) */
+/* Позиционирование управляется через grid в hub-layout-system.css */
 .hub3 {
-    flex: 1 0 auto;
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    width: 100%;
 }
 
 /* Внутренний контейнер внутри HUB3 */
@@ -39,105 +35,68 @@ body {
     text-align: center;
     position: relative;
     z-index: 2; /* Ниже Hub1 (1001), Hub2 (1000), HUB4/HUB5 (999), но выше парящих элементов (z-index: -1) */
-    padding-top: clamp(20px, 6vw, 40px);
+    padding: clamp(16px, 5vw, 40px) clamp(12px, 3.5vw, 24px); /* Адаптивные отступы от краев экрана */
+    box-sizing: border-box;
 }
 
-/* HUB4 и HUB5 — нижние полосы, фиксированные снизу (как HUB1/HUB2 сверху) */
+/* Улучшенная адаптивность для мобильных */
+@media (max-width: 480px) {
+    .hub3 > .container {
+        padding: clamp(12px, 4vw, 20px) clamp(10px, 3vw, 16px);
+    }
+}
+
+@media (max-width: 360px) {
+    .hub3 > .container {
+        padding: clamp(10px, 3vw, 16px) clamp(8px, 2.5vw, 12px);
+    }
+}
+
+/* HUB4 и HUB5 — нижние полосы, прокручиваются вместе с контентом */
+/* Позиционирование управляется через hub-layout-system.css */
 .hub4,
 .hub5 {
-    position: fixed;
-    left: 0;
-    right: 0;
     background: var(--hub1-bg);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     padding: var(--hub1-padding);
-    min-height: auto;
+    min-height: 10vh; /* Минимальная высота для пропорций */
     box-sizing: border-box;
     width: 100%;
     z-index: 999; /* Ниже HUB1 (1001) и HUB2 (1000), но выше парящих элементов (z-index: -1) */
-    /* bottom будет обновляться через JavaScript */
-    transition: bottom 0.3s ease;
-    will-change: bottom;
+    position: relative; /* В потоке документа, не фиксированы */
 }
 
-/* HUB5 — самая нижняя полоса (фиксирована внизу) */
-.hub5 {
-    bottom: 0;
-}
-
-/* HUB4 — над HUB5 (bottom будет рассчитываться динамически через JavaScript) */
-.hub4 {
-    bottom: auto; /* Устанавливается динамически через JavaScript в hub-common.js */
-}
-
-/* Парящие элементы */
-body::before {
-    content: '';
-    position: fixed;
-    /* top устанавливается динамически через JavaScript */
-    left: -50px;
-    width: 200px;
-    height: 200px;
-    background: #d6fbbf; /* Парящий элемент */
-    border-radius: 50% 40% 60% 30%;
-    opacity: 0.9;
-    z-index: -1; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
-    animation: wobble 6s ease-in-out infinite;
-    pointer-events: none;
-}
-
-body::after {
-    content: '';
-    position: fixed;
-    bottom: -80px;
-    right: -80px;
-    width: 250px;
-    height: 250px;
-    background: #fececd; /* Парящий элемент */
-    border-radius: 40% 50% 30% 60%;
-    opacity: 0.9;
-    z-index: -1; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
-    animation: wobble 8s ease-in-out infinite reverse;
-    pointer-events: none;
-}
-
-/* Анимация wobble */
-@keyframes wobble {
-    0%, 100% { transform: rotate(0deg) scale(1); }
-    25% { transform: rotate(5deg) scale(1.1); }
-    50% { transform: rotate(-5deg) scale(0.9); }
-    75% { transform: rotate(3deg) scale(1.05); }
-}
+/* Парящие элементы управляются через hub-layout-system.css */
 
 /* Адаптивные стили для HUB4 и HUB5 (соответствуют HUB1) */
 @media (min-width: 1024px) {
     .hub4, .hub5 {
-        padding: 15px 40px;
+        padding: clamp(15px, 2vw, 20px) clamp(30px, 4vw, 40px);
     }
 }
 
 @media (max-width: 1023px) and (min-width: 769px) {
     .hub4, .hub5 {
-        padding: 15px 30px;
+        padding: clamp(12px, 2vw, 15px) clamp(20px, 3vw, 30px);
     }
 }
 
 @media (max-width: 768px) {
     .hub4, .hub5 {
-        padding: 12px 15px;
+        padding: clamp(10px, 2vw, 12px) clamp(12px, 3vw, 15px);
     }
 }
 
 @media (max-width: 480px) {
     .hub4, .hub5 {
-        padding: 10px 12px;
+        padding: clamp(8px, 2vw, 10px) clamp(10px, 2.5vw, 12px);
     }
 }
 
 @media (max-width: 360px) {
     .hub4, .hub5 {
-        padding: 10px 10px;
+        padding: clamp(8px, 2vw, 10px);
     }
 }
 

@@ -137,3 +137,4 @@ esptool.py --chip esp32 --port /dev/cu.usbserial-0001 write_flash -z 0x1000 firm
 
 **Успешной загрузки! 🚀**
 
+

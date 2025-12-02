@@ -1,0 +1,180 @@
+/* ============================================
+   HUB LAYOUT SYSTEM - Новая система позиционирования
+   Использует CSS Grid для пропорционального распределения пространства
+   ============================================ */
+
+/* Основная grid-структура для body */
+body.with-hub {
+    display: grid;
+    grid-template-rows: 
+        minmax(10vh, auto)  /* Hub1 - минимум 10% экрана, может расти */
+        minmax(15vh, auto)  /* Hub2 - минимум 15% экрана, может расти (в сумме с Hub1 = 25%) */
+        auto;               /* Hub3, Hub4, Hub5 - прокручиваются вместе */
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto; /* Прокрутка всего контента включая Hub4 и Hub5 */
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+/* Hub1 - первая строка grid */
+#hub1 {
+    grid-row: 1;
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+    width: 100%;
+}
+
+/* Hub2 - вторая строка grid */
+#hub2 {
+    grid-row: 2;
+    position: sticky;
+    top: 0; /* Будет обновляться через JavaScript на высоту Hub1 */
+    z-index: 1000;
+    width: 100%;
+}
+
+/* Hub3 - третья строка grid, прокручивается вместе с Hub4 и Hub5 */
+.hub3 {
+    grid-row: 3;
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+    z-index: 2;
+    min-height: 0; /* Важно для правильной работы */
+}
+
+/* Hub4 - в потоке документа после Hub3, прокручивается вместе с контентом */
+#hub4 {
+    position: relative; /* В потоке документа, не фиксирован */
+    z-index: 999;
+    width: 100%;
+}
+
+/* Hub5 - в потоке документа после Hub4, прокручивается вместе с контентом */
+#hub5 {
+    position: relative; /* В потоке документа, не фиксирован */
+    z-index: 999;
+    width: 100%;
+}
+
+/* Парящие элементы - позиционируются относительно viewport */
+body.with-hub::before {
+    content: '';
+    position: fixed;
+    top: 25vh; /* После Hub1+Hub2 (10vh+15vh=25vh = 25%) */
+    left: -50px;
+    width: 200px;
+    height: 200px;
+    background: #d6fbbf;
+    border-radius: 50% 40% 60% 30%;
+    opacity: 0.9;
+    z-index: -1;
+    animation: wobble 6s ease-in-out infinite;
+    pointer-events: none;
+}
+
+body.with-hub::after {
+    content: '';
+    position: fixed;
+    bottom: 20vh; /* Примерно выше Hub4+Hub5 */
+    right: -80px;
+    width: 250px;
+    height: 250px;
+    background: #fececd;
+    border-radius: 40% 50% 30% 60%;
+    opacity: 0.9;
+    z-index: -1;
+    animation: wobble 8s ease-in-out infinite reverse;
+    pointer-events: none;
+}
+
+/* Анимация wobble */
+@keyframes wobble {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(5deg) scale(1.1); }
+    50% { transform: rotate(-5deg) scale(0.9); }
+    75% { transform: rotate(3deg) scale(1.05); }
+}
+
+/* Адаптивность - Desktop (≥1024px) */
+@media (min-width: 1024px) {
+    body.with-hub {
+        grid-template-rows: 
+            minmax(10vh, auto)  /* Hub1 - 10% экрана */
+            minmax(15vh, auto)  /* Hub2 - 15% экрана (в сумме с Hub1 = 25%) */
+            auto;
+    }
+}
+
+/* Адаптивность - Tablet (769px - 1023px) */
+@media (max-width: 1023px) and (min-width: 769px) {
+    body.with-hub {
+        grid-template-rows: 
+            minmax(10vh, auto)  /* Hub1 - 10% экрана */
+            minmax(15vh, auto)  /* Hub2 - 15% экрана (в сумме с Hub1 = 25%) */
+            auto;
+    }
+}
+
+/* Адаптивность - Mobile (≤768px) */
+@media (max-width: 768px) {
+    body.with-hub {
+        grid-template-rows: 
+            minmax(10vh, auto)  /* Hub1 - 10% экрана */
+            minmax(15vh, auto)  /* Hub2 - 15% экрана (в сумме с Hub1 = 25%) */
+            auto;               /* Hub3, Hub4, Hub5 - прокручиваются вместе */
+    }
+    
+    body.with-hub::before {
+        top: clamp(20vh, 25vw, 25vh); /* После Hub1+Hub2 (25%) */
+        width: clamp(150px, 30vw, 200px);
+        height: clamp(150px, 30vw, 200px);
+    }
+    
+    body.with-hub::after {
+        bottom: clamp(15vh, 20vw, 20vh); /* Парящий элемент выше */
+        width: clamp(180px, 35vw, 250px);
+        height: clamp(180px, 35vw, 250px);
+    }
+}
+
+/* Адаптивность - Small Mobile (≤480px) */
+@media (max-width: 480px) {
+    body.with-hub {
+        grid-template-rows: 
+            minmax(10vh, auto)  /* Hub1 - 10% экрана */
+            minmax(15vh, auto)  /* Hub2 - 15% экрана (в сумме с Hub1 = 25%) */
+            auto;               /* Hub3, Hub4, Hub5 - прокручиваются вместе */
+    }
+    
+    body.with-hub::before {
+        top: clamp(20vh, 25vw, 25vh); /* После Hub1+Hub2 (25%) */
+        width: clamp(120px, 25vw, 180px);
+        height: clamp(120px, 25vw, 180px);
+        left: clamp(-40px, -8vw, -50px);
+    }
+    
+    body.with-hub::after {
+        bottom: clamp(12vh, 18vw, 18vh);
+        width: clamp(150px, 30vw, 220px);
+        height: clamp(150px, 30vw, 220px);
+        right: clamp(-60px, -12vw, -80px);
+    }
+}
+
+/* Адаптивность - Очень маленькие экраны (≤360px) */
+@media (max-width: 360px) {
+    body.with-hub::before {
+        width: clamp(100px, 22vw, 150px);
+        height: clamp(100px, 22vw, 150px);
+    }
+    
+    body.with-hub::after {
+        width: clamp(130px, 28vw, 200px);
+        height: clamp(130px, 28vw, 200px);
+    }
+}
+

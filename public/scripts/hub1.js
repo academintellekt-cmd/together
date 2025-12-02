@@ -19,6 +19,11 @@ const Hub1 = {
     init(config = {}) {
         this.config = { ...this.config, ...config };
         
+        // Инициализируем HubCommon если еще не инициализирован
+        if (!HubCommon._initialized) {
+            HubCommon.init();
+        }
+        
         // Создаем Hub1 если его нет
         if (!document.getElementById('hub1')) {
             this.createHub1();
@@ -32,7 +37,7 @@ const Hub1 = {
         // Применяем цвет персонажа
         HubCommon.applyCharacterColor();
         
-        // Обновляем позицию Hub2
+        // Обновляем позицию Hub2 после создания Hub1
         HubCommon.updateHub2Position();
         
         // Инициализируем обработчики
@@ -326,8 +331,6 @@ const Hub1 = {
         if (hub1) {
             // Высота обновится автоматически, нужно обновить позицию Hub2
             HubCommon.updateHub2Position();
-            HubCommon.updateContentPadding();
-            HubCommon.updateFloatingElementsPosition();
         }
     },
     
@@ -335,40 +338,8 @@ const Hub1 = {
      * Инициализирует обработчики событий
      */
     initEventHandlers() {
-        // Обновляем при изменении размера окна
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                // Сбрасываем флаг, чтобы разрешить обновление при resize
-                HubCommon._positionInitialized = false;
-                HubCommon._lastCorrectMarginTop = null;
-                
-                console.log('resize (hub1.js): обновляем позиции после изменения размера окна');
-                
-                this.updateHeight();
-            }, 100);
-        });
-        
-        // Обновляем при загрузке (только если позиция еще не была установлена)
-        // Это предотвращает перезапись правильной позиции
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => {
-                    // Проверяем, не была ли позиция уже установлена правильно
-                    if (!HubCommon._positionInitialized) {
-                        this.updateHeight();
-                    }
-                }, 300);
-            });
-        } else {
-            setTimeout(() => {
-                // Проверяем, не была ли позиция уже установлена правильно
-                if (!HubCommon._positionInitialized) {
-                    this.updateHeight();
-                }
-            }, 300);
-        }
+        // Обработчики resize теперь управляются через HubCommon.initResizeHandlers()
+        // Дополнительные обработчики можно добавить здесь при необходимости
     }
 };
 

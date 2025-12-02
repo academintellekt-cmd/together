@@ -21,7 +21,8 @@
     justify-content: space-between;
     align-items: center;
     text-align: center;
-    min-height: auto; /* Карточка подстраивается под содержимое */
+    min-height: 280px; /* Фиксированная минимальная высота для одинакового размера */
+    height: 100%; /* Занимают всю доступную высоту в grid-ячейке для одинакового размера */
     margin: 0;
     opacity: 1;
     transform: none;
@@ -241,7 +242,8 @@
     .quiz-card {
         padding: 20px 15px;
         aspect-ratio: none;
-        min-height: auto;
+        min-height: 280px; /* Фиксированная минимальная высота для одинакового размера */
+        height: 100%; /* Занимают всю доступную высоту в grid-ячейке для одинакового размера */
     }
 }
 
@@ -249,39 +251,90 @@
 @media (max-width: 768px) {
     .quiz-card {
         padding: clamp(16px, 4vw, 24px) clamp(14px, 3.5vw, 20px);
+        min-height: 280px; /* Фиксированная минимальная высота для одинакового размера */
+        height: 100%; /* Занимают всю доступную высоту в grid-ячейке для одинакового размера */
     }
 }
 
 /* Узкие экраны (≤480px) */
 @media (max-width: 480px) {
     .quiz-card {
-        padding: clamp(16px, 4vw, 24px) clamp(14px, 3.5vw, 20px);
-        min-height: auto;
+        padding: clamp(14px, 3.5vw, 20px) clamp(12px, 3vw, 16px);
+        min-height: 260px; /* Фиксированная минимальная высота для одинакового размера на мобильных */
+        height: 100%; /* Занимают всю доступную высоту в grid-ячейке для одинакового размера */
         aspect-ratio: none;
+        border-radius: clamp(16px, 3.5vw, 20px);
     }
 
     .quiz-title {
-        font-size: clamp(22px, 5vw, 28px);
+        font-size: clamp(20px, 4.5vw, 26px);
+        margin-bottom: clamp(5px, 1.2vw, 8px);
     }
 
     .quiz-subtitle {
-        font-size: clamp(20px, 4.5vw, 24px);
+        font-size: clamp(18px, 4vw, 22px);
+        margin-top: clamp(6px, 1.5vw, 8px);
+        margin-bottom: clamp(5px, 1.2vw, 8px);
     }
 
     .quiz-description {
-        font-size: clamp(20px, 4.5vw, 24px);
+        font-size: clamp(18px, 4vw, 22px);
+        margin-bottom: clamp(8px, 2vw, 10px);
     }
 
     .quiz-info {
-        font-size: clamp(18px, 4vw, 22px);
+        font-size: clamp(16px, 3.5vw, 20px);
+        padding-top: clamp(5px, 1.2vw, 8px);
     }
 
     .quiz-info-item span:last-child {
-        font-size: clamp(18px, 4vw, 22px);
+        font-size: clamp(16px, 3.5vw, 20px);
     }
 
     .quiz-phrase {
+        font-size: clamp(16px, 3.5vw, 22px);
+        margin: clamp(16px, 3.5vw, 25px) 0 clamp(6px, 1.5vw, 8px) 0;
+    }
+    
+    .quiz-icon {
+        font-size: clamp(32px, 7vw, 48px);
+        margin-bottom: clamp(8px, 2vw, 12px);
+    }
+}
+
+/* Очень маленькие экраны (≤360px) */
+@media (max-width: 360px) {
+    .quiz-card {
+        padding: clamp(12px, 3vw, 16px) clamp(10px, 2.5vw, 14px);
+        border-radius: clamp(14px, 3vw, 18px);
+    }
+
+    .quiz-title {
         font-size: clamp(18px, 4vw, 24px);
+    }
+
+    .quiz-subtitle {
+        font-size: clamp(16px, 3.5vw, 20px);
+    }
+
+    .quiz-description {
+        font-size: clamp(16px, 3.5vw, 20px);
+    }
+
+    .quiz-info {
+        font-size: clamp(14px, 3vw, 18px);
+    }
+
+    .quiz-info-item span:last-child {
+        font-size: clamp(14px, 3vw, 18px);
+    }
+
+    .quiz-phrase {
+        font-size: clamp(14px, 3vw, 20px);
+    }
+    
+    .quiz-icon {
+        font-size: clamp(28px, 6vw, 40px);
     }
 }
 

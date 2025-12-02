@@ -15,16 +15,26 @@ const Hub2 = {
     init(config = {}) {
         this.config = { ...this.config, ...config };
         
+        // Инициализируем HubCommon если еще не инициализирован
+        if (!HubCommon._initialized) {
+            HubCommon.init();
+        }
+        
         // Создаем Hub2 если его нет
         if (!document.getElementById('hub2')) {
             this.createHub2();
         }
         
-        // Обновляем позицию и связанные элементы
-        this.updatePosition();
+        // Обновляем позицию Hub2 относительно Hub1
+        HubCommon.updateHub2Position();
         
-        // Адаптируем размер фразы
-        HubCommon.adaptSubtitleToLogo();
+        // Адаптируем размер логотипа
+        HubCommon.adaptLogoSize();
+        
+        // Адаптируем размер фразы под логотип
+        setTimeout(() => {
+            HubCommon.adaptSubtitleToLogo();
+        }, 100);
         
         // Инициализируем обработчики
         this.initEventHandlers();
@@ -72,60 +82,34 @@ const Hub2 = {
     },
     
     /**
-     * Обновляет позицию Hub2 и связанные элементы
-     */
-    updatePosition() {
-        HubCommon.updateHub2Position();
-        HubCommon.updateContentPadding();
-        HubCommon.updateFloatingElementsPosition();
-    },
-    
-    /**
      * Инициализирует обработчики событий
      */
     initEventHandlers() {
-        // Обновляем при изменении размера окна
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                // Сбрасываем флаг, чтобы разрешить обновление при resize
-                HubCommon._positionInitialized = false;
-                HubCommon._lastCorrectMarginTop = null;
-                
-                console.log('resize (hub2.js): обновляем позиции после изменения размера окна');
-                
-                this.updatePosition();
-                HubCommon.adaptSubtitleToLogo();
-            }, 100);
-        });
-        
-        // Обновляем при загрузке (только если позиция еще не была установлена)
-        // Это предотвращает перезапись правильной позиции
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => {
-                    // Проверяем, не была ли позиция уже установлена правильно
-                    if (!HubCommon._positionInitialized) {
-                        this.updatePosition();
-                    }
-                    HubCommon.adaptSubtitleToLogo();
-                }, 300);
-            });
-        } else {
-            setTimeout(() => {
-                // Проверяем, не была ли позиция уже установлена правильно
-                if (!HubCommon._positionInitialized) {
-                    this.updatePosition();
-                }
-                HubCommon.adaptSubtitleToLogo();
-            }, 300);
-        }
+        // Обработчики resize теперь управляются через HubCommon.initResizeHandlers()
         
         // Обновляем при загрузке изображения логотипа
-        window.addEventListener('load', () => {
-            HubCommon.adaptSubtitleToLogo();
-        });
+        const logo = document.querySelector('.hub2-logo-section .logo');
+        if (logo) {
+            if (logo.complete) {
+                HubCommon.adaptLogoSize();
+                setTimeout(() => {
+                    HubCommon.adaptSubtitleToLogo();
+                }, 50);
+            } else {
+                logo.addEventListener('load', () => {
+                    HubCommon.adaptLogoSize();
+                    setTimeout(() => {
+                        HubCommon.adaptSubtitleToLogo();
+                    }, 50);
+                }, { once: true });
+                logo.addEventListener('error', () => {
+                    HubCommon.adaptLogoSize();
+                    setTimeout(() => {
+                        HubCommon.adaptSubtitleToLogo();
+                    }, 50);
+                }, { once: true });
+            }
+        }
     }
 };
 
