@@ -6,13 +6,8 @@
     --hub2-bg: rgba(242, 242, 242, 0.98); /* Почти непрозрачный фон для лучшей видимости */
     --hub2-padding: 15px 20px;
     --hub2-z-index: 1000; /* Всегда выше контента (z-index < 1000) и парящих элементов (z-index: -1) */
-    --hub2-min-height-desktop: 162.5px;
-    --hub2-min-height-mobile: auto;
-    --hub2-logo-max-height-desktop: 156.25px;
-    --hub2-logo-max-height-tablet: 100px;
-    --hub2-logo-max-height-mobile: 80px;
-    --hub2-logo-max-height-small-mobile: 60px;
-    --hub2-subtitle-font-size: clamp(33.6px, 6.3vw, 50.4px);
+    --hub2-logo-max-height: 156.25px;
+    --hub2-subtitle-font-size: 50.4px;
 }
 
 /* Основной контейнер Hub2 */
@@ -20,31 +15,39 @@
     /* Позиционирование управляется через grid в hub-layout-system.css */
     background: var(--hub2-bg); /* Непрозрачный фон */
     backdrop-filter: blur(10px);
-    padding: var(--hub2-padding);
+    padding: 0; /* Убираем padding, высота определяется только логотипом и фразой */
     z-index: var(--hub2-z-index); /* 1000 - всегда выше контента и парящих элементов */
     border-bottom: none;
     box-shadow: none;
     width: 100%;
     overflow: visible;
-    min-height: var(--hub2-min-height-mobile);
+    /* Высота определяется только содержимым (логотип + фраза + gap) - без адаптивных ограничений */
+    height: auto;
+    min-height: auto;
+    max-height: none; /* Убираем адаптивное ограничение */
     box-sizing: border-box;
     /* Гарантируем непрозрачность фона во всех случаях */
     opacity: 1 !important;
+    /* Высота складывается из высоты логотипа и фразы */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Контент Hub2 */
 .hub2-content {
-    max-width: 100%;
+    max-width: 700px;
+    width: 100%;
     margin: 0 auto;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 0; /* Убираем gap, отступы только между логотипом и фразой */
     position: relative;
-    min-height: var(--hub2-min-height-mobile);
+    min-height: auto; /* Высота определяется содержимым */
     box-sizing: border-box;
-    padding: 0 clamp(16px, 4vw, 24px); /* Адаптивные отступы от краев экрана, как в основном контенте */
+    padding: 0 24px; /* Фиксированные отступы от краев экрана */
 }
 
 /* Секция с логотипом и фразой */
@@ -53,15 +56,15 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    gap: 5px;
+    position: relative; /* Изменяем с absolute на relative, чтобы высота определялась содержимым */
+    left: auto;
+    top: auto;
+    transform: none;
+    gap: 5px; /* Фиксированный gap между логотипом и фразой */
     pointer-events: none;
     width: 100%;
     max-width: 100%;
-    padding: 0 20px;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -70,10 +73,11 @@
 }
 
 .hub2-logo-section .logo {
-    max-width: 100%;
-    height: auto;
-    max-height: var(--hub2-logo-max-height-mobile);
     width: auto;
+    height: auto;
+    max-height: var(--hub2-logo-max-height);
+    /* Фиксированный размер - не адаптируется к ширине контейнера */
+    max-width: none;
     transform: rotate(-2deg);
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
@@ -83,8 +87,8 @@
     font-family: 'Caveat', cursive;
     font-size: var(--hub2-subtitle-font-size);
     color: #393639;
-    margin: 0;
-    margin-bottom: 1em; /* Отступ снизу равен размеру шрифта, чтобы текст не был приклеен к низу */
+    margin: 0; /* Убираем все отступы */
+    margin-bottom: 0; /* Убираем отступ снизу */
     font-weight: 400;
     line-height: 1.2;
     white-space: nowrap;
@@ -93,172 +97,8 @@
     max-width: 100%;
 }
 
-/* Адаптивность - Desktop (≥1024px) */
-@media (min-width: 1024px) {
-    .hub2 {
-        padding: 20px 40px 4px 40px;
-        min-height: var(--hub2-min-height-desktop);
-    }
-    
-    .hub2-content {
-        max-width: 700px;
-        margin: 0 auto;
-        justify-content: center;
-        position: relative;
-        min-height: 150px;
-    }
-    
-    .hub2-logo-section {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        max-width: calc(100% - 80px);
-        width: auto;
-        padding: 0 20px;
-    }
-    
-    .hub2-logo-section .logo {
-        max-height: var(--hub2-logo-max-height-desktop);
-    }
-    
-    .hub2-logo-section .subtitle {
-        font-size: var(--hub2-subtitle-font-size);
-        white-space: nowrap;
-        overflow: visible;
-        text-overflow: clip;
-    }
-}
-
-/* Адаптивность - Tablet (769px - 1023px) */
-@media (max-width: 1023px) and (min-width: 769px) {
-    .hub2 {
-        padding: 15px 30px;
-        min-height: var(--hub2-min-height-desktop);
-        background: rgba(242, 242, 242, 0.98) !important; /* Гарантируем непрозрачность на планшетах */
-        opacity: 1 !important;
-    }
-    
-    .hub2-content {
-        max-width: 50%;
-    }
-    
-    .hub2-logo-section {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-    
-    .hub2-logo-section .logo {
-        max-height: 75px;
-    }
-    
-    .hub2-logo-section .subtitle {
-        font-size: var(--hub2-subtitle-font-size);
-    }
-}
-
-/* Адаптивность - Mobile (≤768px) */
-@media (max-width: 768px) {
-    .hub2 {
-        padding: clamp(10px, 2.5vw, 12px) clamp(15px, 4vw, 20px);
-        min-height: auto;
-        background: rgba(242, 242, 242, 0.98) !important; /* Гарантируем непрозрачность на мобильных */
-        opacity: 1 !important;
-    }
-    
-    .hub2-content {
-        max-width: 100%;
-        justify-content: flex-start;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: clamp(12px, 3vw, 15px);
-        position: relative;
-        padding: 0 clamp(12px, 3vw, 16px);
-        min-height: auto;
-    }
-    
-    .hub2-logo-section {
-        position: relative;
-        left: auto;
-        top: auto;
-        transform: none;
-        width: 100%;
-        margin: 0 auto;
-        align-self: center;
-        padding: 0;
-        gap: clamp(4px, 1vw, 5px);
-    }
-    
-    .hub2-logo-section .logo {
-        max-height: clamp(60px, 15vw, 80px);
-        width: auto;
-    }
-    
-    .hub2-logo-section .subtitle {
-        font-size: clamp(22px, 4.5vw, 32px);
-        white-space: normal;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        text-align: center;
-    }
-}
-
-/* Адаптивность - Small Mobile (≤480px) */
-@media (max-width: 480px) {
-    .hub2 {
-        padding: clamp(8px, 2vw, 10px) clamp(12px, 3vw, 15px);
-        min-height: auto;
-        background: rgba(242, 242, 242, 0.98) !important; /* Гарантируем непрозрачность на маленьких экранах */
-        opacity: 1 !important;
-    }
-    
-    .hub2-content {
-        gap: clamp(10px, 2.5vw, 12px);
-        padding: 0 clamp(10px, 2.5vw, 12px);
-    }
-    
-    .hub2-logo-section {
-        gap: clamp(3px, 0.8vw, 4px);
-    }
-    
-    .hub2-logo-section .logo {
-        max-height: clamp(50px, 12vw, 60px);
-    }
-    
-    .hub2-logo-section .subtitle {
-        font-size: clamp(20px, 4.2vw, 28px);
-        line-height: 1.3;
-    }
-}
-
-/* Очень широкие экраны - дополнительная защита от обрезания фразы */
-@media (min-width: 1920px) {
-    .hub2 {
-        padding: 20px 40px 4px 40px;
-        min-height: 175px;
-    }
-    
-    .hub2-content {
-        min-height: 162.5px;
-    }
-    
-    .hub2-logo-section {
-        max-width: calc(100% - 120px);
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-    
-    .hub2-logo-section .logo {
-        max-height: 168.75px;
-    }
-    
-    .hub2-logo-section .subtitle {
-        font-size: clamp(33.6px, 4vw, 60px);
-    }
+.hub2-logo-section {
+    max-width: calc(100% - 80px);
+    width: auto;
 }
 

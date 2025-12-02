@@ -1,0 +1,325 @@
+/* ============================================
+   LAYOUT.CSS - Сетка, размеры фреймов, адаптивность
+   Единая система из 5 фреймов для всех страниц
+   ============================================ */
+
+/* === ОСНОВНАЯ СТРУКТУРА === */
+.site-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto; /* Прокрутка на уровне site-wrapper */
+    position: relative;
+}
+
+/* === HEADER (Frame 1 и Frame 2) === */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-index-frame-1);
+    width: 100%;
+}
+
+/* === FRAME 1 - Панель с кнопками === */
+.frame-1,
+#hub1 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-s);
+    padding: var(--spacing-s) var(--spacing-m);
+    background: var(--color-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: var(--z-index-frame-1);
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 48px;
+}
+
+/* Если Hub1 находится внутри Frame 1, убираем дублирование стилей */
+.frame-1 > #hub1 {
+    display: contents;
+}
+
+.frame-1.is-hidden {
+    display: none;
+}
+
+/* На мобильных - горизонтальный скролл или перенос */
+@media (max-width: 767px) {
+    .frame-1 {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    
+    .frame-1::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    .frame-1::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 2px;
+    }
+}
+
+/* === FRAME 2 - Логотип + фраза === */
+.frame-2,
+#hub2 {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--spacing-m);
+    padding: var(--spacing-s) var(--spacing-m);
+    background: rgba(242, 242, 242, 0.98);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    max-height: 20vh;
+    box-sizing: border-box;
+    width: 100%;
+    z-index: var(--z-index-frame-2);
+    position: sticky;
+    /* top будет установлен через JavaScript в зависимости от видимости Frame 1 */
+    top: 0;
+}
+
+.frame-2.is-hidden {
+    display: none;
+}
+
+.frame-2-logo {
+    max-height: 60%;
+    height: auto;
+    max-width: 30vw;
+    flex-shrink: 0;
+}
+
+.frame-2-text {
+    font-size: clamp(14px, 2vw, 20px);
+    font-family: 'Caveat', cursive;
+    color: var(--color-dark);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    flex: 1;
+}
+
+@media (max-width: 767px) {
+    .frame-2 {
+        flex-direction: column;
+        align-items: flex-start;
+        max-height: none;
+        padding: var(--spacing-s);
+    }
+    
+    .frame-2-logo {
+        max-width: 60vw;
+        max-height: 80px;
+    }
+    
+    .frame-2-text {
+        font-size: clamp(16px, 4vw, 20px);
+    }
+}
+
+/* === MAIN (Frame 3) === */
+.site-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    /* Гарантируем правильную прокрутку */
+    min-height: 0;
+    overflow: visible;
+}
+
+/* === FRAME 3 - Основной контент === */
+.frame-3,
+.hub3 {
+    flex: 1;
+    padding: var(--spacing-m) var(--spacing-s);
+    position: relative;
+    z-index: var(--z-index-content);
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: visible; /* Прокрутка на уровне site-wrapper, не здесь */
+    width: 100%;
+}
+
+/* Декоративный слой для парящих элементов */
+.frame-3-decor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: var(--z-index-decor);
+    overflow: hidden;
+    /* Фиксируем относительно frame-3, чтобы не создавать артефакты при прокрутке */
+    will-change: transform;
+}
+
+/* Контентный слой */
+.frame-3-content,
+.hub3 > .container {
+    position: relative;
+    z-index: var(--z-index-content);
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 40px 24px !important; /* Единый отступ сверху на всех страницах - приоритет над inline стилями */
+    box-sizing: border-box;
+    text-align: center; /* Центрирование текста */
+}
+
+/* Гарантируем одинаковый отступ сверху для всех вариантов */
+.frame-3-content[style*="padding"],
+.hub3 > .container[style*="padding"] {
+    padding-top: 40px !important; /* Принудительно устанавливаем одинаковый отступ сверху */
+}
+
+@media (max-width: 767px) {
+    .frame-3 {
+        padding: var(--spacing-m) var(--spacing-s);
+    }
+    
+    .frame-3-content,
+    .hub3 > .container {
+        padding: 40px 16px; /* Сохраняем одинаковый отступ сверху на мобильных */
+    }
+}
+
+/* === FOOTER (Frame 4 и Frame 5) === */
+.site-footer {
+    margin-top: var(--spacing-l);
+    width: 100%;
+}
+
+/* === FRAME 4 - Правила безопасности === */
+.frame-4,
+#hub4 {
+    padding: var(--spacing-s) var(--spacing-m);
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+    background: var(--color-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: var(--z-index-frame-4);
+    width: 100%;
+    box-sizing: border-box;
+    color: var(--color-dark);
+    font-family: 'Montserrat', sans-serif;
+    text-align: center; /* Центрирование текста */
+    max-width: 1200px;
+    margin: 0 auto; /* Центрирование блока */
+}
+
+.frame-4.is-hidden {
+    display: none;
+}
+
+/* === FRAME 5 - Информация о создателе === */
+.frame-5,
+#hub5 {
+    padding: var(--spacing-s) var(--spacing-m);
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+    background: var(--color-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: var(--z-index-frame-4);
+    width: 100%;
+    box-sizing: border-box;
+    color: var(--color-dark);
+    font-family: 'Montserrat', sans-serif;
+    text-align: center; /* Центрирование текста */
+    max-width: 1200px;
+    margin: 0 auto; /* Центрирование блока */
+}
+
+.frame-5.is-hidden {
+    display: none;
+}
+
+/* === АДАПТИВНОСТЬ === */
+/* Desktop: min-width: 1024px */
+@media (min-width: 1024px) {
+    .frame-1 {
+        justify-content: flex-start;
+        padding: var(--spacing-s) var(--spacing-l);
+    }
+    
+    .frame-2 {
+        padding: var(--spacing-s) var(--spacing-l);
+    }
+    
+    .frame-3-content,
+    .hub3 > .container {
+        padding: 40px 24px !important; /* Единый отступ сверху на всех страницах */
+    }
+    
+    /* Гарантируем одинаковый отступ сверху на десктопе */
+    .frame-3-content[style*="padding"],
+    .hub3 > .container[style*="padding"] {
+        padding-top: 40px !important;
+    }
+    
+    .frame-4,
+    .frame-5 {
+        padding: var(--spacing-m) var(--spacing-l);
+        text-align: center; /* Центрирование текста */
+        max-width: 1200px;
+        margin: 0 auto; /* Центрирование блока */
+    }
+}
+
+/* Tablet: 768px - 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .frame-2-text {
+        max-width: 60%;
+    }
+    
+    .frame-3-content,
+    .hub3 > .container {
+        padding: 40px 24px !important; /* Единый отступ сверху на всех страницах */
+    }
+    
+    /* Гарантируем одинаковый отступ сверху на десктопе */
+    .frame-3-content[style*="padding"],
+    .hub3 > .container[style*="padding"] {
+        padding-top: 40px !important;
+    }
+}
+
+/* Mobile: max-width: 767px */
+@media (max-width: 767px) {
+    .frame-1 {
+        padding: var(--spacing-s);
+    }
+    
+    .frame-2 {
+        padding: var(--spacing-s);
+    }
+    
+    .frame-3 {
+        padding: var(--spacing-m) var(--spacing-s);
+    }
+    
+    .frame-3-content,
+    .hub3 > .container {
+        padding: 40px 16px; /* Сохраняем одинаковый отступ сверху на мобильных */
+    }
+    
+    .frame-4,
+    .frame-5 {
+        padding: var(--spacing-s);
+        font-size: clamp(10px, 2vw, 12px);
+        text-align: center; /* Центрирование текста */
+        max-width: 1200px;
+        margin: 0 auto; /* Центрирование блока */
+    }
+}
+

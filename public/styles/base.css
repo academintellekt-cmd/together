@@ -1,0 +1,138 @@
+/* ============================================
+   BASE.CSS - Базовые стили
+   Reset, шрифты, переменные, цвета
+   ============================================ */
+
+/* === ПОДКЛЮЧЕНИЕ GOOGLE FONTS === */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap');
+
+/* === RESET === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* === CSS ПЕРЕМЕННЫЕ === */
+:root {
+    /* Цветовая палитра */
+    --color-bg: #f2f2f2;
+    --color-dark: #393639;
+    --color-coral: #fb6c6b;
+    --color-coral-alt: #fa5734;
+    --color-lime: #abf67c;
+    --color-green: #2fb95d;
+    --color-green-alt: #2fb95d;
+    --color-beige: #f2f2f2;
+    --color-white: #FFFFFF;
+    --color-black: #000000;
+    --color-yellow: #fb906b;
+    --color-caveat: #354fba;
+    --color-floating-1: #d6fbbf;
+    --color-floating-2: #fececd;
+    --color-floating-3: #fb906b;
+    
+    /* Отступы */
+    --spacing-xs: 4px;
+    --spacing-s: 8px;
+    --spacing-m: 16px;
+    --spacing-l: 24px;
+    --spacing-xl: 32px;
+    
+    /* Размеры шрифтов */
+    --font-size-xs: clamp(12px, 2vw, 14px);
+    --font-size-s: clamp(14px, 2.5vw, 16px);
+    --font-size-m: clamp(16px, 3vw, 18px);
+    --font-size-l: clamp(20px, 3.5vw, 24px);
+    --font-size-xl: clamp(24px, 4vw, 32px);
+    
+    /* Z-index уровни */
+    --z-index-base: 1;
+    --z-index-decor: -1;
+    --z-index-content: 2;
+    --z-index-frame-4: 999;
+    --z-index-frame-2: 1000;
+    --z-index-frame-1: 1001;
+}
+
+/* === БАЗОВЫЕ СТИЛИ BODY === */
+body {
+    font-family: 'Montserrat', sans-serif;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto; /* Прокрутка на уровне body для совместимости */
+    background: var(--color-bg);
+    color: var(--color-dark);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-overflow-scrolling: touch;
+    margin: 0;
+    padding: 0;
+}
+
+/* === ЗАГОЛОВКИ === */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Days One', sans-serif;
+    font-weight: 700;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+h1 {
+    font-size: clamp(36px, 6vw, 48px);
+    margin-bottom: var(--spacing-m);
+}
+
+h2 {
+    font-size: clamp(28px, 5vw, 36px);
+    margin-bottom: var(--spacing-m);
+}
+
+h3 {
+    font-size: clamp(24px, 4vw, 28px);
+    margin-bottom: var(--spacing-s);
+}
+
+/* === ССЫЛКИ === */
+a {
+    color: var(--color-caveat);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--color-green);
+}
+
+/* === СПИСКИ === */
+ul, ol {
+    list-style: none;
+}
+
+/* === ИЗОБРАЖЕНИЯ === */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* === УТИЛИТЫ === */
+.is-hidden {
+    display: none !important;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+

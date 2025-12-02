@@ -4,15 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DMX Пульт управления - ВМЕСТЕ</title>
-    <link rel="stylesheet" href="/styles/brand-style.css">
-    <link rel="stylesheet" href="/styles/hub-layout.css">
+    <!-- Новая система фреймов -->
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/hub1.css">
     <link rel="stylesheet" href="/styles/hub2.css">
-    <link rel="stylesheet" href="/styles/hub-layout.css">
-    <link rel="stylesheet" href="/styles/hub-layout-system.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <!-- Конфигурация видимости фреймов -->
+    <script>
+        window.pageLayoutConfig = {
+            showFrame1: true,
+            showFrame2: true,
+            showFrame4: true,
+            showFrame5: true
+        };
+    </script>
+    
+    <!-- Layout Manager -->
+    <script src="/scripts/layout.js"></script>
     <script src="/scripts/hub-common.js"></script>
     <script src="/scripts/hub1.js"></script>
     <style>
@@ -49,7 +61,7 @@
             text-align: center;
             position: relative;
             z-index: 2;
-            padding: clamp(20px, 6vw, 40px) clamp(16px, 4vw, 24px); /* Адаптивные отступы от краев экрана, как в gnu-quiz.html */
+            padding: 40px clamp(16px, 4vw, 24px) !important; /* Единый отступ сверху 40px на всех страницах */
             box-sizing: border-box;
         }
 

@@ -66,8 +66,8 @@ const HubCommon = {
     },
     
     /**
-     * Адаптирует размер логотипа в зависимости от размера экрана
-     * Динамически обновляет max-height логотипа
+     * Адаптирует размер логотипа
+     * Теперь использует только фиксированные значения из CSS (без адаптивности)
      */
     adaptLogoSize() {
         const logo = this._logo || document.querySelector('.hub2-logo-section .logo');
@@ -89,98 +89,17 @@ const HubCommon = {
     
     /**
      * Выполняет фактическую корректировку размера логотипа
-     * Учитывает высоту hub1, чтобы избежать перекрытия
+     * Использует фиксированное значение из CSS переменной (без адаптивности)
      */
     _performLogoSizeAdjustment(logo) {
-        const windowWidth = window.innerWidth;
-        const hub1 = this._hub1 || document.getElementById('hub1');
-        const hub2 = this._hub2 || document.getElementById('hub2');
-        const subtitle = this._subtitle || document.querySelector('.hub2-logo-section .subtitle');
-        
-        // Сначала удаляем inline стили, чтобы CSS media queries могли работать
-        // Затем устанавливаем новое значение на основе текущего размера окна
+        // Удаляем inline стили, чтобы использовалось значение из CSS
         logo.style.maxHeight = '';
         
         // Принудительный reflow для применения CSS изменений
         void logo.offsetWidth;
         
-        // Определяем базовую максимальную высоту в зависимости от размера экрана
-        // Соответствует значениям из hub2.css
-        let baseMaxHeight;
-        
-        if (windowWidth >= 1920) {
-            // Очень широкие экраны
-            baseMaxHeight = 168.75;
-        } else if (windowWidth >= 1024) {
-            // Десктоп
-            baseMaxHeight = 156.25;
-        } else if (windowWidth >= 769) {
-            // Планшет - исправлено: должно быть 75px согласно CSS
-            baseMaxHeight = 75;
-        } else if (windowWidth >= 480) {
-            // Мобильные устройства (≤768px) - используем вычисленное значение из clamp(60px, 15vw, 80px)
-            const vwValue = windowWidth * 0.15;
-            baseMaxHeight = Math.max(60, Math.min(80, vwValue));
-        } else {
-            // Маленькие мобильные (≤480px) - используем вычисленное значение из clamp(50px, 12vw, 60px)
-            const vwValue = windowWidth * 0.12;
-            baseMaxHeight = Math.max(50, Math.min(60, vwValue));
-        }
-        
-        // Вычисляем доступное пространство с учетом hub1 и отступа под фразой
-        let maxHeight = baseMaxHeight;
-        
-        if (hub1 && hub2) {
-            const hub2Rect = hub2.getBoundingClientRect();
-            const hub2Height = hub2Rect.height;
-            
-            // Вычисляем размер фразы для учета отступа снизу (1em)
-            let subtitleHeight = 0;
-            let subtitleMarginBottom = 0;
-            if (subtitle) {
-                const subtitleStyle = window.getComputedStyle(subtitle);
-                subtitleHeight = subtitle.offsetHeight || subtitle.scrollHeight;
-                const subtitleFontSize = parseFloat(subtitleStyle.fontSize) || 0;
-                subtitleMarginBottom = subtitleFontSize; // 1em = размер шрифта
-            }
-            
-            // Вычисляем доступную высоту для логотипа
-            // hub2Height - отступы hub2 (padding) - высота фразы - отступ под фразой (1em) - gap между логотипом и фразой
-            const hub2PaddingTop = parseFloat(window.getComputedStyle(hub2).paddingTop) || 0;
-            const hub2PaddingBottom = parseFloat(window.getComputedStyle(hub2).paddingBottom) || 0;
-            const logoSection = logo.closest('.hub2-logo-section');
-            const gap = logoSection ? parseFloat(window.getComputedStyle(logoSection).gap) || 5 : 5;
-            
-            // Вычисляем доступную высоту более точно
-            const availableHeight = hub2Height - hub2PaddingTop - hub2PaddingBottom - subtitleHeight - subtitleMarginBottom - gap;
-            
-            // Уменьшаем размер логотипа только если доступное пространство значительно меньше базового
-            // Используем более мягкое ограничение - уменьшаем только если не хватает более 10px
-            if (availableHeight < baseMaxHeight - 10) {
-                // Используем доступную высоту с минимальным запасом (2px) и минимальным размером 40px
-                maxHeight = Math.max(40, availableHeight - 2);
-            } else {
-                // Если пространства достаточно, используем базовый размер
-                maxHeight = baseMaxHeight;
-            }
-        }
-        
-        // Применяем вычисленное значение
-        logo.style.maxHeight = maxHeight + 'px';
-        
-        // Принудительный reflow для применения изменений
-        void logo.offsetWidth;
-        
-        // Дополнительное обновление через requestAnimationFrame для гарантии применения
-        requestAnimationFrame(() => {
-            // Проверяем, что значение применилось
-            const computedHeight = window.getComputedStyle(logo).maxHeight;
-            if (computedHeight === 'none' || computedHeight === '0px') {
-                // Если CSS не применился, устанавливаем значение снова
-                logo.style.maxHeight = maxHeight + 'px';
-                void logo.offsetWidth;
-            }
-        });
+        // Не устанавливаем inline стили - используем только CSS
+        // Размер логотипа теперь полностью управляется через CSS без адаптивности
     },
     
     /**

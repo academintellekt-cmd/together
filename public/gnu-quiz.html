@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чемпионат ГНУ</title>
-    <link rel="stylesheet" href="/styles/brand-style.css">
+    <!-- Новая система фреймов -->
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/quiz-card.css">
-    <link rel="stylesheet" href="/styles/hub-layout.css">
     <link rel="stylesheet" href="/styles/hub1.css">
     <link rel="stylesheet" href="/styles/hub2.css">
-    <link rel="stylesheet" href="/styles/hub-layout.css">
-    <link rel="stylesheet" href="/styles/hub-layout-system.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -243,7 +243,7 @@
         /* Когда Hub2 скрыт, Hub3 занимает его место в grid */
         body.with-hub {
             grid-template-rows: 
-                minmax(10vh, auto)  /* Hub1 - минимум 10% экрана */
+                auto                /* Hub1 - фиксированная высота */
                 auto;               /* Hub3 занимает место Hub2 */
         }
         
@@ -251,44 +251,7 @@
             grid-row: 2; /* Занимает место Hub2 */
         }
         
-        /* Парящие элементы - позиционируются относительно viewport */
-        body.with-hub::before {
-            content: '' !important;
-            position: fixed !important;
-            top: 10vh !important; /* После Hub1 (без Hub2) */
-            left: -50px !important;
-            width: 200px !important;
-            height: 200px !important;
-            background: #d6fbbf !important;
-            border-radius: 50% 40% 60% 30% !important;
-            opacity: 0.9 !important;
-            z-index: -1 !important;
-            animation: wobble 6s ease-in-out infinite !important;
-            pointer-events: none !important;
-        }
-        
-        body.with-hub::after {
-            content: '' !important;
-            position: fixed !important;
-            bottom: 20vh !important; /* Примерно выше Hub4+Hub5 */
-            right: -80px !important;
-            width: 250px !important;
-            height: 250px !important;
-            background: #fececd !important;
-            border-radius: 40% 50% 30% 60% !important;
-            opacity: 0.9 !important;
-            z-index: -1 !important;
-            animation: wobble 8s ease-in-out infinite reverse !important;
-            pointer-events: none !important;
-        }
-        
-        /* Анимация wobble для парящих элементов */
-        @keyframes wobble {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            25% { transform: rotate(5deg) scale(1.1); }
-            50% { transform: rotate(-5deg) scale(0.9); }
-            75% { transform: rotate(3deg) scale(1.05); }
-        }
+        /* Парящие элементы перемещены в Hub3 через hub-layout.css */
         
         /* Адаптивность для разных экранов */
         @media (min-width: 1024px) {
@@ -544,6 +507,18 @@
     </script>
     
     <!-- Hub1 и Hub2 скрипты -->
+    <!-- Конфигурация видимости фреймов -->
+    <script>
+        window.pageLayoutConfig = {
+            showFrame1: true,
+            showFrame2: true,
+            showFrame4: true,
+            showFrame5: true
+        };
+    </script>
+    
+    <!-- Layout Manager -->
+    <script src="/scripts/layout.js"></script>
     <script src="/scripts/hub-common.js"></script>
     <script src="/scripts/hub1.js"></script>
     <script src="/scripts/hub2.js"></script>

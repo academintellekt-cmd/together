@@ -4,18 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Настройки - ВМЕСТЕ</title>
-    <link rel="stylesheet" href="/styles/brand-style.css">
+    <!-- Новая система фреймов -->
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/quiz-card.css">
-    <link rel="stylesheet" href="/styles/hub-layout.css">
     <link rel="stylesheet" href="/styles/hub1.css">
     <link rel="stylesheet" href="/styles/hub2.css">
-    <link rel="stylesheet" href="/styles/hub-layout.css">
-    <link rel="stylesheet" href="/styles/hub-layout-system.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <!-- Конфигурация видимости фреймов -->
+    <script>
+        window.pageLayoutConfig = {
+            showFrame1: true,
+            showFrame2: true,
+            showFrame4: true,
+            showFrame5: true
+        };
+    </script>
+    
+    <!-- Layout Manager -->
+    <script src="/scripts/layout.js"></script>
     <script src="/scripts/hub-common.js"></script>
     <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/hub2.js"></script>
     <style>
         * {
             margin: 0;
@@ -23,37 +36,9 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            min-height: 100vh;
-            background: var(--color-bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 0 20px 20px 20px;
-            position: relative;
-        }
-
-        /* HUB3 - основная зона контента */
-        .hub3 {
-            flex: 1 0 auto;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            width: 100%;
-        }
-
-        .hub3 > .container {
-            margin: 0 auto;
-            max-width: 1200px;
-            width: 100%;
-            text-align: center;
-            position: relative;
-            padding: clamp(20px, 6vw, 40px) clamp(16px, 4vw, 24px); /* Адаптивные отступы от краев экрана, как в gnu-quiz.html */
-            box-sizing: border-box;
-            z-index: 2;
-            /* padding-top будет устанавливаться динамически через HubCommon.updateContentPadding() */
+        /* Специфичные стили для страницы настроек */
+        .frame-3-content {
+            max-width: 800px;
         }
 
         .settings-title {
@@ -233,7 +218,7 @@
         }
     </style>
 </head>
-<body class="with-hub">
+<body>
     <!-- Модальное окно для пароля -->
     <div class="password-overlay" id="passwordOverlay">
         <div class="password-modal">
@@ -254,32 +239,55 @@
         </div>
     </div>
 
-    <!-- HUB3: основная зона контента -->
-    <div class="hub-zone hub3">
-        <div class="container" id="mainContainer" style="display: none;">
-            <h1 class="settings-title">⚙️ Настройки</h1>
-            <div class="settings-grid">
-                <a href="/joystick-test/joystick.html" class="quiz-card settings-card" style="background: #abf67c; box-shadow: 0 6px 0px rgba(47, 185, 93, 0.3), 0 8px 16px rgba(47, 185, 93, 0.1);">
-                    <div class="quiz-card-content">
-                        <span class="quiz-icon">🎮</span>
-                        <div class="quiz-title">Джойстик</div>
-                        <div class="quiz-description">Настройка джойстика и геймпада для управления игрой</div>
-                    </div>
-                </a>
-                <a href="/dmx-control.html" class="quiz-card settings-card" style="background: #f68a7c; box-shadow: 0 6px 0px rgba(250, 87, 52, 0.3), 0 8px 16px rgba(250, 87, 52, 0.1);">
-                    <div class="quiz-card-content">
-                        <span class="quiz-icon">💡</span>
-                        <div class="quiz-title">DMX Освещение</div>
-                        <div class="quiz-description">Управление DMX фонарями и сценическим освещением</div>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </div>
+    <div class="site-wrapper">
+        <!-- HEADER: Frame 1 и Frame 2 -->
+        <header class="site-header">
+            <!-- Frame 1: Панель с кнопками (создается через Hub1.js) -->
+            <div class="frame frame-1" data-frame="controls" id="hub1-container"></div>
 
-    <!-- HUB4 и HUB5 для нижних полос -->
-    <div id="hub4" class="hub-zone hub4"></div>
-    <div id="hub5" class="hub-zone hub5"></div>
+            <!-- Frame 2: Логотип + фраза (создается через Hub2.js) -->
+            <div class="frame frame-2" data-frame="logo" id="hub2-container"></div>
+        </header>
+
+        <!-- MAIN: Frame 3 -->
+        <main class="site-main">
+            <section class="frame frame-3" data-frame="content">
+                <!-- Контентный слой -->
+                <div class="frame-3-content" id="mainContainer" style="display: none;">
+                    <h1 class="settings-title">⚙️ Настройки</h1>
+                    <div class="settings-grid">
+                        <a href="/joystick-test/joystick.html" class="quiz-card settings-card" style="background: #abf67c; box-shadow: 0 6px 0px rgba(47, 185, 93, 0.3), 0 8px 16px rgba(47, 185, 93, 0.1);">
+                            <div class="quiz-card-content">
+                                <span class="quiz-icon">🎮</span>
+                                <div class="quiz-title">Джойстик</div>
+                                <div class="quiz-description">Настройка джойстика и геймпада для управления игрой</div>
+                            </div>
+                        </a>
+                        <a href="/dmx-control.html" class="quiz-card settings-card" style="background: #f68a7c; box-shadow: 0 6px 0px rgba(250, 87, 52, 0.3), 0 8px 16px rgba(250, 87, 52, 0.1);">
+                            <div class="quiz-card-content">
+                                <span class="quiz-icon">💡</span>
+                                <div class="quiz-title">DMX Освещение</div>
+                                <div class="quiz-description">Управление DMX фонарями и сценическим освещением</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FOOTER: Frame 4 и Frame 5 -->
+            <footer class="site-footer">
+                <!-- Frame 4: Правила безопасности -->
+                <section class="frame frame-4" data-frame="rules" id="hub4">
+                    <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
+                </section>
+
+                <!-- Frame 5: Информация о создателе -->
+                <section class="frame frame-5" data-frame="about" id="hub5">
+                    <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+                </section>
+            </footer>
+        </main>
+    </div>
 
     <script>
         // Пароль для страницы настроек
@@ -355,16 +363,16 @@
             window.location.href = '/index.html';
         }
 
-        // Инициализация Hub1
+        // Инициализация Hub1 и Hub2
         function initHubs() {
             try {
-                if (typeof Hub1 === 'undefined' || typeof HubCommon === 'undefined') {
+                if (typeof Hub1 === 'undefined' || typeof Hub2 === 'undefined' || typeof HubCommon === 'undefined') {
                     console.warn('Hub скрипты еще не загружены, повторная попытка через 100мс...');
                     setTimeout(initHubs, 100);
                     return;
                 }
                 
-                console.log('Инициализация Hub1...');
+                console.log('Инициализация Hub1 и Hub2...');
                 
                 // Инициализация Hub1 с кнопкой "Назад"
                 Hub1.init({
@@ -372,19 +380,17 @@
                     backUrl: '/index.html'
                 });
                 
-                // Обновление позиций - ждем полной отрисовки Hub1
+                // Инициализация Hub2
+                Hub2.init();
+                
+                // Обновление позиций - ждем полной отрисовки
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
-                            // Небольшая задержка для гарантии правильного расчета высоты Hub1
-                            setTimeout(() => {
-                                
-                                
-                                
-                                
-                                
-                                console.log('Hub1 успешно инициализирован');
-                            }, 50);
+                            // Обновляем позицию Hub2 относительно Hub1
+                            HubCommon.updateHub2Position();
+                            HubCommon.adaptSubtitleToLogo();
+                            console.log('Hub1 и Hub2 успешно инициализированы');
                         });
                     });
                 });
@@ -410,17 +416,8 @@
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
                 if (typeof HubCommon !== 'undefined' && passwordEntered) {
-                    HubCommon._positionInitialized = false;
-                    HubCommon._lastCorrectMarginTop = null;
-                    
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                            
-                            
-                            
-                            
-                        });
-                    });
+                    HubCommon.updateHub2Position();
+                    HubCommon.adaptSubtitleToLogo();
                 }
             }, 100);
         });

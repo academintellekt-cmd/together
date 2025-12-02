@@ -4,15 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Квиз - Выбор игры</title>
-    <link rel="stylesheet" href="/styles/brand-style.css">
+    <!-- Новая система фреймов -->
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/quiz-card.css">
     <link rel="stylesheet" href="/styles/hub1.css">
     <link rel="stylesheet" href="/styles/hub2.css">
-    <link rel="stylesheet" href="/styles/hub-layout.css">
-    <link rel="stylesheet" href="/styles/hub-layout-system.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    
+    <!-- Конфигурация видимости фреймов -->
+    <script>
+        window.pageLayoutConfig = {
+            showFrame1: true,   // Панель кнопок
+            showFrame2: false,  // Логотип скрыт на этой странице
+            showFrame4: true,   // Правила безопасности
+            showFrame5: true    // Информация о создателе
+        };
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -40,43 +52,7 @@
         /* HUB4 и HUB5 — нижние полосы, прокручиваются вместе с контентом */
         /* Стили управляются через hub-layout.css */
 
-        /* Парящие элементы */
-        body::before {
-            content: '';
-            position: fixed;
-            /* top устанавливается динамически через JavaScript */
-            left: -50px;
-            width: 200px;
-            height: 200px;
-            background: #d6fbbf; /* Парящий элемент */
-            border-radius: 50% 40% 60% 30%;
-            opacity: 0.9;
-            z-index: -1; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
-            animation: wobble 6s ease-in-out infinite;
-            pointer-events: none;
-        }
-        
-        body::after {
-            content: '';
-            position: fixed;
-            /* bottom устанавливается динамически через JavaScript */
-            right: -80px;
-            width: 250px;
-            height: 250px;
-            background: #fececd; /* Парящий элемент */
-            border-radius: 40% 50% 30% 60%;
-            opacity: 0.9;
-            z-index: -1; /* Ниже HUB1 (1001), HUB2 (1000), HUB4/HUB5 (999) и контента HUB3 (2), но выше фона */
-            animation: wobble 8s ease-in-out infinite reverse;
-            pointer-events: none;
-        }
-        
-        @keyframes wobble {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            25% { transform: rotate(5deg) scale(1.1); }
-            50% { transform: rotate(-5deg) scale(0.9); }
-            75% { transform: rotate(3deg) scale(1.05); }
-        }
+        /* Парящие элементы перемещены в Hub3 через hub-layout.css */
         
         /* Стили для контента внутри HUB3 */
         /* Padding уже установлен выше, не переопределяем */
@@ -846,56 +822,46 @@
             /* padding-top для контейнера уже задан в медиа-запросе выше */
         }
 
-        /* Адаптивные стили для HUB4 и HUB5 (соответствуют HUB1) */
-        @media (min-width: 1024px) {
-            .hub4, .hub5 {
-                padding: 15px 40px;
-            }
-        }
-
-        @media (max-width: 1023px) and (min-width: 769px) {
-            .hub4, .hub5 {
-                padding: 15px 30px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .hub4, .hub5 {
-                padding: 12px 15px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hub4, .hub5 {
-                padding: 10px 12px;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .hub4, .hub5 {
-                padding: 10px 10px;
-            }
+        /* Адаптивные стили для HUB4 и HUB5 удалены - размеры фиксированы в hub-layout.css */
+        
+        /* Стили для контента внутри Frame 3 */
+        .frame-3-content .quizzes-grid {
+            margin-top: 0;
         }
     </style>
 </head>
-<body class="with-hub">
-    <!-- HUB3: основная зона контента -->
-    <div class="hub-zone hub3">
-        <div class="container">
-            <div id="loading" class="loading">Загрузка квизов...</div>
-            <div id="error" class="error" style="display: none;"></div>
-            <div id="quizzes-grid" class="quizzes-grid" style="display: none;"></div>
-        </div>
-    </div>
+<body>
+    <div class="site-wrapper">
+        <!-- HEADER: Frame 2 -->
+        <header class="site-header">
+            <!-- Frame 2: Логотип + фраза (создается через Hub2.js, скрыт на этой странице) -->
+            <div class="frame frame-2" data-frame="logo" id="hub2-container"></div>
+        </header>
 
-    <!-- HUB4: нижняя полоса (fixed, над HUB5) -->
-    <div id="hub4" class="hub-zone hub4">
-        <!-- Здесь позже можно разместить вспомогательные статусы, подсказки, маленькие карточки и т.п. -->
-    </div>
+        <!-- MAIN: Frame 3 -->
+        <main class="site-main">
+            <section class="frame frame-3" data-frame="content">
+                <!-- Контентный слой -->
+                <div class="frame-3-content">
+                    <div id="loading" class="loading">Загрузка квизов...</div>
+                    <div id="error" class="error" style="display: none;"></div>
+                    <div id="quizzes-grid" class="quizzes-grid" style="display: none;"></div>
+                </div>
+            </section>
 
-    <!-- HUB5: самая нижняя полоса (fixed, внизу экрана) -->
-    <div id="hub5" class="hub-zone hub5">
-        <!-- Здесь позже можно разместить "Правила хаба", ссылки, переключение режимов -->
+            <!-- FOOTER: Frame 4 и Frame 5 -->
+            <footer class="site-footer">
+                <!-- Frame 4: Правила безопасности -->
+                <section class="frame frame-4" data-frame="rules" id="hub4">
+                    <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
+                </section>
+
+                <!-- Frame 5: Информация о создателе -->
+                <section class="frame frame-5" data-frame="about" id="hub5">
+                    <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+                </section>
+            </footer>
+        </main>
     </div>
 
     <script>
@@ -1455,9 +1421,49 @@
         })();
     </script>
     
+    <!-- Layout Manager -->
+    <script src="/scripts/layout.js"></script>
+    
     <!-- Hub1 и Hub2 скрипты -->
     <script src="/scripts/hub-common.js"></script>
     <script src="/scripts/hub1.js"></script>
     <script src="/scripts/hub2.js"></script>
+    
+    <script>
+        // Инициализация Hub1 и Hub2 с новой структурой
+        document.addEventListener('DOMContentLoaded', () => {
+            // Ждем загрузки всех скриптов
+            function initHubs() {
+                if (typeof Hub1 === 'undefined' || typeof Hub2 === 'undefined' || typeof HubCommon === 'undefined') {
+                    setTimeout(initHubs, 100);
+                    return;
+                }
+                
+                // Инициализация Hub1 (Frame 1)
+                Hub1.init({
+                    showLogin: true,
+                    showSettings: true
+                });
+                
+                // Инициализация Hub2 (Frame 2) - будет скрыт через pageLayoutConfig
+                Hub2.init();
+                
+                // Обновление позиций
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        HubCommon.updateHub2Position();
+                        HubCommon.adaptSubtitleToLogo();
+                        
+                        // Загружаем квизы после инициализации Hub
+                        if (typeof loadQuizzes === 'function') {
+                            loadQuizzes();
+                        }
+                    });
+                });
+            }
+            
+            setTimeout(initHubs, 200);
+        });
+    </script>
 </body>
 </html>
