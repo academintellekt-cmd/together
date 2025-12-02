@@ -251,9 +251,43 @@
             grid-row: 2; /* Занимает место Hub2 */
         }
         
-        /* Обновляем позицию парящих элементов */
+        /* Парящие элементы - позиционируются относительно viewport */
         body.with-hub::before {
-            top: 10vh; /* После Hub1 (без Hub2) */
+            content: '' !important;
+            position: fixed !important;
+            top: 10vh !important; /* После Hub1 (без Hub2) */
+            left: -50px !important;
+            width: 200px !important;
+            height: 200px !important;
+            background: #d6fbbf !important;
+            border-radius: 50% 40% 60% 30% !important;
+            opacity: 0.9 !important;
+            z-index: -1 !important;
+            animation: wobble 6s ease-in-out infinite !important;
+            pointer-events: none !important;
+        }
+        
+        body.with-hub::after {
+            content: '' !important;
+            position: fixed !important;
+            bottom: 20vh !important; /* Примерно выше Hub4+Hub5 */
+            right: -80px !important;
+            width: 250px !important;
+            height: 250px !important;
+            background: #fececd !important;
+            border-radius: 40% 50% 30% 60% !important;
+            opacity: 0.9 !important;
+            z-index: -1 !important;
+            animation: wobble 8s ease-in-out infinite reverse !important;
+            pointer-events: none !important;
+        }
+        
+        /* Анимация wobble для парящих элементов */
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(5deg) scale(1.1); }
+            50% { transform: rotate(-5deg) scale(0.9); }
+            75% { transform: rotate(3deg) scale(1.05); }
         }
         
         /* Адаптивность для разных экранов */
@@ -281,7 +315,15 @@
             }
             
             body.with-hub::before {
-                top: clamp(10vh, 12vw, 12vh);
+                top: clamp(10vh, 12vw, 12vh) !important;
+                width: clamp(150px, 30vw, 200px) !important;
+                height: clamp(150px, 30vw, 200px) !important;
+            }
+            
+            body.with-hub::after {
+                bottom: clamp(15vh, 20vw, 20vh) !important;
+                width: clamp(180px, 35vw, 250px) !important;
+                height: clamp(180px, 35vw, 250px) !important;
             }
         }
         
@@ -293,7 +335,17 @@
             }
             
             body.with-hub::before {
-                top: clamp(10vh, 12vw, 12vh);
+                top: clamp(10vh, 12vw, 12vh) !important;
+                width: clamp(120px, 25vw, 180px) !important;
+                height: clamp(120px, 25vw, 180px) !important;
+                left: clamp(-40px, -8vw, -50px) !important;
+            }
+            
+            body.with-hub::after {
+                bottom: clamp(12vh, 18vw, 18vh) !important;
+                width: clamp(150px, 30vw, 220px) !important;
+                height: clamp(150px, 30vw, 220px) !important;
+                right: clamp(-60px, -12vw, -80px) !important;
             }
         }
     </style>

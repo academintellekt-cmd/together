@@ -7,19 +7,16 @@
     <link rel="stylesheet" href="/styles/brand-style.css">
     <link rel="stylesheet" href="/styles/hub-layout.css">
     <link rel="stylesheet" href="/styles/hub1.css">
-    <link rel="stylesheet" href="/styles/hub2.css">
-    <link rel="stylesheet" href="/styles/hub-layout.css">
-    <link rel="stylesheet" href="/styles/hub-layout-system.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Days+One&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/scripts/hub-common.js"></script>
+    <script src="/scripts/hub1.js"></script>
     <style>
         /* Специфичные стили для страницы игрока */
         .hub3 > .container {
             max-width: 500px; /* Переопределяем для страницы игрока */
-            padding: clamp(20px, 6vw, 40px) clamp(16px, 4vw, 24px); /* Адаптивные отступы от краев экрана, как в gnu-quiz.html */
-            box-sizing: border-box;
         }
         .back-button {
             display: none; /* Скрываем старую кнопку, используем Hub1 */
@@ -351,11 +348,141 @@
                 0 4px 0px rgba(57, 54, 57, 0.3),
                 0 8px 16px rgba(0, 0, 0, 0.1);
         }
+        
+        /* Скрываем Hub2 на этой странице */
+        #hub2 {
+            display: none !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+            visibility: hidden !important;
+        }
+        
+        /* Когда Hub2 скрыт, Hub3 занимает его место в grid */
+        body.with-hub {
+            grid-template-rows: 
+                minmax(10vh, auto)  /* Hub1 - минимум 10% экрана */
+                auto;               /* Hub3 занимает место Hub2 */
+        }
+        
+        .hub3 {
+            grid-row: 2; /* Занимает место Hub2 */
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        
+        /* Убираем лишние отступы у контейнера hub3 */
+        .hub3 > .container {
+            margin-top: 0 !important;
+            padding-top: clamp(16px, 5vw, 40px) !important; /* Оставляем только верхний отступ для контента */
+        }
+        
+        /* Парящие элементы - позиционируются относительно viewport */
+        body.with-hub::before {
+            content: '' !important;
+            position: fixed !important;
+            top: 10vh !important; /* После Hub1 (без Hub2) */
+            left: -50px !important;
+            width: 200px !important;
+            height: 200px !important;
+            background: #d6fbbf !important;
+            border-radius: 50% 40% 60% 30% !important;
+            opacity: 0.9 !important;
+            z-index: -1 !important;
+            animation: wobble 6s ease-in-out infinite !important;
+            pointer-events: none !important;
+        }
+        
+        body.with-hub::after {
+            content: '' !important;
+            position: fixed !important;
+            bottom: 20vh !important; /* Примерно выше Hub4+Hub5 */
+            right: -80px !important;
+            width: 250px !important;
+            height: 250px !important;
+            background: #fececd !important;
+            border-radius: 40% 50% 30% 60% !important;
+            opacity: 0.9 !important;
+            z-index: -1 !important;
+            animation: wobble 8s ease-in-out infinite reverse !important;
+            pointer-events: none !important;
+        }
+        
+        /* Анимация wobble для парящих элементов */
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(5deg) scale(1.1); }
+            50% { transform: rotate(-5deg) scale(0.9); }
+            75% { transform: rotate(3deg) scale(1.05); }
+        }
+        
+        /* Адаптивность для разных экранов */
+        @media (min-width: 1024px) {
+            body.with-hub {
+                grid-template-rows: 
+                    minmax(10vh, auto)
+                    auto;
+            }
+        }
+        
+        @media (max-width: 1023px) and (min-width: 769px) {
+            body.with-hub {
+                grid-template-rows: 
+                    minmax(10vh, auto)
+                    auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body.with-hub {
+                grid-template-rows: 
+                    minmax(10vh, auto)
+                    auto;
+            }
+            
+            body.with-hub::before {
+                top: clamp(10vh, 12vw, 12vh) !important;
+                width: clamp(150px, 30vw, 200px) !important;
+                height: clamp(150px, 30vw, 200px) !important;
+            }
+            
+            body.with-hub::after {
+                bottom: clamp(15vh, 20vw, 20vh) !important;
+                width: clamp(180px, 35vw, 250px) !important;
+                height: clamp(180px, 35vw, 250px) !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body.with-hub {
+                grid-template-rows: 
+                    minmax(10vh, auto)
+                    auto;
+            }
+            
+            body.with-hub::before {
+                top: clamp(10vh, 12vw, 12vh) !important;
+                width: clamp(120px, 25vw, 180px) !important;
+                height: clamp(120px, 25vw, 180px) !important;
+                left: clamp(-40px, -8vw, -50px) !important;
+            }
+            
+            body.with-hub::after {
+                bottom: clamp(12vh, 18vw, 18vh) !important;
+                width: clamp(150px, 30vw, 220px) !important;
+                height: clamp(150px, 30vw, 220px) !important;
+                right: clamp(-60px, -12vw, -80px) !important;
+            }
+        }
 
     </style>
 </head>
 <body class="with-hub">
-    <div class="container">
+    <!-- HUB3: основная зона контента -->
+    <div class="hub-zone hub3">
+        <div class="container">
         <!-- Кнопка назад -->
         <div class="back-button">
             <a href="/index.html" class="back-button-hub">
@@ -1186,12 +1313,14 @@
                 backUrl: '/index.html'
             });
             
-            // Обновление позиций
+            // Обновление позиций (hub2 скрыт, не обновляем его позицию)
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        // Позиционирование теперь управляется через CSS Grid
-                        HubCommon.adaptSubtitleToLogo();
+                        // Hub2 скрыт, не обновляем его позицию
+                        HubCommon.updateHub4Position();
+                        HubCommon.updateContentPadding('.hub3 > .container');
+                        HubCommon.updateFloatingElementsPosition();
                         HubCommon.updateBodyPaddingBottom();
                     });
                 });
@@ -1213,7 +1342,7 @@
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
                 if (typeof HubCommon !== 'undefined') {
-                    HubCommon.updateHub2Position();
+                    // Hub2 скрыт, не обновляем его позицию
                     HubCommon.updateHub4Position();
                     HubCommon.updateContentPadding('.hub3 > .container');
                     HubCommon.updateFloatingElementsPosition();

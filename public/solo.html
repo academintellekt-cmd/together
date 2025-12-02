@@ -14,7 +14,51 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
     <style>
+        /* Номер вопроса по центру (для Hub1 во время игры) */
+        .hub1-question-number {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #393639;
+            opacity: 0.8;
+            white-space: nowrap;
+            display: none;
+        }
 
+        /* Таймер справа (для Hub1 во время игры) */
+        .hub1-timer {
+            font-family: 'Days One', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #393639;
+            min-width: 40px;
+            text-align: center;
+            padding: 4px 12px;
+            background: rgba(245, 245, 245, 0.85);
+            border: 2px solid #393639;
+            border-radius: 8px;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .hub1-timer.urgent {
+            color: #ff7664;
+            background: rgba(255, 118, 100, 0.15);
+            border-color: #ff7664;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
 
         .name-input-screen {
             text-align: center;
@@ -285,6 +329,17 @@
         /* Скрываем Hub2 на этой странице */
         #hub2 {
             display: none !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+            visibility: hidden !important;
+        }
+        
+        /* Убеждаемся, что Hub1 не перекрывает парящие элементы */
+        .hub1 {
+            overflow: visible !important;
         }
         
         /* Когда Hub2 скрыт, Hub3 занимает его место в grid */
@@ -296,11 +351,53 @@
         
         .hub3 {
             grid-row: 2; /* Занимает место Hub2 */
+            margin-top: 0 !important;
+            padding-top: 0 !important;
         }
         
-        /* Обновляем позицию парящих элементов */
+        /* Убираем лишние отступы у контейнера hub3 */
+        .hub3 > .container {
+            margin-top: 0 !important;
+            padding-top: clamp(16px, 5vw, 40px) !important;
+        }
+        
+        /* Парящие элементы - позиционируются относительно viewport */
         body.with-hub::before {
-            top: 10vh; /* После Hub1 (без Hub2) */
+            content: '' !important;
+            position: fixed !important;
+            top: clamp(12vh, 15vw, 15vh) !important; /* Немного ниже Hub1, чтобы не перекрывался */
+            left: -50px !important;
+            width: 200px !important;
+            height: 200px !important;
+            background: #d6fbbf !important;
+            border-radius: 50% 40% 60% 30% !important;
+            opacity: 0.9 !important;
+            z-index: -1 !important;
+            animation: wobble 6s ease-in-out infinite !important;
+            pointer-events: none !important;
+        }
+        
+        body.with-hub::after {
+            content: '' !important;
+            position: fixed !important;
+            bottom: 20vh !important; /* Примерно выше Hub4+Hub5 */
+            right: -80px !important;
+            width: 250px !important;
+            height: 250px !important;
+            background: #fececd !important;
+            border-radius: 40% 50% 30% 60% !important;
+            opacity: 0.9 !important;
+            z-index: -1 !important;
+            animation: wobble 8s ease-in-out infinite reverse !important;
+            pointer-events: none !important;
+        }
+        
+        /* Анимация wobble для парящих элементов */
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(5deg) scale(1.1); }
+            50% { transform: rotate(-5deg) scale(0.9); }
+            75% { transform: rotate(3deg) scale(1.05); }
         }
         
         /* Адаптивность для разных экранов */
@@ -328,7 +425,15 @@
             }
             
             body.with-hub::before {
-                top: clamp(10vh, 12vw, 12vh);
+                top: clamp(12vh, 15vw, 15vh) !important; /* Немного ниже Hub1 */
+                width: clamp(150px, 30vw, 200px) !important;
+                height: clamp(150px, 30vw, 200px) !important;
+            }
+            
+            body.with-hub::after {
+                bottom: clamp(15vh, 20vw, 20vh) !important;
+                width: clamp(180px, 35vw, 250px) !important;
+                height: clamp(180px, 35vw, 250px) !important;
             }
         }
         
@@ -340,7 +445,17 @@
             }
             
             body.with-hub::before {
-                top: clamp(10vh, 12vw, 12vh);
+                top: clamp(12vh, 15vw, 15vh) !important; /* Немного ниже Hub1 */
+                width: clamp(120px, 25vw, 180px) !important;
+                height: clamp(120px, 25vw, 180px) !important;
+                left: clamp(-40px, -8vw, -50px) !important;
+            }
+            
+            body.with-hub::after {
+                bottom: clamp(12vh, 18vw, 18vh) !important;
+                width: clamp(150px, 30vw, 220px) !important;
+                height: clamp(150px, 30vw, 220px) !important;
+                right: clamp(-60px, -12vw, -80px) !important;
             }
         }
     </style>
@@ -911,16 +1026,6 @@
             if (hub1StartBtn) hub1StartBtn.style.display = 'none';
             if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = 'none';
             
-            // Показываем информацию об игре в Hub1
-            const hub1QuestionNumber = document.querySelector('.hub1-question-number');
-            const hub1Timer = document.querySelector('.hub1-timer');
-            if (hub1QuestionNumber) {
-                hub1QuestionNumber.style.display = 'block';
-            }
-            if (hub1Timer) {
-                hub1Timer.style.display = 'block';
-            }
-            
             currentQuestion = 0;
             score = 0;
             correctAnswers = 0;
@@ -949,10 +1054,32 @@
 
             const question = quiz.questions[currentQuestion];
             
-            // Обновляем номер вопроса в Hub1 по центру
-            const hub1QuestionNumber = document.querySelector('.hub1-question-number');
-            if (hub1QuestionNumber) {
+            // Показываем номер вопроса и таймер в Hub1 (создаем динамически, как на host.html)
+            const hub1Content = document.querySelector('.hub1-content');
+            if (hub1Content) {
+                // Создаем или находим элемент номера вопроса
+                let hub1QuestionNumber = document.getElementById('hub1-question-number');
+                if (!hub1QuestionNumber) {
+                    hub1QuestionNumber = document.createElement('div');
+                    hub1QuestionNumber.id = 'hub1-question-number';
+                    hub1QuestionNumber.className = 'hub1-question-number';
+                    hub1Content.appendChild(hub1QuestionNumber);
+                }
                 hub1QuestionNumber.textContent = `Вопрос ${currentQuestion + 1} из ${quiz.questions.length}`;
+                hub1QuestionNumber.style.display = 'block';
+                
+                // Создаем или находим элемент таймера
+                let hub1Timer = document.getElementById('hub1-timer');
+                if (!hub1Timer) {
+                    hub1Timer = document.createElement('div');
+                    hub1Timer.id = 'hub1-timer';
+                    hub1Timer.className = 'hub1-timer';
+                    const hub1ActionsRight = document.getElementById('hub1-actions-right');
+                    if (hub1ActionsRight) {
+                        hub1ActionsRight.appendChild(hub1Timer);
+                    }
+                }
+                hub1Timer.style.display = 'inline-block';
             }
             
             document.getElementById('question-text').textContent = question.question;
@@ -1011,10 +1138,10 @@
             
             // Таймер в Hub1
             timeLeft = question.time;
-            const hub1Timer = document.querySelector('.hub1-timer');
+            const hub1Timer = document.getElementById('hub1-timer');
             if (hub1Timer) {
                 hub1Timer.textContent = timeLeft;
-                hub1Timer.classList.remove('urgent');
+                hub1Timer.className = 'hub1-timer';
             }
 
             if (timerInterval) clearInterval(timerInterval);
@@ -1022,11 +1149,10 @@
                 timeLeft--;
                 if (hub1Timer) {
                     hub1Timer.textContent = timeLeft;
-                    
                     if (timeLeft <= 5) {
-                        hub1Timer.classList.add('urgent');
+                        hub1Timer.className = 'hub1-timer urgent';
                     } else {
-                        hub1Timer.classList.remove('urgent');
+                        hub1Timer.className = 'hub1-timer';
                     }
                 }
                 
@@ -1099,8 +1225,8 @@
             const timeSpent = Math.floor((Date.now() - startTime) / 1000);
             
             // Скрываем информацию об игре в Hub1
-            const hub1QuestionNumber = document.querySelector('.hub1-question-number');
-            const hub1Timer = document.querySelector('.hub1-timer');
+            const hub1QuestionNumber = document.getElementById('hub1-question-number');
+            const hub1Timer = document.getElementById('hub1-timer');
             if (hub1QuestionNumber) {
                 hub1QuestionNumber.style.display = 'none';
             }
@@ -1213,8 +1339,8 @@
                     if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = '';
                     
                     // Скрываем информацию об игре в Hub1
-                    const hub1QuestionNumber = document.querySelector('.hub1-question-number');
-                    const hub1Timer = document.querySelector('.hub1-timer');
+                    const hub1QuestionNumber = document.getElementById('hub1-question-number');
+                    const hub1Timer = document.getElementById('hub1-timer');
                     if (hub1QuestionNumber) {
                         hub1QuestionNumber.style.display = 'none';
                     }
@@ -1234,8 +1360,8 @@
                 if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = '';
                 
                 // Скрываем информацию об игре в Hub1
-                const hub1QuestionNumber = document.querySelector('.hub1-question-number');
-                const hub1Timer = document.querySelector('.hub1-timer');
+                const hub1QuestionNumber = document.getElementById('hub1-question-number');
+                const hub1Timer = document.getElementById('hub1-timer');
                 if (hub1QuestionNumber) {
                     hub1QuestionNumber.style.display = 'none';
                 }
@@ -1259,30 +1385,7 @@
                 backUrl: backUrl
             });
             
-            // Создаем элементы для номера вопроса и таймера в Hub1
-            const hub1Content = document.querySelector('.hub1-content');
-            if (hub1Content) {
-                // Номер вопроса по центру
-                let hub1QuestionNumber = document.querySelector('.hub1-question-number');
-                if (!hub1QuestionNumber) {
-                    hub1QuestionNumber = document.createElement('div');
-                    hub1QuestionNumber.className = 'hub1-question-number';
-                    hub1QuestionNumber.style.display = 'none';
-                    hub1Content.appendChild(hub1QuestionNumber);
-                }
-                
-                // Таймер справа
-                let hub1Timer = document.querySelector('.hub1-timer');
-                if (!hub1Timer) {
-                    hub1Timer = document.createElement('div');
-                    hub1Timer.className = 'hub1-timer';
-                    hub1Timer.style.display = 'none';
-                    const hub1ActionsRight = document.getElementById('hub1-actions-right');
-                    if (hub1ActionsRight) {
-                        hub1ActionsRight.appendChild(hub1Timer);
-                    }
-                }
-            }
+            // Элементы hub1-question-number и hub1-timer создаются динамически в showQuestion(), как на host.html
             
             // Добавляем кнопку "Начать игру" в Hub1 справа
             const hub1ActionsRight = document.getElementById('hub1-actions-right');

@@ -60,11 +60,13 @@ body.with-hub {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     padding: var(--hub1-padding);
-    min-height: 10vh; /* Минимальная высота для пропорций */
+    min-height: 5vh; /* Минимальная высота для каждой зоны (в сумме 10vh = 10%) */
+    max-height: 10vh; /* Максимальная высота для каждой зоны (в сумме 20vh = 20%) */
     box-sizing: border-box;
     width: 100%;
     z-index: 999; /* Ниже HUB1 (1001) и HUB2 (1000), но выше парящих элементов (z-index: -1) */
     position: relative; /* В потоке документа, не фиксированы */
+    overflow: hidden; /* Скрываем переполнение контента */
 }
 
 /* Парящие элементы управляются через hub-layout-system.css */
@@ -72,31 +74,41 @@ body.with-hub {
 /* Адаптивные стили для HUB4 и HUB5 (соответствуют HUB1) */
 @media (min-width: 1024px) {
     .hub4, .hub5 {
-        padding: clamp(15px, 2vw, 20px) clamp(30px, 4vw, 40px);
+        padding: clamp(10px, 1.5vw, 15px) clamp(30px, 4vw, 40px);
+        min-height: 5vh;
+        max-height: 10vh;
     }
 }
 
 @media (max-width: 1023px) and (min-width: 769px) {
     .hub4, .hub5 {
-        padding: clamp(12px, 2vw, 15px) clamp(20px, 3vw, 30px);
+        padding: clamp(8px, 1.5vw, 12px) clamp(20px, 3vw, 30px);
+        min-height: 4vh;
+        max-height: 8vh;
     }
 }
 
 @media (max-width: 768px) {
     .hub4, .hub5 {
-        padding: clamp(10px, 2vw, 12px) clamp(12px, 3vw, 15px);
+        padding: clamp(6px, 1.5vw, 10px) clamp(12px, 3vw, 15px);
+        min-height: 3vh;
+        max-height: 6vh;
     }
 }
 
 @media (max-width: 480px) {
     .hub4, .hub5 {
-        padding: clamp(8px, 2vw, 10px) clamp(10px, 2.5vw, 12px);
+        padding: clamp(5px, 1.5vw, 8px) clamp(10px, 2.5vw, 12px);
+        min-height: 2.5vh;
+        max-height: 5vh;
     }
 }
 
 @media (max-width: 360px) {
     .hub4, .hub5 {
-        padding: clamp(8px, 2vw, 10px);
+        padding: clamp(4px, 1.5vw, 6px);
+        min-height: 2vh;
+        max-height: 4vh;
     }
 }
 
