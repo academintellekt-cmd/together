@@ -1,9 +1,9 @@
 /**
- * Hub1 - Меню с кнопками
+ * Frame1 - Меню с кнопками
  * Используется на всех страницах
  */
 
-const Hub1 = {
+const Frame1 = {
     config: {
         showLogin: false,
         showJoystick: false,
@@ -14,19 +14,19 @@ const Hub1 = {
     },
     
     /**
-     * Инициализация Hub1
+     * Инициализация Frame1
      */
     init(config = {}) {
         this.config = { ...this.config, ...config };
         
-        // Инициализируем HubCommon если еще не инициализирован
-        if (!HubCommon._initialized) {
-            HubCommon.init();
+        // Инициализируем FrameCommon если еще не инициализирован
+        if (!FrameCommon._initialized) {
+            FrameCommon.init();
         }
         
-        // Создаем Hub1 если его нет
-        if (!document.getElementById('hub1')) {
-            this.createHub1();
+        // Создаем Frame1 если его нет
+        if (!document.getElementById('frame1')) {
+            this.createFrame1();
         }
         
         // Инициализируем компоненты
@@ -35,36 +35,36 @@ const Hub1 = {
         }
         
         // Применяем цвет персонажа
-        HubCommon.applyCharacterColor();
+        FrameCommon.applyCharacterColor();
         
-        // Обновляем позицию Hub2 после создания Hub1
-        HubCommon.updateHub2Position();
+        // Обновляем позицию Frame2 после создания Frame1
+        FrameCommon.updateFrame2Position();
         
         // Инициализируем обработчики
         this.initEventHandlers();
     },
     
     /**
-     * Создает HTML структуру Hub1
+     * Создает HTML структуру Frame1
      */
-    createHub1() {
-        const hub1 = document.createElement('div');
-        hub1.id = 'hub1';
-        hub1.className = 'hub1';
+    createFrame1() {
+        const frame1 = document.createElement('div');
+        frame1.id = 'frame1';
+        frame1.className = 'frame1';
         
         const content = document.createElement('div');
-        content.className = 'hub1-content';
+        content.className = 'frame1-content';
         
         const actions = document.createElement('div');
-        actions.className = 'hub1-actions';
+        actions.className = 'frame1-actions';
         
         const actionsLeft = document.createElement('div');
-        actionsLeft.className = 'hub1-actions-left';
-        actionsLeft.id = 'hub1-actions-left';
+        actionsLeft.className = 'frame1-actions-left';
+        actionsLeft.id = 'frame1-actions-left';
         
         const actionsRight = document.createElement('div');
-        actionsRight.className = 'hub1-actions-right';
-        actionsRight.id = 'hub1-actions-right';
+        actionsRight.className = 'frame1-actions-right';
+        actionsRight.id = 'frame1-actions-right';
         
         // Добавляем кнопки в зависимости от конфигурации
         if (this.config.showBack) {
@@ -101,9 +101,15 @@ const Hub1 = {
         actions.appendChild(actionsLeft);
         actions.appendChild(actionsRight);
         content.appendChild(actions);
-        hub1.appendChild(content);
+        frame1.appendChild(content);
         
-        document.body.insertBefore(hub1, document.body.firstChild);
+        // Ищем контейнер для Frame1 или создаем его
+        const frame1Container = document.getElementById('frame1-container');
+        if (frame1Container) {
+            frame1Container.appendChild(frame1);
+        } else {
+            document.body.insertBefore(frame1, document.body.firstChild);
+        }
     },
     
     /**
@@ -112,7 +118,7 @@ const Hub1 = {
     createButton(text, url, className = '') {
         const button = document.createElement('a');
         button.href = url;
-        button.className = `hub1-button ${className}`;
+        button.className = `frame1-button ${className}`;
         button.textContent = text;
         return button;
     },
@@ -122,17 +128,17 @@ const Hub1 = {
      */
     createLoginButton() {
         const menu = document.createElement('div');
-        menu.className = 'hub1-character-menu';
+        menu.className = 'frame1-character-menu';
         
         const button = document.createElement('a');
         button.href = '#';
-        button.className = 'hub1-button';
-        button.id = 'hub1-login-button';
+        button.className = 'frame1-button';
+        button.id = 'frame1-login-button';
         button.textContent = 'Войти';
         
         const dropdown = document.createElement('div');
-        dropdown.className = 'hub1-character-menu-dropdown';
-        dropdown.id = 'hub1-character-menu-dropdown';
+        dropdown.className = 'frame1-character-menu-dropdown';
+        dropdown.id = 'frame1-character-menu-dropdown';
         
         menu.appendChild(button);
         menu.appendChild(dropdown);
@@ -155,8 +161,8 @@ const Hub1 = {
             { id: 'thoughtful', name: 'Думалка', color: '#8a7cf6', position: 7, emotion: 'thoughtful' }
         ];
         
-        const loginButton = document.getElementById('hub1-login-button');
-        const dropdown = document.getElementById('hub1-character-menu-dropdown');
+        const loginButton = document.getElementById('frame1-login-button');
+        const dropdown = document.getElementById('frame1-character-menu-dropdown');
         
         if (!loginButton || !dropdown) return;
         
@@ -165,7 +171,7 @@ const Hub1 = {
         // Создаем опции персонажей
         characters.forEach(char => {
             const option = document.createElement('div');
-            option.className = 'hub1-character-option' + (char.id === selectedCharacterId ? ' selected' : '');
+            option.className = 'frame1-character-option' + (char.id === selectedCharacterId ? ' selected' : '');
             option.dataset.characterId = char.id;
             
             const preview = document.createElement('div');
@@ -181,7 +187,7 @@ const Hub1 = {
                 localStorage.setItem('selectedCharacterColor', char.color);
                 localStorage.setItem('selectedCharacter', char.id);
                 
-                document.querySelectorAll('.hub1-character-option').forEach(opt => {
+                document.querySelectorAll('.frame1-character-option').forEach(opt => {
                     opt.classList.remove('selected');
                     if (opt.dataset.characterId === char.id) {
                         opt.classList.add('selected');
@@ -201,7 +207,7 @@ const Hub1 = {
         }
         
         // Сохраняем ссылку на menu для обработчика
-        const menu = loginButton.closest('.hub1-character-menu');
+        const menu = loginButton.closest('.frame1-character-menu');
         
         // Обработчик клика на кнопку
         loginButton.addEventListener('click', (e) => {
@@ -269,8 +275,8 @@ const Hub1 = {
      * Добавляет кнопку динамически
      */
     addButton(text, url, position = 'left', className = '') {
-        const actionsLeft = document.getElementById('hub1-actions-left');
-        const actionsRight = document.getElementById('hub1-actions-right');
+        const actionsLeft = document.getElementById('frame1-actions-left');
+        const actionsRight = document.getElementById('frame1-actions-right');
         
         const button = this.createButton(text, url, className);
         
@@ -280,25 +286,25 @@ const Hub1 = {
             actionsLeft.appendChild(button);
         }
         
-        HubCommon.applyCharacterColor();
+        FrameCommon.applyCharacterColor();
     },
     
     /**
      * Добавляет иконку игрока (для multiplayer)
      */
     addPlayerIcon(playerId, name, status = 'waiting') {
-        const actionsLeft = document.getElementById('hub1-actions-left');
+        const actionsLeft = document.getElementById('frame1-actions-left');
         if (!actionsLeft) return;
         
         const icon = document.createElement('div');
-        icon.className = `hub1-player-icon ${status}`;
-        icon.id = `hub1-player-${playerId}`;
+        icon.className = `frame1-player-icon ${status}`;
+        icon.id = `frame1-player-${playerId}`;
         icon.textContent = name;
         icon.dataset.playerId = playerId;
         
         actionsLeft.appendChild(icon);
         
-        // Обновляем высоту Hub1
+        // Обновляем высоту Frame1
         this.updateHeight();
     },
     
@@ -306,7 +312,7 @@ const Hub1 = {
      * Удаляет иконку игрока
      */
     removePlayerIcon(playerId) {
-        const icon = document.getElementById(`hub1-player-${playerId}`);
+        const icon = document.getElementById(`frame1-player-${playerId}`);
         if (icon) {
             icon.remove();
             this.updateHeight();
@@ -317,20 +323,20 @@ const Hub1 = {
      * Обновляет статус игрока
      */
     updatePlayerStatus(playerId, status) {
-        const icon = document.getElementById(`hub1-player-${playerId}`);
+        const icon = document.getElementById(`frame1-player-${playerId}`);
         if (icon) {
-            icon.className = `hub1-player-icon ${status}`;
+            icon.className = `frame1-player-icon ${status}`;
         }
     },
     
     /**
-     * Обновляет высоту Hub1 и позицию Hub2
+     * Обновляет высоту Frame1 и позицию Frame2
      */
     updateHeight() {
-        const hub1 = document.getElementById('hub1');
-        if (hub1) {
-            // Высота обновится автоматически, нужно обновить позицию Hub2
-            HubCommon.updateHub2Position();
+        const frame1 = document.getElementById('frame1');
+        if (frame1) {
+            // Высота обновится автоматически, нужно обновить позицию Frame2
+            FrameCommon.updateFrame2Position();
         }
     },
     
@@ -338,8 +344,9 @@ const Hub1 = {
      * Инициализирует обработчики событий
      */
     initEventHandlers() {
-        // Обработчики resize теперь управляются через HubCommon.initResizeHandlers()
+        // Обработчики resize теперь управляются через FrameCommon.initResizeHandlers()
         // Дополнительные обработчики можно добавить здесь при необходимости
     }
 };
+
 

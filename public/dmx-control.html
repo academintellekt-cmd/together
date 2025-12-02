@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="/styles/base.css">
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/components.css">
-    <link rel="stylesheet" href="/styles/hub1.css">
-    <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -25,8 +25,8 @@
     
     <!-- Layout Manager -->
     <script src="/scripts/layout.js"></script>
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
     <style>
         * {
             margin: 0;
@@ -421,9 +421,18 @@
         </div>
     </div>
 
-    <!-- HUB4 и HUB5 для нижних полос -->
-    <div id="hub4" class="hub-zone hub4"></div>
-    <div id="hub5" class="hub-zone hub5"></div>
+    <!-- FOOTER: Frame 4 и Frame 5 -->
+    <footer class="site-footer">
+        <!-- Frame 4: Правила безопасности -->
+        <section class="frame frame-4" data-frame="rules" id="hub4">
+            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
+        </section>
+
+        <!-- Frame 5: Информация о создателе -->
+        <section class="frame frame-5" data-frame="about" id="hub5">
+            <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+        </section>
+    </footer>
 
     <script>
         let selectedPlayer = null;
@@ -725,20 +734,20 @@
     </script>
 
     <script>
-        // Инициализация Hub1
+        // Инициализация Frame1
         (function() {
             function initHubs() {
                 try {
-                    if (typeof Hub1 === 'undefined' || typeof HubCommon === 'undefined') {
+                    if (typeof Frame1 === 'undefined' || typeof FrameCommon === 'undefined') {
                         console.warn('Hub скрипты еще не загружены, повторная попытка через 100мс...');
                         setTimeout(initHubs, 100);
                         return;
                     }
                     
-                    console.log('Инициализация Hub1...');
+                    console.log('Инициализация Frame1...');
                     
-                    // Инициализация Hub1 с кнопкой "Назад"
-                    Hub1.init({
+                    // Инициализация Frame1 с кнопкой "Назад"
+                    Frame1.init({
                         showBack: true,
                         backUrl: '/settings.html'
                     });
@@ -752,7 +761,7 @@
                                 
                                 
                                 
-                                console.log('Hub1 успешно инициализирован');
+                                console.log('Frame1 успешно инициализирован');
                             });
                         });
                     });
@@ -774,9 +783,9 @@
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(() => {
-                    if (typeof HubCommon !== 'undefined') {
-                        HubCommon._positionInitialized = false;
-                        HubCommon._lastCorrectMarginTop = null;
+                    if (typeof FrameCommon !== 'undefined') {
+                        FrameCommon._positionInitialized = false;
+                        FrameCommon._lastCorrectMarginTop = null;
                         
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {

@@ -8,14 +8,14 @@
     <link rel="stylesheet" href="/styles/base.css">
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/components.css">
-    <link rel="stylesheet" href="/styles/hub1.css">
-    <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
     <style>
-        /* Номер вопроса по центру (для Hub1 во время игры) */
-        .hub1-question-number {
+        /* Номер вопроса по центру (для Frame1 во время игры) */
+        .frame1-question-number {
             position: absolute;
             left: 50%;
             top: 50%;
@@ -30,8 +30,8 @@
             display: none;
         }
 
-        /* Таймер справа (для Hub1 во время игры) */
-        .hub1-timer {
+        /* Таймер справа (для Frame1 во время игры) */
+        .frame1-timer {
             font-family: 'Days One', sans-serif;
             font-size: 20px;
             font-weight: 700;
@@ -48,7 +48,7 @@
             display: none;
         }
 
-        .hub1-timer.urgent {
+        .frame1-timer.urgent {
             color: #ff7664;
             background: rgba(255, 118, 100, 0.15);
             border-color: #ff7664;
@@ -295,7 +295,7 @@
         }
 
         /* Стиль для неактивной кнопки в HUB1 */
-        .hub1-button:disabled {
+        .frame1-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             pointer-events: none;
@@ -324,7 +324,7 @@
             color: #FFFFFF !important;
         }
 
-        /* Адаптивные стили для HUB4 и HUB5 перенесены в hub-layout.css */
+        /* Адаптивные стили для HUB4 и HUB5 перенесены в layout.css */
         
         /* Скрываем Hub2 на этой странице */
         #hub2 {
@@ -337,7 +337,7 @@
             visibility: hidden !important;
         }
         
-        /* Убеждаемся, что Hub1 не перекрывает парящие элементы */
+        /* Убеждаемся, что Frame1 не перекрывает парящие элементы */
         .hub1 {
             overflow: visible !important;
         }
@@ -345,7 +345,7 @@
         /* Когда Hub2 скрыт, Hub3 занимает его место в grid */
         body.with-hub {
             grid-template-rows: 
-                auto                /* Hub1 - фиксированная высота */
+                auto                /* Frame1 - фиксированная высота */
                 auto;               /* Hub3 занимает место Hub2 */
         }
         
@@ -361,7 +361,7 @@
             padding-top: 40px !important; /* Фиксированный отступ (максимально широкий экран) */
         }
         
-        /* Парящие элементы перемещены в Hub3 через hub-layout.css */
+        /* Парящие элементы перемещены в Hub3 через layout.css */
     </style>
 </head>
 <body class="with-hub">
@@ -387,8 +387,8 @@
                 Проверьте, что вы ввели правильное имя и готовы к игре
             </p>
             <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%;">
-                <button id="solo-start-game-confirm" class="hub1-button" style="background: #00C159 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Начать игру</button>
-                <button id="solo-start-game-cancel" class="hub1-button" style="background: #ff7664 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap;">Назад</button>
+                <button id="solo-start-game-confirm" class="frame1-button" style="background: #00C159 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Начать игру</button>
+                <button id="solo-start-game-cancel" class="frame1-button" style="background: #ff7664 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap;">Назад</button>
             </div>
         </div>
     </div>
@@ -442,15 +442,18 @@
         </div>
     </div>
 
-    <!-- HUB4: нижняя полоса (fixed, над HUB5) -->
-    <div id="hub4" class="hub-zone hub4">
-        <!-- Здесь позже можно разместить вспомогательные статусы, подсказки, маленькие карточки и т.п. -->
-    </div>
+    <!-- FOOTER: Frame 4 и Frame 5 -->
+    <footer class="site-footer">
+        <!-- Frame 4: Правила безопасности -->
+        <section class="frame frame-4" data-frame="rules" id="hub4">
+            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
+        </section>
 
-    <!-- HUB5: самая нижняя полоса (fixed, внизу экрана) -->
-    <div id="hub5" class="hub-zone hub5">
-        <!-- Здесь позже можно разместить "Правила хаба", ссылки, переключение режимов -->
-    </div>
+        <!-- Frame 5: Информация о создателе -->
+        <section class="frame frame-5" data-frame="about" id="hub5">
+            <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+        </section>
+    </footer>
 
     <script>
         let quiz = null;
@@ -822,8 +825,8 @@
                 // Обновляем ссылки на рейтинг после загрузки квиза
                 updateLeaderboardLinks();
                 
-                // Обновляем backUrl в Hub1
-                updateHub1BackUrl();
+                // Обновляем backUrl в Frame1
+                updateFrame1BackUrl();
             } catch (error) {
                 console.error('Ошибка загрузки квиза:', error);
                 alert('Не удалось загрузить квиз');
@@ -843,11 +846,11 @@
             }
         }
         
-        // Обновление backUrl в Hub1
-        function updateHub1BackUrl() {
-            if (typeof Hub1 !== 'undefined') {
+        // Обновление backUrl в Frame1
+        function updateFrame1BackUrl() {
+            if (typeof Frame1 !== 'undefined') {
                 const backUrl = getBackUrl();
-                Hub1.init({
+                Frame1.init({
                     showBack: true,
                     backUrl: backUrl
                 });
@@ -866,14 +869,14 @@
                     }
                     // После ввода правильного пароля загружаем квиз
                     await loadQuiz();
-                    // Обновляем Hub1 после загрузки квиза
-                    updateHub1BackUrl();
+                    // Обновляем Frame1 после загрузки квиза
+                    updateFrame1BackUrl();
                 });
             } else {
                 // Для других квизов просто загружаем
                 await loadQuiz();
-                // Обновляем Hub1 после загрузки квиза
-                updateHub1BackUrl();
+                // Обновляем Frame1 после загрузки квиза
+                updateFrame1BackUrl();
             }
             
             // Устанавливаем ссылки на рейтинг с параметрами
@@ -890,7 +893,7 @@
                 }
             }
             
-            const hub1LeaderboardBtn = document.getElementById('hub1-leaderboard-btn');
+            const hub1LeaderboardBtn = document.getElementById('frame1-leaderboard-btn');
             const link2 = document.getElementById('leaderboard-link-2');
             if (hub1LeaderboardBtn) hub1LeaderboardBtn.href = leaderboardUrl;
             if (link2) link2.href = leaderboardUrl;
@@ -899,7 +902,7 @@
         // Enter для начала игры
         document.getElementById('player-name').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                const hub1StartBtn = document.getElementById('hub1-start-btn');
+                const hub1StartBtn = document.getElementById('frame1-start-btn');
                 if (hub1StartBtn) {
                     hub1StartBtn.click();
                 }
@@ -924,9 +927,9 @@
                 questionScreen.style.display = 'block';
             }
             
-            // Скрываем кнопки в Hub1 во время игры
-            const hub1StartBtn = document.getElementById('hub1-start-btn');
-            const hub1LeaderboardBtn = document.getElementById('hub1-leaderboard-btn');
+            // Скрываем кнопки в Frame1 во время игры
+            const hub1StartBtn = document.getElementById('frame1-start-btn');
+            const hub1LeaderboardBtn = document.getElementById('frame1-leaderboard-btn');
             if (hub1StartBtn) hub1StartBtn.style.display = 'none';
             if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = 'none';
             
@@ -958,27 +961,27 @@
 
             const question = quiz.questions[currentQuestion];
             
-            // Показываем номер вопроса и таймер в Hub1 (создаем динамически, как на host.html)
-            const hub1Content = document.querySelector('.hub1-content');
+            // Показываем номер вопроса и таймер в Frame1 (создаем динамически, как на host.html)
+            const hub1Content = document.querySelector('.frame1-content');
             if (hub1Content) {
                 // Создаем или находим элемент номера вопроса
-                let hub1QuestionNumber = document.getElementById('hub1-question-number');
+                let hub1QuestionNumber = document.getElementById('frame1-question-number');
                 if (!hub1QuestionNumber) {
                     hub1QuestionNumber = document.createElement('div');
-                    hub1QuestionNumber.id = 'hub1-question-number';
-                    hub1QuestionNumber.className = 'hub1-question-number';
+                    hub1QuestionNumber.id = 'frame1-question-number';
+                    hub1QuestionNumber.className = 'frame1-question-number';
                     hub1Content.appendChild(hub1QuestionNumber);
                 }
                 hub1QuestionNumber.textContent = `Вопрос ${currentQuestion + 1} из ${quiz.questions.length}`;
                 hub1QuestionNumber.style.display = 'block';
                 
                 // Создаем или находим элемент таймера
-                let hub1Timer = document.getElementById('hub1-timer');
+                let hub1Timer = document.getElementById('frame1-timer');
                 if (!hub1Timer) {
                     hub1Timer = document.createElement('div');
-                    hub1Timer.id = 'hub1-timer';
-                    hub1Timer.className = 'hub1-timer';
-                    const hub1ActionsRight = document.getElementById('hub1-actions-right');
+                    hub1Timer.id = 'frame1-timer';
+                    hub1Timer.className = 'frame1-timer';
+                    const hub1ActionsRight = document.getElementById('frame1-actions-right');
                     if (hub1ActionsRight) {
                         hub1ActionsRight.appendChild(hub1Timer);
                     }
@@ -1040,12 +1043,12 @@
             // Сохраняем время начала вопроса для точного расчета времени ответа
             questionStartTime = Date.now();
             
-            // Таймер в Hub1
+            // Таймер в Frame1
             timeLeft = question.time;
-            const hub1Timer = document.getElementById('hub1-timer');
+            const hub1Timer = document.getElementById('frame1-timer');
             if (hub1Timer) {
                 hub1Timer.textContent = timeLeft;
-                hub1Timer.className = 'hub1-timer';
+                hub1Timer.className = 'frame1-timer';
             }
 
             if (timerInterval) clearInterval(timerInterval);
@@ -1054,9 +1057,9 @@
                 if (hub1Timer) {
                     hub1Timer.textContent = timeLeft;
                     if (timeLeft <= 5) {
-                        hub1Timer.className = 'hub1-timer urgent';
+                        hub1Timer.className = 'frame1-timer urgent';
                     } else {
-                        hub1Timer.className = 'hub1-timer';
+                        hub1Timer.className = 'frame1-timer';
                     }
                 }
                 
@@ -1128,9 +1131,9 @@
         async function endGame() {
             const timeSpent = Math.floor((Date.now() - startTime) / 1000);
             
-            // Скрываем информацию об игре в Hub1
-            const hub1QuestionNumber = document.getElementById('hub1-question-number');
-            const hub1Timer = document.getElementById('hub1-timer');
+            // Скрываем информацию об игре в Frame1
+            const hub1QuestionNumber = document.getElementById('frame1-question-number');
+            const hub1Timer = document.getElementById('frame1-timer');
             if (hub1QuestionNumber) {
                 hub1QuestionNumber.style.display = 'none';
             }
@@ -1139,8 +1142,8 @@
             }
             
             // Кнопки остаются скрытыми на экране результатов
-            const hub1StartBtn = document.getElementById('hub1-start-btn');
-            const hub1LeaderboardBtn = document.getElementById('hub1-leaderboard-btn');
+            const hub1StartBtn = document.getElementById('frame1-start-btn');
+            const hub1LeaderboardBtn = document.getElementById('frame1-leaderboard-btn');
             if (hub1StartBtn) hub1StartBtn.style.display = 'none';
             if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = 'none';
             
@@ -1196,9 +1199,9 @@
             // Показываем экран ввода имени
             document.getElementById('name-input-screen').style.display = 'block';
             
-            // Показываем кнопки в Hub1 на экране ввода имени
-            const hub1StartBtn = document.getElementById('hub1-start-btn');
-            const hub1LeaderboardBtn = document.getElementById('hub1-leaderboard-btn');
+            // Показываем кнопки в Frame1 на экране ввода имени
+            const hub1StartBtn = document.getElementById('frame1-start-btn');
+            const hub1LeaderboardBtn = document.getElementById('frame1-leaderboard-btn');
             if (hub1StartBtn) hub1StartBtn.style.display = '';
             if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = '';
             
@@ -1236,15 +1239,15 @@
                     document.getElementById('name-input-screen').style.display = 'block';
                     document.getElementById('game-screen').style.display = 'none';
                     
-                    // Показываем кнопки в Hub1
-                    const hub1StartBtn = document.getElementById('hub1-start-btn');
-                    const hub1LeaderboardBtn = document.getElementById('hub1-leaderboard-btn');
+                    // Показываем кнопки в Frame1
+                    const hub1StartBtn = document.getElementById('frame1-start-btn');
+                    const hub1LeaderboardBtn = document.getElementById('frame1-leaderboard-btn');
                     if (hub1StartBtn) hub1StartBtn.style.display = '';
                     if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = '';
                     
-                    // Скрываем информацию об игре в Hub1
-                    const hub1QuestionNumber = document.getElementById('hub1-question-number');
-                    const hub1Timer = document.getElementById('hub1-timer');
+                    // Скрываем информацию об игре в Frame1
+                    const hub1QuestionNumber = document.getElementById('frame1-question-number');
+                    const hub1Timer = document.getElementById('frame1-timer');
                     if (hub1QuestionNumber) {
                         hub1QuestionNumber.style.display = 'none';
                     }
@@ -1257,15 +1260,15 @@
                 document.getElementById('name-input-screen').style.display = 'block';
                 document.getElementById('game-screen').style.display = 'none';
                 
-                // Показываем кнопки в Hub1
-                const hub1StartBtn = document.getElementById('hub1-start-btn');
-                const hub1LeaderboardBtn = document.getElementById('hub1-leaderboard-btn');
+                // Показываем кнопки в Frame1
+                const hub1StartBtn = document.getElementById('frame1-start-btn');
+                const hub1LeaderboardBtn = document.getElementById('frame1-leaderboard-btn');
                 if (hub1StartBtn) hub1StartBtn.style.display = '';
                 if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = '';
                 
-                // Скрываем информацию об игре в Hub1
-                const hub1QuestionNumber = document.getElementById('hub1-question-number');
-                const hub1Timer = document.getElementById('hub1-timer');
+                // Скрываем информацию об игре в Frame1
+                const hub1QuestionNumber = document.getElementById('frame1-question-number');
+                const hub1Timer = document.getElementById('frame1-timer');
                 if (hub1QuestionNumber) {
                     hub1QuestionNumber.style.display = 'none';
                 }
@@ -1278,38 +1281,38 @@
         // Загрузка квиза при загрузке страницы
         // Проверяем пароль и загружаем квиз
         checkPasswordAndLoad();
-        // Инициализация Hub1
+        // Инициализация Frame1
         function initHubs() {
             // Определяем правильный backUrl
             const backUrl = getBackUrl();
             
-            // Инициализация Hub1
-            Hub1.init({
+            // Инициализация Frame1
+            Frame1.init({
                 showBack: true,
                 backUrl: backUrl
             });
             
-            // Элементы hub1-question-number и hub1-timer создаются динамически в showQuestion(), как на host.html
+            // Элементы frame1-question-number и frame1-timer создаются динамически в showQuestion(), как на host.html
             
-            // Добавляем кнопку "Начать игру" в Hub1 справа
-            const hub1ActionsRight = document.getElementById('hub1-actions-right');
+            // Добавляем кнопку "Начать игру" в Frame1 справа
+            const hub1ActionsRight = document.getElementById('frame1-actions-right');
             if (hub1ActionsRight) {
                 // Кнопка "Начать игру"
-                let startButton = document.getElementById('hub1-start-btn');
+                let startButton = document.getElementById('frame1-start-btn');
                 if (!startButton) {
                     startButton = document.createElement('button');
-                    startButton.id = 'hub1-start-btn';
-                    startButton.className = 'hub1-button';
+                    startButton.id = 'frame1-start-btn';
+                    startButton.className = 'frame1-button';
                     startButton.textContent = 'Начать игру';
                     hub1ActionsRight.appendChild(startButton);
                 }
                 
                 // Кнопка "Рейтинг"
-                let leaderboardButton = document.getElementById('hub1-leaderboard-btn');
+                let leaderboardButton = document.getElementById('frame1-leaderboard-btn');
                 if (!leaderboardButton) {
                     leaderboardButton = document.createElement('a');
-                    leaderboardButton.id = 'hub1-leaderboard-btn';
-                    leaderboardButton.className = 'hub1-button';
+                    leaderboardButton.id = 'frame1-leaderboard-btn';
+                    leaderboardButton.className = 'frame1-button';
                     leaderboardButton.textContent = 'Рейтинг';
                     leaderboardButton.href = '#';
                     // Покраска в зеленый цвет из брендбука
@@ -1407,7 +1410,7 @@
                 });
             }
             
-            // Обновление позиций (только Hub1, без Hub2)
+            // Обновление позиций (только Frame1, без Hub2)
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
@@ -1437,7 +1440,7 @@
         
         // Обновление при загрузке
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof HubCommon !== 'undefined') {
+            if (typeof FrameCommon !== 'undefined') {
                 // Позиционирование теперь управляется через CSS Grid
                 
                 
@@ -1451,7 +1454,7 @@
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                if (typeof HubCommon !== 'undefined') {
+                if (typeof FrameCommon !== 'undefined') {
                     // Позиционирование теперь управляется через CSS Grid
                     
                     
@@ -1491,11 +1494,11 @@
     
     <!-- Layout Manager -->
     <script src="/scripts/layout.js"></script>
-    <!-- Hub1 скрипты -->
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
+    <!-- Frame1 скрипты -->
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
     <script>
-        // Инициализация Hub1 после загрузки
+        // Инициализация Frame1 после загрузки
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(initHubs, 100);

@@ -1,39 +1,39 @@
 /**
- * Hub2 - Меню с логотипом
+ * Frame2 - Меню с логотипом
  * Используется на всех страницах
  */
 
-const Hub2 = {
+const Frame2 = {
     config: {
         showLogo: true,
         showSubtitle: true
     },
     
     /**
-     * Инициализация Hub2
+     * Инициализация Frame2
      */
     init(config = {}) {
         this.config = { ...this.config, ...config };
         
-        // Инициализируем HubCommon если еще не инициализирован
-        if (!HubCommon._initialized) {
-            HubCommon.init();
+        // Инициализируем FrameCommon если еще не инициализирован
+        if (!FrameCommon._initialized) {
+            FrameCommon.init();
         }
         
-        // Создаем Hub2 если его нет
-        if (!document.getElementById('hub2')) {
-            this.createHub2();
+        // Создаем Frame2 если его нет
+        if (!document.getElementById('frame2')) {
+            this.createFrame2();
         }
         
-        // Обновляем позицию Hub2 относительно Hub1
-        HubCommon.updateHub2Position();
+        // Обновляем позицию Frame2 относительно Frame1
+        FrameCommon.updateFrame2Position();
         
         // Адаптируем размер логотипа
-        HubCommon.adaptLogoSize();
+        FrameCommon.adaptLogoSize();
         
         // Адаптируем размер фразы под логотип
         setTimeout(() => {
-            HubCommon.adaptSubtitleToLogo();
+            FrameCommon.adaptSubtitleToLogo();
         }, 100);
         
         // Инициализируем обработчики
@@ -41,18 +41,18 @@ const Hub2 = {
     },
     
     /**
-     * Создает HTML структуру Hub2
+     * Создает HTML структуру Frame2
      */
-    createHub2() {
-        const hub2 = document.createElement('div');
-        hub2.id = 'hub2';
-        hub2.className = 'hub2';
+    createFrame2() {
+        const frame2 = document.createElement('div');
+        frame2.id = 'frame2';
+        frame2.className = 'frame2';
         
         const content = document.createElement('div');
-        content.className = 'hub2-content';
+        content.className = 'frame2-content';
         
         const logoSection = document.createElement('div');
-        logoSection.className = 'hub2-logo-section';
+        logoSection.className = 'frame2-logo-section';
         
         if (this.config.showLogo) {
             const logo = document.createElement('img');
@@ -70,14 +70,20 @@ const Hub2 = {
         }
         
         content.appendChild(logoSection);
-        hub2.appendChild(content);
+        frame2.appendChild(content);
         
-        // Вставляем после Hub1, если он есть
-        const hub1 = document.getElementById('hub1');
-        if (hub1) {
-            hub1.parentNode.insertBefore(hub2, hub1.nextSibling);
+        // Ищем контейнер для Frame2 или создаем его
+        const frame2Container = document.getElementById('frame2-container');
+        if (frame2Container) {
+            frame2Container.appendChild(frame2);
         } else {
-            document.body.insertBefore(hub2, document.body.firstChild);
+            // Вставляем после Frame1, если он есть
+            const frame1 = document.getElementById('frame1');
+            if (frame1) {
+                frame1.parentNode.insertBefore(frame2, frame1.nextSibling);
+            } else {
+                document.body.insertBefore(frame2, document.body.firstChild);
+            }
         }
     },
     
@@ -85,31 +91,32 @@ const Hub2 = {
      * Инициализирует обработчики событий
      */
     initEventHandlers() {
-        // Обработчики resize теперь управляются через HubCommon.initResizeHandlers()
+        // Обработчики resize теперь управляются через FrameCommon.initResizeHandlers()
         
         // Обновляем при загрузке изображения логотипа
-        const logo = document.querySelector('.hub2-logo-section .logo');
+        const logo = document.querySelector('.frame2-logo-section .logo');
         if (logo) {
             if (logo.complete) {
-                HubCommon.adaptLogoSize();
+                FrameCommon.adaptLogoSize();
                 setTimeout(() => {
-                    HubCommon.adaptSubtitleToLogo();
+                    FrameCommon.adaptSubtitleToLogo();
                 }, 50);
             } else {
                 logo.addEventListener('load', () => {
-                    HubCommon.adaptLogoSize();
+                    FrameCommon.adaptLogoSize();
                     setTimeout(() => {
-                        HubCommon.adaptSubtitleToLogo();
+                        FrameCommon.adaptSubtitleToLogo();
                     }, 50);
                 }, { once: true });
                 logo.addEventListener('error', () => {
-                    HubCommon.adaptLogoSize();
+                    FrameCommon.adaptLogoSize();
                     setTimeout(() => {
-                        HubCommon.adaptSubtitleToLogo();
+                        FrameCommon.adaptSubtitleToLogo();
                     }, 50);
                 }, { once: true });
             }
         }
     }
 };
+
 

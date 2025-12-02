@@ -35,12 +35,12 @@
         <header class="site-header">
             <!-- Frame 1: Панель с кнопками -->
             <div class="frame frame-1" data-frame="controls">
-                <!-- Содержимое Frame 1 будет создано через Hub1.js -->
+                <!-- Содержимое Frame 1 будет создано через Frame1.js -->
             </div>
 
             <!-- Frame 2: Логотип + фраза -->
             <div class="frame frame-2" data-frame="logo">
-                <!-- Содержимое Frame 2 будет создано через Hub2.js -->
+                <!-- Содержимое Frame 2 будет создано через Frame2.js -->
             </div>
         </header>
 
@@ -74,26 +74,26 @@
 
     <!-- Подключение скриптов -->
     <script src="/scripts/layout.js"></script>
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
-    <script src="/scripts/hub2.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
+    <script src="/scripts/frame2.js"></script>
     <!-- Дополнительные скрипты страницы -->
     
     <script>
-        // Инициализация Hub1 и Hub2
+        // Инициализация Frame1 и Frame2
         document.addEventListener('DOMContentLoaded', () => {
-            // Инициализация Hub1 (Frame 1)
-            if (typeof Hub1 !== 'undefined') {
-                Hub1.init({
+            // Инициализация Frame1 (Frame 1)
+            if (typeof Frame1 !== 'undefined') {
+                Frame1.init({
                     showLogin: true,
                     showSettings: true,
                     showBack: false
                 });
             }
             
-            // Инициализация Hub2 (Frame 2)
-            if (typeof Hub2 !== 'undefined') {
-                Hub2.init({
+            // Инициализация Frame2 (Frame 2)
+            if (typeof Frame2 !== 'undefined') {
+                Frame2.init({
                     showLogo: true,
                     showSubtitle: true
                 });
@@ -110,13 +110,13 @@
 - **Класс**: `.frame.frame-1`
 - **Функция**: Навигация, выбор режимов, основные действия
 - **Поведение**: Всегда видим при прокрутке (sticky)
-- **Содержимое**: Создается через `Hub1.js`
+- **Содержимое**: Создается через `Frame1.js`
 
 ### Frame 2 - Логотип + фраза
 - **Класс**: `.frame.frame-2`
 - **Функция**: Идентификация проекта
 - **Поведение**: Всегда видим при прокрутке (sticky), max-height: 20vh
-- **Содержимое**: Создается через `Hub2.js`
+- **Содержимое**: Создается через `Frame2.js`
 
 ### Frame 3 - Основной контент
 - **Класс**: `.frame.frame-3`

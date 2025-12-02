@@ -124,9 +124,9 @@ together/
 │   ├── images/           # Изображения
 │   └── styles/           # Стили
 │       ├── brand-style.css
-│       ├── hub-layout.css
-│       ├── hub1.css
-│       └── hub2.css
+│       ├── layout.css
+│       ├── frame1.css
+│       └── frame2.css
 ├── server/               # Серверные утилиты
 │   ├── utils/
 │   │   └── quiz-loader.js # Загрузка квизов

@@ -1,7 +1,7 @@
 /**
  * LAYOUT.JS - Управление видимостью фреймов
  * Логика скрытия фреймов, общие обработчики
- * Интегрирован с Hub1 и Hub2 для обратной совместимости
+ * Интегрирован с Frame1 и Frame2
  */
 
 const LayoutManager = {
@@ -15,27 +15,25 @@ const LayoutManager = {
             document.addEventListener('DOMContentLoaded', () => {
                 // Используем requestAnimationFrame для гарантии, что все элементы уже отрисованы
                 requestAnimationFrame(() => {
-                    this.setupHubIntegration();
+                    this.setupFrameIntegration();
                     this.applyFrameVisibility();
                 });
             });
         } else {
             // Используем requestAnimationFrame для гарантии, что все элементы уже отрисованы
             requestAnimationFrame(() => {
-                this.setupHubIntegration();
+                this.setupFrameIntegration();
                 this.applyFrameVisibility();
             });
         }
     },
     
     /**
-     * Настраивает интеграцию с Hub1 и Hub2 для обратной совместимости
-     * Автоматически преобразует старую структуру Hub в новую систему фреймов
+     * Настраивает интеграцию с Frame1 и Frame2
      */
-    setupHubIntegration() {
-        // Если используется старая система Hub, преобразуем её в новую структуру фреймов
+    setupFrameIntegration() {
         const body = document.body;
-        const hasOldStructure = body.classList.contains('with-hub') || document.querySelector('.hub-zone');
+        const hasOldStructure = body.classList.contains('with-frames') || document.querySelector('.frame-zone');
         
         if (!hasOldStructure) {
             // Новая структура уже используется
@@ -51,17 +49,17 @@ const LayoutManager = {
             const header = document.createElement('header');
             header.className = 'site-header';
             
-            // Создаем Frame 1 (для Hub1)
+            // Создаем Frame 1
             const frame1 = document.createElement('div');
             frame1.className = 'frame frame-1';
             frame1.setAttribute('data-frame', 'controls');
-            frame1.id = 'hub1-container';
+            frame1.id = 'frame1-container';
             
-            // Создаем Frame 2 (для Hub2)
+            // Создаем Frame 2
             const frame2 = document.createElement('div');
             frame2.className = 'frame frame-2';
             frame2.setAttribute('data-frame', 'logo');
-            frame2.id = 'hub2-container';
+            frame2.id = 'frame2-container';
             
             header.appendChild(frame1);
             header.appendChild(frame2);
@@ -79,10 +77,11 @@ const LayoutManager = {
             const content = document.createElement('div');
             content.className = 'frame-3-content';
             
-            // Перемещаем содержимое hub3 в frame-3-content
-            const hub3 = document.querySelector('.hub-zone.hub3, .hub3');
-            if (hub3) {
-                const container = hub3.querySelector('.container');
+            // Перемещаем содержимое frame3 в frame-3-content
+            // Ищем старую структуру: frame-zone.frame3, frame-3, или hub-zone.hub3
+            const frame3Old = document.querySelector('.frame-zone.frame3, .frame-3, .hub-zone.hub3');
+            if (frame3Old) {
+                const container = frame3Old.querySelector('.container');
                 if (container) {
                     // Сохраняем ID и классы контейнера на content
                     if (container.id) {
@@ -102,13 +101,13 @@ const LayoutManager = {
                         content.appendChild(container.firstChild);
                     }
                 } else {
-                    // Перемещаем все содержимое hub3
-                    while (hub3.firstChild) {
-                        content.appendChild(hub3.firstChild);
+                    // Перемещаем все содержимое frame3
+                    while (frame3Old.firstChild) {
+                        content.appendChild(frame3Old.firstChild);
                     }
                 }
-                // Удаляем старый hub3
-                hub3.remove();
+                // Удаляем старый frame3
+                frame3Old.remove();
             }
             
             frame3.appendChild(content);
@@ -122,17 +121,19 @@ const LayoutManager = {
             const frame4 = document.createElement('section');
             frame4.className = 'frame frame-4';
             frame4.setAttribute('data-frame', 'rules');
-            const hub4 = document.getElementById('hub4');
-            if (hub4) {
-                // Перемещаем содержимое hub4
-                while (hub4.firstChild) {
-                    frame4.appendChild(hub4.firstChild);
+            frame4.id = 'frame4';
+            // Ищем старый frame4 по разным ID (frame4, hub4)
+            const frame4Old = document.getElementById('frame4') || document.getElementById('hub4');
+            if (frame4Old && frame4Old !== frame4) {
+                // Перемещаем содержимое frame4
+                while (frame4Old.firstChild) {
+                    frame4.appendChild(frame4Old.firstChild);
                 }
-                // Если hub4 пуст, добавляем стандартный текст
+                // Если frame4 пуст, добавляем стандартный текст
                 if (!frame4.textContent.trim()) {
                     frame4.innerHTML = '<p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>';
                 }
-                hub4.remove();
+                frame4Old.remove();
             } else {
                 frame4.innerHTML = '<p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>';
             }
@@ -141,24 +142,35 @@ const LayoutManager = {
             const frame5 = document.createElement('section');
             frame5.className = 'frame frame-5';
             frame5.setAttribute('data-frame', 'about');
-            const hub5 = document.getElementById('hub5');
-            if (hub5) {
-                // Перемещаем содержимое hub5
-                while (hub5.firstChild) {
-                    frame5.appendChild(hub5.firstChild);
+            frame5.id = 'frame5';
+            // Ищем старый frame5 по разным ID (frame5, hub5)
+            const frame5Old = document.getElementById('frame5') || document.getElementById('hub5');
+            if (frame5Old && frame5Old !== frame5) {
+                // Перемещаем содержимое frame5
+                while (frame5Old.firstChild) {
+                    frame5.appendChild(frame5Old.firstChild);
                 }
-                // Если hub5 пуст, добавляем стандартный текст
+                // Если frame5 пуст, добавляем стандартный текст
                 if (!frame5.textContent.trim()) {
                     frame5.innerHTML = '<p>© 2024 ВМЕСТЕ. Все права защищены.</p>';
                 }
-                hub5.remove();
+                frame5Old.remove();
             } else {
                 frame5.innerHTML = '<p>© 2024 ВМЕСТЕ. Все права защищены.</p>';
             }
             
             footer.appendChild(frame4);
             footer.appendChild(frame5);
-            main.appendChild(footer);
+            
+            // Проверяем, есть ли уже footer.site-footer в main
+            const existingFooterInMain = main.querySelector('footer.site-footer');
+            if (existingFooterInMain) {
+                // Если footer уже есть в main, заменяем его содержимое
+                existingFooterInMain.replaceWith(footer);
+            } else {
+                // Если footer нет в main, добавляем его
+                main.appendChild(footer);
+            }
             
             // Перемещаем все остальные элементы (модальные окна и т.д.) в body
             const bodyChildren = Array.from(body.children);
@@ -174,22 +186,22 @@ const LayoutManager = {
             wrapper.appendChild(main);
             body.appendChild(wrapper);
             
-            // Удаляем старый класс
-            body.classList.remove('with-hub');
+            // Добавляем класс для структуры фреймов
+            body.classList.add('with-frames');
         }
         
-        // Если Hub1 существует, перемещаем его в Frame 1
-        const hub1 = document.getElementById('hub1');
-        const hub1Container = document.getElementById('hub1-container');
-        if (hub1 && hub1Container && !hub1Container.contains(hub1)) {
-            hub1Container.appendChild(hub1);
+        // Если Frame1 существует, перемещаем его в Frame 1 контейнер
+        const frame1 = document.getElementById('frame1');
+        const frame1Container = document.getElementById('frame1-container');
+        if (frame1 && frame1Container && !frame1Container.contains(frame1)) {
+            frame1Container.appendChild(frame1);
         }
         
-        // Если Hub2 существует, перемещаем его в Frame 2
-        const hub2 = document.getElementById('hub2');
-        const hub2Container = document.getElementById('hub2-container');
-        if (hub2 && hub2Container && !hub2Container.contains(hub2)) {
-            hub2Container.appendChild(hub2);
+        // Если Frame2 существует, перемещаем его в Frame 2 контейнер
+        const frame2 = document.getElementById('frame2');
+        const frame2Container = document.getElementById('frame2-container');
+        if (frame2 && frame2Container && !frame2Container.contains(frame2)) {
+            frame2Container.appendChild(frame2);
         }
     },
     
@@ -225,16 +237,16 @@ const LayoutManager = {
         // Пробуем найти фрейм по новому классу
         let frame = document.querySelector(`.frame-${frameNumber}`);
         
-        // Если не найден, пробуем найти по старой системе Hub
+        // Если не найден, пробуем найти по ID
         if (!frame) {
             if (frameNumber === 1) {
-                frame = document.getElementById('hub1');
+                frame = document.getElementById('frame1');
             } else if (frameNumber === 2) {
-                frame = document.getElementById('hub2');
+                frame = document.getElementById('frame2');
             } else if (frameNumber === 4) {
-                frame = document.getElementById('hub4');
+                frame = document.getElementById('frame4') || document.getElementById('hub4');
             } else if (frameNumber === 5) {
-                frame = document.getElementById('hub5');
+                frame = document.getElementById('frame5') || document.getElementById('hub5');
             }
         }
         
@@ -256,8 +268,8 @@ const LayoutManager = {
      * Обновляет позиции sticky элементов после изменения видимости фреймов
      */
     updateStickyPositions() {
-        const frame1 = document.querySelector('.frame-1') || document.getElementById('hub1');
-        const frame2 = document.querySelector('.frame-2') || document.getElementById('hub2');
+        const frame1 = document.querySelector('.frame-1') || document.getElementById('frame1');
+        const frame2 = document.querySelector('.frame-2') || document.getElementById('frame2');
         
         // Если Frame 2 не существует, ничего не делаем
         if (!frame2) return;
@@ -273,9 +285,9 @@ const LayoutManager = {
             });
         }
         
-        // Также обновляем через HubCommon, если он доступен (для старой системы Hub)
-        if (typeof HubCommon !== 'undefined' && HubCommon.updateHub2Position) {
-            HubCommon.updateHub2Position();
+        // Также обновляем через FrameCommon, если он доступен
+        if (typeof FrameCommon !== 'undefined' && FrameCommon.updateFrame2Position) {
+            FrameCommon.updateFrame2Position();
         }
     },
     
@@ -288,10 +300,10 @@ const LayoutManager = {
         let frame = document.querySelector(`.frame-${frameNumber}`);
         
         if (!frame) {
-            if (frameNumber === 1) frame = document.getElementById('hub1');
-            else if (frameNumber === 2) frame = document.getElementById('hub2');
-            else if (frameNumber === 4) frame = document.getElementById('hub4');
-            else if (frameNumber === 5) frame = document.getElementById('hub5');
+            if (frameNumber === 1) frame = document.getElementById('frame1');
+            else if (frameNumber === 2) frame = document.getElementById('frame2');
+            else if (frameNumber === 4) frame = document.getElementById('frame4') || document.getElementById('hub4');
+            else if (frameNumber === 5) frame = document.getElementById('frame5') || document.getElementById('hub5');
         }
         
         if (!frame) return false;
@@ -306,11 +318,82 @@ const LayoutManager = {
     toggleFrame(frameNumber) {
         const isVisible = this.isFrameVisible(frameNumber);
         this.setFrameVisibility(frameNumber, !isVisible);
+    },
+    
+    /**
+     * Управление видимостью footer при прокрутке
+     */
+    initScrollHideFooter() {
+        let lastScrollTop = 0;
+        let scrollTimeout = null;
+        const footer = document.querySelector('.site-footer');
+        
+        if (!footer) return;
+        
+        const handleScroll = () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollDelta = scrollTop - lastScrollTop;
+            
+            // Если прокручиваем вниз более чем на 10px, скрываем footer
+            if (scrollDelta > 10) {
+                footer.classList.add('hidden-on-scroll');
+            } 
+            // Если прокручиваем вверх или в самом верху, показываем footer
+            else if (scrollDelta < -10 || scrollTop < 50) {
+                footer.classList.remove('hidden-on-scroll');
+            }
+            
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+            
+            // Очищаем таймер
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            
+            // Если прокрутка остановилась, показываем footer через небольшую задержку
+            scrollTimeout = setTimeout(() => {
+                if (scrollTop < 50) {
+                    footer.classList.remove('hidden-on-scroll');
+                }
+            }, 500);
+        };
+        
+        // Обработчик прокрутки с throttling
+        let ticking = false;
+        const onScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    handleScroll();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        };
+        
+        window.addEventListener('scroll', onScroll, { passive: true });
+        
+        // Показываем footer при загрузке страницы, если мы вверху
+        if (window.pageYOffset < 50) {
+            footer.classList.remove('hidden-on-scroll');
+        }
     }
 };
 
 // Автоматическая инициализация при загрузке скрипта
 LayoutManager.init();
+
+// Инициализация скрытия footer при прокрутке после загрузки DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        requestAnimationFrame(() => {
+            LayoutManager.initScrollHideFooter();
+        });
+    });
+} else {
+    requestAnimationFrame(() => {
+        LayoutManager.initScrollHideFooter();
+    });
+}
 
 // Экспорт для использования в других скриптах
 if (typeof window !== 'undefined') {

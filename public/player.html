@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/styles/base.css">
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/components.css">
-    <link rel="stylesheet" href="/styles/hub1.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Days+One&display=swap" rel="stylesheet">
@@ -25,15 +25,15 @@
     <script src="/socket.io/socket.io.js"></script>
     <!-- Layout Manager -->
     <script src="/scripts/layout.js"></script>
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
     <style>
         /* Специфичные стили для страницы игрока */
         .hub3 > .container {
             max-width: 500px; /* Переопределяем для страницы игрока */
         }
         .back-button {
-            display: none; /* Скрываем старую кнопку, используем Hub1 */
+            display: none; /* Скрываем старую кнопку, используем Frame1 */
         }
 
         .back-button-hub {
@@ -377,7 +377,7 @@
         /* Когда Hub2 скрыт, Hub3 занимает его место в grid */
         body.with-hub {
             grid-template-rows: 
-                minmax(10vh, auto)  /* Hub1 - минимум 10% экрана */
+                minmax(10vh, auto)  /* Frame1 - минимум 10% экрана */
                 auto;               /* Hub3 занимает место Hub2 */
         }
         
@@ -531,15 +531,18 @@
         </div>
     </div>
 
-    <!-- HUB4: нижняя полоса (fixed, над HUB5) -->
-    <div id="hub4" class="hub-zone hub4">
-        <!-- Здесь позже можно разместить вспомогательные статусы, подсказки, маленькие карточки и т.п. -->
-    </div>
+    <!-- FOOTER: Frame 4 и Frame 5 -->
+    <footer class="site-footer">
+        <!-- Frame 4: Правила безопасности -->
+        <section class="frame frame-4" data-frame="rules" id="hub4">
+            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
+        </section>
 
-    <!-- HUB5: самая нижняя полоса (fixed, внизу экрана) -->
-    <div id="hub5" class="hub-zone hub5">
-        <!-- Здесь позже можно разместить "Правила хаба", ссылки, переключение режимов -->
-    </div>
+        <!-- Frame 5: Информация о создателе -->
+        <section class="frame frame-5" data-frame="about" id="hub5">
+            <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+        </section>
+    </footer>
 
     <script>
         const socket = io();
@@ -1283,9 +1286,9 @@
             initJoystick();
         }
         
-        // Инициализация Hub1
+        // Инициализация Frame1
         function initHubs() {
-            Hub1.init({
+            Frame1.init({
                 showBack: true,
                 backUrl: '/index.html'
             });
@@ -1295,16 +1298,16 @@
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                         // Hub2 скрыт, не обновляем его позицию
-                        HubCommon.updateHub4Position();
-                        HubCommon.updateContentPadding('.hub3 > .container');
-                        HubCommon.updateFloatingElementsPosition();
-                        HubCommon.updateBodyPaddingBottom();
+                        FrameCommon.updateHub4Position();
+                        FrameCommon.updateContentPadding('.hub3 > .container');
+                        FrameCommon.updateFloatingElementsPosition();
+                        FrameCommon.updateBodyPaddingBottom();
                     });
                 });
             });
         }
         
-        // Инициализация Hub1 после загрузки
+        // Инициализация Frame1 после загрузки
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(initHubs, 200);
@@ -1318,20 +1321,20 @@
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                if (typeof HubCommon !== 'undefined') {
+                if (typeof FrameCommon !== 'undefined') {
                     // Hub2 скрыт, не обновляем его позицию
-                    HubCommon.updateHub4Position();
-                    HubCommon.updateContentPadding('.hub3 > .container');
-                    HubCommon.updateFloatingElementsPosition();
-                    HubCommon.updateBodyPaddingBottom();
+                    FrameCommon.updateHub4Position();
+                    FrameCommon.updateContentPadding('.hub3 > .container');
+                    FrameCommon.updateFloatingElementsPosition();
+                    FrameCommon.updateBodyPaddingBottom();
                 }
             }, 100);
         });
     </script>
     
-    <!-- Hub1 скрипты -->
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
+    <!-- Frame1 скрипты -->
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
 </body>
 </html>
 

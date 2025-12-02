@@ -1,22 +1,22 @@
 /* ============================================
-   HUB2 - Меню с логотипом (используется везде)
+   FRAME2 - Меню с логотипом (используется везде)
    ============================================ */
 
 :root {
-    --hub2-bg: rgba(242, 242, 242, 0.98); /* Почти непрозрачный фон для лучшей видимости */
-    --hub2-padding: 15px 20px;
-    --hub2-z-index: 1000; /* Всегда выше контента (z-index < 1000) и парящих элементов (z-index: -1) */
-    --hub2-logo-max-height: 156.25px;
-    --hub2-subtitle-font-size: 50.4px;
+    --frame2-bg: rgba(242, 242, 242, 0.98); /* Почти непрозрачный фон для лучшей видимости */
+    --frame2-padding: 15px 20px;
+    --frame2-z-index: 1000; /* Всегда выше контента (z-index < 1000) и парящих элементов (z-index: -1) */
+    --frame2-logo-max-height: 156.25px;
+    --frame2-subtitle-font-size: 50.4px;
 }
 
-/* Основной контейнер Hub2 */
-.hub2 {
-    /* Позиционирование управляется через grid в hub-layout-system.css */
-    background: var(--hub2-bg); /* Непрозрачный фон */
+/* Основной контейнер Frame2 */
+.frame2 {
+    /* Позиционирование управляется через grid в layout.css */
+    background: var(--frame2-bg); /* Непрозрачный фон */
     backdrop-filter: blur(10px);
     padding: 0; /* Убираем padding, высота определяется только логотипом и фразой */
-    z-index: var(--hub2-z-index); /* 1000 - всегда выше контента и парящих элементов */
+    z-index: var(--frame2-z-index); /* 1000 - всегда выше контента и парящих элементов */
     border-bottom: none;
     box-shadow: none;
     width: 100%;
@@ -34,8 +34,8 @@
     justify-content: center;
 }
 
-/* Контент Hub2 */
-.hub2-content {
+/* Контент Frame2 */
+.frame2-content {
     max-width: 700px;
     width: 100%;
     margin: 0 auto;
@@ -51,7 +51,7 @@
 }
 
 /* Секция с логотипом и фразой */
-.hub2-logo-section {
+.frame2-logo-section {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -68,14 +68,14 @@
     box-sizing: border-box;
 }
 
-.hub2-logo-section * {
+.frame2-logo-section * {
     pointer-events: auto;
 }
 
-.hub2-logo-section .logo {
+.frame2-logo-section .logo {
     width: auto;
     height: auto;
-    max-height: var(--hub2-logo-max-height);
+    max-height: var(--frame2-logo-max-height);
     /* Фиксированный размер - не адаптируется к ширине контейнера */
     max-width: none;
     transform: rotate(-2deg);
@@ -83,9 +83,9 @@
     image-rendering: crisp-edges;
 }
 
-.hub2-logo-section .subtitle {
+.frame2-logo-section .subtitle {
     font-family: 'Caveat', cursive;
-    font-size: var(--hub2-subtitle-font-size);
+    font-size: var(--frame2-subtitle-font-size);
     color: #393639;
     margin: 0; /* Убираем все отступы */
     margin-bottom: 0; /* Убираем отступ снизу */
@@ -97,7 +97,7 @@
     max-width: 100%;
 }
 
-.hub2-logo-section {
+.frame2-logo-section {
     max-width: calc(100% - 80px);
     width: auto;
 }

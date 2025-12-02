@@ -23,7 +23,7 @@
 
 /* === FRAME 1 - Панель с кнопками === */
 .frame-1,
-#hub1 {
+#frame1 {
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-s);
@@ -37,8 +37,8 @@
     min-height: 48px;
 }
 
-/* Если Hub1 находится внутри Frame 1, убираем дублирование стилей */
-.frame-1 > #hub1 {
+/* Если Frame1 находится внутри Frame 1, убираем дублирование стилей */
+.frame-1 > #frame1 {
     display: contents;
 }
 
@@ -68,7 +68,7 @@
 
 /* === FRAME 2 - Логотип + фраза === */
 .frame-2,
-#hub2 {
+#frame2 {
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -133,11 +133,13 @@
     /* Гарантируем правильную прокрутку */
     min-height: 0;
     overflow: visible;
+    /* Добавляем отступ снизу для footer */
+    padding-bottom: 120px; /* Примерная высота footer (frame4 + frame5) */
 }
 
 /* === FRAME 3 - Основной контент === */
 .frame-3,
-.hub3 {
+.frame3 {
     flex: 1;
     padding: var(--spacing-m) var(--spacing-s);
     position: relative;
@@ -164,7 +166,7 @@
 
 /* Контентный слой */
 .frame-3-content,
-.hub3 > .container {
+.frame3 > .container {
     position: relative;
     z-index: var(--z-index-content);
     max-width: 1200px;
@@ -173,11 +175,15 @@
     padding: 40px 24px !important; /* Единый отступ сверху на всех страницах - приоритет над inline стилями */
     box-sizing: border-box;
     text-align: center; /* Центрирование текста */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрирование по горизонтали */
+    justify-content: flex-start; /* Контент начинается сверху */
 }
 
 /* Гарантируем одинаковый отступ сверху для всех вариантов */
 .frame-3-content[style*="padding"],
-.hub3 > .container[style*="padding"] {
+.frame3 > .container[style*="padding"] {
     padding-top: 40px !important; /* Принудительно устанавливаем одинаковый отступ сверху */
 }
 
@@ -187,19 +193,33 @@
     }
     
     .frame-3-content,
-    .hub3 > .container {
+    .frame3 > .container {
         padding: 40px 16px; /* Сохраняем одинаковый отступ сверху на мобильных */
     }
 }
 
 /* === FOOTER (Frame 4 и Frame 5) === */
 .site-footer {
-    margin-top: var(--spacing-l);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: 100%;
+    z-index: var(--z-index-frame-4);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.site-footer.hidden-on-scroll {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* === FRAME 4 - Правила безопасности === */
 .frame-4,
+#frame4,
 #hub4 {
     padding: var(--spacing-s) var(--spacing-m);
     font-size: var(--font-size-xs);
@@ -223,6 +243,7 @@
 
 /* === FRAME 5 - Информация о создателе === */
 .frame-5,
+#frame5,
 #hub5 {
     padding: var(--spacing-s) var(--spacing-m);
     font-size: var(--font-size-xs);
@@ -257,13 +278,13 @@
     }
     
     .frame-3-content,
-    .hub3 > .container {
+    .frame3 > .container {
         padding: 40px 24px !important; /* Единый отступ сверху на всех страницах */
     }
     
     /* Гарантируем одинаковый отступ сверху на десктопе */
     .frame-3-content[style*="padding"],
-    .hub3 > .container[style*="padding"] {
+    .frame3 > .container[style*="padding"] {
         padding-top: 40px !important;
     }
     
@@ -283,13 +304,13 @@
     }
     
     .frame-3-content,
-    .hub3 > .container {
+    .frame3 > .container {
         padding: 40px 24px !important; /* Единый отступ сверху на всех страницах */
     }
     
     /* Гарантируем одинаковый отступ сверху на десктопе */
     .frame-3-content[style*="padding"],
-    .hub3 > .container[style*="padding"] {
+    .frame3 > .container[style*="padding"] {
         padding-top: 40px !important;
     }
 }
@@ -309,7 +330,7 @@
     }
     
     .frame-3-content,
-    .hub3 > .container {
+    .frame3 > .container {
         padding: 40px 16px; /* Сохраняем одинаковый отступ сверху на мобильных */
     }
     

@@ -1,9 +1,9 @@
 /**
- * Общие функции для Hub1 и Hub2
+ * Общие функции для Frame1 и Frame2
  * Оптимизированная версия с улучшенными алгоритмами и правилами вызовов
  */
 
-const HubCommon = {
+const FrameCommon = {
     // Флаги для предотвращения множественных вызовов
     _initialized: false,
     _resizeHandlerAttached: false,
@@ -13,8 +13,8 @@ const HubCommon = {
     // Кэш для элементов
     _logo: null,
     _subtitle: null,
-    _hub1: null,
-    _hub2: null,
+    _frame1: null,
+    _frame2: null,
     
     /**
      * Инициализация общего модуля
@@ -24,10 +24,10 @@ const HubCommon = {
         if (this._initialized) return;
         
         // Кэшируем элементы
-        this._logo = document.querySelector('.hub2-logo-section .logo');
-        this._subtitle = document.querySelector('.hub2-logo-section .subtitle');
-        this._hub1 = document.getElementById('hub1');
-        this._hub2 = document.getElementById('hub2');
+        this._logo = document.querySelector('.frame2-logo-section .logo');
+        this._subtitle = document.querySelector('.frame2-logo-section .subtitle');
+        this._frame1 = document.getElementById('frame1');
+        this._frame2 = document.getElementById('frame2');
         
         // Инициализируем обработчики resize один раз
         if (!this._resizeHandlerAttached) {
@@ -54,7 +54,7 @@ const HubCommon = {
         // Используем requestAnimationFrame для гарантии правильной отрисовки
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                this.updateHub2Position();
+                this.updateFrame2Position();
                 this.adaptLogoSize();
                 // Небольшая задержка перед адаптацией подзаголовка, чтобы логотип успел обновиться
                 setTimeout(() => {
@@ -70,7 +70,7 @@ const HubCommon = {
      * Теперь использует только фиксированные значения из CSS (без адаптивности)
      */
     adaptLogoSize() {
-        const logo = this._logo || document.querySelector('.hub2-logo-section .logo');
+        const logo = this._logo || document.querySelector('.frame2-logo-section .logo');
         if (!logo) return;
         
         // Обновляем кэш
@@ -103,13 +103,13 @@ const HubCommon = {
     },
     
     /**
-     * Адаптирует размер фразы под ширину логотипа (для Hub2)
+     * Адаптирует размер фразы под ширину логотипа (для Frame2)
      * Оптимизированный алгоритм с debounce
      */
     adaptSubtitleToLogo() {
         // Проверяем наличие элементов
-        const logo = this._logo || document.querySelector('.hub2-logo-section .logo');
-        const subtitle = this._subtitle || document.querySelector('.hub2-logo-section .subtitle');
+        const logo = this._logo || document.querySelector('.frame2-logo-section .logo');
+        const subtitle = this._subtitle || document.querySelector('.frame2-logo-section .subtitle');
         
         if (!logo || !subtitle) return;
         
@@ -179,10 +179,10 @@ const HubCommon = {
     },
     
     /**
-     * Обновляет позицию Hub2 относительно Hub1
+     * Обновляет позицию Frame2 относительно Frame1
      * Оптимизированная версия с использованием CSS Grid (sticky positioning)
      */
-    updateHub2Position() {
+    updateFrame2Position() {
         // Отменяем предыдущий запланированный вызов
         if (this._positionUpdateTimeout) {
             clearTimeout(this._positionUpdateTimeout);
@@ -198,33 +198,33 @@ const HubCommon = {
      * Выполняет фактическое обновление позиции
      */
     _performPositionUpdate() {
-        const hub1 = this._hub1 || document.getElementById('hub1');
-        const hub2 = this._hub2 || document.getElementById('hub2');
+        const frame1 = this._frame1 || document.getElementById('frame1');
+        const frame2 = this._frame2 || document.getElementById('frame2');
         
-        if (!hub1 || !hub2) {
+        if (!frame1 || !frame2) {
             // Обновляем кэш для следующего вызова
-            this._hub1 = hub1;
-            this._hub2 = hub2;
+            this._frame1 = frame1;
+            this._frame2 = frame2;
             return;
         }
         
         // Обновляем кэш
-        this._hub1 = hub1;
-        this._hub2 = hub2;
+        this._frame1 = frame1;
+        this._frame2 = frame2;
         
         // Используем getBoundingClientRect для точного измерения
-        const hub1Rect = hub1.getBoundingClientRect();
-        const hub1Height = hub1Rect.height;
+        const frame1Rect = frame1.getBoundingClientRect();
+        const frame1Height = frame1Rect.height;
         
-        // Устанавливаем top для Hub2 (для sticky positioning)
+        // Устанавливаем top для Frame2 (для sticky positioning)
         // В CSS Grid это должно работать автоматически, но на всякий случай обновляем
-        if (hub2.style.top !== hub1Height + 'px') {
-            hub2.style.top = hub1Height + 'px';
+        if (frame2.style.top !== frame1Height + 'px') {
+            frame2.style.top = frame1Height + 'px';
         }
         
-        // После обновления позиции hub2, обновляем размер логотипа
-        // чтобы он не перекрывался с hub1
-        const logo = this._logo || document.querySelector('.hub2-logo-section .logo');
+        // После обновления позиции frame2, обновляем размер логотипа
+        // чтобы он не перекрывался с frame1
+        const logo = this._logo || document.querySelector('.frame2-logo-section .logo');
         if (logo) {
             this.adaptLogoSize();
         }
@@ -242,13 +242,13 @@ const HubCommon = {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
                 // Обновляем кэш элементов
-                this._logo = document.querySelector('.hub2-logo-section .logo');
-                this._subtitle = document.querySelector('.hub2-logo-section .subtitle');
-                this._hub1 = document.getElementById('hub1');
-                this._hub2 = document.getElementById('hub2');
+                this._logo = document.querySelector('.frame2-logo-section .logo');
+                this._subtitle = document.querySelector('.frame2-logo-section .subtitle');
+                this._frame1 = document.getElementById('frame1');
+                this._frame2 = document.getElementById('frame2');
                 
                 // Обновляем позиции и размеры
-                this.updateHub2Position();
+                this.updateFrame2Position();
                 // Сначала обновляем размер логотипа
                 this.adaptLogoSize();
                 // Затем адаптируем подзаголовок под новый размер логотипа
@@ -270,7 +270,7 @@ const HubCommon = {
         const savedColor = localStorage.getItem('selectedCharacterColor');
         if (!savedColor) return;
         
-        const buttons = document.querySelectorAll('.hub1-button:not([data-no-color])');
+        const buttons = document.querySelectorAll('.frame1-button:not([data-no-color])');
         buttons.forEach(button => {
             if (!button.dataset.noColor) {
                 button.style.background = savedColor;
@@ -283,10 +283,12 @@ const HubCommon = {
      * Удобный метод для вызова после динамических изменений
      */
     refresh() {
-        this.updateHub2Position();
+        this.updateFrame2Position();
         this.adaptLogoSize();
         setTimeout(() => {
             this.adaptSubtitleToLogo();
         }, 50);
-    }
+    },
+    
 };
+

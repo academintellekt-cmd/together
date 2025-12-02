@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/quiz-card.css">
-    <link rel="stylesheet" href="/styles/hub1.css">
-    <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
         }
 
         /* Специфичные стили для страницы gnu-quiz */
-        /* Базовые стили контейнера теперь в hub-layout.css */
+        /* Базовые стили контейнера теперь в layout.css */
 
         /* Модальное окно для пароля */
         .password-overlay {
@@ -233,25 +233,25 @@
             }
         }
 
-        /* Адаптивные стили для HUB4 и HUB5 перенесены в hub-layout.css */
+        /* Адаптивные стили для HUB4 и HUB5 перенесены в layout.css */
         
-        /* Скрываем Hub2 на этой странице */
+        /* Скрываем Frame2 на этой странице */
         #hub2 {
             display: none !important;
         }
         
-        /* Когда Hub2 скрыт, Hub3 занимает его место в grid */
+        /* Когда Frame2 скрыт, Hub3 занимает его место в grid */
         body.with-hub {
             grid-template-rows: 
-                auto                /* Hub1 - фиксированная высота */
-                auto;               /* Hub3 занимает место Hub2 */
+                auto                /* Frame1 - фиксированная высота */
+                auto;               /* Hub3 занимает место Frame2 */
         }
         
         .hub3 {
-            grid-row: 2; /* Занимает место Hub2 */
+            grid-row: 2; /* Занимает место Frame2 */
         }
         
-        /* Парящие элементы перемещены в Hub3 через hub-layout.css */
+        /* Парящие элементы перемещены в Hub3 через layout.css */
         
         /* Адаптивность для разных экранов */
         @media (min-width: 1024px) {
@@ -405,15 +405,18 @@
         </div>
     </div>
 
-    <!-- HUB4: нижняя полоса (fixed, над HUB5) -->
-    <div id="hub4" class="hub-zone hub4">
-        <!-- Здесь позже можно разместить вспомогательные статусы, подсказки, маленькие карточки и т.п. -->
-    </div>
+    <!-- FOOTER: Frame 4 и Frame 5 -->
+    <footer class="site-footer">
+        <!-- Frame 4: Правила безопасности -->
+        <section class="frame frame-4" data-frame="rules" id="hub4">
+            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
+        </section>
 
-    <!-- HUB5: самая нижняя полоса (fixed, внизу экрана) -->
-    <div id="hub5" class="hub-zone hub5">
-        <!-- Здесь позже можно разместить "Правила хаба", ссылки, переключение режимов -->
-    </div>
+        <!-- Frame 5: Информация о создателе -->
+        <section class="frame frame-5" data-frame="about" id="hub5">
+            <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+        </section>
+    </footer>
 
     <script>
         // Используем новый ID 'gnu', но поддерживаем старые для обратной совместимости
@@ -423,10 +426,10 @@
         const VERIFIED_KEY = 'gnuPasswordVerified';
         let passwordEntered = false;
 
-        // Функция для обновления позиции парящих элементов (используем HubCommon)
+        // Функция для обновления позиции парящих элементов (используем FrameCommon)
         // Функция больше не нужна - позиционирование управляется через CSS Grid
         function updateFloatingElementsPosition() {
-            // Позиционирование теперь управляется через CSS Grid в hub-layout-system.css
+            // Позиционирование теперь управляется через CSS Grid в layout-system.css
         }
 
         // Проверка пароля из localStorage
@@ -434,13 +437,13 @@
             passwordEntered = true;
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'block';
-            // Инициализируем Hub1 и Hub2
-            if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined' && typeof HubCommon !== 'undefined') {
+            // Инициализируем Frame1 и Frame2
+            if (typeof Frame1 !== 'undefined' && typeof Frame2 !== 'undefined' && typeof FrameCommon !== 'undefined') {
                 setTimeout(initHubs, 100);
             } else {
                 // Ждем загрузки скриптов
                 setTimeout(() => {
-                    if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined' && typeof HubCommon !== 'undefined') {
+                    if (typeof Frame1 !== 'undefined' && typeof Frame2 !== 'undefined' && typeof FrameCommon !== 'undefined') {
                         initHubs();
                     }
                 }, 200);
@@ -464,13 +467,13 @@
                 document.getElementById('passwordOverlay').style.display = 'none';
                 document.getElementById('mainContainer').style.display = 'block';
                 errorDiv.classList.remove('show');
-                // Инициализируем Hub1 и Hub2
-                if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined' && typeof HubCommon !== 'undefined') {
+                // Инициализируем Frame1 и Frame2
+                if (typeof Frame1 !== 'undefined' && typeof Frame2 !== 'undefined' && typeof FrameCommon !== 'undefined') {
                     setTimeout(initHubs, 100);
                 } else {
                     // Ждем загрузки скриптов
                     setTimeout(() => {
-                        if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined' && typeof HubCommon !== 'undefined') {
+                        if (typeof Frame1 !== 'undefined' && typeof Frame2 !== 'undefined' && typeof FrameCommon !== 'undefined') {
                             initHubs();
                         }
                     }, 200);
@@ -506,7 +509,7 @@
         }
     </script>
     
-    <!-- Hub1 и Hub2 скрипты -->
+    <!-- Frame1 и Frame2 скрипты -->
     <!-- Конфигурация видимости фреймов -->
     <script>
         window.pageLayoutConfig = {
@@ -519,29 +522,29 @@
     
     <!-- Layout Manager -->
     <script src="/scripts/layout.js"></script>
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
-    <script src="/scripts/hub2.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
+    <script src="/scripts/frame2.js"></script>
     <script>
-        // Инициализация Hub1 и Hub2 после проверки пароля
+        // Инициализация Frame1 и Frame2 после проверки пароля
         function initHubs() {
-            // Инициализация Hub1
-            Hub1.init({
+            // Инициализация Frame1
+            Frame1.init({
                 showBack: true,
                 backUrl: '/index.html'
             });
             
-            // Инициализация Hub2
-            Hub2.init();
+            // Инициализация Frame2
+            Frame2.init();
             
             // Обновление позиций
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        // Обновляем позицию Hub2 относительно Hub1
-                        HubCommon.updateHub2Position();
+                        // Обновляем позицию Frame2 относительно Frame1
+                        FrameCommon.updateFrame2Position();
                         // Адаптируем размер логотипа
-                        HubCommon.adaptSubtitleToLogo();
+                        FrameCommon.adaptSubtitleToLogo();
                     });
                 });
             });
@@ -552,24 +555,24 @@
             initHubs();
         }
         
-        // Обновление при загрузке (только если Hub1 инициализирован)
+        // Обновление при загрузке (только если Frame1 инициализирован)
         document.addEventListener('DOMContentLoaded', function() {
             const hub1 = document.getElementById('hub1');
-            if (hub1 && typeof HubCommon !== 'undefined') {
-                HubCommon.updateHub2Position();
-                HubCommon.adaptSubtitleToLogo();
+            if (hub1 && typeof FrameCommon !== 'undefined') {
+                FrameCommon.updateFrame2Position();
+                FrameCommon.adaptSubtitleToLogo();
             }
         });
         
-        // Обновление при изменении размера окна (только если Hub1 инициализирован)
+        // Обновление при изменении размера окна (только если Frame1 инициализирован)
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
                 const hub1 = document.getElementById('hub1');
-                if (hub1 && typeof HubCommon !== 'undefined') {
-                    HubCommon.updateHub2Position();
-                    HubCommon.adaptSubtitleToLogo();
+                if (hub1 && typeof FrameCommon !== 'undefined') {
+                    FrameCommon.updateFrame2Position();
+                    FrameCommon.adaptSubtitleToLogo();
                 }
             }, 100);
         });

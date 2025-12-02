@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="/styles/base.css">
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/components.css">
-    <link rel="stylesheet" href="/styles/hub1.css">
-    <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -172,7 +172,7 @@
     <div class="site-wrapper">
         <!-- HEADER: Frame 2 -->
         <header class="site-header">
-            <!-- Frame 2: Логотип + фраза (создается через Hub2.js) -->
+            <!-- Frame 2: Логотип + фраза (создается через Frame2.js) -->
             <div class="frame frame-2" data-frame="logo" id="hub2-container"></div>
         </header>
 
@@ -347,26 +347,26 @@
             }
         }
 
-        // Инициализация Hub1 и Hub2
+        // Инициализация Frame1 и Frame2
         function initHubs() {
             // Определяем URL для кнопки "Назад"
             const backUrl = getBackUrl();
             
-            // Инициализация Hub1 (Frame 1)
-            if (typeof Hub1 !== 'undefined') {
-                Hub1.init({
+            // Инициализация Frame1 (Frame 1)
+            if (typeof Frame1 !== 'undefined') {
+                Frame1.init({
                     showBack: true,
                     backUrl: backUrl
                 });
             }
             
-            // Инициализация Hub2 (Frame 2)
-            if (typeof Hub2 !== 'undefined') {
-                Hub2.init();
+            // Инициализация Frame2 (Frame 2)
+            if (typeof Frame2 !== 'undefined') {
+                Frame2.init();
             }
         }
         
-        // Инициализация Hub1 и Hub2 после загрузки
+        // Инициализация Frame1 и Frame2 после загрузки
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(initHubs, 200);
         });
@@ -381,15 +381,15 @@
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                if (typeof HubCommon !== 'undefined') {
-                    HubCommon.updateHub2Position();
-                    HubCommon.adaptSubtitleToLogo();
+                if (typeof FrameCommon !== 'undefined') {
+                    FrameCommon.updateFrame2Position();
+                    FrameCommon.adaptSubtitleToLogo();
                 }
             }, 100);
         });
     </script>
     
-    <!-- Hub1 и Hub2 скрипты -->
+    <!-- Frame1 и Frame2 скрипты -->
     <!-- Конфигурация видимости фреймов -->
     <script>
         window.pageLayoutConfig = {
@@ -402,9 +402,9 @@
     
     <!-- Layout Manager -->
     <script src="/scripts/layout.js"></script>
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
-    <script src="/scripts/hub2.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
+    <script src="/scripts/frame2.js"></script>
 </body>
 </html>
 

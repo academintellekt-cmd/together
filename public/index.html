@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/quiz-card.css">
-    <link rel="stylesheet" href="/styles/hub1.css">
-    <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -32,7 +32,7 @@
             box-sizing: border-box;
         }
 
-        /* Стили body теперь управляются через hub-layout-system.css */
+        /* Стили body теперь управляются через layout-system.css */
         /* Удаляем старые стили, которые конфликтуют с grid-системой */
 
         /* --- Каркас HUB-зон на странице --- */
@@ -44,15 +44,15 @@
         }
 
         /* HUB3 — основная зона контента */
-        /* Стили управляются через hub-layout.css и hub-layout-system.css */
+        /* Стили управляются через layout.css и layout-system.css */
 
         /* Внутренний контейнер внутри HUB3 */
-        /* Стили управляются через hub-layout.css */
+        /* Стили управляются через layout.css */
 
         /* HUB4 и HUB5 — нижние полосы, прокручиваются вместе с контентом */
-        /* Стили управляются через hub-layout.css */
+        /* Стили управляются через layout.css */
 
-        /* Парящие элементы перемещены в Hub3 через hub-layout.css */
+        /* Парящие элементы перемещены в Hub3 через layout.css */
         
         /* Стили для контента внутри HUB3 */
         /* Padding уже установлен выше, не переопределяем */
@@ -822,7 +822,7 @@
             /* padding-top для контейнера уже задан в медиа-запросе выше */
         }
 
-        /* Адаптивные стили для HUB4 и HUB5 удалены - размеры фиксированы в hub-layout.css */
+        /* Адаптивные стили для HUB4 и HUB5 удалены - размеры фиксированы в layout.css */
         
         /* Стили для контента внутри Frame 3 */
         .frame-3-content .quizzes-grid {
@@ -834,7 +834,7 @@
     <div class="site-wrapper">
         <!-- HEADER: Frame 2 -->
         <header class="site-header">
-            <!-- Frame 2: Логотип + фраза (создается через Hub2.js, скрыт на этой странице) -->
+            <!-- Frame 2: Логотип + фраза (создается через Frame2.js, скрыт на этой странице) -->
             <div class="frame frame-2" data-frame="logo" id="hub2-container"></div>
         </header>
 
@@ -952,7 +952,7 @@
             return svg;
         }
 
-        // Инициализация меню персонажей больше не нужна - Hub1 делает это автоматически
+        // Инициализация меню персонажей больше не нужна - Frame1 делает это автоматически
 
         // Загрузка списка квизов
         async function loadQuizzes() {
@@ -1227,10 +1227,10 @@
             }
         }
 
-        // Функция для адаптации размера фразы под ширину логотипа (использует HubCommon)
+        // Функция для адаптации размера фразы под ширину логотипа (использует FrameCommon)
         function adaptSubtitleToLogo() {
-            if (typeof HubCommon !== 'undefined') {
-                HubCommon.adaptSubtitleToLogo();
+            if (typeof FrameCommon !== 'undefined') {
+                FrameCommon.adaptSubtitleToLogo();
                 return;
             }
             const logo = document.querySelector('.hub2-logo-section .logo');
@@ -1292,7 +1292,7 @@
 
         // Функция больше не нужна - позиционирование управляется через CSS Grid
         function updateContainerPadding() {
-            // Позиционирование теперь управляется через CSS Grid в hub-layout-system.css
+            // Позиционирование теперь управляется через CSS Grid в layout-system.css
             return;
         }
         
@@ -1306,13 +1306,13 @@
             // Функция для обновления позиции после загрузки карточек
             const updatePosition = () => {
                 // Ждем отрисовки карточек и обновляем позицию
-                // Используем HubCommon напрямую, если он доступен
+                // Используем FrameCommon напрямую, если он доступен
                 // Используем несколько requestAnimationFrame для гарантии правильной отрисовки
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
-                            if (typeof HubCommon !== 'undefined') {
-                                // Проверяем, что Hub1 и Hub2 инициализированы
+                            if (typeof FrameCommon !== 'undefined') {
+                                // Проверяем, что Frame1 и Frame2 инициализированы
                                 // Позиционирование теперь управляется через CSS Grid
                                 // Никаких действий не требуется
                             } else {
@@ -1327,10 +1327,10 @@
             updatePosition();
         };
         
-        // НЕ загружаем квизы сразу - дождемся инициализации Hub1 и Hub2
+        // НЕ загружаем квизы сразу - дождемся инициализации Frame1 и Frame2
         // loadQuizzes() будет вызван после инициализации Hub
         
-        // Меню персонажей будет инициализировано через Hub1
+        // Меню персонажей будет инициализировано через Frame1
         
         // Адаптируем при загрузке изображения логотипа
         window.addEventListener('load', () => {
@@ -1339,46 +1339,46 @@
     </script>
     
     <script>
-        // Инициализация Hub1 и Hub2 после загрузки скриптов
+        // Инициализация Frame1 и Frame2 после загрузки скриптов
         (function() {
-            // Обновление позиции Hub2 при полной загрузке страницы
+            // Обновление позиции Frame2 при полной загрузке страницы
             window.addEventListener('load', () => {
-                if (typeof HubCommon !== 'undefined') {
-                    HubCommon.updateHub2Position();
+                if (typeof FrameCommon !== 'undefined') {
+                    FrameCommon.updateFrame2Position();
                 }
             });
             
             function initHubs() {
                 try {
                     // Проверяем, что скрипты загружены
-                    if (typeof Hub1 === 'undefined' || typeof Hub2 === 'undefined' || typeof HubCommon === 'undefined') {
+                    if (typeof Frame1 === 'undefined' || typeof Frame2 === 'undefined' || typeof FrameCommon === 'undefined') {
                         console.warn('Hub скрипты еще не загружены, повторная попытка через 100мс...');
                         setTimeout(initHubs, 100);
                         return;
                     }
                     
-                    console.log('Инициализация Hub1 и Hub2...');
+                    console.log('Инициализация Frame1 и Frame2...');
                     
-                    // Инициализация Hub1 с кнопкой "Войти" и "Настройки"
-                    Hub1.init({
+                    // Инициализация Frame1 с кнопкой "Войти" и "Настройки"
+                    Frame1.init({
                         showLogin: true,
                         showSettings: true
                     });
                     
-                    // Инициализация Hub2 с логотипом и фразой
-                    Hub2.init();
+                    // Инициализация Frame2 с логотипом и фразой
+                    Frame2.init();
                     
                     // Обновление позиций - ждем полной отрисовки
                     // Используем несколько requestAnimationFrame для гарантии правильной отрисовки
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
-                                // Обновляем позицию Hub2 относительно Hub1
-                                HubCommon.updateHub2Position();
+                                // Обновляем позицию Frame2 относительно Frame1
+                                FrameCommon.updateFrame2Position();
                                 // Адаптируем размер логотипа
-                                HubCommon.adaptSubtitleToLogo();
+                                FrameCommon.adaptSubtitleToLogo();
                                 
-                                console.log('Hub1 и Hub2 успешно инициализированы');
+                                console.log('Frame1 и Frame2 успешно инициализированы');
                                 
                                 // Загружаем квизы ПОСЛЕ инициализации Hub
                                 // Это гарантирует правильный порядок: Hub -> карточки -> обновление позиции
@@ -1408,13 +1408,13 @@
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(() => {
-                    if (typeof HubCommon !== 'undefined') {
-                        console.log('resize (index.html): обновляем позицию Hub2 и размер логотипа');
+                    if (typeof FrameCommon !== 'undefined') {
+                        console.log('resize (index.html): обновляем позицию Frame2 и размер логотипа');
                         
-                        // Обновляем позицию Hub2 относительно Hub1
-                        HubCommon.updateHub2Position();
+                        // Обновляем позицию Frame2 относительно Frame1
+                        FrameCommon.updateFrame2Position();
                         // Адаптируем размер логотипа
-                        HubCommon.adaptSubtitleToLogo();
+                        FrameCommon.adaptSubtitleToLogo();
                     }
                 }, 100);
             });
@@ -1424,35 +1424,35 @@
     <!-- Layout Manager -->
     <script src="/scripts/layout.js"></script>
     
-    <!-- Hub1 и Hub2 скрипты -->
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
-    <script src="/scripts/hub2.js"></script>
+    <!-- Frame1 и Frame2 скрипты -->
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
+    <script src="/scripts/frame2.js"></script>
     
     <script>
-        // Инициализация Hub1 и Hub2 с новой структурой
+        // Инициализация Frame1 и Frame2 с новой структурой
         document.addEventListener('DOMContentLoaded', () => {
             // Ждем загрузки всех скриптов
-            function initHubs() {
-                if (typeof Hub1 === 'undefined' || typeof Hub2 === 'undefined' || typeof HubCommon === 'undefined') {
-                    setTimeout(initHubs, 100);
+            function initFrames() {
+                if (typeof Frame1 === 'undefined' || typeof Frame2 === 'undefined' || typeof FrameCommon === 'undefined') {
+                    setTimeout(initFrames, 100);
                     return;
                 }
                 
-                // Инициализация Hub1 (Frame 1)
-                Hub1.init({
+                // Инициализация Frame1 (Frame 1)
+                Frame1.init({
                     showLogin: true,
                     showSettings: true
                 });
                 
-                // Инициализация Hub2 (Frame 2) - будет скрыт через pageLayoutConfig
-                Hub2.init();
+                // Инициализация Frame2 (Frame 2) - будет скрыт через pageLayoutConfig
+                Frame2.init();
                 
                 // Обновление позиций
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        HubCommon.updateHub2Position();
-                        HubCommon.adaptSubtitleToLogo();
+                        FrameCommon.updateFrame2Position();
+                        FrameCommon.adaptSubtitleToLogo();
                         
                         // Загружаем квизы после инициализации Hub
                         if (typeof loadQuizzes === 'function') {

@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/quiz-card.css">
-    <link rel="stylesheet" href="/styles/hub1.css">
-    <link rel="stylesheet" href="/styles/hub2.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -137,6 +137,8 @@
             margin-top: 40px;
             margin-bottom: 10px;
             text-transform: uppercase;
+            text-align: center;
+            width: 100%;
         }
 
         .subtitle {
@@ -145,6 +147,16 @@
             color: #354fba;
             margin-bottom: 40px;
             transform: rotate(-1deg);
+            text-align: center;
+            width: 100%;
+        }
+
+        #content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            text-align: center;
         }
 
         .mode-cards {
@@ -234,23 +246,23 @@
             }
         }
         
-        /* Скрываем Hub2 на этой странице */
+        /* Скрываем Frame2 на этой странице */
         #hub2 {
             display: none !important;
         }
         
-        /* Когда Hub2 скрыт, Hub3 занимает его место в grid */
+        /* Когда Frame2 скрыт, Frame3 занимает его место в grid */
         body.with-hub {
             grid-template-rows: 
-                auto                /* Hub1 - фиксированная высота */
-                auto;               /* Hub3 занимает место Hub2 */
+                auto                /* Frame1 - фиксированная высота */
+                auto;               /* Frame3 занимает место Frame2 */
         }
         
         .hub3 {
-            grid-row: 2; /* Занимает место Hub2 */
+            grid-row: 2; /* Занимает место Frame2 */
         }
         
-        /* Парящие элементы перемещены в Hub3 через hub-layout.css */
+        /* Парящие элементы перемещены в Frame3 через hub-layout.css */
         
         @media (max-width: 1023px) and (min-width: 769px) {
             body.with-hub {
@@ -340,13 +352,18 @@
         </div>
     </div>
 
-    <!-- HUB4: нижняя полоса (fixed, над HUB5) -->
-    <div id="hub4" class="hub-zone hub4">
-    </div>
+    <!-- FOOTER: Frame 4 и Frame 5 -->
+    <footer class="site-footer">
+        <!-- Frame 4: Правила безопасности -->
+        <section class="frame frame-4" data-frame="rules" id="frame4">
+            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
+        </section>
 
-    <!-- HUB5: самая нижняя полоса (fixed, внизу экрана) -->
-    <div id="hub5" class="hub-zone hub5">
-    </div>
+        <!-- Frame 5: Информация о создателе -->
+        <section class="frame frame-5" data-frame="about" id="frame5">
+            <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+        </section>
+    </footer>
 
     <script>
         // Получаем ID квиза из URL
@@ -532,13 +549,13 @@
         }
 
         function initHubs() {
-            if (typeof Hub1 !== 'undefined' && typeof Hub2 !== 'undefined') {
-                Hub1.init({
+            if (typeof Frame1 !== 'undefined' && typeof Frame2 !== 'undefined') {
+                Frame1.init({
                     showBack: true,
                     backUrl: '/index.html'
                 });
                 
-                Hub2.init();
+                Frame2.init();
                 
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
@@ -548,7 +565,7 @@
                             
                             
                             
-                            HubCommon.adaptSubtitleToLogo();
+                            FrameCommon.adaptSubtitleToLogo();
                         });
                     });
                 });
@@ -575,7 +592,7 @@
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                if (typeof HubCommon !== 'undefined') {
+                if (typeof FrameCommon !== 'undefined') {
                     // Позиционирование теперь управляется через CSS Grid
                     
                     
@@ -586,7 +603,7 @@
         });
     </script>
     
-    <!-- Hub1 и Hub2 скрипты -->
+    <!-- Frame1 и Frame2 скрипты -->
     <!-- Конфигурация видимости фреймов -->
     <script>
         window.pageLayoutConfig = {
@@ -599,9 +616,9 @@
     
     <!-- Layout Manager -->
     <script src="/scripts/layout.js"></script>
-    <script src="/scripts/hub-common.js"></script>
-    <script src="/scripts/hub1.js"></script>
-    <script src="/scripts/hub2.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
+    <script src="/scripts/frame2.js"></script>
 </body>
 </html>
 
