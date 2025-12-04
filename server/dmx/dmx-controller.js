@@ -91,13 +91,20 @@ class DMXController {
           const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
           
           // Проверка доступности ESP32
-          axios.get(`${esp32BaseUrl}/api/status`, { timeout: 3000 })
-            .then(() => {
-              console.log(`✅ ESP32 DMX контроллер доступен: ${esp32BaseUrl}`);
+          axios.get(`${esp32BaseUrl}/api/dmx/status`, { timeout: 3000 })
+            .then((response) => {
+              if (response.data && response.data.available) {
+                console.log(`✅ ESP32 DMX контроллер доступен: ${esp32BaseUrl}`);
+                this.isConnected = true;
+              } else {
+                console.warn(`⚠️ ESP32 недоступен: статус не подтвержден`);
+                this.isConnected = false;
+              }
             })
             .catch((error) => {
               console.warn(`⚠️ ESP32 недоступен: ${error.message}`);
               console.warn('   Убедитесь, что ESP32 подключен к WiFi и прошит прошивкой');
+              this.isConnected = false;
             });
           
           this.universe = {
@@ -147,6 +154,21 @@ class DMXController {
           
           this.isConnected = true;
           console.log(`✅ DMX ESP32 подключен: ${esp32BaseUrl}`);
+          
+          // Периодическая проверка статуса ESP32 (каждые 10 секунд)
+          setInterval(() => {
+            axios.get(`${esp32BaseUrl}/api/dmx/status`, { timeout: 2000 })
+              .then((response) => {
+                if (response.data && response.data.available) {
+                  this.isConnected = true;
+                } else {
+                  this.isConnected = false;
+                }
+              })
+              .catch(() => {
+                this.isConnected = false;
+              });
+          }, 10000);
         } catch (error) {
           throw new Error(`ESP32 DMX недоступен: ${error.message}`);
         }
@@ -259,6 +281,7 @@ class DMXController {
   // Получить статус системы
   getStatus() {
     return {
+      available: this.isConnected,  // Для совместимости с веб-пультом
       connected: this.isConnected,
       universe: this.config.universe,
       interface: this.config.interface.type,

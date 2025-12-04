@@ -1,9 +1,9 @@
 {
   "universe": 0,
   "interface": {
-    "type": "artnet",
-    "host": "127.0.0.1",
-    "port": 6454
+    "type": "esp32",
+    "host": "192.168.0.71",
+    "port": 80
   },
   "players": {
     "count": 14,
@@ -49,5 +49,6 @@
     "flashDuration": 200
   }
 }
+
 
 
