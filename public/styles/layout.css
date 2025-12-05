@@ -80,10 +80,11 @@
     max-height: 20vh;
     box-sizing: border-box;
     width: 100%;
-    z-index: var(--z-index-frame-2);
-    position: sticky;
-    /* top будет установлен через JavaScript в зависимости от видимости Frame 1 */
-    top: 0;
+    z-index: var(--z-index-frame-2); /* 1000 - выше контента, но ниже Frame1 */
+    position: relative; /* было: position: sticky; */
+    top: auto; /* было: top: 0; */
+    /* Убеждаемся, что Frame2 не перекрывает Frame3 */
+    isolation: isolate; /* Создает новый stacking context */
 }
 
 .frame-2.is-hidden {
@@ -133,8 +134,8 @@
     /* Гарантируем правильную прокрутку */
     min-height: 0;
     overflow: visible;
-    /* Добавляем отступ снизу для footer */
-    padding-bottom: 120px; /* Примерная высота footer (frame4 + frame5) */
+    /* Убираем padding-bottom, так как footer теперь идет после Frame3 в потоке документа */
+    padding-bottom: 0;
 }
 
 /* === FRAME 3 - Основной контент === */
@@ -142,12 +143,16 @@
 .frame3 {
     flex: 1;
     padding: var(--spacing-m) var(--spacing-s);
+    /* УВЕЛИЧЕННЫЙ отступ сверху для расстояния от Frame2 - устойчив к масштабированию */
+    padding-top: clamp(40px, 6vh, 60px); /* Увеличено: минимум 40px, максимум 60px, используем vh для устойчивости */
     position: relative;
-    z-index: var(--z-index-content);
+    z-index: var(--z-index-content); /* 2 - ниже Frame2, но выше декоративных элементов */
     min-height: 0;
     overflow-x: hidden;
     overflow-y: visible; /* Прокрутка на уровне site-wrapper, не здесь */
     width: 100%;
+    /* Убеждаемся, что Frame3 находится в правильном stacking context */
+    isolation: isolate; /* Создает новый stacking context, чтобы карточки были выше фразы */
 }
 
 /* Декоративный слой для парящих элементов */
@@ -200,28 +205,26 @@
 
 /* === FOOTER (Frame 4 и Frame 5) === */
 .site-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    /* Изменено с fixed на relative - footer теперь часть потока документа */
+    position: relative;
     width: 100%;
     z-index: var(--z-index-frame-4);
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    transform: translateY(0);
-    opacity: 1;
+    /* Убираем transition и transform, так как footer больше не фиксированный */
+    margin-top: clamp(20px, 4vw, 40px); /* Отступ сверху от Frame3 */
 }
 
+/* Класс hidden-on-scroll больше не нужен, так как footer не фиксированный */
 .site-footer.hidden-on-scroll {
-    transform: translateY(100%);
-    opacity: 0;
-    pointer-events: none;
+    /* Оставляем для обратной совместимости, но не применяем скрытие */
+    display: block;
 }
 
 /* === FRAME 4 - Правила безопасности === */
 .frame-4,
 #frame4,
 #hub4 {
-    padding: var(--spacing-s) var(--spacing-m);
+    padding: clamp(15px, 3vw, 25px) var(--spacing-m);
+    padding-top: clamp(20px, 4vw, 30px); /* Отступ сверху от Frame3 */
     font-size: var(--font-size-xs);
     line-height: 1.4;
     background: var(--color-bg);
@@ -246,6 +249,7 @@
 #frame5,
 #hub5 {
     padding: var(--spacing-s) var(--spacing-m);
+    padding-bottom: clamp(20px, 4vw, 30px); /* Отступ снизу для видимости */
     font-size: var(--font-size-xs);
     line-height: 1.4;
     background: var(--color-bg);

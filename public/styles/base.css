@@ -49,9 +49,9 @@
     /* Z-index уровни */
     --z-index-base: 1;
     --z-index-decor: -1;
-    --z-index-content: 2;
+    --z-index-content: 1002; /* Увеличено, чтобы карточки были выше Frame2 */
     --z-index-frame-4: 999;
-    --z-index-frame-2: 1000;
+    --z-index-frame-2: 1000; /* Frame2 (фраза) ниже контента */
     --z-index-frame-1: 1001;
 }
 

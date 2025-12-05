@@ -15,12 +15,15 @@
     /* Позиционирование управляется через grid в layout.css */
     background: var(--frame2-bg); /* Непрозрачный фон */
     backdrop-filter: blur(10px);
-    padding: 0; /* Убираем padding, высота определяется только логотипом и фразой */
-    z-index: var(--frame2-z-index); /* 1000 - всегда выше контента и парящих элементов */
+    padding: 0; /* Убираем padding сверху и по бокам, высота определяется только логотипом и фразой */
+    /* УВЕЛИЧЕННЫЙ адаптивный отступ снизу - устойчив к масштабированию */
+    padding-bottom: clamp(70px, 9vh, 120px); /* Увеличено: минимум 70px, максимум 120px, адаптируется к высоте экрана */
+    z-index: var(--z-index-frame-2); /* Используем стандартный z-index из base.css (1000) */
+    position: relative; /* Явно указываем relative, чтобы z-index работал */
     border-bottom: none;
     box-shadow: none;
     width: 100%;
-    overflow: visible;
+    overflow: visible; /* Разрешаем видимость, но содержимое не должно выходить за границы */
     /* Высота определяется только содержимым (логотип + фраза + gap) - без адаптивных ограничений */
     height: auto;
     min-height: auto;
@@ -32,11 +35,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Убеждаемся, что Frame2 не перекрывает Frame3 */
+    isolation: isolate; /* Создает новый stacking context */
 }
 
 /* Контент Frame2 */
 .frame2-content {
-    max-width: 700px;
+    /* В развернутом виде: ширина как 2 карточки (≈1100px) */
+    /* В свернутом виде: ширина как 1 карточка (≈90% экрана) */
+    max-width: 90%; /* По умолчанию для мобильных */
     width: 100%;
     margin: 0 auto;
     display: flex;
@@ -50,21 +57,30 @@
     padding: 0 24px; /* Фиксированные отступы от краев экрана */
 }
 
-/* Секция с логотипом и фразой */
+/* В развернутом виде (≥768px): ширина как 2 карточки */
+@media (min-width: 768px) {
+    .frame2-content {
+        max-width: 1150px; /* Ширина как 2 карточки в grid */
+    }
+}
+
+/* Секция с логотипом и фразой - они связаны вместе */
 .frame2-logo-section {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: relative; /* Изменяем с absolute на relative, чтобы высота определялась содержимым */
+    position: relative; /* relative - чтобы логотип и фраза были частью одного блока */
     left: auto;
     top: auto;
     transform: none;
-    gap: 5px; /* Фиксированный gap между логотипом и фразой */
+    gap: clamp(8px, 1.5vw, 15px); /* Адаптивный gap между логотипом и фразой */
     pointer-events: none;
     width: 100%;
     max-width: 100%;
     padding: 0;
+    padding-bottom: 0; /* Убираем padding снизу, отступ будет у Frame2 */
+    margin-bottom: 0; /* Убираем margin снизу */
     box-sizing: border-box;
 }
 
@@ -75,9 +91,10 @@
 .frame2-logo-section .logo {
     width: auto;
     height: auto;
-    max-height: var(--frame2-logo-max-height);
-    /* Фиксированный размер - не адаптируется к ширине контейнера */
-    max-width: none;
+    /* Немного уменьшенный адаптивный размер */
+    /* В развернутом виде: больше, в свернутом: меньше */
+    max-height: clamp(130px, 22vh, 280px); /* Немного меньше: минимум 130px, максимум 280px */
+    max-width: clamp(220px, 55vw, 550px); /* Немного меньше: минимум 220px, максимум 550px */
     transform: rotate(-2deg);
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
@@ -85,20 +102,41 @@
 
 .frame2-logo-section .subtitle {
     font-family: 'Caveat', cursive;
-    font-size: var(--frame2-subtitle-font-size);
+    /* Немного уменьшенный адаптивный размер шрифта */
+    /* В развернутом виде: больше, в свернутом: меньше */
+    font-size: clamp(36px, 5.5vw, 90px); /* Немного меньше: минимум 36px, максимум 90px */
     color: #393639;
-    margin: 0; /* Убираем все отступы */
+    margin: 0; /* Убираем все отступы - фраза связана с логотипом через gap в logo-section */
     margin-bottom: 0; /* Убираем отступ снизу */
+    margin-top: 0; /* Убираем отступ сверху */
+    padding: 0; /* Убираем padding */
     font-weight: 400;
     line-height: 1.2;
     white-space: nowrap;
     overflow: visible;
     text-overflow: clip;
     max-width: 100%;
+    /* Фраза является частью Frame2 и связана с логотипом */
+    display: block;
+    position: relative; /* relative - часть блока logo-section */
 }
 
 .frame2-logo-section {
-    max-width: calc(100% - 80px);
-    width: auto;
+    /* Убираем ограничение ширины, чтобы логотип и фраза могли быть больше */
+    max-width: 100%;
+    width: 100%;
+}
+
+/* Адаптивные отступы для разных размеров экрана - устойчивы к масштабированию */
+@media (min-width: 768px) {
+    .frame2 {
+        padding-bottom: clamp(80px, 11vh, 140px); /* УВЕЛИЧЕННЫЙ отступ на больших экранах, используем vh для устойчивости к масштабу */
+    }
+}
+
+@media (max-width: 767px) {
+    .frame2 {
+        padding-bottom: clamp(60px, 9vh, 100px); /* УВЕЛИЧЕННЫЙ отступ на мобильных, используем vh */
+    }
 }
 

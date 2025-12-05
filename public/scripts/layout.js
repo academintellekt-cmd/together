@@ -322,58 +322,13 @@ const LayoutManager = {
     
     /**
      * Управление видимостью footer при прокрутке
+     * ОТКЛЮЧЕНО: Footer теперь часть потока документа, не нужно скрывать при прокрутке
      */
     initScrollHideFooter() {
-        let lastScrollTop = 0;
-        let scrollTimeout = null;
+        // Footer больше не фиксированный, поэтому не нужно управлять его видимостью
+        // Просто убеждаемся, что класс hidden-on-scroll удален
         const footer = document.querySelector('.site-footer');
-        
-        if (!footer) return;
-        
-        const handleScroll = () => {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollDelta = scrollTop - lastScrollTop;
-            
-            // Если прокручиваем вниз более чем на 10px, скрываем footer
-            if (scrollDelta > 10) {
-                footer.classList.add('hidden-on-scroll');
-            } 
-            // Если прокручиваем вверх или в самом верху, показываем footer
-            else if (scrollDelta < -10 || scrollTop < 50) {
-                footer.classList.remove('hidden-on-scroll');
-            }
-            
-            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-            
-            // Очищаем таймер
-            if (scrollTimeout) {
-                clearTimeout(scrollTimeout);
-            }
-            
-            // Если прокрутка остановилась, показываем footer через небольшую задержку
-            scrollTimeout = setTimeout(() => {
-                if (scrollTop < 50) {
-                    footer.classList.remove('hidden-on-scroll');
-                }
-            }, 500);
-        };
-        
-        // Обработчик прокрутки с throttling
-        let ticking = false;
-        const onScroll = () => {
-            if (!ticking) {
-                window.requestAnimationFrame(() => {
-                    handleScroll();
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        };
-        
-        window.addEventListener('scroll', onScroll, { passive: true });
-        
-        // Показываем footer при загрузке страницы, если мы вверху
-        if (window.pageYOffset < 50) {
+        if (footer) {
             footer.classList.remove('hidden-on-scroll');
         }
     }
