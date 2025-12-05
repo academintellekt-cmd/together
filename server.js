@@ -1342,7 +1342,11 @@ io.on('connection', (socket) => {
     socket.join(normalizedRoomCode);
     room.lastActivity = Date.now(); // Обновляем активность при подключении игрока
     
-    socket.emit('player-connected', { playerId: socket.id, roomCode: normalizedRoomCode });
+    socket.emit('player-connected', { 
+      playerId: socket.id, 
+      roomCode: normalizedRoomCode,
+      quizId: room.quizId // Добавляем quizId для применения стилей
+    });
     io.to(normalizedRoomCode).emit('player-list-updated', { players: room.players });
     console.log(`Игрок ${normalizedPlayerName} подключен к комнате ${normalizedRoomCode}`);
     
@@ -1408,7 +1412,8 @@ io.on('connection', (socket) => {
       options: question.options,
       questionNumber: room.currentQuestion + 1,
       totalQuestions: room.questions.length,
-      time: question.time
+      time: question.time,
+      quizId: room.quizId // Добавляем quizId для применения стилей
     };
     
     console.log(`📤 Отправка вопроса ${questionData.questionNumber} из ${questionData.totalQuestions} в комнату ${roomCode}`);

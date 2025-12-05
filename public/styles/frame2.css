@@ -140,3 +140,57 @@
     }
 }
 
+/* Контейнер для игроков в Frame2 */
+.frame2-players-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 15px 0;
+}
+
+/* Иконки игроков в Frame2 */
+.frame2-player-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-family: 'Days One', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #FFFFFF;
+    border: 2px solid;
+    box-shadow: 
+        0 2px 0px rgba(0, 0, 0, 0.2),
+        0 4px 8px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    cursor: default;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    min-width: auto;
+    text-align: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.frame2-player-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 0px rgba(0, 0, 0, 0.3),
+        0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.frame2-player-icon.waiting {
+    background: #ff7664;
+    border-color: #ff7664;
+}
+
+.frame2-player-icon.ready {
+    background: #00C159;
+    border-color: #00C159;
+}
+
