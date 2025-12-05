@@ -627,7 +627,36 @@
         }
 
         /* Адаптивность - мобильные устройства (≤768px) - 1 колонка, как на gnu-quiz.html */
+        /* Стили для мобильных устройств - логотип выше и ближе к кнопкам */
         @media (max-width: 767px) {
+            /* Компенсируем отсутствие Frame 1 в потоке (он теперь fixed) */
+            body .site-header .frame-2,
+            body .site-header #frame2,
+            body .site-header .frame2 {
+                padding-top: 0 !important; /* Убираем отступ сверху - логотип ближе к кнопкам */
+                padding-bottom: 4px !important; /* Минимальный отступ снизу */
+                margin-top: 48px !important; /* Компенсируем отсутствие Frame 1 в потоке */
+                margin-bottom: 0 !important;
+            }
+            
+            body .site-header .frame2-content,
+            body .site-header .frame2-logo-section {
+                padding-top: 0 !important; /* Убираем отступ сверху */
+                margin-top: 0 !important;
+            }
+            
+            /* Увеличиваем размер логотипа на мобильных */
+            body .site-header .frame2-logo-section .logo {
+                max-height: clamp(120px, 22vh, 240px) !important;
+                max-width: clamp(220px, 60vw, 480px) !important;
+            }
+            
+            /* Увеличиваем расстояние от логотипа до блоков квиза (Frame 3) */
+            body .site-main .frame-3,
+            body .site-main .frame3 {
+                padding-top: clamp(50px, 8vh, 80px) !important; /* Увеличенный отступ сверху - больше расстояния до блоков квиза */
+            }
+            
             .quizzes-grid {
                 grid-template-columns: 1fr; /* 1 карточка в ряд */
                 gap: clamp(20px, 4vw, 28px); /* Адаптивный отступ, как на gnu-quiz.html */

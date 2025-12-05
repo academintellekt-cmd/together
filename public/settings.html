@@ -40,6 +40,50 @@
         .frame-3-content {
             max-width: 800px;
         }
+        
+        /* Симметричные отступы для всех элементов на мобильных */
+        @media (max-width: 767px) {
+            /* Frame 3 - симметричные отступы слева и справа (уже заданы в layout.css, но переопределяем для гарантии) */
+            body .site-wrapper .frame-3,
+            body .site-wrapper .frame3,
+            body .site-main .frame-3,
+            body .site-main .frame3 {
+                padding-left: clamp(16px, 4vw, 24px) !important;
+                padding-right: clamp(16px, 4vw, 24px) !important;
+                padding-top: clamp(60px, 10vh, 100px) !important;
+                padding-bottom: var(--spacing-m) !important;
+            }
+            
+            /* Frame 3 контент - убираем боковые отступы, они уже у frame-3 */
+            body .site-wrapper .frame-3-content,
+            body .site-main .frame-3-content,
+            body .frame-3-content#mainContainer {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                padding-top: 30px !important;
+                padding-bottom: 30px !important;
+                max-width: 800px !important;
+                margin: 0 auto !important;
+                width: 100% !important;
+            }
+            
+            /* Заголовок настроек - симметричные отступы */
+            body .settings-title {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+            
+            /* Сетка настроек - симметричные отступы */
+            body .settings-grid {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                width: 100% !important;
+            }
+        }
 
         .settings-title {
             font-family: 'Days One', sans-serif;
@@ -73,10 +117,6 @@
 
         /* Используем универсальные классы из quiz-card.css */
         /* Здесь только специфичные стили для карточек настроек */
-        
-        .settings-card {
-            /* Используем класс quiz-card из quiz-card.css */
-        }
 
         /* Специальные стили для карточек настроек при наведении */
         /* Базовые hover эффекты уже определены в quiz-card.css */
@@ -216,6 +256,122 @@
         .password-error.show {
             display: block;
         }
+
+        /* Исправление перекрытия логотипа Frame 2 */
+        /* Убираем белый фон у site-wrapper и site-header */
+        body .site-wrapper {
+            background: transparent !important; /* Прозрачный фон у site-wrapper */
+        }
+        
+        body .site-header {
+            background: transparent !important; /* Прозрачный фон у site-header */
+        }
+        
+        /* Убираем белый фон и большой padding-bottom у Frame 2 */
+        body .site-header .frame-2,
+        body .site-header #frame2,
+        body .site-header .frame2,
+        body .site-header #hub2-container {
+            padding-bottom: 0 !important; /* Убираем padding-bottom полностью */
+            background: transparent !important; /* Делаем фон прозрачным */
+            backdrop-filter: none !important; /* Убираем размытие */
+            -webkit-backdrop-filter: none !important;
+            overflow: visible !important;
+            min-height: auto !important;
+            height: auto !important;
+            box-shadow: none !important;
+        }
+        
+        /* Убираем все плашки и фоны из Frame 2 - только логотип и подпись */
+        body .site-header .frame2-content {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        
+        /* Убираем все псевдоэлементы */
+        body .site-header .frame2-content::before,
+        body .site-header .frame2-content::after {
+            display: none !important;
+            content: none !important;
+        }
+        
+        /* На мобильных - еще меньше отступ */
+        @media (max-width: 767px) {
+            body .site-header .frame2-content {
+                padding-bottom: clamp(10px, 2vh, 25px) !important;
+                margin-bottom: clamp(8px, 1.5vh, 15px);
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+            }
+        }
+        
+        /* Исправление позиционирования кнопок Frame1 на мобильных */
+        @media (max-width: 767px) {
+            /* Выравниваем кнопки Frame1 по краям Frame 3 */
+            /* Frame 3 имеет padding-left и padding-right: clamp(16px, 4vw, 24px) */
+            
+            body .site-header .frame-1,
+            body .site-header #frame1,
+            body .site-header .frame1 {
+                padding-left: clamp(16px, 4vw, 24px) !important; /* Те же отступы, что у Frame 3 */
+                padding-right: clamp(16px, 4vw, 24px) !important;
+                padding-top: var(--spacing-s) !important;
+                padding-bottom: var(--spacing-s) !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            /* Контент Frame1 - убираем все внутренние отступы */
+            body .site-header .frame1-content {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            /* Контейнер кнопок - растягиваем на всю ширину и выравниваем по краям */
+            body .site-header .frame1-actions {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+                justify-content: space-between !important;
+                gap: 4px !important; /* Минимальный gap */
+            }
+            
+            /* Левая группа кнопок */
+            body .site-header .frame1-actions-left {
+                flex: 0 1 auto !important;
+                max-width: none !important;
+                min-width: 0 !important;
+                gap: 4px !important;
+            }
+            
+            /* Правая группа кнопок - выравниваем по правому краю */
+            body .site-header .frame1-actions-right {
+                flex: 0 1 auto !important;
+                max-width: none !important;
+                min-width: 0 !important;
+                gap: 4px !important;
+                margin-left: auto !important; /* Выравниваем по правому краю */
+            }
+            
+            /* Кнопки - увеличиваем размер, но остаемся в пределах границ */
+            body .site-header .frame1-button {
+                flex-shrink: 1 !important;
+                min-width: 0 !important;
+                padding: 10px 14px !important; /* Увеличенный padding */
+                font-size: 13px !important; /* Увеличенный размер шрифта */
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                max-width: 100% !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -240,15 +396,6 @@
     </div>
 
     <div class="site-wrapper">
-        <!-- HEADER: Frame 1 и Frame 2 -->
-        <header class="site-header">
-            <!-- Frame 1: Панель с кнопками (создается через Frame1.js) -->
-            <div class="frame frame-1" data-frame="controls" id="hub1-container"></div>
-
-            <!-- Frame 2: Логотип + фраза (создается через Frame2.js) -->
-            <div class="frame frame-2" data-frame="logo" id="hub2-container"></div>
-        </header>
-
         <!-- MAIN: Frame 3 -->
         <main class="site-main">
             <section class="frame frame-3" data-frame="content">
@@ -382,6 +529,30 @@
                 
                 // Инициализация Frame2
                 Frame2.init();
+                
+                // Применяем исправления для Frame 2 после создания
+                setTimeout(() => {
+                    const frame2 = document.getElementById('frame2');
+                    const frame2Container = document.getElementById('hub2-container');
+                    const frame2Content = document.querySelector('.frame2-content');
+                    
+                    if (frame2) {
+                        frame2.style.background = 'transparent';
+                        frame2.style.backdropFilter = 'none';
+                        frame2.style.webkitBackdropFilter = 'none';
+                        frame2.style.paddingBottom = '0';
+                    }
+                    if (frame2Container) {
+                        frame2Container.style.background = 'transparent';
+                        frame2Container.style.backdropFilter = 'none';
+                        frame2Container.style.webkitBackdropFilter = 'none';
+                    }
+                    if (frame2Content) {
+                        frame2Content.style.background = 'transparent';
+                        frame2Content.style.backdropFilter = 'none';
+                        frame2Content.style.webkitBackdropFilter = 'none';
+                    }
+                }, 100);
                 
                 // Обновление позиций - ждем полной отрисовки
                 requestAnimationFrame(() => {
