@@ -26,6 +26,17 @@ const io = socketIo(server, {
 
 app.use(cors());
 app.use(express.json());
+
+// DMX API routes - регистрируем ПЕРЕД статическим middleware
+try {
+  const dmxApiRouter = require('./server/routes/dmx-api');
+  app.use('/api/dmx', dmxApiRouter);
+  console.log('✅ DMX API routes зарегистрированы');
+} catch (error) {
+  console.warn('⚠️ DMX API routes недоступны:', error.message);
+}
+
+// Статический middleware - после API роутов
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/Geometria', express.static(path.join(__dirname, 'Geometria')));
 app.use('/joystick-test', express.static(path.join(__dirname, 'joystick-test')));
@@ -1096,14 +1107,7 @@ app.post('/api/reload-questions', (req, res) => {
   }
 });
 
-// DMX API routes
-try {
-  const dmxApiRouter = require('./server/routes/dmx-api');
-  app.use('/api/dmx', dmxApiRouter);
-  console.log('✅ DMX API routes зарегистрированы');
-} catch (error) {
-  console.warn('⚠️ DMX API routes недоступны:', error.message);
-}
+// DMX API routes уже зарегистрированы выше (перед статическим middleware)
 
 // Получение IP-адреса сервера
 app.get('/api/server-ip', (req, res) => {
