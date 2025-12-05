@@ -366,6 +366,27 @@
             transform: translateY(-2px);
         }
 
+        /* Стили для кнопок пресетов на главной странице */
+        .preset-grid button {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 3px solid var(--color-dark);
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+            color: var(--color-dark);
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .preset-grid button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 0px rgba(0, 0, 0, 0.2), 0 10px 20px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, var(--color-dark) 0%, #2a2a2a 100%);
+            color: white;
+        }
+
+        .preset-grid button:active {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
         .preset-name {
             font-weight: 600;
             margin-bottom: 5px;
@@ -601,55 +622,53 @@
 
             <!-- Вкладка: Быстрое управление -->
             <div id="tab-quick" class="tab-content active">
-                <div class="grid">
-                    <div class="card">
-                        <h2>👥 Управление игроками</h2>
-                        <div class="player-grid" id="player-grid"></div>
-                        <div class="color-picker">
-                            <input type="number" id="r-input" class="color-input" placeholder="R" min="0" max="255" value="255">
-                            <input type="number" id="g-input" class="color-input" placeholder="G" min="0" max="255" value="255">
-                            <input type="number" id="b-input" class="color-input" placeholder="B" min="0" max="255" value="255">
-                            <div class="color-preview" id="color-preview"></div>
-                        </div>
-                        <div>
-                            <button class="btn btn-primary" onclick="setPlayerColor()">Установить цвет</button>
-                            <button class="btn btn-success" onclick="setPlayerEffect('fade')">Плавное затухание</button>
-                            <button class="btn btn-warning" onclick="setPlayerEffect('pulse')">Пульсация</button>
-                            <button class="btn btn-danger" onclick="setPlayerEffect('flash')">Мигание</button>
-                        </div>
+                <!-- Основные действия -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <h2>⚡ Основные действия</h2>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                        <button class="btn btn-danger" onclick="applyPreset('all-off')" style="font-size: 18px; padding: 15px 30px;">
+                            🔴 Все выключить
+                        </button>
+                        <button class="btn btn-primary" onclick="applyPreset('all-white')" style="font-size: 18px; padding: 15px 30px;">
+                            ⚪ Все белое
+                        </button>
                     </div>
+                </div>
 
-                    <div class="card">
-                        <h2>🎭 Управление сценой</h2>
-                        <div>
-                            <button class="btn btn-primary" onclick="stageAction('bright')">Яркое освещение</button>
-                            <button class="btn btn-primary" onclick="stageAction('soft')">Мягкое освещение</button>
-                            <button class="btn btn-success" onclick="stageAction('dynamic')">Динамические эффекты</button>
-                            <button class="btn btn-warning" onclick="stageAction('final')">Финальное шоу</button>
-                        </div>
-                        <div style="margin-top: 15px;">
-                            <h3>Вспышка сцены</h3>
-                            <div class="color-picker">
-                                <input type="number" id="stage-r" class="color-input" placeholder="R" min="0" max="255" value="255">
-                                <input type="number" id="stage-g" class="color-input" placeholder="G" min="0" max="255" value="0">
-                                <input type="number" id="stage-b" class="color-input" placeholder="B" min="0" max="255" value="0">
-                            </div>
-                            <button class="btn btn-danger" onclick="stageFlash()">Вспышка</button>
-                        </div>
-                    </div>
+                <!-- Цветовые пресеты -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <h2>🎨 Цветовые пресеты</h2>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                        Одно нажатие - мгновенное применение пресета ко всем прожекторам
+                    </p>
+                    <div class="preset-grid" id="color-presets-grid" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));"></div>
+                </div>
 
-                    <div class="card">
-                        <h2>🔧 Общее управление</h2>
-                        <div>
-                            <button class="btn btn-danger" onclick="allOff()">Все выключить</button>
-                            <button class="btn btn-primary" onclick="setAllColor()">Установить цвет всем</button>
-                        </div>
-                        <div class="color-picker" style="margin-top: 15px;">
-                            <input type="number" id="all-r" class="color-input" placeholder="R" min="0" max="255" value="255">
-                            <input type="number" id="all-g" class="color-input" placeholder="G" min="0" max="255" value="255">
-                            <input type="number" id="all-b" class="color-input" placeholder="B" min="0" max="255" value="255">
-                        </div>
-                    </div>
+                <!-- Эффекты и анимации -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <h2>✨ Эффекты и анимации</h2>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                        Динамические эффекты с анимацией
+                    </p>
+                    <div class="preset-grid" id="effect-presets-grid" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));"></div>
+                </div>
+
+                <!-- Атмосферные пресеты -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <h2>🌙 Атмосферные пресеты</h2>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                        Создание атмосферы для разных ситуаций
+                    </p>
+                    <div class="preset-grid" id="ambient-presets-grid" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));"></div>
+                </div>
+
+                <!-- Сценические пресеты -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <h2>🎭 Сценические пресеты</h2>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                        Управление освещением сцены
+                    </p>
+                    <div class="preset-grid" id="stage-presets-grid" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));"></div>
                 </div>
             </div>
 
@@ -849,7 +868,8 @@
         // Инициализация
         document.addEventListener('DOMContentLoaded', () => {
             checkStatus();
-            loadPresets();
+            loadQuickPresets(); // Загружаем пресеты для быстрого управления
+            loadPresets(); // Загружаем пресеты для вкладки пресетов
             initPlayerGrid();
             initColorPreview();
             initColorWheel();
@@ -1593,10 +1613,136 @@
             addLog(`✅ Пресет "${name}" сохранен`, 'success');
         }
 
-        // Загрузить пресеты
+        // Загрузить пресеты для быстрого управления
+        async function loadQuickPresets() {
+            try {
+                const response = await fetch(`${API_BASE}/presets`);
+                const data = await response.json();
+                
+                if (data.presets && Array.isArray(data.presets)) {
+                    // Категории пресетов
+                    const colorPresets = ['all-white', 'warm-white', 'cool-white', 'blue-ambient', 'red-alert', 'green-success', 'purple-magic', 'orange-energy'];
+                    const effectPresets = ['rainbow', 'chase-rainbow', 'wave-forward', 'wave-backward', 'pulse-green', 'pulse-red', 'alternating', 'party-mode'];
+                    const ambientPresets = ['dim-ambient'];
+                    const stagePresets = ['stage-bright', 'stage-soft', 'stage-dynamic', 'final-show'];
+                    
+                    // Отображаем цветовые пресеты
+                    const colorGrid = document.getElementById('color-presets-grid');
+                    if (colorGrid) {
+                        colorGrid.innerHTML = '';
+                        data.presets.filter(p => colorPresets.includes(p.id)).forEach(preset => {
+                            const btn = createPresetButton(preset);
+                            colorGrid.appendChild(btn);
+                        });
+                    }
+                    
+                    // Отображаем эффекты
+                    const effectGrid = document.getElementById('effect-presets-grid');
+                    if (effectGrid) {
+                        effectGrid.innerHTML = '';
+                        data.presets.filter(p => effectPresets.includes(p.id)).forEach(preset => {
+                            const btn = createPresetButton(preset);
+                            effectGrid.appendChild(btn);
+                        });
+                    }
+                    
+                    // Отображаем атмосферные пресеты (исключаем blue-ambient, так как он уже в цветовых)
+                    const ambientGrid = document.getElementById('ambient-presets-grid');
+                    if (ambientGrid) {
+                        ambientGrid.innerHTML = '';
+                        data.presets.filter(p => ambientPresets.includes(p.id) && p.id !== 'blue-ambient').forEach(preset => {
+                            const btn = createPresetButton(preset);
+                            ambientGrid.appendChild(btn);
+                        });
+                    }
+                    
+                    // Отображаем сценические пресеты
+                    const stageGrid = document.getElementById('stage-presets-grid');
+                    if (stageGrid) {
+                        stageGrid.innerHTML = '';
+                        data.presets.filter(p => stagePresets.includes(p.id)).forEach(preset => {
+                            const btn = createPresetButton(preset);
+                            stageGrid.appendChild(btn);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки пресетов:', error);
+                addLog(`❌ Ошибка загрузки пресетов: ${error.message}`, 'error');
+            }
+        }
+        
+        // Создать кнопку пресета
+        function createPresetButton(preset) {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-primary';
+            btn.style.cssText = 'width: 100%; padding: 15px; font-size: 16px; font-weight: 600; text-align: center; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center;';
+            btn.innerHTML = `
+                <div style="font-size: 20px; margin-bottom: 5px;">${getPresetIcon(preset.id)}</div>
+                <div style="font-weight: 700; margin-bottom: 3px;">${preset.name}</div>
+                <div style="font-size: 12px; opacity: 0.8; font-weight: normal;">${preset.description || ''}</div>
+            `;
+            btn.onclick = () => applyPreset(preset.id);
+            return btn;
+        }
+        
+        // Получить иконку для пресета
+        function getPresetIcon(presetId) {
+            const icons = {
+                'all-off': '🔴',
+                'all-white': '⚪',
+                'warm-white': '🟡',
+                'cool-white': '🔵',
+                'blue-ambient': '🌌',
+                'red-alert': '🚨',
+                'green-success': '✅',
+                'purple-magic': '🔮',
+                'orange-energy': '🟠',
+                'rainbow': '🌈',
+                'chase-rainbow': '💫',
+                'wave-forward': '➡️',
+                'wave-backward': '⬅️',
+                'pulse-green': '💚',
+                'pulse-red': '❤️',
+                'alternating': '🔄',
+                'party-mode': '🎉',
+                'dim-ambient': '🌙',
+                'stage-bright': '💡',
+                'stage-soft': '✨',
+                'stage-dynamic': '🎭',
+                'final-show': '🎊'
+            };
+            return icons[presetId] || '🎨';
+        }
+        
+        // Применить пресет одним нажатием
+        async function applyPreset(presetId) {
+            try {
+                addLog(`🎬 Применение пресета: ${presetId}...`, 'success');
+                
+                const response = await fetch(`${API_BASE}/preset/${presetId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Пресет "${presetId}" применен успешно`, 'success');
+                } else {
+                    addLog(`❌ Ошибка применения пресета: ${data.error || 'Неизвестная ошибка'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Ошибка применения пресета:', error);
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Загрузить пресеты (для вкладки пресетов)
         function loadPresets() {
             const presets = JSON.parse(localStorage.getItem('dmx-presets') || '[]');
             const grid = document.getElementById('preset-grid');
+            if (!grid) return;
+            
             grid.innerHTML = '';
             
             presets.forEach((preset, index) => {
