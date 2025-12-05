@@ -9,9 +9,16 @@ echo ""
 
 FOUND=false
 
+# Определяем подсеть из IP компьютера
+MY_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "192.168.0.1")
+SUBNET=$(echo $MY_IP | cut -d'.' -f1-3)
+
+echo "🔍 Поиск ESP32 в подсети $SUBNET.x..."
+echo ""
+
 # Проверяем локальную сеть
 for i in {1..254}; do
-    IP="192.168.1.$i"
+    IP="$SUBNET.$i"
     if curl -s --connect-timeout 1 "http://$IP/api/status" > /dev/null 2>&1; then
         echo "✅ Найден ESP32 на IP: $IP"
         echo ""
@@ -29,10 +36,14 @@ for i in {1..254}; do
         FOUND=true
         break
     fi
+    # Показываем прогресс каждые 50 IP
+    if [ $((i % 50)) -eq 0 ]; then
+        echo "   Проверено $i из 254..."
+    fi
 done
 
 if [ "$FOUND" = false ]; then
-    echo "❌ ESP32 не найден в сети 192.168.1.x"
+    echo "❌ ESP32 не найден в сети $SUBNET.x"
     echo ""
     echo "Попробуйте:"
     echo "1. Откройте Serial Monitor в Arduino IDE (115200 baud)"
@@ -50,4 +61,6 @@ if [ "$FOUND" = false ]; then
         fi
     fi
 fi
+
+
 
