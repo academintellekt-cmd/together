@@ -200,6 +200,10 @@ const Frame1 = {
             dropdown.appendChild(option);
         });
         
+        // Перемещаем dropdown в body, чтобы он был вне stacking context Frame1
+        // Это гарантирует, что dropdown будет поверх всех элементов
+        document.body.appendChild(dropdown);
+        
         // Устанавливаем цвет по умолчанию
         const defaultChar = characters.find(c => c.id === selectedCharacterId);
         if (defaultChar) {
@@ -209,16 +213,41 @@ const Frame1 = {
         // Сохраняем ссылку на menu для обработчика
         const menu = loginButton.closest('.frame1-character-menu');
         
+        // Функция для обновления позиции dropdown при использовании position: fixed
+        const updateDropdownPosition = () => {
+            if (dropdown.classList.contains('active')) {
+                // Используем requestAnimationFrame для гарантии правильного позиционирования
+                requestAnimationFrame(() => {
+                    const buttonRect = loginButton.getBoundingClientRect();
+                    dropdown.style.top = `${buttonRect.bottom + 10}px`;
+                    dropdown.style.left = `${buttonRect.left}px`;
+                    // Убеждаемся, что z-index установлен
+                    dropdown.style.zIndex = '9999';
+                });
+            }
+        };
+        
         // Обработчик клика на кнопку
         loginButton.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            const wasActive = dropdown.classList.contains('active');
             dropdown.classList.toggle('active');
+            if (dropdown.classList.contains('active') && !wasActive) {
+                // Обновляем позицию сразу и после небольшой задержки для надежности
+                updateDropdownPosition();
+                setTimeout(updateDropdownPosition, 10);
+            }
         });
         
+        // Обновляем позицию при прокрутке и изменении размера окна
+        window.addEventListener('scroll', updateDropdownPosition, true);
+        window.addEventListener('resize', updateDropdownPosition);
+        
         // Закрытие при клике вне меню
+        // Теперь проверяем и кнопку, и dropdown, так как dropdown в body
         document.addEventListener('click', (e) => {
-            if (menu && !menu.contains(e.target)) {
+            if (menu && !menu.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.classList.remove('active');
             }
         });

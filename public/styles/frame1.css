@@ -238,14 +238,14 @@
 .frame1-character-menu {
     position: relative;
     display: inline-block;
-    z-index: 1002;
+    z-index: var(--z-index-character-menu, 9999); /* Очень высокий z-index, чтобы быть поверх всего */
     overflow: visible;
 }
 
 .frame1-character-menu-dropdown {
-    position: absolute;
-    top: calc(100% + 10px);
-    left: 0;
+    position: fixed !important; /* Используем fixed вместо absolute, чтобы выйти из stacking context Frame1 */
+    top: auto;
+    left: auto;
     background: transparent;
     padding: 0;
     display: flex;
@@ -261,6 +261,8 @@
     transition: opacity 0.2s ease, visibility 0.2s ease;
     max-height: 0;
     overflow: hidden;
+    z-index: 9999 !important; /* Очень высокий z-index, чтобы быть поверх всего (Frame2: 1000, Frame3: 1002) */
+    isolation: isolate; /* Создаем свой stacking context */
 }
 
 .frame1-character-menu-dropdown.active {
@@ -271,6 +273,7 @@
     transition: opacity 0.2s ease, visibility 0.2s ease;
     overflow: visible;
     display: flex;
+    z-index: 9999 !important; /* Гарантируем высокий z-index при активном состоянии */
 }
 
 .frame1-character-option {
@@ -287,6 +290,7 @@
     flex-shrink: 0;
     opacity: 0;
     transform: translateY(-20px);
+    z-index: inherit; /* Наследуем z-index от родителя */
 }
 
 .frame1-character-menu-dropdown.active .frame1-character-option {
