@@ -82,7 +82,8 @@
 }
 
 /* Универсальная кнопка Frame1 */
-.frame1-button {
+.frame1-button,
+button.frame1-button {
     display: inline-block;
     padding: var(--frame1-button-padding);
     background: rgba(245, 245, 245, 0.85);

@@ -255,26 +255,41 @@
             return '/index.html';
         }
 
-        async function loadLeaderboard() {
+        let isInitialLoad = true;
+
+        async function loadLeaderboard(showLoading = true, forceReload = false) {
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
             const list = document.getElementById('leaderboard-list');
             const emptyState = document.getElementById('empty-state');
 
-            loading.style.display = 'block';
+            if (showLoading) {
+                loading.style.display = 'block';
+            }
             error.style.display = 'none';
-            list.style.display = 'none';
-            emptyState.style.display = 'none';
+            if (isInitialLoad) {
+                list.style.display = 'none';
+                emptyState.style.display = 'none';
+            }
 
             try {
                 console.log('📊 Загрузка рейтинга для quizId:', quizId);
                 
-                // Сначала обновляем данные на сервере
-                console.log('📊 Обновление данных на сервере...');
-                await fetch('/api/reload-leaderboard');
+                // Обновляем данные на сервере только при первой загрузке или при принудительном обновлении
+                if (isInitialLoad || forceReload) {
+                    console.log('📊 Обновление данных на сервере...');
+                    try {
+                        await fetch('/api/reload-leaderboard');
+                    } catch (reloadError) {
+                        console.warn('⚠️ Не удалось обновить данные с сервера, используем кэш:', reloadError);
+                        // Продолжаем с текущими данными в памяти
+                    }
+                }
                 
                 // Затем загружаем обновленные данные с фильтром по quizId
-                const leaderboardUrl = quizId ? `/api/leaderboard?quizId=${encodeURIComponent(quizId)}` : '/api/leaderboard';
+                // Нормализуем quizId для запроса
+                const requestQuizId = quizId === 'akadem' || quizId === 'академ' || quizId === 'академгородок' ? 'akadem' : quizId;
+                const leaderboardUrl = requestQuizId ? `/api/leaderboard?quizId=${encodeURIComponent(requestQuizId)}` : '/api/leaderboard';
                 console.log('📊 Запрос рейтинга по URL:', leaderboardUrl);
                 const response = await fetch(leaderboardUrl);
                 if (!response.ok) {
@@ -282,15 +297,20 @@
                 }
                 const results = await response.json();
                 console.log('📊 Получено результатов:', results.length);
-                console.log('📊 Первые результаты:', results.slice(0, 3));
+                if (results.length > 0) {
+                    console.log('📊 Первые результаты:', results.slice(0, 3));
+                }
 
                 loading.style.display = 'none';
+                isInitialLoad = false;
 
                 if (results.length === 0) {
                     emptyState.style.display = 'block';
+                    list.style.display = 'none';
                     return;
                 }
 
+                emptyState.style.display = 'none';
                 list.innerHTML = '';
                 results.forEach((result, index) => {
                     const item = document.createElement('div');
@@ -347,6 +367,12 @@
             }
         }
 
+        // Функция для обновления рейтинга (вызывается при нажатии на кнопку)
+        function refreshLeaderboard() {
+            console.log('🔄 Принудительное обновление рейтинга...');
+            loadLeaderboard(true, true); // Показываем loading и принудительно обновляем данные
+        }
+
         // Инициализация Frame1 и Frame2
         function initHubs() {
             // Определяем URL для кнопки "Назад"
@@ -358,6 +384,30 @@
                     showBack: true,
                     backUrl: backUrl
                 });
+                
+                // Добавляем кнопку "Обновить" справа в Frame 1
+                setTimeout(() => {
+                    const actionsRight = document.getElementById('frame1-actions-right');
+                    if (actionsRight) {
+                        // Проверяем, нет ли уже кнопки обновления
+                        let refreshButton = document.getElementById('frame1-refresh-button');
+                        if (!refreshButton) {
+                            refreshButton = document.createElement('button');
+                            refreshButton.id = 'frame1-refresh-button';
+                            refreshButton.className = 'frame1-button';
+                            refreshButton.textContent = 'Обновить';
+                            refreshButton.type = 'button'; // Чтобы не было submit формы
+                            refreshButton.style.cursor = 'pointer';
+                            refreshButton.style.border = 'none'; // Убираем стандартную границу кнопки
+                            refreshButton.style.background = 'transparent'; // Прозрачный фон, стили применятся через класс
+                            refreshButton.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                refreshLeaderboard();
+                            });
+                            actionsRight.appendChild(refreshButton);
+                        }
+                    }
+                }, 100);
             }
             
             // Инициализация Frame2 (Frame 2)
@@ -373,7 +423,7 @@
 
         // Загружаем информацию о квизе и рейтинг при загрузке страницы
         loadQuizInfo().then(() => {
-            loadLeaderboard();
+            loadLeaderboard(true);
         });
         
         // Обновление при изменении размера окна
