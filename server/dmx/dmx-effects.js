@@ -12,9 +12,18 @@ class DMXEffects {
   fadeToColor(startAddress, targetR, targetG, targetB, duration = 300) {
     if (!this.controller) return;
     
-    const startR = this.controller.getChannel(startAddress) || 0;
-    const startG = this.controller.getChannel(startAddress + 1) || 0;
-    const startB = this.controller.getChannel(startAddress + 2) || 0;
+    // Для LM70S RGB каналы находятся на позициях 4, 5, 6 (offset от startAddress)
+    // В абсолютных адресах: startAddress+3 (R), startAddress+4 (G), startAddress+5 (B)
+    const isLM70S = this.controller.config && 
+                     (this.controller.config.players.type === 'LM70S' || 
+                      this.controller.config.players.channelsPerFixture === 9);
+    
+    const rgbChannelOffset = isLM70S ? 3 : 0; // Для LM70S смещение +3, для обычных RGB +0
+    
+    // Читаем текущие значения с правильных каналов
+    const startR = this.controller.getChannel(startAddress + rgbChannelOffset) || 0;
+    const startG = this.controller.getChannel(startAddress + rgbChannelOffset + 1) || 0;
+    const startB = this.controller.getChannel(startAddress + rgbChannelOffset + 2) || 0;
     
     const steps = Math.max(10, Math.floor(duration / 20)); // минимум 10 шагов
     const stepTime = duration / steps;
@@ -29,7 +38,17 @@ class DMXEffects {
       const g = Math.round(startG + (targetG - startG) * progress);
       const b = Math.round(startB + (targetB - startB) * progress);
       
-      this.controller.setRGB(startAddress, r, g, b);
+      // Используем правильные каналы для LM70S
+      if (isLM70S) {
+        const channels = {
+          [startAddress + 3]: Math.max(0, Math.min(255, r)),  // R канал (4-й в offset)
+          [startAddress + 4]: Math.max(0, Math.min(255, g)),  // G канал (5-й в offset)
+          [startAddress + 5]: Math.max(0, Math.min(255, b))   // B канал (6-й в offset)
+        };
+        this.controller.updateChannels(channels);
+      } else {
+        this.controller.setRGB(startAddress, r, g, b);
+      }
       
       if (currentStep >= steps) {
         clearInterval(timer);
@@ -43,11 +62,18 @@ class DMXEffects {
   pulseColor(startAddress, r, g, b, duration = 500, cycles = 3) {
     if (!this.controller) return;
     
+    // Для LM70S RGB каналы находятся на позициях 4, 5, 6 (offset от startAddress)
+    const isLM70S = this.controller.config && 
+                     (this.controller.config.players.type === 'LM70S' || 
+                      this.controller.config.players.channelsPerFixture === 9);
+    
     let cycle = 0;
     const halfDuration = duration / 2;
+    let startTime = Date.now();
     
     const timer = setInterval(() => {
-      const progress = (Date.now() % duration) / halfDuration;
+      const elapsed = Date.now() - startTime;
+      const progress = (elapsed % duration) / halfDuration;
       const intensity = progress <= 1 
         ? Math.sin(progress * Math.PI) 
         : Math.sin((2 - progress) * Math.PI);
@@ -56,13 +82,30 @@ class DMXEffects {
       const currentG = Math.round(g * intensity);
       const currentB = Math.round(b * intensity);
       
-      this.controller.setRGB(startAddress, currentR, currentG, currentB);
+      // Используем правильные каналы для LM70S
+      if (isLM70S) {
+        const channels = {
+          [startAddress + 3]: Math.max(0, Math.min(255, currentR)),  // R канал (4-й в offset)
+          [startAddress + 4]: Math.max(0, Math.min(255, currentG)),  // G канал (5-й в offset)
+          [startAddress + 5]: Math.max(0, Math.min(255, currentB))   // B канал (6-й в offset)
+        };
+        this.controller.updateChannels(channels);
+      } else {
+        this.controller.setRGB(startAddress, currentR, currentG, currentB);
+      }
       
-      if (progress <= 1 && cycle < cycles) {
-        cycle++;
-        if (cycle >= cycles) {
-          clearInterval(timer);
-          // Возвращаем к исходному цвету
+      // Подсчет циклов
+      if (Math.floor(elapsed / duration) >= cycles) {
+        clearInterval(timer);
+        // Возвращаем к исходному цвету
+        if (isLM70S) {
+          const channels = {
+            [startAddress + 3]: Math.max(0, Math.min(255, r)),
+            [startAddress + 4]: Math.max(0, Math.min(255, g)),
+            [startAddress + 5]: Math.max(0, Math.min(255, b))
+          };
+          this.controller.updateChannels(channels);
+        } else {
           this.controller.setRGB(startAddress, r, g, b);
         }
       }
@@ -75,19 +118,44 @@ class DMXEffects {
   flash(startAddress, r, g, b, duration = 200, times = 1) {
     if (!this.controller) return;
     
+    // Для LM70S RGB каналы находятся на позициях 4, 5, 6 (offset от startAddress)
+    const isLM70S = this.controller.config && 
+                     (this.controller.config.players.type === 'LM70S' || 
+                      this.controller.config.players.channelsPerFixture === 9);
+    
     let flashCount = 0;
     let isOn = false;
     
     const timer = setInterval(() => {
       if (isOn) {
-        this.controller.setRGB(startAddress, 0, 0, 0);
+        // Выключаем
+        if (isLM70S) {
+          const channels = {
+            [startAddress + 3]: 0,  // R канал
+            [startAddress + 4]: 0,  // G канал
+            [startAddress + 5]: 0   // B канал
+          };
+          this.controller.updateChannels(channels);
+        } else {
+          this.controller.setRGB(startAddress, 0, 0, 0);
+        }
         isOn = false;
         flashCount++;
         if (flashCount >= times) {
           clearInterval(timer);
         }
       } else {
-        this.controller.setRGB(startAddress, r, g, b);
+        // Включаем
+        if (isLM70S) {
+          const channels = {
+            [startAddress + 3]: Math.max(0, Math.min(255, r)),  // R канал
+            [startAddress + 4]: Math.max(0, Math.min(255, g)),  // G канал
+            [startAddress + 5]: Math.max(0, Math.min(255, b))   // B канал
+          };
+          this.controller.updateChannels(channels);
+        } else {
+          this.controller.setRGB(startAddress, r, g, b);
+        }
         isOn = true;
       }
     }, duration);
@@ -123,11 +191,27 @@ class DMXEffects {
   rainbowWave(startAddress, duration = 2000) {
     if (!this.controller) return;
     
+    // Для LM70S RGB каналы находятся на позициях 4, 5, 6 (offset от startAddress)
+    const isLM70S = this.controller.config && 
+                     (this.controller.config.players.type === 'LM70S' || 
+                      this.controller.config.players.channelsPerFixture === 9);
+    
     let hue = 0;
     const timer = setInterval(() => {
       hue = (hue + 2) % 360;
       const rgb = this.hsvToRgb(hue / 360, 1, 1);
-      this.controller.setRGB(startAddress, rgb[0], rgb[1], rgb[2]);
+      
+      // Используем правильные каналы для LM70S
+      if (isLM70S) {
+        const channels = {
+          [startAddress + 3]: Math.max(0, Math.min(255, rgb[0])),  // R канал
+          [startAddress + 4]: Math.max(0, Math.min(255, rgb[1])),  // G канал
+          [startAddress + 5]: Math.max(0, Math.min(255, rgb[2]))   // B канал
+        };
+        this.controller.updateChannels(channels);
+      } else {
+        this.controller.setRGB(startAddress, rgb[0], rgb[1], rgb[2]);
+      }
     }, 20);
     
     setTimeout(() => {
@@ -360,6 +444,7 @@ module.exports = {
   DMXEffects,
   getDMXEffects
 };
+
 
 
 
