@@ -114,12 +114,12 @@ int getLM70SBaseChannel(int lm70sNumber) {
 }
 
 // Установить RGB для LM70S
-// RGB каналы: Ch+6 (R), Ch+7 (G), Ch+8 (B) - каналы 7, 8, 9 в offset от startAddress
+// RGB каналы: Ch+3 (R), Ch+4 (G), Ch+5 (B) - каналы 4, 5, 6 в offset от startAddress
 void setLM70SRGB(int lm70sNumber, uint8_t r, uint8_t g, uint8_t b) {
   int baseChannel = getLM70SBaseChannel(lm70sNumber);
-  dmxUniverse[baseChannel + 6 - 1] = constrain(r, 0, 255);  // R (Ch+6, канал 7)
-  dmxUniverse[baseChannel + 7 - 1] = constrain(g, 0, 255);  // G (Ch+7, канал 8)
-  dmxUniverse[baseChannel + 8 - 1] = constrain(b, 0, 255);  // B (Ch+8, канал 9)
+  dmxUniverse[baseChannel + 3 - 1] = constrain(r, 0, 255);  // R (Ch+3, канал 4)
+  dmxUniverse[baseChannel + 4 - 1] = constrain(g, 0, 255);  // G (Ch+4, канал 5)
+  dmxUniverse[baseChannel + 5 - 1] = constrain(b, 0, 255);  // B (Ch+5, канал 6)
 }
 
 // Вспомогательные функции для работы с LED BAR
@@ -317,24 +317,47 @@ void handleDMXSetChannels() {
       JsonObject channels = doc["channels"];
       int updated = 0;
       
+      Serial.printf("[DMX] Получен запрос: startAddress=%d, количество каналов=%d\n", startAddress, channels.size());
+      
       for (JsonPair kv : channels) {
         String channelOffsetStr = String(kv.key().c_str());
         int channelOffset = channelOffsetStr.toInt();
         int value = kv.value().as<int>();
         
+        // ВАЖНО: channelOffset - это относительный номер канала (1-9 для LM70S)
+        // absoluteChannel = startAddress + channelOffset - 1
+        // Например: startAddress=1, channelOffset=1 -> absoluteChannel=1
+        //           startAddress=1, channelOffset=9 -> absoluteChannel=9
+        //           startAddress=10, channelOffset=1 -> absoluteChannel=10
+        //           startAddress=10, channelOffset=9 -> absoluteChannel=18
         if (channelOffset >= 1 && channelOffset <= 512) {
           int absoluteChannel = startAddress + channelOffset - 1;
           if (absoluteChannel >= 1 && absoluteChannel <= DMX_UNIVERSE_SIZE) {
+            uint8_t oldValue = dmxUniverse[absoluteChannel - 1];
             dmxUniverse[absoluteChannel - 1] = constrain(value, 0, 255);
             updated++;
-            // Логирование для отладки (первые 20 каналов)
-            if (absoluteChannel <= 20) {
-              Serial.printf("[DMX] Канал %d (offset %d от адреса %d) = %d\n", 
-                            absoluteChannel, channelOffset, startAddress, value);
+            
+            // Логирование для отладки (первые 50 каналов для лучшей диагностики)
+            if (absoluteChannel <= 50) {
+              Serial.printf("[DMX] Канал %d (offset %d от адреса %d) = %d (было %d)\n", 
+                            absoluteChannel, channelOffset, startAddress, value, oldValue);
             }
+            
+            // Специальное логирование для RGB каналов
+            if (channelOffset == 4 || channelOffset == 5 || channelOffset == 6) {
+              const char* colorName = (channelOffset == 4) ? "R" : (channelOffset == 5) ? "G" : "B";
+              Serial.printf("[DMX] RGB: %s канал на адресе %d = %d\n", colorName, absoluteChannel, value);
+            }
+          } else {
+            Serial.printf("[DMX] ОШИБКА: абсолютный канал %d выходит за пределы (startAddress=%d, offset=%d)\n", 
+                          absoluteChannel, startAddress, channelOffset);
           }
+        } else {
+          Serial.printf("[DMX] ОШИБКА: неверный offset %d (должен быть 1-512)\n", channelOffset);
         }
       }
+      
+      Serial.printf("[DMX] Итого обновлено %d каналов с адреса %d\n", updated, startAddress);
       
       dmxChanged = true;
       
@@ -503,7 +526,7 @@ void handlePlayerControl() {
     // Вычисляем базовый канал для логирования
     int baseChannel = getLM70SBaseChannel(playerIndex);
     Serial.printf("[DMX] LM70S %d: RGB(%d, %d, %d) на каналах %d(R), %d(G), %d(B)\n", 
-                  playerIndex + 1, r, g, b, baseChannel + 6, baseChannel + 7, baseChannel + 8);
+                  playerIndex + 1, r, g, b, baseChannel + 3, baseChannel + 4, baseChannel + 5);
     
     digitalWrite(LED_PIN, HIGH);
     delay(10);
@@ -1034,11 +1057,16 @@ void loop() {
   server.handleClient();  // Обработка HTTP запросов
   
   // Отправка DMX кадров с нужной частотой
+  // ВАЖНО: DMX кадры должны отправляться ПОСТОЯННО (~44 раза в секунду),
+  // даже если значения не изменились. Это необходимо для того, чтобы
+  // устройства получали постоянный сигнал и не переходили в режим "нет сигнала"
   unsigned long now = millis();
-  if (dmxChanged && (now - lastDMXUpdate >= DMX_REFRESH_INTERVAL)) {
+  if (now - lastDMXUpdate >= DMX_REFRESH_INTERVAL) {
     if (!TEST_MODE) {
       sendDMXFrame();
     }
+    // Сбрасываем флаг изменений только после отправки
+    // Но продолжаем отправлять кадры постоянно
     dmxChanged = false;
     lastDMXUpdate = now;
   }

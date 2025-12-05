@@ -242,7 +242,19 @@ router.post('/channels', async (req, res) => {
     const controller = getDMXController();
     if (!controller) {
       console.error('❌ DMX контроллер недоступен');
-      return res.status(503).json({ error: 'DMX контроллер недоступен' });
+      console.error('   Проверьте логи сервера для деталей');
+      return res.status(503).json({ 
+        error: 'DMX контроллер недоступен',
+        message: 'Проверьте подключение к ESP32 и логи сервера'
+      });
+    }
+    
+    if (!controller.config) {
+      console.error('❌ DMX контроллер не имеет конфигурации');
+      return res.status(503).json({ 
+        error: 'DMX контроллер не инициализирован',
+        message: 'Конфигурация не загружена'
+      });
     }
     
     const { channels, startAddress } = req.body;

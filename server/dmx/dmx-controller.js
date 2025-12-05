@@ -9,9 +9,18 @@ class DMXController {
     this.isConnected = false;
     this.currentState = {};
     this.animationTimers = new Map();
+    this.initialized = false;
     
-    this.loadConfig();
-    this.initialize();
+    try {
+      this.loadConfig();
+      this.initialize();
+      this.initialized = true;
+      console.log('✅ DMX контроллер конструктор завершен успешно');
+    } catch (error) {
+      console.error('❌ Ошибка в конструкторе DMX контроллера:', error);
+      this.initialized = false;
+      throw error;
+    }
   }
 
   loadConfig() {
@@ -186,6 +195,7 @@ class DMXController {
       
       // Режим эмуляции для разработки
       this.isConnected = false;
+      this.initialized = true; // Эмуляция тоже считается инициализированной
       this.universe = {
         update: (channels) => {
           // Логируем только первые несколько каналов для читаемости
@@ -222,10 +232,22 @@ class DMXController {
   // Установить цвет для игрока
   setPlayerColor(playerIndex, r, g, b) {
     const address = this.getPlayerAddress(playerIndex);
-    this.setRGB(address, r, g, b);
+    // Для LM70S RGB каналы находятся на позициях 4, 5, 6 (в offset от startAddress)
+    // В абсолютных адресах: startAddress+3 (R), startAddress+4 (G), startAddress+5 (B)
+    if (this.config.players.type === 'LM70S' || this.config.players.channelsPerFixture === 9) {
+      const channels = {
+        [address + 3]: Math.max(0, Math.min(255, r)),  // R канал (4-й в offset)
+        [address + 4]: Math.max(0, Math.min(255, g)),  // G канал (5-й в offset)
+        [address + 5]: Math.max(0, Math.min(255, b))   // B канал (6-й в offset)
+      };
+      this.updateChannels(channels);
+    } else {
+      // Для обычных RGB приборов (3 канала)
+      this.setRGB(address, r, g, b);
+    }
   }
 
-  // Установить RGB значения начиная с адреса
+  // Установить RGB значения начиная с адреса (для обычных RGB приборов)
   setRGB(startAddress, r, g, b) {
     const channels = {
       [startAddress]: Math.max(0, Math.min(255, r)),
@@ -305,12 +327,36 @@ function getDMXController() {
   if (!dmxControllerInstance) {
     try {
       dmxControllerInstance = new DMXController();
+      console.log('✅ DMX контроллер создан успешно');
     } catch (error) {
       console.error('❌ Не удалось создать DMX контроллер:', error);
+      console.error('   Стек ошибки:', error.stack);
       // Возвращаем null, система будет работать без DMX
       return null;
     }
   }
+  
+  // Дополнительная проверка, что контроллер действительно инициализирован
+  if (!dmxControllerInstance) {
+    console.warn('⚠️ DMX контроллер не создан');
+    return null;
+  }
+  
+  if (!dmxControllerInstance.universe) {
+    console.warn('⚠️ DMX контроллер не имеет universe');
+    return null;
+  }
+  
+  if (!dmxControllerInstance.config) {
+    console.warn('⚠️ DMX контроллер не имеет конфигурации');
+    return null;
+  }
+  
+  if (dmxControllerInstance.initialized === false) {
+    console.warn('⚠️ DMX контроллер не инициализирован (initialized = false)');
+    return null;
+  }
+  
   return dmxControllerInstance;
 }
 

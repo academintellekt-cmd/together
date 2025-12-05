@@ -591,12 +591,12 @@
 
             <!-- Вкладки -->
             <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('quick')">⚡ Быстрое управление</button>
-                <button class="tab-btn" onclick="switchTab('channels')">🎛️ Конфигуратор каналов</button>
-                <button class="tab-btn" onclick="switchTab('ledbar')">💡 LED BAR</button>
-                <button class="tab-btn" onclick="switchTab('fog')">🌫️ Туман-машина</button>
-                <button class="tab-btn" onclick="switchTab('color')">🎨 Цветовой редактор</button>
-                <button class="tab-btn" onclick="switchTab('presets')">💾 Пресеты</button>
+                <button class="tab-btn active" onclick="switchTab('quick', this)">⚡ Быстрое управление</button>
+                <button class="tab-btn" onclick="switchTab('channels', this)">🎛️ Конфигуратор каналов</button>
+                <button class="tab-btn" onclick="switchTab('ledbar', this)">💡 LED BAR</button>
+                <button class="tab-btn" onclick="switchTab('fog', this)">🌫️ Туман-машина</button>
+                <button class="tab-btn" onclick="switchTab('color', this)">🎨 Цветовой редактор</button>
+                <button class="tab-btn" onclick="switchTab('presets', this)">💾 Пресеты</button>
             </div>
 
             <!-- Вкладка: Быстрое управление -->
@@ -658,14 +658,28 @@
                 <div class="card">
                     <h2>🎛️ Конфигуратор каналов LM70S</h2>
                     <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                        Выберите номер прожектора (1-14). Каждый прожектор использует 9 каналов DMX.
+                        Выберите номер прожектора (1-14). Каждый прожектор использует 9 каналов DMX:
+                    </p>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 12px; padding-left: 20px;">
+                        <strong>Каналы:</strong><br>
+                        1 = Угол по оси X (0-255)<br>
+                        2 = Угол по оси Y (0-255)<br>
+                        3 = Режим работы (0-8=ВЫКЛ, 9-135=Затемнение, 136-240=Стробоскоп, 241-255=ВКЛ)<br>
+                        <strong>4 = Затемнение КРАСНЫЙ (0-255)</strong><br>
+                        <strong>5 = Затемнение ЗЕЛЕНЫЙ (0-255)</strong><br>
+                        <strong>6 = Затемнение СИНИЙ (0-255)</strong><br>
+                        7 = Затемнение БЕЛЫЙ (0-255)<br>
+                        8 = Скорость (0-255)<br>
+                        9 = Сброс настроек (150-200)<br>
+                        <strong>Формула адреса:</strong> Start(LM70S N) = 1 + (N - 1) × 9<br>
+                        <strong>Пример:</strong> LM70S #1 начинается с адреса 1, LM70S #2 - с адреса 10, и т.д.
                     </p>
                     <div class="address-input">
                         <label>Номер прожектора LM70S:</label>
-                        <input type="number" id="lm70s-number" min="1" max="14" value="1" onchange="loadLM70SChannels()">
+                        <input type="number" id="lm70s-number" min="1" max="14" value="1" onchange="handleLM70SNumberChange()">
                         <label>Начальный адрес DMX:</label>
                         <input type="number" id="start-address" min="1" max="512" value="1" readonly>
-                        <button class="btn btn-primary btn-small" onclick="loadLM70SChannels()">Загрузить</button>
+                        <button class="btn btn-primary btn-small" onclick="loadLM70SChannels(true)">Загрузить</button>
                     </div>
                     <div class="channel-config" id="channel-config"></div>
                     <p style="margin-top: 15px; color: #666; font-size: 14px; font-style: italic;">
@@ -821,15 +835,15 @@
 
         // Названия каналов для LM70S (9 каналов) согласно спецификации
         const LM70S_CHANNELS = [
-            'PAN (Панорама)',
-            'PAN fine (Панорама точная)',
-            'TILT (Наклон)',
-            'TILT fine (Наклон точный)',
-            'Move speed (Скорость движения)',
-            'Shutter/Strobe/Dim (Затвор/Строб/Яркость)',
-            'R (Красный)',
-            'G (Зеленый)',
-            'B (Синий)'
+            'Угол по оси X (0-255)',
+            'Угол по оси Y (0-255)',
+            'Режим работы (0-8=ВЫКЛ, 9-135=Затемнение, 136-240=Стробоскоп, 241-255=ВКЛ)',
+            'Затемнение КРАСНЫЙ (0-255)',
+            'Затемнение ЗЕЛЕНЫЙ (0-255)',
+            'Затемнение СИНИЙ (0-255)',
+            'Затемнение БЕЛЫЙ (0-255)',
+            'Скорость (0-255)',
+            'Сброс настроек (150-200)'
         ];
 
         // Инициализация
@@ -839,16 +853,41 @@
             initPlayerGrid();
             initColorPreview();
             initColorWheel();
-            loadChannels();
+            
+            // ВАЖНО: Инициализируем startAddress на основе текущего выбранного номера прожектора
+            const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+            startAddress = 1 + (lm70sNumber - 1) * 9;
+            document.getElementById('start-address').value = startAddress;
+            console.log(`🚀 Инициализация: прожектор ${lm70sNumber}, адрес ${startAddress}`);
+            
+            // Загружаем каналы только один раз при загрузке страницы
+            // и только если они еще не загружены
+            if (Object.keys(currentChannels).length === 0) {
+                loadChannels();
+            }
         });
 
         // Переключение вкладок
-        function switchTab(tabName) {
+        function switchTab(tabName, eventElement) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
-            event.target.classList.add('active');
-            document.getElementById(`tab-${tabName}`).classList.add('active');
+            // Если передан элемент события, используем его, иначе ищем кнопку по tabName
+            if (eventElement) {
+                eventElement.classList.add('active');
+            } else {
+                // Находим кнопку по тексту или другим признакам
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabName)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+            
+            const tabContent = document.getElementById(`tab-${tabName}`);
+            if (tabContent) {
+                tabContent.classList.add('active');
+            }
         }
 
         // Проверка статуса
@@ -1070,22 +1109,27 @@
         // Обновить каналы через API
         async function updateChannels(channels) {
             try {
+                // Сохраняем текущие значения перед отправкой
+                const channelsToSend = { ...channels };
+                
                 const response = await fetch(`${API_BASE}/channels`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        channels: channels,
+                        channels: channelsToSend,
                         startAddress: startAddress
                     })
                 });
                 
                 const data = await response.json();
                 if (data.success) {
-                    // Обновить локальное состояние
-                    Object.keys(channels).forEach(ch => {
-                        currentChannels[ch] = channels[ch];
+                    // Обновить локальное состояние - сохраняем отправленные значения
+                    Object.keys(channelsToSend).forEach(ch => {
+                        currentChannels[ch] = channelsToSend[ch];
                     });
-                    renderChannelConfig();
+                    // НЕ вызываем renderChannelConfig() здесь - это перезагрузит интерфейс
+                    // и может сбросить значения, которые пользователь только что установил
+                    // Значения уже отображены в интерфейсе через updateChannelValue()
                     return true;
                 } else {
                     addLog(`❌ Ошибка: ${data.error}`, 'error');
@@ -1103,11 +1147,12 @@
             const g = selectedColor.g;
             const b = selectedColor.b;
             
-            // RGB каналы LM70S: Ch+6 (R), Ch+7 (G), Ch+8 (B)
+            // RGB каналы LM70S: каналы 4, 5, 6 (в offset от startAddress)
+            // В абсолютных DMX адресах: startAddress+3 (R), startAddress+4 (G), startAddress+5 (B)
             const channels = {
-                7: r,  // Red (Ch+6, но в offset от startAddress это +7)
-                8: g,  // Green (Ch+7)
-                9: b   // Blue (Ch+8)
+                4: r,  // Red - канал 4 в offset от startAddress (абсолютный адрес: startAddress+3)
+                5: g,  // Green - канал 5 в offset от startAddress (абсолютный адрес: startAddress+4)
+                6: b   // Blue - канал 6 в offset от startAddress (абсолютный адрес: startAddress+5)
             };
             
             const success = await updateChannels(channels);
@@ -1140,32 +1185,95 @@
             }
         }
 
+        // Флаг для предотвращения перезагрузки значений во время редактирования
+        let isEditingChannels = false;
+        let lastEditTime = 0; // Время последнего редактирования
+
         // Загрузить каналы LM70S
-        async function loadLM70SChannels() {
+        async function loadLM70SChannels(force = false) {
+            // Не перезагружаем, если пользователь редактирует каналы
+            // или если прошло менее 5 секунд с последнего редактирования
+            // (если не указан флаг force)
+            if (!force) {
+                const timeSinceLastEdit = Date.now() - lastEditTime;
+                if (isEditingChannels || timeSinceLastEdit < 5000) {
+                    console.log(`⚠️ Пропускаем загрузку каналов - идет редактирование (прошло ${timeSinceLastEdit}мс)`);
+                    return;
+                }
+            }
+            
+            // Сбрасываем флаг редактирования только при явной загрузке
+            if (force) {
+                isEditingChannels = false;
+            }
+            
             const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
             // Start(LM70S N) = 1 + (N - 1) * 9
-            startAddress = 1 + (lm70sNumber - 1) * 9;
+            const newStartAddress = 1 + (lm70sNumber - 1) * 9;
+            
+            // Обновляем startAddress
+            const previousStartAddress = startAddress;
+            startAddress = newStartAddress;
             document.getElementById('start-address').value = startAddress;
+            
+            // Если startAddress изменился, очищаем текущие каналы для загрузки новых
+            // НО только если это явная загрузка (force = true)
+            if (force && newStartAddress !== previousStartAddress) {
+                console.log(`🔄 Смена прожектора: адрес ${previousStartAddress} -> ${newStartAddress}`);
+                // Очищаем каналы для загрузки новых значений с сервера
+                for (let i = 1; i <= 9; i++) {
+                    currentChannels[i] = undefined; // undefined, чтобы загрузить с сервера
+                }
+            }
             
             try {
                 const response = await fetch(`${API_BASE}/channels?startAddress=${startAddress}&count=9`);
                 const data = await response.json();
                 
                 if (data.success) {
-                    currentChannels = data.channels || {};
-                    renderChannelConfig();
+                    // ВАЖНО: Не перезаписываем значения, которые были установлены пользователем
+                    // Сохраняем текущие значения перед загрузкой
+                    const savedChannels = { ...currentChannels };
+                    
+                    const loadedChannels = data.channels || {};
+                    console.log('📥 Загружены каналы с сервера:', loadedChannels);
+                    console.log('💾 Сохраненные локальные каналы:', savedChannels);
+                    
+                    // Обновляем каналы из загруженных данных
+                    // Если канал был undefined (не был установлен), используем загруженное значение
+                    for (let i = 1; i <= 9; i++) {
+                        const savedValue = savedChannels[i];
+                        const loadedValue = loadedChannels[i] || 0;
+                        
+                        // Если канал был undefined (не был установлен), используем загруженное значение
+                        if (savedValue === undefined) {
+                            currentChannels[i] = loadedValue;
+                        } else {
+                            // Если канал был установлен, сохраняем его значение
+                            currentChannels[i] = savedValue;
+                        }
+                    }
+                    
+                    console.log('✅ Итоговые каналы после загрузки:', currentChannels);
+                    // Вызываем renderChannelConfig() только если не идет редактирование
+                    // и прошло достаточно времени с последнего редактирования
+                    const timeSinceLastEdit = Date.now() - lastEditTime;
+                    if (!isEditingChannels && timeSinceLastEdit >= 5000) {
+                        renderChannelConfig();
+                    }
                     addLog(`✅ Загружены каналы LM70S #${lm70sNumber} с адреса ${startAddress}`, 'success');
                 } else {
                     addLog(`❌ Ошибка загрузки каналов: ${data.error}`, 'error');
                 }
             } catch (error) {
                 addLog(`❌ Ошибка: ${error.message}`, 'error');
-                // Инициализируем пустые каналы
-                currentChannels = {};
-                for (let i = 1; i <= 9; i++) {
-                    currentChannels[i] = 0;
+                // Инициализируем пустые каналы только если их еще нет
+                if (Object.keys(currentChannels).length === 0) {
+                    for (let i = 1; i <= 9; i++) {
+                        currentChannels[i] = 0;
+                    }
+                    renderChannelConfig();
                 }
-                renderChannelConfig();
             }
         }
 
@@ -1174,13 +1282,48 @@
             await loadLM70SChannels();
         }
 
+        // Обработчик изменения номера прожектора
+        function handleLM70SNumberChange() {
+            const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+            const newStartAddress = 1 + (lm70sNumber - 1) * 9;
+            
+            console.log(`🔄 Изменение номера прожектора: ${lm70sNumber}, адрес: ${newStartAddress}`);
+            
+            // ВАЖНО: Сразу обновляем startAddress, чтобы он был правильным
+            startAddress = newStartAddress;
+            document.getElementById('start-address').value = startAddress;
+            
+            // Очищаем текущие каналы перед загрузкой новых
+            for (let i = 1; i <= 9; i++) {
+                currentChannels[i] = undefined;
+            }
+            
+            // Загружаем каналы нового прожектора
+            loadLM70SChannels(true);
+        }
+
         // Отобразить конфигуратор каналов
         function renderChannelConfig() {
+            // Не перерисовываем интерфейс, если пользователь редактирует каналы
+            // или если прошло менее 5 секунд с последнего редактирования
+            const timeSinceLastEdit = Date.now() - lastEditTime;
+            if (isEditingChannels || timeSinceLastEdit < 5000) {
+                console.log(`⚠️ Пропускаем renderChannelConfig() - идет редактирование (прошло ${timeSinceLastEdit}мс)`);
+                return;
+            }
+            
             const container = document.getElementById('channel-config');
+            if (!container) return;
+            
+            // Сохраняем текущие значения перед перерисовкой
+            const savedChannels = { ...currentChannels };
+            console.log('🎨 renderChannelConfig() - сохраненные значения:', savedChannels);
+            
             container.innerHTML = '';
             
             for (let i = 1; i <= 9; i++) {
-                const value = currentChannels[i] || 0;
+                // Используем сохраненное значение, если оно есть, иначе 0
+                const value = savedChannels[i] !== undefined ? savedChannels[i] : 0;
                 const channelItem = document.createElement('div');
                 channelItem.className = 'channel-item';
                 const absoluteChannel = startAddress + i - 1;
@@ -1202,6 +1345,13 @@
                 `;
                 container.appendChild(channelItem);
             }
+            
+            // Восстанавливаем сохраненные значения после перерисовки
+            Object.keys(savedChannels).forEach(ch => {
+                currentChannels[ch] = savedChannels[ch];
+            });
+            
+            console.log('✅ renderChannelConfig() завершена. Итоговые значения:', currentChannels);
         }
 
         // Debounce таймер для автоматического применения изменений
@@ -1211,14 +1361,38 @@
         // Обновить значение канала и применить в реальном времени
         function updateChannelValue(channel, value) {
             value = Math.max(0, Math.min(255, parseInt(value) || 0));
+            
+            // ВАЖНО: Всегда обновляем startAddress на основе текущего выбранного номера прожектора
+            // Это критически важно для правильной работы!
+            const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+            const currentStartAddress = 1 + (lm70sNumber - 1) * 9;
+            if (startAddress !== currentStartAddress) {
+                console.log(`⚠️ startAddress обновлен: ${startAddress} -> ${currentStartAddress}`);
+                startAddress = currentStartAddress;
+                document.getElementById('start-address').value = startAddress;
+            }
+            
+            console.log(`🔄 Обновление канала ${channel} = ${value} (прожектор ${lm70sNumber}, адрес ${startAddress})`);
+            
+            // Устанавливаем флаг редактирования и время последнего редактирования
+            isEditingChannels = true;
+            lastEditTime = Date.now();
+            
+            // Сохраняем значение в локальное состояние СРАЗУ
             currentChannels[channel] = value;
             
-            // Обновить отображение
+            console.log('📝 Текущие каналы после обновления:', currentChannels);
+            
+            // Обновить отображение СРАЗУ, чтобы пользователь видел изменения
             const channelItem = document.querySelector(`.channel-item:nth-child(${channel})`);
             if (channelItem) {
-                channelItem.querySelector('.channel-value').textContent = value;
-                channelItem.querySelector('.channel-slider').value = value;
-                channelItem.querySelector('.channel-input').value = value;
+                const valueElement = channelItem.querySelector('.channel-value');
+                const slider = channelItem.querySelector('.channel-slider');
+                const input = channelItem.querySelector('.channel-input');
+                
+                if (valueElement) valueElement.textContent = value;
+                if (slider) slider.value = value;
+                if (input) input.value = value;
             }
             
             // Очистить предыдущий таймер
@@ -1226,20 +1400,93 @@
                 clearTimeout(applyTimeout);
             }
             
-            // Установить новый таймер для автоматического применения
-            applyTimeout = setTimeout(() => {
-                applyChannelsRealtime();
-            }, APPLY_DELAY);
+                // Установить новый таймер для автоматического применения
+                // Значение уже сохранено в currentChannels, так что оно не потеряется
+                applyTimeout = setTimeout(() => {
+                    console.log('⏰ Применение каналов через таймер. Текущие значения:', currentChannels);
+                    applyChannelsRealtime();
+                    // НЕ сбрасываем флаг редактирования автоматически
+                    // Он будет сброшен только при явной загрузке каналов пользователем
+                    // Это предотвратит автоматическую перезагрузку значений
+                }, APPLY_DELAY);
         }
         
         // Применить изменения в реальном времени (без лога для каждого изменения)
         async function applyChannelsRealtime() {
             try {
+                // ВАЖНО: Всегда вычисляем startAddress на основе текущего выбранного номера прожектора
+                // Это гарантирует, что мы всегда используем правильный адрес
+                const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+                const currentStartAddress = 1 + (lm70sNumber - 1) * 9;
+                
+                // ВСЕГДА обновляем startAddress на основе текущего номера прожектора
+                // Это критически важно для правильной работы!
+                if (currentStartAddress !== startAddress) {
+                    console.log(`⚠️ startAddress изменился: ${startAddress} -> ${currentStartAddress}`);
+                    startAddress = currentStartAddress;
+                    document.getElementById('start-address').value = startAddress;
+                }
+                
+                // Дополнительная проверка: убеждаемся, что startAddress правильный
+                const expectedStartAddress = 1 + (lm70sNumber - 1) * 9;
+                if (startAddress !== expectedStartAddress) {
+                    console.error(`❌ КРИТИЧЕСКАЯ ОШИБКА: startAddress не совпадает! Ожидалось: ${expectedStartAddress}, получено: ${startAddress}`);
+                    startAddress = expectedStartAddress;
+                    document.getElementById('start-address').value = startAddress;
+                }
+                
+                // Сохраняем текущие значения перед отправкой
+                // ВАЖНО: channelsToSend использует offset от 1 до 9 (относительные номера каналов LM70S)
+                // ESP32 будет вычислять абсолютные адреса как: absoluteChannel = startAddress + offset - 1
+                const channelsToSend = {};
+                for (let i = 1; i <= 9; i++) {
+                    // Отправляем канал только если он определен (не undefined)
+                    // Если канал undefined, он не будет отправлен, и ESP32 не будет его обновлять
+                    if (currentChannels[i] !== undefined && currentChannels[i] !== null) {
+                        channelsToSend[i] = currentChannels[i];
+                    }
+                }
+                
+                // Проверяем, что есть каналы для отправки
+                if (Object.keys(channelsToSend).length === 0) {
+                    console.log('⚠️ Нет каналов для отправки');
+                    return;
+                }
+                
+                // Вычисляем абсолютные адреса для отладки
+                const absoluteChannels = {};
+                Object.keys(channelsToSend).forEach(offset => {
+                    const offsetNum = parseInt(offset);
+                    const absChannel = startAddress + offsetNum - 1;
+                    absoluteChannels[absChannel] = channelsToSend[offset];
+                });
+                
+                // ВАЖНО: Проверяем, что startAddress правильный перед отправкой (используем уже объявленную переменную)
+                if (startAddress !== expectedStartAddress) {
+                    console.error(`❌ КРИТИЧЕСКАЯ ОШИБКА: startAddress не совпадает! Ожидалось: ${expectedStartAddress}, получено: ${startAddress}`);
+                    startAddress = expectedStartAddress;
+                    document.getElementById('start-address').value = startAddress;
+                }
+                
+                console.log('📤 Отправка каналов:', {
+                    lm70sNumber: lm70sNumber,
+                    startAddress: startAddress,
+                    expectedStartAddress: expectedStartAddress,
+                    channels: channelsToSend,
+                    absoluteChannels: absoluteChannels,
+                    expectedRange: `${startAddress}-${startAddress + 8}`,
+                    'RGB каналы': {
+                        'R (канал 4)': `DMX ${startAddress + 3}`,
+                        'G (канал 5)': `DMX ${startAddress + 4}`,
+                        'B (канал 6)': `DMX ${startAddress + 5}`
+                    }
+                });
+                
                 const response = await fetch(`${API_BASE}/channels`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        channels: currentChannels,
+                        channels: channelsToSend,
                         startAddress: startAddress
                     })
                 });
@@ -1254,7 +1501,28 @@
                 }
                 
                 const data = await response.json();
-                if (!data.success) {
+                if (data.success) {
+                    console.log('✅ Каналы применены успешно. Отправленные значения:', channelsToSend);
+                    console.log('✅ Текущие локальные значения:', currentChannels);
+                    
+                    // ВАЖНО: НЕ обновляем currentChannels здесь - они уже правильные
+                    // ВАЖНО: НЕ вызываем renderChannelConfig() - это перезагрузит интерфейс и сбросит значения
+                    // ВАЖНО: НЕ вызываем loadLM70SChannels() - это перезагрузит значения с сервера
+                    // Значения уже обновлены в updateChannelValue() и отображены в интерфейсе
+                    // Они останутся в том положении, в котором пользователь их установил
+                    
+                    // Обновляем только отображение значения в тексте, не трогая слайдеры
+                    Object.keys(channelsToSend).forEach(ch => {
+                        const channelItem = document.querySelector(`.channel-item:nth-child(${ch})`);
+                        if (channelItem) {
+                            const valueElement = channelItem.querySelector('.channel-value');
+                            if (valueElement) {
+                                valueElement.textContent = channelsToSend[ch];
+                            }
+                        }
+                    });
+                } else {
+                    console.error('❌ Ошибка применения каналов:', data.error);
                     addLog(`❌ Ошибка применения каналов: ${data.error || 'Неизвестная ошибка'}`, 'error');
                 }
                 // Успешное применение не логируем, чтобы не засорять лог

@@ -8,9 +8,14 @@
   "players": {
     "count": 14,
     "startAddress": 1,
-    "channelsPerFixture": 3,
-    "type": "RGB",
-    "description": "RGB LED прожекторы над каждым игроком"
+    "channelsPerFixture": 9,
+    "type": "LM70S",
+    "description": "LM70S прожекторы над каждым игроком (9 каналов: Угол X, Угол Y, Режим работы, R, G, B, Белый, Скорость, Сброс)",
+    "rgbChannels": {
+      "r": 4,
+      "g": 5,
+      "b": 6
+    }
   },
   "stage": {
     "spotlights": {
