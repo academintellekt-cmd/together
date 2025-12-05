@@ -56,12 +56,12 @@
 
         .hub3 > .container {
             margin: 0 auto;
-            max-width: 1400px;
+            max-width: 1600px;
             width: 100%;
             text-align: center;
             position: relative;
             z-index: 2;
-            padding: 40px clamp(16px, 4vw, 24px) !important; /* Единый отступ сверху 40px на всех страницах */
+            padding: 40px clamp(16px, 4vw, 24px) !important;
             box-sizing: border-box;
         }
 
@@ -115,6 +115,47 @@
             background: #ff4444;
         }
 
+        /* Вкладки */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: 3px solid var(--color-dark);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(14px, 2vw, 16px);
+            color: var(--color-dark);
+            font-weight: 600;
+        }
+
+        .tab-btn:hover {
+            background: var(--color-dark);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: var(--color-dark);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -154,63 +195,202 @@
             color: var(--color-dark);
         }
 
-        .player-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
+        /* Конфигуратор каналов */
+        .channel-config {
+            margin-bottom: 20px;
         }
 
-        .player-btn {
-            padding: 10px;
+        .channel-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+
+        .channel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .channel-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--color-dark);
+        }
+
+        .channel-value {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--color-dark);
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .channel-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 10px 0;
+        }
+
+        .channel-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--color-dark);
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .channel-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--color-dark);
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .channel-input {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid var(--color-dark);
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .channel-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* Цветовой круг */
+        .color-picker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .color-wheel-wrapper {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            max-width: 100%;
+        }
+
+        .color-wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            cursor: crosshair;
+            border: 4px solid var(--color-dark);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .color-preview-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            border: 4px solid var(--color-dark);
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .color-inputs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .color-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .color-input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-dark);
+        }
+
+        .color-input-group input {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid var(--color-dark);
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* Пресеты */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .preset-item {
+            padding: 15px;
             border: 3px solid var(--color-dark);
             border-radius: 8px;
             background: white;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: clamp(14px, 2vw, 16px);
             text-align: center;
-            font-family: 'Days One', sans-serif;
-            font-weight: 600;
-            color: var(--color-dark);
         }
 
-        .player-btn:hover {
+        .preset-item:hover {
             background: var(--color-dark);
             color: white;
             transform: translateY(-2px);
         }
 
-        .player-btn.active {
-            background: var(--color-dark);
-            color: white;
+        .preset-name {
+            font-weight: 600;
+            margin-bottom: 5px;
         }
 
-        .color-picker {
+        .preset-actions {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .preset-save-form {
             display: flex;
             gap: 10px;
-            margin-bottom: 15px;
             align-items: center;
-            flex-wrap: wrap;
+            margin-top: 15px;
         }
 
-        .color-input {
+        .preset-save-form input {
             flex: 1;
-            min-width: 80px;
-            padding: clamp(10px, 2vw, 12px);
-            border: 3px solid var(--color-dark);
-            border-radius: 8px;
-            font-size: clamp(14px, 2vw, 16px);
+            padding: 10px;
+            border: 2px solid var(--color-dark);
+            border-radius: 6px;
             font-family: 'Montserrat', sans-serif;
-            text-align: center;
-        }
-
-        .color-preview {
-            width: clamp(50px, 8vw, 60px);
-            height: clamp(35px, 6vw, 40px);
-            border: 3px solid var(--color-dark);
-            border-radius: 8px;
-            background: #fff;
         }
 
         .btn {
@@ -263,27 +443,10 @@
             background: #cc8800;
         }
 
-        .preset-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 10px;
-        }
-
-        .preset-btn {
-            padding: 15px;
-            border: 3px solid var(--color-dark);
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .preset-btn:hover {
-            background: var(--color-dark);
-            color: white;
-            transform: translateY(-2px);
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 2px;
         }
 
         .log {
@@ -312,18 +475,101 @@
             border-left-color: #ff4444;
         }
 
+        .address-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .address-input label {
+            font-weight: 600;
+            color: var(--color-dark);
+        }
+
+        .address-input input {
+            width: 100px;
+            padding: 8px;
+            border: 2px solid var(--color-dark);
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .color-input {
+            flex: 1;
+            min-width: 80px;
+            padding: clamp(10px, 2vw, 12px);
+            border: 3px solid var(--color-dark);
+            border-radius: 8px;
+            font-size: clamp(14px, 2vw, 16px);
+            font-family: 'Montserrat', sans-serif;
+            text-align: center;
+        }
+
+        .color-preview {
+            width: clamp(50px, 8vw, 60px);
+            height: clamp(35px, 6vw, 40px);
+            border: 3px solid var(--color-dark);
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .player-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .player-btn {
+            padding: 10px;
+            border: 3px solid var(--color-dark);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: clamp(14px, 2vw, 16px);
+            text-align: center;
+            font-family: 'Days One', sans-serif;
+            font-weight: 600;
+            color: var(--color-dark);
+        }
+
+        .player-btn:hover {
+            background: var(--color-dark);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .player-btn.active {
+            background: var(--color-dark);
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .grid {
                 grid-template-columns: 1fr;
             }
 
-            .player-grid {
-                grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            .color-wheel-wrapper {
+                width: 250px;
+                height: 250px;
             }
 
-            .status-bar {
+            .channel-controls {
                 flex-direction: column;
-                align-items: stretch;
             }
         }
     </style>
@@ -343,80 +589,224 @@
                 <button class="btn btn-primary" onclick="checkStatus()">Обновить статус</button>
             </div>
 
-            <div class="grid">
-                <!-- Управление игроками -->
-                <div class="card">
-                    <h2>👥 Управление игроками</h2>
-                    <div class="player-grid" id="player-grid"></div>
-                    <div class="color-picker">
-                        <input type="number" id="r-input" class="color-input" placeholder="R" min="0" max="255" value="255">
-                        <input type="number" id="g-input" class="color-input" placeholder="G" min="0" max="255" value="255">
-                        <input type="number" id="b-input" class="color-input" placeholder="B" min="0" max="255" value="255">
-                        <div class="color-preview" id="color-preview"></div>
-                    </div>
-                    <div>
-                        <button class="btn btn-primary" onclick="setPlayerColor()">Установить цвет</button>
-                        <button class="btn btn-success" onclick="setPlayerEffect('fade')">Плавное затухание</button>
-                        <button class="btn btn-warning" onclick="setPlayerEffect('pulse')">Пульсация</button>
-                        <button class="btn btn-danger" onclick="setPlayerEffect('flash')">Мигание</button>
-                    </div>
-                </div>
+            <!-- Вкладки -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('quick', this)">⚡ Быстрое управление</button>
+                <button class="tab-btn" onclick="switchTab('channels', this)">🎛️ Конфигуратор каналов</button>
+                <button class="tab-btn" onclick="switchTab('ledbar', this)">💡 LED BAR</button>
+                <button class="tab-btn" onclick="switchTab('fog', this)">🌫️ Туман-машина</button>
+                <button class="tab-btn" onclick="switchTab('color', this)">🎨 Цветовой редактор</button>
+                <button class="tab-btn" onclick="switchTab('presets', this)">💾 Пресеты</button>
+            </div>
 
-                <!-- Управление сценой -->
-                <div class="card">
-                    <h2>🎭 Управление сценой</h2>
-                    <div>
-                        <button class="btn btn-primary" onclick="stageAction('bright')">Яркое освещение</button>
-                        <button class="btn btn-primary" onclick="stageAction('soft')">Мягкое освещение</button>
-                        <button class="btn btn-success" onclick="stageAction('dynamic')">Динамические эффекты</button>
-                        <button class="btn btn-warning" onclick="stageAction('final')">Финальное шоу</button>
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <h3>Вспышка сцены</h3>
+            <!-- Вкладка: Быстрое управление -->
+            <div id="tab-quick" class="tab-content active">
+                <div class="grid">
+                    <div class="card">
+                        <h2>👥 Управление игроками</h2>
+                        <div class="player-grid" id="player-grid"></div>
                         <div class="color-picker">
-                            <input type="number" id="stage-r" class="color-input" placeholder="R" min="0" max="255" value="255">
-                            <input type="number" id="stage-g" class="color-input" placeholder="G" min="0" max="255" value="0">
-                            <input type="number" id="stage-b" class="color-input" placeholder="B" min="0" max="255" value="0">
+                            <input type="number" id="r-input" class="color-input" placeholder="R" min="0" max="255" value="255">
+                            <input type="number" id="g-input" class="color-input" placeholder="G" min="0" max="255" value="255">
+                            <input type="number" id="b-input" class="color-input" placeholder="B" min="0" max="255" value="255">
+                            <div class="color-preview" id="color-preview"></div>
                         </div>
-                        <button class="btn btn-danger" onclick="stageFlash()">Вспышка</button>
+                        <div>
+                            <button class="btn btn-primary" onclick="setPlayerColor()">Установить цвет</button>
+                            <button class="btn btn-success" onclick="setPlayerEffect('fade')">Плавное затухание</button>
+                            <button class="btn btn-warning" onclick="setPlayerEffect('pulse')">Пульсация</button>
+                            <button class="btn btn-danger" onclick="setPlayerEffect('flash')">Мигание</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>🎭 Управление сценой</h2>
+                        <div>
+                            <button class="btn btn-primary" onclick="stageAction('bright')">Яркое освещение</button>
+                            <button class="btn btn-primary" onclick="stageAction('soft')">Мягкое освещение</button>
+                            <button class="btn btn-success" onclick="stageAction('dynamic')">Динамические эффекты</button>
+                            <button class="btn btn-warning" onclick="stageAction('final')">Финальное шоу</button>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <h3>Вспышка сцены</h3>
+                            <div class="color-picker">
+                                <input type="number" id="stage-r" class="color-input" placeholder="R" min="0" max="255" value="255">
+                                <input type="number" id="stage-g" class="color-input" placeholder="G" min="0" max="255" value="0">
+                                <input type="number" id="stage-b" class="color-input" placeholder="B" min="0" max="255" value="0">
+                            </div>
+                            <button class="btn btn-danger" onclick="stageFlash()">Вспышка</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>🔧 Общее управление</h2>
+                        <div>
+                            <button class="btn btn-danger" onclick="allOff()">Все выключить</button>
+                            <button class="btn btn-primary" onclick="setAllColor()">Установить цвет всем</button>
+                        </div>
+                        <div class="color-picker" style="margin-top: 15px;">
+                            <input type="number" id="all-r" class="color-input" placeholder="R" min="0" max="255" value="255">
+                            <input type="number" id="all-g" class="color-input" placeholder="G" min="0" max="255" value="255">
+                            <input type="number" id="all-b" class="color-input" placeholder="B" min="0" max="255" value="255">
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Предустановки -->
+            <!-- Вкладка: Конфигуратор каналов -->
+            <div id="tab-channels" class="tab-content">
                 <div class="card">
-                    <h2>⭐ Предустановки</h2>
+                    <h2>🎛️ Конфигуратор каналов LM70S</h2>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                        Выберите номер прожектора (1-14). Каждый прожектор использует 9 каналов DMX:
+                    </p>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 12px; padding-left: 20px;">
+                        <strong>Каналы:</strong><br>
+                        1 = Угол по оси X (0-255)<br>
+                        2 = Угол по оси Y (0-255)<br>
+                        3 = Режим работы (0-8=ВЫКЛ, 9-135=Затемнение, 136-240=Стробоскоп, 241-255=ВКЛ)<br>
+                        <strong>4 = Затемнение КРАСНЫЙ (0-255)</strong><br>
+                        <strong>5 = Затемнение ЗЕЛЕНЫЙ (0-255)</strong><br>
+                        <strong>6 = Затемнение СИНИЙ (0-255)</strong><br>
+                        7 = Затемнение БЕЛЫЙ (0-255)<br>
+                        8 = Скорость (0-255)<br>
+                        9 = Сброс настроек (150-200)<br>
+                        <strong>Формула адреса:</strong> Start(LM70S N) = 1 + (N - 1) × 9<br>
+                        <strong>Пример:</strong> LM70S #1 начинается с адреса 1, LM70S #2 - с адреса 10, и т.д.
+                    </p>
+                    <div class="address-input">
+                        <label>Номер прожектора LM70S:</label>
+                        <input type="number" id="lm70s-number" min="1" max="14" value="1" onchange="handleLM70SNumberChange()">
+                        <label>Начальный адрес DMX:</label>
+                        <input type="number" id="start-address" min="1" max="512" value="1" readonly>
+                        <button class="btn btn-primary btn-small" onclick="loadLM70SChannels(true)">Загрузить</button>
+                    </div>
+                    <div class="channel-config" id="channel-config"></div>
+                    <p style="margin-top: 15px; color: #666; font-size: 14px; font-style: italic;">
+                        💡 Изменения применяются автоматически в реальном времени при изменении любого параметра
+                    </p>
+                    <button class="btn btn-danger" onclick="resetChannels()">Сбросить все</button>
+                </div>
+            </div>
+
+            <!-- Вкладка: LED BAR -->
+            <div id="tab-ledbar" class="tab-content">
+                <div class="grid">
+                    <div class="card">
+                        <h2>💡 Управление LED BAR</h2>
+                        <div class="address-input">
+                            <label>Номер LED BAR (1-10):</label>
+                            <input type="number" id="ledbar-number" min="1" max="10" value="1">
+                        </div>
+                        <div class="color-picker">
+                            <input type="number" id="ledbar-r" class="color-input" placeholder="R" min="0" max="255" value="255">
+                            <input type="number" id="ledbar-g" class="color-input" placeholder="G" min="0" max="255" value="255">
+                            <input type="number" id="ledbar-b" class="color-input" placeholder="B" min="0" max="255" value="255">
+                            <div class="color-preview" id="ledbar-preview"></div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <button class="btn btn-primary" onclick="setLEDBarAllPixels()">Применить ко всем пикселям</button>
+                            <button class="btn btn-success" onclick="setLEDBarPixel()">Применить к пикселю</button>
+                        </div>
+                        <div class="address-input" style="margin-top: 15px;">
+                            <label>Номер пикселя (1-8):</label>
+                            <input type="number" id="ledbar-pixel" min="1" max="8" value="1">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>💡 Быстрые эффекты LED BAR</h2>
+                        <div>
+                            <button class="btn btn-primary" onclick="ledBarEffect('all-white')">Все белое</button>
+                            <button class="btn btn-success" onclick="ledBarEffect('rainbow')">Радуга</button>
+                            <button class="btn btn-warning" onclick="ledBarEffect('chase')">Погоня</button>
+                            <button class="btn btn-danger" onclick="ledBarEffect('off')">Выключить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка: Туман-машина -->
+            <div id="tab-fog" class="tab-content">
+                <div class="card">
+                    <h2>🌫️ Управление туман-машиной</h2>
+                    <p style="margin-bottom: 20px; color: #666; font-size: 14px;">
+                        Уровень: 0-4 = ВЫКЛ, 5-255 = туман (чем больше значение, тем сильнее туман)
+                    </p>
+                    <div class="address-input">
+                        <label>Уровень тумана:</label>
+                        <input type="range" id="fog-level" min="0" max="255" value="0" 
+                               oninput="document.getElementById('fog-level-value').textContent = this.value">
+                        <span id="fog-level-value" style="font-weight: bold; min-width: 50px;">0</span>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="setFogMachine()">Применить</button>
+                        <button class="btn btn-danger" onclick="setFogMachineLevel(0)">Выключить</button>
+                        <button class="btn btn-success" onclick="setFogMachineLevel(128)">Средний уровень</button>
+                        <button class="btn btn-warning" onclick="setFogMachineLevel(255)">Максимальный</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка: Цветовой редактор -->
+            <div id="tab-color" class="tab-content">
+                <div class="card">
+                    <h2>🎨 Цветовой редактор</h2>
+                    <div class="color-picker-container">
+                        <div class="color-wheel-wrapper">
+                            <canvas id="color-wheel" class="color-wheel"></canvas>
+                        </div>
+                        <div class="color-preview-large" id="color-preview-large"></div>
+                        <div class="color-inputs">
+                            <div class="color-input-group">
+                                <label>R</label>
+                                <input type="number" id="color-r" min="0" max="255" value="255" oninput="updateColorFromInputs()">
+                            </div>
+                            <div class="color-input-group">
+                                <label>G</label>
+                                <input type="number" id="color-g" min="0" max="255" value="255" oninput="updateColorFromInputs()">
+                            </div>
+                            <div class="color-input-group">
+                                <label>B</label>
+                                <input type="number" id="color-b" min="0" max="255" value="255" oninput="updateColorFromInputs()">
+                            </div>
+                            <div class="color-input-group">
+                                <label>H</label>
+                                <input type="number" id="color-h" min="0" max="360" value="0" oninput="updateColorFromHSV()">
+                            </div>
+                            <div class="color-input-group">
+                                <label>S</label>
+                                <input type="number" id="color-s" min="0" max="100" value="0" oninput="updateColorFromHSV()">
+                            </div>
+                            <div class="color-input-group">
+                                <label>V</label>
+                                <input type="number" id="color-v" min="0" max="100" value="100" oninput="updateColorFromHSV()">
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn btn-primary" onclick="applyColorToChannels()">Применить к каналам RGB</button>
+                            <button class="btn btn-success" onclick="applyColorToAllPlayers()">Применить ко всем игрокам</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка: Пресеты -->
+            <div id="tab-presets" class="tab-content">
+                <div class="card">
+                    <h2>💾 Пресеты каналов</h2>
                     <div class="preset-grid" id="preset-grid"></div>
-                </div>
-
-                <!-- Эффекты -->
-                <div class="card">
-                    <h2>✨ Эффекты</h2>
-                    <div>
-                        <button class="btn btn-success" onclick="runEffect('wave-players')">Волна по игрокам</button>
-                        <button class="btn btn-warning" onclick="runEffect('rainbow')">Радуга</button>
+                    <div class="preset-save-form">
+                        <input type="text" id="preset-name-input" placeholder="Название пресета">
+                        <button class="btn btn-success" onclick="savePreset()">Сохранить текущие каналы</button>
                     </div>
                 </div>
+            </div>
 
-                <!-- Общее управление -->
-                <div class="card">
-                    <h2>🔧 Общее управление</h2>
-                    <div>
-                        <button class="btn btn-danger" onclick="allOff()">Все выключить</button>
-                        <button class="btn btn-primary" onclick="setAllColor()">Установить цвет всем</button>
-                    </div>
-                    <div class="color-picker" style="margin-top: 15px;">
-                        <input type="number" id="all-r" class="color-input" placeholder="R" min="0" max="255" value="255">
-                        <input type="number" id="all-g" class="color-input" placeholder="G" min="0" max="255" value="255">
-                        <input type="number" id="all-b" class="color-input" placeholder="B" min="0" max="255" value="255">
-                    </div>
-                </div>
-
-                <!-- Лог -->
-                <div class="card">
-                    <h2>📋 Лог операций</h2>
-                    <div class="log" id="log"></div>
-                    <button class="btn btn-primary" onclick="clearLog()" style="margin-top: 10px;">Очистить лог</button>
-                </div>
+            <!-- Лог -->
+            <div class="card">
+                <h2>📋 Лог операций</h2>
+                <div class="log" id="log"></div>
+                <button class="btn btn-primary" onclick="clearLog()" style="margin-top: 10px;">Очистить лог</button>
             </div>
         </div>
     </div>
@@ -437,6 +827,24 @@
     <script>
         let selectedPlayer = null;
         const API_BASE = '/api/dmx';
+        let currentChannels = {};
+        let startAddress = 1;
+        let colorWheelCanvas = null;
+        let colorWheelCtx = null;
+        let selectedColor = { r: 255, g: 255, b: 255 };
+
+        // Названия каналов для LM70S (9 каналов) согласно спецификации
+        const LM70S_CHANNELS = [
+            'Угол по оси X (0-255)',
+            'Угол по оси Y (0-255)',
+            'Режим работы (0-8=ВЫКЛ, 9-135=Затемнение, 136-240=Стробоскоп, 241-255=ВКЛ)',
+            'Затемнение КРАСНЫЙ (0-255)',
+            'Затемнение ЗЕЛЕНЫЙ (0-255)',
+            'Затемнение СИНИЙ (0-255)',
+            'Затемнение БЕЛЫЙ (0-255)',
+            'Скорость (0-255)',
+            'Сброс настроек (150-200)'
+        ];
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', () => {
@@ -444,7 +852,43 @@
             loadPresets();
             initPlayerGrid();
             initColorPreview();
+            initColorWheel();
+            
+            // ВАЖНО: Инициализируем startAddress на основе текущего выбранного номера прожектора
+            const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+            startAddress = 1 + (lm70sNumber - 1) * 9;
+            document.getElementById('start-address').value = startAddress;
+            console.log(`🚀 Инициализация: прожектор ${lm70sNumber}, адрес ${startAddress}`);
+            
+            // Загружаем каналы только один раз при загрузке страницы
+            // и только если они еще не загружены
+            if (Object.keys(currentChannels).length === 0) {
+                loadChannels();
+            }
         });
+
+        // Переключение вкладок
+        function switchTab(tabName, eventElement) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Если передан элемент события, используем его, иначе ищем кнопку по tabName
+            if (eventElement) {
+                eventElement.classList.add('active');
+            } else {
+                // Находим кнопку по тексту или другим признакам
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabName)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+            
+            const tabContent = document.getElementById(`tab-${tabName}`);
+            if (tabContent) {
+                tabContent.classList.add('active');
+            }
+        }
 
         // Проверка статуса
         async function checkStatus() {
@@ -476,6 +920,7 @@
         // Инициализация сетки игроков
         function initPlayerGrid() {
             const grid = document.getElementById('player-grid');
+            
             for (let i = 0; i < 14; i++) {
                 const btn = document.createElement('button');
                 btn.className = 'player-btn';
@@ -489,7 +934,11 @@
         function selectPlayer(index) {
             selectedPlayer = index;
             document.querySelectorAll('.player-btn').forEach((btn, i) => {
-                btn.classList.toggle('active', i === index);
+                if (i === index) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
             });
             addLog(`Выбран игрок ${index + 1}`, 'success');
         }
@@ -498,7 +947,10 @@
         function initColorPreview() {
             const inputs = ['r-input', 'g-input', 'b-input'];
             inputs.forEach(id => {
-                document.getElementById(id).addEventListener('input', updateColorPreview);
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', updateColorPreview);
+                }
             });
         }
 
@@ -506,7 +958,686 @@
             const r = document.getElementById('r-input').value || 0;
             const g = document.getElementById('g-input').value || 0;
             const b = document.getElementById('b-input').value || 0;
-            document.getElementById('color-preview').style.background = `rgb(${r}, ${g}, ${b})`;
+            const preview = document.getElementById('color-preview');
+            if (preview) {
+                preview.style.background = `rgb(${r}, ${g}, ${b})`;
+            }
+        }
+
+        // Инициализация цветового круга
+        function initColorWheel() {
+            colorWheelCanvas = document.getElementById('color-wheel');
+            if (!colorWheelCanvas) return;
+            
+            colorWheelCtx = colorWheelCanvas.getContext('2d');
+            const size = 300;
+            colorWheelCanvas.width = size;
+            colorWheelCanvas.height = size;
+            
+            const center = size / 2;
+            const radius = size / 2 - 20;
+            
+            // Рисуем цветовой круг
+            for (let angle = 0; angle < 360; angle += 0.5) {
+                const rad = (angle * Math.PI) / 180;
+                for (let r = 0; r < radius; r += 2) {
+                    const x = center + Math.cos(rad) * r;
+                    const y = center + Math.sin(rad) * r;
+                    
+                    const hue = angle;
+                    const saturation = (r / radius) * 100;
+                    const value = 100;
+                    
+                    const rgb = hsvToRgb(hue, saturation, value);
+                    colorWheelCtx.fillStyle = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+                    colorWheelCtx.fillRect(x, y, 2, 2);
+                }
+            }
+            
+            // Обработка клика на цветовом круге
+            colorWheelCanvas.addEventListener('click', (e) => {
+                const rect = colorWheelCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = colorWheelCanvas.width / 2;
+                const centerY = colorWheelCanvas.height / 2;
+                
+                const dx = x - centerX;
+                const dy = y - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const radius = colorWheelCanvas.width / 2 - 20;
+                
+                if (distance <= radius) {
+                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    const hue = (angle + 360) % 360;
+                    const saturation = Math.min(100, (distance / radius) * 100);
+                    const value = 100;
+                    
+                    const rgb = hsvToRgb(hue, saturation, value);
+                    setSelectedColor(rgb.r, rgb.g, rgb.b);
+                }
+            });
+        }
+
+        // Конвертация HSV в RGB
+        function hsvToRgb(h, s, v) {
+            h = h / 360;
+            s = s / 100;
+            v = v / 100;
+            
+            let r, g, b;
+            const i = Math.floor(h * 6);
+            const f = h * 6 - i;
+            const p = v * (1 - s);
+            const q = v * (1 - f * s);
+            const t = v * (1 - (1 - f) * s);
+            
+            switch (i % 6) {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                case 5: r = v; g = p; b = q; break;
+            }
+            
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        }
+
+        // Конвертация RGB в HSV
+        function rgbToHsv(r, g, b) {
+            r = r / 255;
+            g = g / 255;
+            b = b / 255;
+            
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const diff = max - min;
+            
+            let h = 0;
+            if (diff !== 0) {
+                if (max === r) {
+                    h = ((g - b) / diff + (g < b ? 6 : 0)) * 60;
+                } else if (max === g) {
+                    h = ((b - r) / diff + 2) * 60;
+                } else {
+                    h = ((r - g) / diff + 4) * 60;
+                }
+            }
+            
+            const s = max === 0 ? 0 : (diff / max) * 100;
+            const v = max * 100;
+            
+            return { h: Math.round(h), s: Math.round(s), v: Math.round(v) };
+        }
+
+        // Установить выбранный цвет
+        function setSelectedColor(r, g, b) {
+            selectedColor = { r, g, b };
+            document.getElementById('color-preview-large').style.background = `rgb(${r}, ${g}, ${b})`;
+            document.getElementById('color-r').value = r;
+            document.getElementById('color-g').value = g;
+            document.getElementById('color-b').value = b;
+            
+            const hsv = rgbToHsv(r, g, b);
+            document.getElementById('color-h').value = hsv.h;
+            document.getElementById('color-s').value = hsv.s;
+            document.getElementById('color-v').value = hsv.v;
+        }
+
+        // Обновить цвет из RGB инпутов
+        function updateColorFromInputs() {
+            const r = parseInt(document.getElementById('color-r').value) || 0;
+            const g = parseInt(document.getElementById('color-g').value) || 0;
+            const b = parseInt(document.getElementById('color-b').value) || 0;
+            setSelectedColor(r, g, b);
+        }
+
+        // Обновить цвет из HSV инпутов
+        function updateColorFromHSV() {
+            const h = parseInt(document.getElementById('color-h').value) || 0;
+            const s = parseInt(document.getElementById('color-s').value) || 0;
+            const v = parseInt(document.getElementById('color-v').value) || 100;
+            const rgb = hsvToRgb(h, s, v);
+            setSelectedColor(rgb.r, rgb.g, rgb.b);
+        }
+
+        // Обновить каналы через API
+        async function updateChannels(channels) {
+            try {
+                // Сохраняем текущие значения перед отправкой
+                const channelsToSend = { ...channels };
+                
+                const response = await fetch(`${API_BASE}/channels`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        channels: channelsToSend,
+                        startAddress: startAddress
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    // Обновить локальное состояние - сохраняем отправленные значения
+                    Object.keys(channelsToSend).forEach(ch => {
+                        currentChannels[ch] = channelsToSend[ch];
+                    });
+                    // НЕ вызываем renderChannelConfig() здесь - это перезагрузит интерфейс
+                    // и может сбросить значения, которые пользователь только что установил
+                    // Значения уже отображены в интерфейсе через updateChannelValue()
+                    return true;
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Применить цвет к каналам RGB LM70S
+        async function applyColorToChannels() {
+            const r = selectedColor.r;
+            const g = selectedColor.g;
+            const b = selectedColor.b;
+            
+            // RGB каналы LM70S: каналы 4, 5, 6 (в offset от startAddress)
+            // В абсолютных DMX адресах: startAddress+3 (R), startAddress+4 (G), startAddress+5 (B)
+            const channels = {
+                4: r,  // Red - канал 4 в offset от startAddress (абсолютный адрес: startAddress+3)
+                5: g,  // Green - канал 5 в offset от startAddress (абсолютный адрес: startAddress+4)
+                6: b   // Blue - канал 6 в offset от startAddress (абсолютный адрес: startAddress+5)
+            };
+            
+            const success = await updateChannels(channels);
+            if (success) {
+                addLog(`✅ Применен цвет RGB(${r}, ${g}, ${b}) к каналам RGB LM70S`, 'success');
+            }
+        }
+
+        // Применить цвет ко всем игрокам
+        async function applyColorToAllPlayers() {
+            const r = selectedColor.r;
+            const g = selectedColor.g;
+            const b = selectedColor.b;
+            
+            try {
+                const response = await fetch(`${API_BASE}/all`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'set', r, g, b })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Применен цвет RGB(${r}, ${g}, ${b}) ко всем игрокам`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Флаг для предотвращения перезагрузки значений во время редактирования
+        let isEditingChannels = false;
+        let lastEditTime = 0; // Время последнего редактирования
+
+        // Загрузить каналы LM70S
+        async function loadLM70SChannels(force = false) {
+            // Не перезагружаем, если пользователь редактирует каналы
+            // или если прошло менее 5 секунд с последнего редактирования
+            // (если не указан флаг force)
+            if (!force) {
+                const timeSinceLastEdit = Date.now() - lastEditTime;
+                if (isEditingChannels || timeSinceLastEdit < 5000) {
+                    console.log(`⚠️ Пропускаем загрузку каналов - идет редактирование (прошло ${timeSinceLastEdit}мс)`);
+                    return;
+                }
+            }
+            
+            // Сбрасываем флаг редактирования только при явной загрузке
+            if (force) {
+                isEditingChannels = false;
+            }
+            
+            const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+            // Start(LM70S N) = 1 + (N - 1) * 9
+            const newStartAddress = 1 + (lm70sNumber - 1) * 9;
+            
+            // Обновляем startAddress
+            const previousStartAddress = startAddress;
+            startAddress = newStartAddress;
+            document.getElementById('start-address').value = startAddress;
+            
+            // Если startAddress изменился, очищаем текущие каналы для загрузки новых
+            // НО только если это явная загрузка (force = true)
+            if (force && newStartAddress !== previousStartAddress) {
+                console.log(`🔄 Смена прожектора: адрес ${previousStartAddress} -> ${newStartAddress}`);
+                // Очищаем каналы для загрузки новых значений с сервера
+                for (let i = 1; i <= 9; i++) {
+                    currentChannels[i] = undefined; // undefined, чтобы загрузить с сервера
+                }
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/channels?startAddress=${startAddress}&count=9`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // ВАЖНО: Не перезаписываем значения, которые были установлены пользователем
+                    // Сохраняем текущие значения перед загрузкой
+                    const savedChannels = { ...currentChannels };
+                    
+                    const loadedChannels = data.channels || {};
+                    console.log('📥 Загружены каналы с сервера:', loadedChannels);
+                    console.log('💾 Сохраненные локальные каналы:', savedChannels);
+                    
+                    // Обновляем каналы из загруженных данных
+                    // Если канал был undefined (не был установлен), используем загруженное значение
+                    for (let i = 1; i <= 9; i++) {
+                        const savedValue = savedChannels[i];
+                        const loadedValue = loadedChannels[i] || 0;
+                        
+                        // Если канал был undefined (не был установлен), используем загруженное значение
+                        if (savedValue === undefined) {
+                            currentChannels[i] = loadedValue;
+                        } else {
+                            // Если канал был установлен, сохраняем его значение
+                            currentChannels[i] = savedValue;
+                        }
+                    }
+                    
+                    console.log('✅ Итоговые каналы после загрузки:', currentChannels);
+                    // Вызываем renderChannelConfig() только если не идет редактирование
+                    // и прошло достаточно времени с последнего редактирования
+                    const timeSinceLastEdit = Date.now() - lastEditTime;
+                    if (!isEditingChannels && timeSinceLastEdit >= 5000) {
+                        renderChannelConfig();
+                    }
+                    addLog(`✅ Загружены каналы LM70S #${lm70sNumber} с адреса ${startAddress}`, 'success');
+                } else {
+                    addLog(`❌ Ошибка загрузки каналов: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+                // Инициализируем пустые каналы только если их еще нет
+                if (Object.keys(currentChannels).length === 0) {
+                    for (let i = 1; i <= 9; i++) {
+                        currentChannels[i] = 0;
+                    }
+                    renderChannelConfig();
+                }
+            }
+        }
+
+        // Загрузить каналы (старая функция для совместимости)
+        async function loadChannels() {
+            await loadLM70SChannels();
+        }
+
+        // Обработчик изменения номера прожектора
+        function handleLM70SNumberChange() {
+            const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+            const newStartAddress = 1 + (lm70sNumber - 1) * 9;
+            
+            console.log(`🔄 Изменение номера прожектора: ${lm70sNumber}, адрес: ${newStartAddress}`);
+            
+            // ВАЖНО: Сразу обновляем startAddress, чтобы он был правильным
+            startAddress = newStartAddress;
+            document.getElementById('start-address').value = startAddress;
+            
+            // Очищаем текущие каналы перед загрузкой новых
+            for (let i = 1; i <= 9; i++) {
+                currentChannels[i] = undefined;
+            }
+            
+            // Загружаем каналы нового прожектора
+            loadLM70SChannels(true);
+        }
+
+        // Отобразить конфигуратор каналов
+        function renderChannelConfig() {
+            // Не перерисовываем интерфейс, если пользователь редактирует каналы
+            // или если прошло менее 5 секунд с последнего редактирования
+            const timeSinceLastEdit = Date.now() - lastEditTime;
+            if (isEditingChannels || timeSinceLastEdit < 5000) {
+                console.log(`⚠️ Пропускаем renderChannelConfig() - идет редактирование (прошло ${timeSinceLastEdit}мс)`);
+                return;
+            }
+            
+            const container = document.getElementById('channel-config');
+            if (!container) return;
+            
+            // Сохраняем текущие значения перед перерисовкой
+            const savedChannels = { ...currentChannels };
+            console.log('🎨 renderChannelConfig() - сохраненные значения:', savedChannels);
+            
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= 9; i++) {
+                // Используем сохраненное значение, если оно есть, иначе 0
+                const value = savedChannels[i] !== undefined ? savedChannels[i] : 0;
+                const channelItem = document.createElement('div');
+                channelItem.className = 'channel-item';
+                const absoluteChannel = startAddress + i - 1;
+                channelItem.innerHTML = `
+                    <div class="channel-header">
+                        <span class="channel-name">Канал ${i}: ${LM70S_CHANNELS[i - 1]} (DMX ${absoluteChannel})</span>
+                        <span class="channel-value">${value}</span>
+                    </div>
+                    <div class="channel-controls">
+                        <input type="range" class="channel-slider" min="0" max="255" value="${value}" 
+                               data-channel="${i}"
+                               oninput="updateChannelValue(${i}, this.value)" 
+                               onchange="updateChannelValue(${i}, this.value)">
+                        <input type="number" class="channel-input" min="0" max="255" value="${value}" 
+                               data-channel="${i}"
+                               oninput="updateChannelValue(${i}, this.value)"
+                               onchange="updateChannelValue(${i}, this.value)">
+                    </div>
+                `;
+                container.appendChild(channelItem);
+            }
+            
+            // Восстанавливаем сохраненные значения после перерисовки
+            Object.keys(savedChannels).forEach(ch => {
+                currentChannels[ch] = savedChannels[ch];
+            });
+            
+            console.log('✅ renderChannelConfig() завершена. Итоговые значения:', currentChannels);
+        }
+
+        // Debounce таймер для автоматического применения изменений
+        let applyTimeout = null;
+        const APPLY_DELAY = 50; // Задержка в миллисекундах перед отправкой
+
+        // Обновить значение канала и применить в реальном времени
+        function updateChannelValue(channel, value) {
+            value = Math.max(0, Math.min(255, parseInt(value) || 0));
+            
+            // ВАЖНО: Всегда обновляем startAddress на основе текущего выбранного номера прожектора
+            // Это критически важно для правильной работы!
+            const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+            const currentStartAddress = 1 + (lm70sNumber - 1) * 9;
+            if (startAddress !== currentStartAddress) {
+                console.log(`⚠️ startAddress обновлен: ${startAddress} -> ${currentStartAddress}`);
+                startAddress = currentStartAddress;
+                document.getElementById('start-address').value = startAddress;
+            }
+            
+            console.log(`🔄 Обновление канала ${channel} = ${value} (прожектор ${lm70sNumber}, адрес ${startAddress})`);
+            
+            // Устанавливаем флаг редактирования и время последнего редактирования
+            isEditingChannels = true;
+            lastEditTime = Date.now();
+            
+            // Сохраняем значение в локальное состояние СРАЗУ
+            currentChannels[channel] = value;
+            
+            console.log('📝 Текущие каналы после обновления:', currentChannels);
+            
+            // Обновить отображение СРАЗУ, чтобы пользователь видел изменения
+            const channelItem = document.querySelector(`.channel-item:nth-child(${channel})`);
+            if (channelItem) {
+                const valueElement = channelItem.querySelector('.channel-value');
+                const slider = channelItem.querySelector('.channel-slider');
+                const input = channelItem.querySelector('.channel-input');
+                
+                if (valueElement) valueElement.textContent = value;
+                if (slider) slider.value = value;
+                if (input) input.value = value;
+            }
+            
+            // Очистить предыдущий таймер
+            if (applyTimeout) {
+                clearTimeout(applyTimeout);
+            }
+            
+                // Установить новый таймер для автоматического применения
+                // Значение уже сохранено в currentChannels, так что оно не потеряется
+                applyTimeout = setTimeout(() => {
+                    console.log('⏰ Применение каналов через таймер. Текущие значения:', currentChannels);
+                    applyChannelsRealtime();
+                    // НЕ сбрасываем флаг редактирования автоматически
+                    // Он будет сброшен только при явной загрузке каналов пользователем
+                    // Это предотвратит автоматическую перезагрузку значений
+                }, APPLY_DELAY);
+        }
+        
+        // Применить изменения в реальном времени (без лога для каждого изменения)
+        async function applyChannelsRealtime() {
+            try {
+                // ВАЖНО: Всегда вычисляем startAddress на основе текущего выбранного номера прожектора
+                // Это гарантирует, что мы всегда используем правильный адрес
+                const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+                const currentStartAddress = 1 + (lm70sNumber - 1) * 9;
+                
+                // ВСЕГДА обновляем startAddress на основе текущего номера прожектора
+                // Это критически важно для правильной работы!
+                if (currentStartAddress !== startAddress) {
+                    console.log(`⚠️ startAddress изменился: ${startAddress} -> ${currentStartAddress}`);
+                    startAddress = currentStartAddress;
+                    document.getElementById('start-address').value = startAddress;
+                }
+                
+                // Дополнительная проверка: убеждаемся, что startAddress правильный
+                const expectedStartAddress = 1 + (lm70sNumber - 1) * 9;
+                if (startAddress !== expectedStartAddress) {
+                    console.error(`❌ КРИТИЧЕСКАЯ ОШИБКА: startAddress не совпадает! Ожидалось: ${expectedStartAddress}, получено: ${startAddress}`);
+                    startAddress = expectedStartAddress;
+                    document.getElementById('start-address').value = startAddress;
+                }
+                
+                // Сохраняем текущие значения перед отправкой
+                // ВАЖНО: channelsToSend использует offset от 1 до 9 (относительные номера каналов LM70S)
+                // ESP32 будет вычислять абсолютные адреса как: absoluteChannel = startAddress + offset - 1
+                const channelsToSend = {};
+                for (let i = 1; i <= 9; i++) {
+                    // Отправляем канал только если он определен (не undefined)
+                    // Если канал undefined, он не будет отправлен, и ESP32 не будет его обновлять
+                    if (currentChannels[i] !== undefined && currentChannels[i] !== null) {
+                        channelsToSend[i] = currentChannels[i];
+                    }
+                }
+                
+                // Проверяем, что есть каналы для отправки
+                if (Object.keys(channelsToSend).length === 0) {
+                    console.log('⚠️ Нет каналов для отправки');
+                    return;
+                }
+                
+                // Вычисляем абсолютные адреса для отладки
+                const absoluteChannels = {};
+                Object.keys(channelsToSend).forEach(offset => {
+                    const offsetNum = parseInt(offset);
+                    const absChannel = startAddress + offsetNum - 1;
+                    absoluteChannels[absChannel] = channelsToSend[offset];
+                });
+                
+                // ВАЖНО: Проверяем, что startAddress правильный перед отправкой (используем уже объявленную переменную)
+                if (startAddress !== expectedStartAddress) {
+                    console.error(`❌ КРИТИЧЕСКАЯ ОШИБКА: startAddress не совпадает! Ожидалось: ${expectedStartAddress}, получено: ${startAddress}`);
+                    startAddress = expectedStartAddress;
+                    document.getElementById('start-address').value = startAddress;
+                }
+                
+                console.log('📤 Отправка каналов:', {
+                    lm70sNumber: lm70sNumber,
+                    startAddress: startAddress,
+                    expectedStartAddress: expectedStartAddress,
+                    channels: channelsToSend,
+                    absoluteChannels: absoluteChannels,
+                    expectedRange: `${startAddress}-${startAddress + 8}`,
+                    'RGB каналы': {
+                        'R (канал 4)': `DMX ${startAddress + 3}`,
+                        'G (канал 5)': `DMX ${startAddress + 4}`,
+                        'B (канал 6)': `DMX ${startAddress + 5}`
+                    }
+                });
+                
+                const response = await fetch(`${API_BASE}/channels`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        channels: channelsToSend,
+                        startAddress: startAddress
+                    })
+                });
+                
+                // Проверяем, что ответ действительно JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('❌ Сервер вернул не JSON:', text.substring(0, 200));
+                    addLog(`❌ Ошибка: сервер вернул HTML вместо JSON (возможно, неправильный endpoint)`, 'error');
+                    return;
+                }
+                
+                const data = await response.json();
+                if (data.success) {
+                    console.log('✅ Каналы применены успешно. Отправленные значения:', channelsToSend);
+                    console.log('✅ Текущие локальные значения:', currentChannels);
+                    
+                    // ВАЖНО: НЕ обновляем currentChannels здесь - они уже правильные
+                    // ВАЖНО: НЕ вызываем renderChannelConfig() - это перезагрузит интерфейс и сбросит значения
+                    // ВАЖНО: НЕ вызываем loadLM70SChannels() - это перезагрузит значения с сервера
+                    // Значения уже обновлены в updateChannelValue() и отображены в интерфейсе
+                    // Они останутся в том положении, в котором пользователь их установил
+                    
+                    // Обновляем только отображение значения в тексте, не трогая слайдеры
+                    Object.keys(channelsToSend).forEach(ch => {
+                        const channelItem = document.querySelector(`.channel-item:nth-child(${ch})`);
+                        if (channelItem) {
+                            const valueElement = channelItem.querySelector('.channel-value');
+                            if (valueElement) {
+                                valueElement.textContent = channelsToSend[ch];
+                            }
+                        }
+                    });
+                } else {
+                    console.error('❌ Ошибка применения каналов:', data.error);
+                    addLog(`❌ Ошибка применения каналов: ${data.error || 'Неизвестная ошибка'}`, 'error');
+                }
+                // Успешное применение не логируем, чтобы не засорять лог
+            } catch (error) {
+                console.error('❌ Ошибка отправки каналов:', error);
+                // Не логируем каждую ошибку в реальном времени, только критичные
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    addLog(`❌ Ошибка подключения к серверу`, 'error');
+                }
+            }
+        }
+
+        // Применить изменения каналов
+        async function applyChannels() {
+            try {
+                const response = await fetch(`${API_BASE}/channels`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        channels: currentChannels,
+                        startAddress: startAddress
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Применены каналы с адреса ${startAddress}`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Сбросить все каналы
+        function resetChannels() {
+            if (confirm('Сбросить все каналы в 0?')) {
+                for (let i = 1; i <= 9; i++) {
+                    currentChannels[i] = 0;
+                }
+                renderChannelConfig();
+                applyChannels();
+            }
+        }
+
+        // Сохранить пресет
+        function savePreset() {
+            const name = document.getElementById('preset-name-input').value.trim();
+            if (!name) {
+                alert('Введите название пресета');
+                return;
+            }
+            
+            const preset = {
+                name: name,
+                startAddress: startAddress,
+                channels: { ...currentChannels },
+                timestamp: new Date().toISOString()
+            };
+            
+            const presets = JSON.parse(localStorage.getItem('dmx-presets') || '[]');
+            presets.push(preset);
+            localStorage.setItem('dmx-presets', JSON.stringify(presets));
+            
+            document.getElementById('preset-name-input').value = '';
+            loadPresets();
+            addLog(`✅ Пресет "${name}" сохранен`, 'success');
+        }
+
+        // Загрузить пресеты
+        function loadPresets() {
+            const presets = JSON.parse(localStorage.getItem('dmx-presets') || '[]');
+            const grid = document.getElementById('preset-grid');
+            grid.innerHTML = '';
+            
+            presets.forEach((preset, index) => {
+                const item = document.createElement('div');
+                item.className = 'preset-item';
+                item.innerHTML = `
+                    <div class="preset-name">${preset.name}</div>
+                    <div style="font-size: 12px; color: #666;">Адрес: ${preset.startAddress}</div>
+                    <div class="preset-actions">
+                        <button class="btn btn-primary btn-small" onclick="loadPresetChannels(${index})">Загрузить</button>
+                        <button class="btn btn-danger btn-small" onclick="deletePreset(${index})">Удалить</button>
+                    </div>
+                `;
+                grid.appendChild(item);
+            });
+        }
+
+        // Загрузить каналы из пресета
+        function loadPresetChannels(index) {
+            const presets = JSON.parse(localStorage.getItem('dmx-presets') || '[]');
+            const preset = presets[index];
+            
+            if (preset) {
+                startAddress = preset.startAddress;
+                currentChannels = { ...preset.channels };
+                document.getElementById('start-address').value = startAddress;
+                renderChannelConfig();
+                applyChannels();
+                addLog(`✅ Загружен пресет "${preset.name}"`, 'success');
+            }
+        }
+
+        // Удалить пресет
+        function deletePreset(index) {
+            if (confirm('Удалить этот пресет?')) {
+                const presets = JSON.parse(localStorage.getItem('dmx-presets') || '[]');
+                presets.splice(index, 1);
+                localStorage.setItem('dmx-presets', JSON.stringify(presets));
+                loadPresets();
+                addLog('✅ Пресет удален', 'success');
+            }
         }
 
         // Установить цвет игрока
@@ -611,65 +1742,6 @@
             }
         }
 
-        // Загрузить предустановки
-        async function loadPresets() {
-            try {
-                const response = await fetch(`${API_BASE}/presets`);
-                const data = await response.json();
-
-                const grid = document.getElementById('preset-grid');
-                grid.innerHTML = '';
-
-                data.presets.forEach(preset => {
-                    const btn = document.createElement('button');
-                    btn.className = 'preset-btn';
-                    btn.innerHTML = `<strong>${preset.name}</strong><br><small>${preset.description}</small>`;
-                    btn.onclick = () => executePreset(preset.id);
-                    grid.appendChild(btn);
-                });
-            } catch (error) {
-                addLog(`❌ Ошибка загрузки предустановок: ${error.message}`, 'error');
-            }
-        }
-
-        // Выполнить предустановку
-        async function executePreset(presetName) {
-            try {
-                const response = await fetch(`${API_BASE}/preset/${presetName}`, {
-                    method: 'POST'
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    addLog(`✅ Предустановка "${presetName}" применена`, 'success');
-                } else {
-                    addLog(`❌ Ошибка: ${data.error}`, 'error');
-                }
-            } catch (error) {
-                addLog(`❌ Ошибка: ${error.message}`, 'error');
-            }
-        }
-
-        // Запустить эффект
-        async function runEffect(effectName) {
-            try {
-                const response = await fetch(`${API_BASE}/effect/${effectName}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ params: {} })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    addLog(`✅ Эффект "${effectName}" запущен`, 'success');
-                } else {
-                    addLog(`❌ Ошибка: ${data.error}`, 'error');
-                }
-            } catch (error) {
-                addLog(`❌ Ошибка: ${error.message}`, 'error');
-            }
-        }
-
         // Все выключить
         async function allOff() {
             try {
@@ -729,8 +1801,166 @@
             document.getElementById('log').innerHTML = '';
         }
 
+        // Управление LED BAR
+        async function setLEDBarAllPixels() {
+            const barNumber = parseInt(document.getElementById('ledbar-number').value) || 1;
+            const r = parseInt(document.getElementById('ledbar-r').value) || 0;
+            const g = parseInt(document.getElementById('ledbar-g').value) || 0;
+            const b = parseInt(document.getElementById('ledbar-b').value) || 0;
+            
+            try {
+                const response = await fetch(`${API_BASE}/ledbar/${barNumber}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ r, g, b })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ LED BAR ${barNumber}: все пиксели RGB(${r}, ${g}, ${b})`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        async function setLEDBarPixel() {
+            const barNumber = parseInt(document.getElementById('ledbar-number').value) || 1;
+            const pixel = parseInt(document.getElementById('ledbar-pixel').value) || 1;
+            const r = parseInt(document.getElementById('ledbar-r').value) || 0;
+            const g = parseInt(document.getElementById('ledbar-g').value) || 0;
+            const b = parseInt(document.getElementById('ledbar-b').value) || 0;
+            
+            try {
+                const response = await fetch(`${API_BASE}/ledbar/${barNumber}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pixel, r, g, b })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ LED BAR ${barNumber}, пиксель ${pixel}: RGB(${r}, ${g}, ${b})`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        async function ledBarEffect(effect) {
+            const barNumber = parseInt(document.getElementById('ledbar-number').value) || 1;
+            let r = 0, g = 0, b = 0;
+            
+            switch(effect) {
+                case 'all-white':
+                    r = g = b = 255;
+                    break;
+                case 'rainbow':
+                    // Радуга по пикселям
+                    for (let pixel = 1; pixel <= 8; pixel++) {
+                        const hue = (pixel * 360 / 8) % 360;
+                        const rgb = hsvToRgb(hue, 100, 100);
+                        try {
+                            await fetch(`${API_BASE}/ledbar/${barNumber}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ pixel, r: rgb.r, g: rgb.g, b: rgb.b })
+                            });
+                        } catch (error) {
+                            addLog(`❌ Ошибка: ${error.message}`, 'error');
+                        }
+                    }
+                    addLog(`✅ LED BAR ${barNumber}: эффект радуги`, 'success');
+                    return;
+                case 'chase':
+                    // Эффект погони
+                    for (let pixel = 1; pixel <= 8; pixel++) {
+                        setTimeout(async () => {
+                            try {
+                                await fetch(`${API_BASE}/ledbar/${barNumber}`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ pixel, r: 255, g: 255, b: 255 })
+                                });
+                                setTimeout(async () => {
+                                    await fetch(`${API_BASE}/ledbar/${barNumber}`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ pixel, r: 0, g: 0, b: 0 })
+                                    });
+                                }, 200);
+                            } catch (error) {
+                                addLog(`❌ Ошибка: ${error.message}`, 'error');
+                            }
+                        }, pixel * 100);
+                    }
+                    addLog(`✅ LED BAR ${barNumber}: эффект погони`, 'success');
+                    return;
+                case 'off':
+                    r = g = b = 0;
+                    break;
+            }
+            
+            await setLEDBarAllPixels();
+        }
+
+        // Обновление превью цвета LED BAR
+        ['ledbar-r', 'ledbar-g', 'ledbar-b'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => {
+                    const r = parseInt(document.getElementById('ledbar-r').value) || 0;
+                    const g = parseInt(document.getElementById('ledbar-g').value) || 0;
+                    const b = parseInt(document.getElementById('ledbar-b').value) || 0;
+                    const preview = document.getElementById('ledbar-preview');
+                    if (preview) {
+                        preview.style.background = `rgb(${r}, ${g}, ${b})`;
+                    }
+                });
+            }
+        });
+
+        // Управление туман-машиной
+        async function setFogMachine() {
+            const level = parseInt(document.getElementById('fog-level').value) || 0;
+            await setFogMachineLevel(level);
+        }
+
+        async function setFogMachineLevel(level) {
+            document.getElementById('fog-level').value = level;
+            document.getElementById('fog-level-value').textContent = level;
+            
+            try {
+                const response = await fetch(`${API_BASE}/fog`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ level })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    const status = level <= 4 ? 'ВЫКЛ' : `ВКЛ (уровень ${level})`;
+                    addLog(`✅ Туман-машина: ${status}`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
         // Обновление превью цвета при загрузке
         updateColorPreview();
+        setSelectedColor(255, 255, 255);
+        
+        // Инициализация превью LED BAR
+        if (document.getElementById('ledbar-preview')) {
+            document.getElementById('ledbar-preview').style.background = 'rgb(255, 255, 255)';
+        }
     </script>
 
     <script>
@@ -756,11 +1986,6 @@
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
-                                
-                                
-                                
-                                
-                                
                                 console.log('Frame1 успешно инициализирован');
                             });
                         });
@@ -789,9 +2014,6 @@
                         
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
-                                
-                                
-                                
                                 
                             });
                         });
