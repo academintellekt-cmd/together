@@ -13,11 +13,12 @@
 /* Основной контейнер Frame2 */
 .frame2 {
     /* Позиционирование управляется через grid в layout.css */
-    background: var(--frame2-bg); /* Непрозрачный фон */
-    backdrop-filter: blur(10px);
+    background: transparent !important; /* Полностью прозрачный фон - никаких плашек */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     padding: 0; /* Убираем padding сверху и по бокам, высота определяется только логотипом и фразой */
-    /* УВЕЛИЧЕННЫЙ адаптивный отступ снизу - устойчив к масштабированию */
-    padding-bottom: clamp(70px, 9vh, 120px); /* Увеличено: минимум 70px, максимум 120px, адаптируется к высоте экрана */
+    /* Адаптивный отступ снизу */
+    padding-bottom: clamp(30px, 5vh, 60px); /* Уменьшенный отступ */
     z-index: var(--z-index-frame-2); /* Используем стандартный z-index из base.css (1000) */
     position: relative; /* Явно указываем relative, чтобы z-index работал */
     border-bottom: none;
@@ -29,14 +30,11 @@
     min-height: auto;
     max-height: none; /* Убираем адаптивное ограничение */
     box-sizing: border-box;
-    /* Гарантируем непрозрачность фона во всех случаях */
     opacity: 1 !important;
     /* Высота складывается из высоты логотипа и фразы */
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Убеждаемся, что Frame2 не перекрывает Frame3 */
-    isolation: isolate; /* Создает новый stacking context */
 }
 
 /* Контент Frame2 */
@@ -55,6 +53,14 @@
     min-height: auto; /* Высота определяется содержимым */
     box-sizing: border-box;
     padding: 0 24px; /* Фиксированные отступы от краев экрана */
+    background: transparent !important; /* Полностью прозрачный фон - никаких плашек */
+}
+
+/* Убираем псевдоэлемент для фона - он перекрывает подпись */
+.frame2-content::before,
+.frame2-content::after {
+    display: none !important; /* Полностью убираем все псевдоэлементы */
+    content: none !important;
 }
 
 /* В развернутом виде (≥768px): ширина как 2 карточки */
@@ -82,6 +88,8 @@
     padding-bottom: 0; /* Убираем padding снизу, отступ будет у Frame2 */
     margin-bottom: 0; /* Убираем margin снизу */
     box-sizing: border-box;
+    z-index: 1; /* Поверх фона */
+    background: transparent !important;
 }
 
 .frame2-logo-section * {
@@ -98,6 +106,9 @@
     transform: rotate(-2deg);
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
+    position: relative;
+    z-index: 1; /* Поверх фона */
+    background: transparent !important;
 }
 
 .frame2-logo-section .subtitle {
@@ -119,6 +130,8 @@
     /* Фраза является частью Frame2 и связана с логотипом */
     display: block;
     position: relative; /* relative - часть блока logo-section */
+    z-index: 1; /* Поверх фона */
+    background: transparent !important;
 }
 
 .frame2-logo-section {
@@ -130,13 +143,55 @@
 /* Адаптивные отступы для разных размеров экрана - устойчивы к масштабированию */
 @media (min-width: 768px) {
     .frame2 {
-        padding-bottom: clamp(80px, 11vh, 140px); /* УВЕЛИЧЕННЫЙ отступ на больших экранах, используем vh для устойчивости к масштабу */
+        padding-bottom: clamp(30px, 5vh, 60px); /* Уменьшенный отступ на больших экранах */
     }
 }
 
 @media (max-width: 767px) {
     .frame2 {
-        padding-bottom: clamp(60px, 9vh, 100px); /* УВЕЛИЧЕННЫЙ отступ на мобильных, используем vh */
+        padding-bottom: clamp(20px, 4vh, 50px); /* Уменьшенный отступ на мобильных */
+        padding-top: 0 !important; /* Убираем отступ сверху - логотип ближе к кнопкам */
+        margin-top: 0 !important;
+    }
+    
+    .frame2-content {
+        padding: 0 16px; /* Уменьшенные боковые отступы на мобильных */
+        padding-top: 0 !important; /* Убираем отступ сверху */
+    }
+    
+    .frame2-logo-section {
+        padding-top: 0 !important; /* Убираем отступ сверху */
+        margin-top: 0 !important;
+    }
+    
+    .frame2-logo-section .logo {
+        max-height: clamp(120px, 22vh, 240px) !important; /* Увеличенный размер логотипа на мобильных */
+        max-width: clamp(220px, 60vw, 480px) !important;
+    }
+    
+    .frame2-logo-section .subtitle {
+        font-size: clamp(18px, 3vw, 32px); /* Меньший размер фразы на мобильных */
+        white-space: normal; /* Разрешаем перенос текста на мобильных */
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .frame2 {
+        padding-bottom: clamp(15px, 3vh, 40px); /* Минимальный отступ на очень маленьких экранах */
+    }
+    
+    .frame2-content {
+        padding: 0 12px;
+    }
+    
+    .frame2-logo-section .logo {
+        max-height: clamp(80px, 15vh, 150px);
+        max-width: clamp(150px, 45vw, 300px);
+    }
+    
+    .frame2-logo-section .subtitle {
+        font-size: clamp(16px, 2.5vw, 28px);
     }
 }
 

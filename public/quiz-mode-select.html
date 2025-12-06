@@ -141,6 +141,29 @@
             text-align: center;
             width: 100%;
         }
+        
+        /* Правильный перенос заголовка на мобильных - по словам, а не по буквам */
+        @media (max-width: 767px) {
+            .title,
+            #quizTitle {
+                word-break: normal !important; /* Слова переносятся целиком */
+                overflow-wrap: break-word !important; /* Перенос только при необходимости */
+                hyphens: none !important; /* Отключаем автоматические переносы */
+                -webkit-hyphens: none !important;
+                -ms-hyphens: none !important;
+                white-space: normal !important; /* Разрешаем перенос строк */
+                /* Если слово не вмещается, уменьшаем размер текста */
+                font-size: clamp(24px, 5vw, 36px) !important; /* Уменьшенный размер для мобильных */
+            }
+        }
+        
+        /* На очень маленьких экранах еще больше уменьшаем размер */
+        @media (max-width: 480px) {
+            .title,
+            #quizTitle {
+                font-size: clamp(20px, 4.5vw, 28px) !important; /* Еще меньше размер для очень маленьких экранов */
+            }
+        }
 
         /* Стили для subtitle внутри контента (НЕ для Frame2) */
         #content .subtitle,
