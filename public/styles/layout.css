@@ -15,26 +15,53 @@
 
 /* === HEADER (Frame 1 и Frame 2) === */
 .site-header {
-    position: sticky;
-    top: 0;
-    z-index: var(--z-index-frame-1);
+    position: relative; /* Изменено с sticky - Frame 1 теперь fixed */
+    z-index: 10000; /* Выше всего контента, чтобы Frame 1 был поверх всего */
     width: 100%;
+    background: transparent !important; /* Прозрачный фон - не перекрывает Frame 2 */
 }
 
-/* === FRAME 1 - Панель с кнопками === */
+/* === FRAME 1 - Панель с кнопками (всплывающая) === */
 .frame-1,
-#frame1 {
+#frame1,
+.frame-1 > .frame1 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-s);
     padding: var(--spacing-s) var(--spacing-m);
-    background: var(--color-bg);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    z-index: var(--z-index-frame-1);
+    background: transparent !important; /* Прозрачный фон - не перекрывает содержимое */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    z-index: 10000 !important; /* Выше всего контента - кнопки должны быть поверх всего */
     width: 100%;
     box-sizing: border-box;
     min-height: 48px;
+    transform: translateY(0);
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    opacity: 1;
+    pointer-events: auto; /* Гарантируем кликабельность */
+}
+
+/* Скрытие Frame 1 при прокрутке вниз */
+.frame-1.is-scrolling-down,
+#frame1.is-scrolling-down,
+.frame-1 > .frame1.is-scrolling-down {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Показ Frame 1 при остановке прокрутки */
+.frame-1.is-visible,
+#frame1.is-visible,
+.frame-1 > .frame1.is-visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
 }
 
 /* Если Frame1 находится внутри Frame 1, убираем дублирование стилей */
@@ -74,17 +101,17 @@
     justify-content: flex-start;
     gap: var(--spacing-m);
     padding: var(--spacing-s) var(--spacing-m);
-    background: rgba(242, 242, 242, 0.98);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: transparent !important; /* Полностью прозрачный фон - никаких плашек */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     max-height: 20vh;
     box-sizing: border-box;
     width: 100%;
     z-index: var(--z-index-frame-2); /* 1000 - выше контента, но ниже Frame1 */
     position: relative; /* было: position: sticky; */
     top: auto; /* было: top: 0; */
-    /* Убеждаемся, что Frame2 не перекрывает Frame3 */
-    isolation: isolate; /* Создает новый stacking context */
+    /* Компенсируем отсутствие Frame 1 в потоке (он теперь fixed) */
+    margin-top: 48px; /* Примерная высота Frame 1 для визуального расстояния */
 }
 
 .frame-2.is-hidden {
@@ -112,7 +139,7 @@
         flex-direction: column;
         align-items: flex-start;
         max-height: none;
-        padding: var(--spacing-s);
+        /* padding переопределяется в секции Mobile ниже */
     }
     
     .frame-2-logo {
@@ -136,6 +163,8 @@
     overflow: visible;
     /* Убираем padding-bottom, так как footer теперь идет после Frame3 в потоке документа */
     padding-bottom: 0;
+    /* Добавляем отступ сверху для фиксированного Frame 1 (компенсируется в мобильных стилях) */
+    padding-top: 0;
 }
 
 /* === FRAME 3 - Основной контент === */
@@ -144,7 +173,7 @@
     flex: 1;
     padding: var(--spacing-m) var(--spacing-s);
     /* УВЕЛИЧЕННЫЙ отступ сверху для расстояния от Frame2 - устойчив к масштабированию */
-    padding-top: clamp(40px, 6vh, 60px); /* Увеличено: минимум 40px, максимум 60px, используем vh для устойчивости */
+    padding-top: clamp(80px, 12vh, 120px); /* Увеличено в 2 раза: минимум 80px, максимум 120px, используем vh для устойчивости */
     position: relative;
     z-index: var(--z-index-content); /* 2 - ниже Frame2, но выше декоративных элементов */
     min-height: 0;
@@ -171,7 +200,8 @@
 
 /* Контентный слой */
 .frame-3-content,
-.frame3 > .container {
+.frame3 > .container,
+.hub3 > .container {
     position: relative;
     z-index: var(--z-index-content);
     max-width: 1200px;
@@ -188,20 +218,12 @@
 
 /* Гарантируем одинаковый отступ сверху для всех вариантов */
 .frame-3-content[style*="padding"],
-.frame3 > .container[style*="padding"] {
+.frame3 > .container[style*="padding"],
+.hub3 > .container[style*="padding"] {
     padding-top: 40px !important; /* Принудительно устанавливаем одинаковый отступ сверху */
 }
 
-@media (max-width: 767px) {
-    .frame-3 {
-        padding: var(--spacing-m) var(--spacing-s);
-    }
-    
-    .frame-3-content,
-    .frame3 > .container {
-        padding: 40px 16px; /* Сохраняем одинаковый отступ сверху на мобильных */
-    }
-}
+/* Старые стили для мобильных удалены - используются стили из секции Mobile ниже */
 
 /* === FOOTER (Frame 4 и Frame 5) === */
 .site-footer {
@@ -321,30 +343,156 @@
 
 /* Mobile: max-width: 767px */
 @media (max-width: 767px) {
-    .frame-1 {
-        padding: var(--spacing-s);
+    /* Гарантируем симметричные отступы для body и html на мобильных */
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow-x: hidden;
+        width: 100%;
+        box-sizing: border-box;
     }
     
+    /* site-wrapper - без отступов, чтобы не создавать асимметрию */
+    .site-wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Симметричные отступы для всех фреймов */
+    .frame-1,
+    .frame-1 > .frame1,
+    #frame1,
+    .frame1 {
+        padding-left: clamp(16px, 4vw, 24px) !important;
+        padding-right: clamp(16px, 4vw, 24px) !important;
+        padding-top: var(--spacing-s) !important;
+        padding-bottom: var(--spacing-s) !important;
+        gap: var(--spacing-xs);
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Убираем внутренние отступы у frame1-content на мобильных */
+    .frame-1 .frame1-content,
+    .frame1-content {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Стили для кнопок Frame1 управляются через frame1.css */
+    /* Здесь только базовые отступы контейнера */
+    
     .frame-2 {
-        padding: var(--spacing-s);
+        padding: var(--spacing-s) clamp(16px, 4vw, 24px) !important;
+        padding-top: 0 !important; /* Убираем отступ сверху - логотип ближе к кнопкам */
+        max-height: none; /* Убираем ограничение высоты на мобильных */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        margin-top: 48px !important; /* Компенсируем отсутствие Frame 1 в потоке на мобильных */
     }
     
     .frame-3 {
-        padding: var(--spacing-m) var(--spacing-s);
+        padding-left: clamp(16px, 4vw, 24px) !important;
+        padding-right: clamp(16px, 4vw, 24px) !important;
+        padding-top: clamp(40px, 6vh, 60px) !important; /* Уменьшенный отступ сверху на мобильных - меньше расстояние до логотипа */
+        padding-bottom: var(--spacing-m);
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
     
     .frame-3-content,
     .frame3 > .container {
-        padding: 40px 16px; /* Сохраняем одинаковый отступ сверху на мобильных */
+        padding: 30px 0 !important; /* Убираем боковые отступы - они уже у frame-3 */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
     
     .frame-4,
     .frame-5 {
-        padding: var(--spacing-s);
+        padding: var(--spacing-s) clamp(16px, 4vw, 24px) !important;
         font-size: clamp(10px, 2vw, 12px);
         text-align: center; /* Центрирование текста */
         max-width: 1200px;
-        margin: 0 auto; /* Центрирование блока */
+        margin-left: auto !important;
+        margin-right: auto !important;
+        line-height: 1.5;
+    }
+}
+
+/* Очень маленькие экраны: max-width: 480px */
+@media (max-width: 480px) {
+    /* Гарантируем симметричные отступы на очень маленьких экранах */
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow-x: hidden;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .site-wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .frame-1,
+    .frame-1 > .frame1,
+    #frame1,
+    .frame1 {
+        padding-left: clamp(12px, 3vw, 16px) !important;
+        padding-right: clamp(12px, 3vw, 16px) !important;
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+        gap: 6px;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Убираем внутренние отступы у frame1-content на очень маленьких экранах */
+    .frame-1 .frame1-content,
+    .frame1-content {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Стили для кнопок Frame1 управляются через frame1.css */
+    
+    .frame-2 {
+        padding: 8px clamp(12px, 3vw, 16px) !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    .frame-3 {
+        padding-left: clamp(12px, 3vw, 16px) !important;
+        padding-right: clamp(12px, 3vw, 16px) !important;
+        padding-top: clamp(35px, 5vh, 50px) !important; /* Уменьшенный отступ сверху - меньше расстояние до логотипа */
+        padding-bottom: var(--spacing-s);
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    .frame-3-content,
+    .frame3 > .container {
+        padding: 24px 0 !important; /* Убираем боковые отступы - они уже у frame-3 */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    .frame-4,
+    .frame-5 {
+        padding: 8px clamp(12px, 3vw, 16px) !important;
+        font-size: clamp(9px, 1.8vw, 11px);
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
 }
 

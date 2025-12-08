@@ -200,6 +200,10 @@ const Frame1 = {
             dropdown.appendChild(option);
         });
         
+        // Перемещаем dropdown в body, чтобы он был вне stacking context Frame1
+        // Это гарантирует, что dropdown будет поверх всех элементов
+        document.body.appendChild(dropdown);
+        
         // Устанавливаем цвет по умолчанию
         const defaultChar = characters.find(c => c.id === selectedCharacterId);
         if (defaultChar) {
@@ -209,16 +213,41 @@ const Frame1 = {
         // Сохраняем ссылку на menu для обработчика
         const menu = loginButton.closest('.frame1-character-menu');
         
+        // Функция для обновления позиции dropdown при использовании position: fixed
+        const updateDropdownPosition = () => {
+            if (dropdown.classList.contains('active')) {
+                // Используем requestAnimationFrame для гарантии правильного позиционирования
+                requestAnimationFrame(() => {
+                    const buttonRect = loginButton.getBoundingClientRect();
+                    dropdown.style.top = `${buttonRect.bottom + 10}px`;
+                    dropdown.style.left = `${buttonRect.left}px`;
+                    // Убеждаемся, что z-index установлен
+                    dropdown.style.zIndex = '9999';
+                });
+            }
+        };
+        
         // Обработчик клика на кнопку
         loginButton.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            const wasActive = dropdown.classList.contains('active');
             dropdown.classList.toggle('active');
+            if (dropdown.classList.contains('active') && !wasActive) {
+                // Обновляем позицию сразу и после небольшой задержки для надежности
+                updateDropdownPosition();
+                setTimeout(updateDropdownPosition, 10);
+            }
         });
         
+        // Обновляем позицию при прокрутке и изменении размера окна
+        window.addEventListener('scroll', updateDropdownPosition, true);
+        window.addEventListener('resize', updateDropdownPosition);
+        
         // Закрытие при клике вне меню
+        // Теперь проверяем и кнопку, и dropdown, так как dropdown в body
         document.addEventListener('click', (e) => {
-            if (menu && !menu.contains(e.target)) {
+            if (menu && !menu.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.classList.remove('active');
             }
         });
@@ -346,6 +375,89 @@ const Frame1 = {
     initEventHandlers() {
         // Обработчики resize теперь управляются через FrameCommon.initResizeHandlers()
         // Дополнительные обработчики можно добавить здесь при необходимости
+        
+        // Инициализируем отслеживание прокрутки для всплывающих кнопок
+        this.initScrollHandler();
+    },
+    
+    /**
+     * Инициализирует обработчик прокрутки для скрытия/показа Frame 1
+     */
+    initScrollHandler() {
+        let lastScrollTop = 0;
+        let scrollTimeout = null;
+        let isScrolling = false;
+        const frame1Elements = [
+            document.querySelector('.frame-1'),
+            document.getElementById('frame1'),
+            document.querySelector('.frame1'),
+            document.querySelector('.frame-1 > .frame1')
+        ].filter(el => el !== null);
+        
+        if (frame1Elements.length === 0) return;
+        
+        const handleScroll = () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollDelta = scrollTop - lastScrollTop;
+            
+            // Убираем классы при начале прокрутки
+            if (!isScrolling) {
+                isScrolling = true;
+                frame1Elements.forEach(el => {
+                    el.classList.remove('is-visible');
+                });
+            }
+            
+            // Очищаем предыдущий таймер
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            
+            // Если прокрутка вниз - скрываем
+            if (scrollDelta > 5) {
+                frame1Elements.forEach(el => {
+                    el.classList.add('is-scrolling-down');
+                    el.classList.remove('is-visible');
+                });
+            }
+            // Если прокрутка вверх или в самом верху - показываем
+            else if (scrollDelta < -5 || scrollTop < 10) {
+                frame1Elements.forEach(el => {
+                    el.classList.remove('is-scrolling-down');
+                    el.classList.add('is-visible');
+                });
+            }
+            
+            lastScrollTop = scrollTop;
+            
+            // При остановке прокрутки показываем кнопки
+            scrollTimeout = setTimeout(() => {
+                frame1Elements.forEach(el => {
+                    el.classList.remove('is-scrolling-down');
+                    el.classList.add('is-visible');
+                });
+                isScrolling = false;
+            }, 150); // Показываем через 150ms после остановки прокрутки
+        };
+        
+        // Обработчик прокрутки с throttling
+        let ticking = false;
+        const onScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    handleScroll();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        };
+        
+        window.addEventListener('scroll', onScroll, { passive: true });
+        
+        // Показываем кнопки при загрузке страницы
+        frame1Elements.forEach(el => {
+            el.classList.add('is-visible');
+        });
     }
 };
 

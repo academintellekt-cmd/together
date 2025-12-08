@@ -62,6 +62,8 @@
 
         .name-input-screen {
             text-align: center;
+            /* Увеличенный отступ сверху для расстояния от кнопок */
+            padding-top: clamp(80px, 12vh, 120px);
         }
 
         .name-input-screen h1 {
@@ -95,6 +97,8 @@
 
         .question-screen {
             text-align: center;
+            /* Увеличенный отступ сверху для расстояния от кнопок */
+            padding-top: clamp(80px, 12vh, 120px);
         }
 
         .question-number {
@@ -163,6 +167,11 @@
             padding: clamp(20px, 6vw, 40px) clamp(16px, 4vw, 24px); /* Адаптивные отступы от краев экрана, как в gnu-quiz.html */
         }
 
+        .results-screen {
+            /* Увеличенный отступ сверху для расстояния от кнопок */
+            padding-top: clamp(80px, 12vh, 120px);
+        }
+        
         .results-screen h1 {
             margin-top: 0;
             margin-bottom: 20px;
@@ -471,6 +480,22 @@
         let joystickConfig = null;
         let gamepadUpdateInterval = null;
         let hasAnswered = false; // Флаг для отслеживания ответа в текущем вопросе
+        
+        // Функция для применения класса квиза к body
+        function applyQuizClass(quizId) {
+            if (!quizId) return;
+            
+            // Удаляем все классы квизов
+            document.body.classList.remove('quiz-gnu', 'quiz-akadem');
+            
+            // Определяем класс по quizId
+            const normalizedId = quizId.toLowerCase();
+            if (normalizedId === 'gnu' || normalizedId === 'friends-quiz' || normalizedId === 'gnu-multiplayer') {
+                document.body.classList.add('quiz-gnu');
+            } else if (normalizedId === 'akadem' || normalizedId.includes('академ')) {
+                document.body.classList.add('quiz-akadem');
+            }
+        }
         
         // Подсветка кнопки при нажатии физической кнопки
         function highlightOptionByGamepad(buttonIndex) {
@@ -813,6 +838,9 @@
                     throw new Error('Квиз не найден');
                 }
                 quiz = await response.json();
+                
+                // Применяем класс квиза для стилей
+                applyQuizClass(quiz.id || quizId);
                 
                 // Обновляем название квиза на странице
                 const quizTitleElement = document.getElementById('quiz-title');

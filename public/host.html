@@ -250,21 +250,7 @@
             margin-bottom: 40px;
         }
 
-        /* Номер вопроса по центру (для Frame1 во время игры) */
-        .frame1-question-number {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            color: #393639;
-            opacity: 0.8;
-            white-space: nowrap;
-            display: none;
-        }
+        /* Номер вопроса по центру (для Frame1 во время игры) - стили из frame1.css */
 
         /* Таймер справа (для Frame1 во время игры) */
         .frame1-timer {
@@ -939,13 +925,13 @@
             // Хранилище данных игроков
             let playersData = new Map(); // playerId -> {name, ready}
 
-            // Обновление игроков в Frame1
+            // Обновление игроков в Frame2
             function updateHub() {
-                // Удаляем всех игроков из Frame1
-                document.querySelectorAll('.frame1-player-icon').forEach(icon => {
+                // Удаляем всех игроков из Frame2
+                document.querySelectorAll('.frame2-player-icon').forEach(icon => {
                     const playerId = icon.dataset.playerId;
                     if (playerId) {
-                        Frame1.removePlayerIcon(playerId);
+                        Frame2.removePlayerIcon(playerId);
                     }
                 });
                 
@@ -953,14 +939,16 @@
                 
                 if (playersData.size === 0) {
                     console.log('Нет игроков для отображения');
+                    // Очищаем контейнер игроков, если игроков нет
+                    Frame2.clearPlayers();
                     return;
                 }
                 
-                // Добавляем игроков в Frame1
+                // Добавляем игроков в Frame2
                 playersData.forEach((data, playerId) => {
-                    console.log('Добавление игрока в Frame1:', playerId, data);
+                    console.log('Добавление игрока в Frame2:', playerId, data);
                     const status = data.ready ? 'ready' : 'waiting';
-                    Frame1.addPlayerIcon(playerId, data.name || 'Player', status);
+                    Frame2.addPlayerIcon(playerId, data.name || 'Player', status);
                 });
             }
 
@@ -1324,7 +1312,10 @@
                 backUrl: '/gnu-quiz.html'
             });
             
-            Frame2.init();
+            Frame2.init({
+                showLogo: false,
+                showSubtitle: false
+            });
             
             // Обновляем позиционирование после инициализации Frame1 и Frame2
             setTimeout(() => {

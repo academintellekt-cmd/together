@@ -14,18 +14,34 @@
 
 /* Основной контейнер Frame1 */
 .frame1 {
-    /* Позиционирование управляется через grid в layout.css */
-    background: var(--frame1-bg);
-    backdrop-filter: blur(10px);
+    /* Позиционирование управляется через layout.css (fixed) */
+    background: transparent !important; /* Прозрачный фон - не перекрывает содержимое */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     padding: 15px 40px;
-    z-index: var(--frame1-z-index);
+    z-index: 10000 !important; /* Выше всего контента - кнопки должны быть поверх всего */
     /* Динамическая высота в зависимости от контента */
     height: auto;
     min-height: auto;
-    transition: height 0.3s ease;
-    will-change: height;
+    transition: height 0.3s ease, transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    will-change: height, transform, opacity;
     box-sizing: border-box;
     width: 100%;
+    pointer-events: auto; /* Гарантируем кликабельность */
+}
+
+/* Скрытие при прокрутке */
+.frame1.is-scrolling-down {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Показ при остановке */
+.frame1.is-visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
 }
 
 /* Контент Frame1 */
@@ -41,6 +57,7 @@
     position: relative;
     box-sizing: border-box;
     padding: 0 24px; /* Фиксированные отступы от краев экрана */
+    min-height: 48px; /* Минимальная высота для правильного центрирования */
 }
 
 /* Контейнер для кнопок */
@@ -53,6 +70,16 @@
     width: 100%;
     min-height: auto;
     box-sizing: border-box;
+    position: relative;
+    z-index: 0; /* Ниже центрального контента */
+}
+
+/* На мобильных - выравниваем по краям */
+@media (max-width: 767px) {
+    .frame1-actions {
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
 }
 
 /* Левая группа кнопок */
@@ -64,6 +91,7 @@
     flex: 0 1 auto; /* Не растягивается, занимает только необходимое место */
     min-width: 0;
     box-sizing: border-box;
+    max-width: calc(50% - 100px); /* Оставляем место для центрального контента */
 }
 
 /* Правая группа кнопок */
@@ -74,6 +102,7 @@
     flex-wrap: wrap;
     flex-shrink: 0;
     box-sizing: border-box;
+    max-width: calc(50% - 100px); /* Оставляем место для центрального контента */
 }
 
 /* Универсальная кнопка Frame1 */
@@ -99,6 +128,9 @@
     line-height: 1.2;
     box-sizing: border-box;
     flex-shrink: 0;
+    position: relative;
+    z-index: 10001 !important; /* Выше Frame 1 для гарантированной кликабельности */
+    pointer-events: auto !important; /* Гарантируем кликабельность */
     /* Размер кнопки НЕ меняется при адаптации */
 }
 
@@ -205,21 +237,36 @@
 /* Таймер справа (для игровых страниц) */
 .frame1-timer {
     font-family: 'Days One', sans-serif;
-    font-size: 20px;
+    font-size: var(--frame1-button-font-size); /* Такой же размер шрифта как у кнопки */
     font-weight: 700;
     color: #393639;
-    min-width: 40px;
     text-align: center;
-    padding: 4px 12px;
+    padding: var(--frame1-button-padding); /* Такой же padding как у кнопки */
     background: rgba(245, 245, 245, 0.85);
     border: 2px solid #393639;
-    border-radius: 8px;
+    border-radius: 12px; /* Такой же border-radius как у кнопки */
     box-shadow: 
-        0 2px 0px rgba(0, 0, 0, 0.15),
-        0 2px 4px rgba(0, 0, 0, 0.1);
+        0 2px 0px rgba(0, 0, 0, 0.2),
+        0 4px 8px rgba(0, 0, 0, 0.1);
     display: none;
     flex-shrink: 0;
     box-sizing: border-box;
+    line-height: 1.2; /* Такой же line-height как у кнопки */
+    white-space: nowrap;
+    min-width: 40px;
+    letter-spacing: 0.5px;
+}
+
+.frame1-timer.urgent {
+    color: #ff7664;
+    background: rgba(255, 118, 100, 0.15);
+    border-color: #ff7664;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 
 .frame1-timer.urgent {
@@ -238,14 +285,14 @@
 .frame1-character-menu {
     position: relative;
     display: inline-block;
-    z-index: 1002;
+    z-index: var(--z-index-character-menu, 9999); /* Очень высокий z-index, чтобы быть поверх всего */
     overflow: visible;
 }
 
 .frame1-character-menu-dropdown {
-    position: absolute;
-    top: calc(100% + 10px);
-    left: 0;
+    position: fixed !important; /* Используем fixed вместо absolute, чтобы выйти из stacking context Frame1 */
+    top: auto;
+    left: auto;
     background: transparent;
     padding: 0;
     display: flex;
@@ -261,6 +308,8 @@
     transition: opacity 0.2s ease, visibility 0.2s ease;
     max-height: 0;
     overflow: hidden;
+    z-index: 9999 !important; /* Очень высокий z-index, чтобы быть поверх всего (Frame2: 1000, Frame3: 1002) */
+    isolation: isolate; /* Создаем свой stacking context */
 }
 
 .frame1-character-menu-dropdown.active {
@@ -271,6 +320,7 @@
     transition: opacity 0.2s ease, visibility 0.2s ease;
     overflow: visible;
     display: flex;
+    z-index: 9999 !important; /* Гарантируем высокий z-index при активном состоянии */
 }
 
 .frame1-character-option {
@@ -287,6 +337,7 @@
     flex-shrink: 0;
     opacity: 0;
     transform: translateY(-20px);
+    z-index: inherit; /* Наследуем z-index от родителя */
 }
 
 .frame1-character-menu-dropdown.active .frame1-character-option {
@@ -296,5 +347,100 @@
 
 .frame1-character-option:hover {
     transform: translateY(0) scale(1.1);
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 767px) {
+    .frame1-question-number {
+        font-size: 12px;
+    }
+    
+    /* Убираем padding у frame1-content на мобильных - отступы уже у frame-1 */
+    .frame1-content {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        max-width: 100% !important;
+    }
+    
+    /* Контейнер кнопок - растягиваем на всю ширину */
+    .frame1-actions {
+        width: 100% !important;
+        justify-content: space-between !important;
+        gap: 4px !important; /* Минимальный gap */
+    }
+    
+    /* Группы кнопок - убираем ограничения ширины */
+    .frame1-actions-left {
+        flex: 0 1 auto !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        gap: 4px !important;
+    }
+    
+    .frame1-actions-right {
+        flex: 0 1 auto !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        gap: 4px !important;
+        margin-left: auto !important; /* Выравниваем по правому краю */
+    }
+    
+    /* Кнопки - увеличиваем размер, но остаемся в пределах границ */
+    .frame1-button {
+        flex-shrink: 1 !important; /* Разрешаем сжатие */
+        min-width: 0 !important; /* Убираем минимальную ширину */
+        padding: 10px 14px !important; /* Увеличенный padding */
+        font-size: 13px !important; /* Увеличенный размер шрифта */
+        white-space: normal !important; /* Разрешаем перенос текста */
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Статус индикатор тоже адаптивный */
+    .frame1-status {
+        flex-shrink: 1 !important;
+        min-width: 0 !important;
+        padding: 10px 14px !important;
+        font-size: 13px !important;
+        white-space: normal !important;
+        max-width: 100% !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .frame1-question-number {
+        font-size: 11px;
+    }
+    
+    /* Убираем padding у frame1-content на очень маленьких экранах */
+    .frame1-content {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        max-width: 100% !important;
+    }
+    
+    /* Еще меньше gap на очень маленьких экранах */
+    .frame1-actions {
+        gap: 3px !important;
+    }
+    
+    .frame1-actions-left,
+    .frame1-actions-right {
+        gap: 3px !important;
+    }
+    
+    /* Кнопки на очень маленьких экранах - немного меньше, но все еще крупные */
+    .frame1-button {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        letter-spacing: 0.3px !important;
+    }
+    
+    .frame1-status {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+    }
 }
 

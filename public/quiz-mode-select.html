@@ -134,14 +134,40 @@
             font-family: 'Days One', sans-serif;
             font-size: clamp(32px, 6vw, 48px);
             color: #393639;
-            margin-top: 40px;
+            /* Увеличенный отступ сверху для расстояния от Frame2 (фраза) - соответствует отступам Frame2/Frame3 */
+            margin-top: clamp(20px, 3vh, 40px); /* Отступ внутри контейнера, основной отступ у контейнера */
             margin-bottom: 10px;
             text-transform: uppercase;
             text-align: center;
             width: 100%;
         }
+        
+        /* Правильный перенос заголовка на мобильных - по словам, а не по буквам */
+        @media (max-width: 767px) {
+            .title,
+            #quizTitle {
+                word-break: normal !important; /* Слова переносятся целиком */
+                overflow-wrap: break-word !important; /* Перенос только при необходимости */
+                hyphens: none !important; /* Отключаем автоматические переносы */
+                -webkit-hyphens: none !important;
+                -ms-hyphens: none !important;
+                white-space: normal !important; /* Разрешаем перенос строк */
+                /* Если слово не вмещается, уменьшаем размер текста */
+                font-size: clamp(24px, 5vw, 36px) !important; /* Уменьшенный размер для мобильных */
+            }
+        }
+        
+        /* На очень маленьких экранах еще больше уменьшаем размер */
+        @media (max-width: 480px) {
+            .title,
+            #quizTitle {
+                font-size: clamp(20px, 4.5vw, 28px) !important; /* Еще меньше размер для очень маленьких экранов */
+            }
+        }
 
-        .subtitle {
+        /* Стили для subtitle внутри контента (НЕ для Frame2) */
+        #content .subtitle,
+        .container .subtitle {
             font-family: 'Caveat', cursive;
             font-size: clamp(24px, 4.5vw, 36px);
             color: #354fba;
@@ -149,6 +175,24 @@
             transform: rotate(-1deg);
             text-align: center;
             width: 100%;
+        }
+        
+        /* Исключаем фразу в Frame2 из локальных стилей - она должна использовать стили из frame2.css */
+        .frame2-logo-section .subtitle,
+        .frame2 .subtitle,
+        .frame-2 .subtitle,
+        #frame2 .subtitle {
+            /* Все стили применяются из frame2.css - не переопределяем здесь */
+            font-size: clamp(20px, 3vw, 40px) !important; /* Маленький размер как в frame2.css */
+            color: #393639 !important; /* Цвет как в frame2.css */
+            margin: 0 !important;
+            margin-bottom: 0 !important;
+            margin-top: 0 !important;
+            padding: 0 !important;
+            transform: none !important; /* Убираем поворот */
+            font-weight: 400 !important;
+            line-height: 1.2 !important;
+            white-space: nowrap !important;
         }
 
         #content {
@@ -260,6 +304,12 @@
         
         .hub3 {
             grid-row: 2; /* Занимает место Frame2 */
+        }
+        
+        /* Убеждаемся, что контейнер имеет достаточный отступ сверху для расстояния от Frame2 */
+        /* Отступ должен соответствовать отступам между Frame2 и Frame3 из layout.css */
+        .hub3 .container {
+            padding-top: clamp(80px, 10vh, 130px) !important; /* Увеличенный отступ сверху для расстояния от Frame2 (фраза) */
         }
         
         /* Парящие элементы перемещены в Frame3 через hub-layout.css */
@@ -555,23 +605,110 @@
                     backUrl: '/index.html'
                 });
                 
-                Frame2.init();
+                // Инициализируем Frame2
+                Frame2.init({
+                    showSubtitle: true // Явно указываем, что нужно показать фразу
+                });
+                
+                // Убираем inline стили, которые устанавливает функция адаптации
+                // Используем только CSS стили из frame2.css для правильного размера
+                setTimeout(() => {
+                    ensureFrame2SubtitleUsesCSS();
+                }, 200);
+                
+                setTimeout(() => {
+                    ensureFrame2SubtitleUsesCSS();
+                }, 500);
+                
+                setTimeout(() => {
+                    ensureFrame2SubtitleUsesCSS();
+                }, 1000);
+                
+                // Убеждаемся, что фраза в Frame2 имеет правильный текст и размер (как на index.html)
+                setTimeout(() => {
+                    const frame2Subtitle = document.querySelector('.frame2-logo-section .subtitle, .frame2 .subtitle, #frame2 .subtitle, .frame-2 .subtitle');
+                    if (frame2Subtitle) {
+                        // Устанавливаем правильный текст фразы
+                        frame2Subtitle.textContent = 'хорошие люди объединяются играми';
+                        // УБИРАЕМ inline стили, чтобы применялись CSS стили из frame2.css
+                        // НЕ вызываем adaptSubtitleToLogo(), чтобы использовались CSS стили, а не inline
+                        frame2Subtitle.style.fontSize = '';
+                        frame2Subtitle.style.width = '';
+                        frame2Subtitle.style.maxWidth = '';
+                    } else {
+                        // Если фраза не найдена, создаем её
+                        const logoSection = document.querySelector('.frame2-logo-section, .frame2, #frame2');
+                        if (logoSection) {
+                            const subtitle = document.createElement('p');
+                            subtitle.className = 'subtitle';
+                            subtitle.textContent = 'хорошие люди объединяются играми';
+                            logoSection.appendChild(subtitle);
+                        }
+                    }
+                }, 300);
                 
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
                             // Позиционирование теперь управляется через CSS Grid
                             
+                            // Убеждаемся, что фраза использует CSS стили, а не inline стили от adaptSubtitleToLogo
+                            const frame2Subtitle = document.querySelector('.frame2-logo-section .subtitle, .frame2 .subtitle, #frame2 .subtitle, .frame-2 .subtitle');
+                            if (frame2Subtitle) {
+                                // Убираем inline стили, чтобы применялись CSS стили из frame2.css
+                                frame2Subtitle.style.fontSize = '';
+                                frame2Subtitle.style.width = '';
+                                frame2Subtitle.style.maxWidth = '';
+                            }
                             
-                            
-                            
-                            FrameCommon.adaptSubtitleToLogo();
+                            // НЕ вызываем adaptSubtitleToLogo() - используем только CSS стили из frame2.css
+                            // Это гарантирует, что фраза будет соответствовать размеру логотипа через CSS
                         });
                     });
                 });
             }
         }
 
+        // Отслеживаем и убираем inline стили fontSize у фразы в Frame2
+        // Это гарантирует, что применяются только CSS стили из frame2.css
+        function ensureFrame2SubtitleUsesCSS() {
+            const frame2Subtitle = document.querySelector('.frame2-logo-section .subtitle, .frame2 .subtitle, #frame2 .subtitle, .frame-2 .subtitle');
+            if (frame2Subtitle) {
+                // Убираем inline стили fontSize, чтобы применялись CSS стили
+                if (frame2Subtitle.style.fontSize) {
+                    frame2Subtitle.style.fontSize = '';
+                }
+                if (frame2Subtitle.style.width) {
+                    frame2Subtitle.style.width = '';
+                }
+                if (frame2Subtitle.style.maxWidth) {
+                    frame2Subtitle.style.maxWidth = '';
+                }
+            }
+        }
+        
+        // Отслеживаем изменения в DOM и убираем inline стили
+        const observer = new MutationObserver(() => {
+            ensureFrame2SubtitleUsesCSS();
+        });
+        
+        // Начинаем наблюдение после загрузки DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            // Наблюдаем за изменениями в Frame2
+            const frame2 = document.getElementById('frame2') || document.querySelector('.frame2, .frame-2');
+            if (frame2) {
+                observer.observe(frame2, {
+                    attributes: true,
+                    attributeFilter: ['style'],
+                    subtree: true,
+                    childList: true
+                });
+            }
+            
+            // Периодически проверяем и убираем inline стили
+            setInterval(ensureFrame2SubtitleUsesCSS, 500);
+        });
+        
         // Обработка Enter в поле пароля
         document.addEventListener('DOMContentLoaded', () => {
             const passwordInput = document.getElementById('passwordInput');

@@ -1,5 +1,5 @@
 /**
- * Frame2 - Меню с логотипом
+ * Frame2 - Меню с логотипом или никнеймами игроков
  * Используется на всех страницах
  */
 
@@ -38,6 +38,94 @@ const Frame2 = {
         
         // Инициализируем обработчики
         this.initEventHandlers();
+    },
+    
+    /**
+     * Добавляет иконку игрока (для multiplayer)
+     */
+    addPlayerIcon(playerId, name, status = 'waiting') {
+        const content = document.querySelector('.frame2-content');
+        if (!content) return;
+        
+        // Создаем контейнер для игроков, если его нет
+        let playersContainer = document.getElementById('frame2-players-container');
+        if (!playersContainer) {
+            playersContainer = document.createElement('div');
+            playersContainer.id = 'frame2-players-container';
+            playersContainer.className = 'frame2-players-container';
+            
+            // Убираем логотип и подзаголовок, если они есть
+            const logoSection = content.querySelector('.frame2-logo-section');
+            if (logoSection) {
+                logoSection.style.display = 'none';
+            }
+            
+            content.appendChild(playersContainer);
+        }
+        
+        // Проверяем, не существует ли уже иконка для этого игрока
+        const existingIcon = document.getElementById(`frame2-player-${playerId}`);
+        if (existingIcon) {
+            // Обновляем существующую иконку
+            existingIcon.textContent = name;
+            existingIcon.className = `frame2-player-icon ${status}`;
+            return;
+        }
+        
+        const icon = document.createElement('div');
+        icon.className = `frame2-player-icon ${status}`;
+        icon.id = `frame2-player-${playerId}`;
+        icon.textContent = name;
+        icon.dataset.playerId = playerId;
+        
+        playersContainer.appendChild(icon);
+    },
+    
+    /**
+     * Удаляет иконку игрока
+     */
+    removePlayerIcon(playerId) {
+        const icon = document.getElementById(`frame2-player-${playerId}`);
+        if (icon) {
+            icon.remove();
+            
+            // Если игроков не осталось, показываем логотип обратно
+            const playersContainer = document.getElementById('frame2-players-container');
+            if (playersContainer && playersContainer.children.length === 0) {
+                const content = document.querySelector('.frame2-content');
+                const logoSection = content?.querySelector('.frame2-logo-section');
+                if (logoSection) {
+                    logoSection.style.display = 'flex';
+                }
+                playersContainer.remove();
+            }
+        }
+    },
+    
+    /**
+     * Обновляет статус игрока
+     */
+    updatePlayerStatus(playerId, status) {
+        const icon = document.getElementById(`frame2-player-${playerId}`);
+        if (icon) {
+            icon.className = `frame2-player-icon ${status}`;
+        }
+    },
+    
+    /**
+     * Очищает всех игроков
+     */
+    clearPlayers() {
+        const playersContainer = document.getElementById('frame2-players-container');
+        if (playersContainer) {
+            playersContainer.innerHTML = '';
+            const content = document.querySelector('.frame2-content');
+            const logoSection = content?.querySelector('.frame2-logo-section');
+            if (logoSection) {
+                logoSection.style.display = 'flex';
+            }
+            playersContainer.remove();
+        }
     },
     
     /**

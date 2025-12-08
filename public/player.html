@@ -131,6 +131,7 @@
             font-size: 18px;
             margin-bottom: 15px;
             opacity: 0.8;
+            display: none; /* Скрываем номер вопроса в основном контенте, показываем в Frame1 */
         }
 
         .question-text {
@@ -143,8 +144,7 @@
         }
 
         .timer-container {
-            display: inline-block;
-            margin: 16px 0;
+            display: none; /* Скрываем таймер в основном контенте, показываем в Frame1 */
         }
 
         .options {
@@ -550,11 +550,30 @@
         let playerName = null;
         let currentTimer = null;
         let hasAnswered = false;
+        let currentQuizId = null; // ID текущего квиза
         
         // Поддержка джойстика
         let gamepad = null;
         let joystickConfig = null;
         let gamepadUpdateInterval = null;
+        
+        // Функция для применения класса квиза к body
+        function applyQuizClass(quizId) {
+            if (!quizId) return;
+            
+            // Удаляем все классы квизов
+            document.body.classList.remove('quiz-gnu', 'quiz-akadem');
+            
+            // Определяем класс по quizId
+            const normalizedId = quizId.toLowerCase();
+            if (normalizedId === 'gnu' || normalizedId === 'friends-quiz' || normalizedId === 'gnu-multiplayer') {
+                document.body.classList.add('quiz-gnu');
+                currentQuizId = 'gnu';
+            } else if (normalizedId === 'akadem' || normalizedId.includes('академ')) {
+                document.body.classList.add('quiz-akadem');
+                currentQuizId = 'akadem';
+            }
+        }
         
         // Загрузка конфигурации джойстика
         function loadJoystickConfig() {
@@ -895,6 +914,14 @@
             document.getElementById('connect-screen').style.display = 'none';
             document.getElementById('waiting-screen').style.display = 'block';
             
+            // Скрываем элементы Frame1 при ожидании
+            hideFrame1Elements();
+            
+            // Применяем класс квиза, если он передан
+            if (data.quizId) {
+                applyQuizClass(data.quizId);
+            }
+            
             // Скрываем кнопку "Назад" после подключения
             const backButton = document.querySelector('.back-button');
             if (backButton) {
@@ -920,6 +947,9 @@
             document.getElementById('results-screen').style.display = 'none';
             document.getElementById('final-results').style.display = 'none';
             
+            // Скрываем элементы Frame1 до получения вопроса
+            hideFrame1Elements();
+            
             // Скрываем кнопку "Назад" во время игры
             const backButton = document.querySelector('.back-button');
             if (backButton) {
@@ -934,6 +964,78 @@
             }
         });
 
+        // Функция для создания элементов в Frame1
+        function initFrame1Elements() {
+            const frame1 = document.getElementById('frame1');
+            if (!frame1) return;
+            
+            const frame1Content = frame1.querySelector('.frame1-content');
+            if (!frame1Content) return;
+            
+            // Создаем номер вопроса по центру, если его нет
+            let questionNumberEl = frame1Content.querySelector('.frame1-question-number');
+            if (!questionNumberEl) {
+                questionNumberEl = document.createElement('div');
+                questionNumberEl.className = 'frame1-question-number';
+                frame1Content.appendChild(questionNumberEl);
+            }
+            
+            // Создаем таймер справа, если его нет
+            const actionsRight = document.getElementById('frame1-actions-right');
+            if (actionsRight) {
+                let timerEl = actionsRight.querySelector('.frame1-timer');
+                if (!timerEl) {
+                    timerEl = document.createElement('div');
+                    timerEl.className = 'frame1-timer';
+                    timerEl.id = 'frame1-timer';
+                    // Добавляем таймер в конец правой группы (чтобы он был самым правым)
+                    actionsRight.appendChild(timerEl);
+                }
+            }
+        }
+        
+        // Функция для обновления номера вопроса в Frame1
+        function updateFrame1QuestionNumber(questionNum, totalQuestions) {
+            const frame1 = document.getElementById('frame1');
+            if (!frame1) return;
+            
+            const questionNumberEl = frame1.querySelector('.frame1-question-number');
+            if (questionNumberEl) {
+                questionNumberEl.textContent = `Вопрос ${questionNum} из ${totalQuestions}`;
+                questionNumberEl.style.display = 'block';
+            }
+        }
+        
+        // Функция для обновления таймера в Frame1
+        function updateFrame1Timer(timeLeft, isUrgent = false) {
+            const timerEl = document.getElementById('frame1-timer');
+            if (timerEl) {
+                timerEl.textContent = timeLeft;
+                timerEl.style.display = 'block';
+                if (isUrgent) {
+                    timerEl.classList.add('urgent');
+                } else {
+                    timerEl.classList.remove('urgent');
+                }
+            }
+        }
+        
+        // Функция для скрытия элементов Frame1
+        function hideFrame1Elements() {
+            const frame1 = document.getElementById('frame1');
+            if (!frame1) return;
+            
+            const questionNumberEl = frame1.querySelector('.frame1-question-number');
+            const timerEl = document.getElementById('frame1-timer');
+            
+            if (questionNumberEl) {
+                questionNumberEl.style.display = 'none';
+            }
+            if (timerEl) {
+                timerEl.style.display = 'none';
+            }
+        }
+
         // Вопрос
         socket.on('question', (data) => {
             // Если мы еще на экране подключения, переключаемся
@@ -942,6 +1044,14 @@
                 document.getElementById('waiting-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'block';
             }
+            
+            // Применяем класс квиза, если он передан в данных вопроса
+            if (data.quizId) {
+                applyQuizClass(data.quizId);
+            }
+            
+            // Инициализируем элементы Frame1
+            initFrame1Elements();
             
             // Скрываем кнопку готовности при новом вопросе
             isReady = false;
@@ -968,6 +1078,10 @@
             const questionNum = data.questionNumber;
             const totalQuestions = data.totalQuestions;
             
+            // Обновляем номер вопроса в Frame1
+            updateFrame1QuestionNumber(questionNum, totalQuestions);
+            
+            // Обновляем номер вопроса в основном контенте (скрыт, но оставляем для совместимости)
             document.getElementById('question-num').textContent = questionNum;
             document.getElementById('total-questions').textContent = totalQuestions;
             document.getElementById('question-text').textContent = data.question;
@@ -1025,6 +1139,9 @@
             timerElement.textContent = timeLeft;
             timerElement.classList.remove('urgent');
             
+            // Обновляем таймер в Frame1
+            updateFrame1Timer(timeLeft, false);
+            
             if (currentTimer) clearInterval(currentTimer);
             let timerStopped = false;
             
@@ -1037,6 +1154,10 @@
                 timeLeft--;
                 timerElement.textContent = timeLeft;
                 
+                // Обновляем таймер в Frame1
+                const isUrgent = timeLeft <= 5;
+                updateFrame1Timer(timeLeft, isUrgent);
+                
                 // Визуальные эффекты при малом времени
                 if (timeLeft <= 5) {
                     timerElement.classList.add('urgent');
@@ -1046,6 +1167,7 @@
                     clearInterval(currentTimer);
                     disableOptions();
                     timerElement.textContent = '0';
+                    updateFrame1Timer(0, false);
                 }
             }, 1000);
             
@@ -1056,6 +1178,8 @@
                     clearInterval(currentTimer);
                     currentTimer = null;
                 }
+                // Обновляем таймер в Frame1 при остановке
+                updateFrame1Timer(timeLeft, false);
             };
         });
 
@@ -1112,6 +1236,13 @@
                 currentTimer = null;
             }
             
+            // Обновляем таймер в Frame1 (показываем текущее значение)
+            const timerElement = document.getElementById('timer');
+            if (timerElement) {
+                const currentTime = parseInt(timerElement.textContent) || 0;
+                updateFrame1Timer(currentTime, false);
+            }
+            
             const feedback = document.getElementById('answer-feedback');
             
             // Просто цветовая индикация без текста
@@ -1155,6 +1286,9 @@
         socket.on('results', (data) => {
             clearInterval(currentTimer);
             isReady = false;
+            
+            // Скрываем элементы Frame1 при показе результатов
+            hideFrame1Elements();
             
             document.getElementById('question-screen').style.display = 'none';
             document.getElementById('results-screen').style.display = 'block';
@@ -1242,6 +1376,9 @@
 
         // Финальные результаты
         socket.on('game-finished', (data) => {
+            // Скрываем элементы Frame1 при финальных результатах
+            hideFrame1Elements();
+            
             document.getElementById('question-screen').style.display = 'none';
             document.getElementById('results-screen').style.display = 'none';
             document.getElementById('final-results').style.display = 'block';

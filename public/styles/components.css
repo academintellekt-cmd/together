@@ -303,3 +303,239 @@ select:focus {
     overflow-wrap: break-word;
 }
 
+/* === ВАРИАНТЫ ОТВЕТОВ === */
+.option-btn {
+    width: 100%;
+    padding: clamp(16px, 3vw, 20px) clamp(20px, 4vw, 24px);
+    margin: clamp(10px, 2vw, 12px) 0;
+    border: clamp(3px, 0.6vw, 4px) solid var(--color-black);
+    border-radius: clamp(12px, 2.5vw, 16px);
+    background: rgba(245, 245, 245, 0.9);
+    color: var(--color-dark);
+    font-family: 'Days One', sans-serif;
+    font-size: clamp(18px, 3.5vw, 22px);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 4px 0px rgba(0, 0, 0, 0.2),
+        0 6px 12px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 2.5vw, 16px);
+    min-height: clamp(60px, 10vw, 80px);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    line-height: 1.4;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
+}
+
+.option-btn:hover:not(:disabled) {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+        0 6px 0px rgba(0, 0, 0, 0.3),
+        0 8px 16px rgba(0, 0, 0, 0.15);
+    background: rgba(245, 245, 245, 0.7);
+}
+
+.option-btn:active:not(:disabled) {
+    transform: translateY(-2px) scale(0.98);
+}
+
+.option-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.option-label {
+    flex-shrink: 0;
+    width: clamp(40px, 8vw, 50px);
+    height: clamp(40px, 8vw, 50px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: clamp(8px, 1.5vw, 10px);
+    font-size: clamp(20px, 4vw, 24px);
+    font-weight: 700;
+    border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 
+        0 2px 0px rgba(0, 0, 0, 0.15),
+        inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.option-text {
+    flex: 1;
+    text-align: left;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    line-height: 1.5;
+}
+
+/* Цвета для квиза ГНУ */
+.quiz-gnu .option-btn.option-a {
+    border-color: #2fb95d;
+    background: rgba(171, 246, 124, 0.2);
+}
+
+.quiz-gnu .option-btn.option-a .option-label {
+    background: #abf67c;
+    color: #2fb95d;
+    border-color: #2fb95d;
+}
+
+.quiz-gnu .option-btn.option-b {
+    border-color: #2fb95d;
+    background: rgba(171, 246, 124, 0.15);
+}
+
+.quiz-gnu .option-btn.option-b .option-label {
+    background: rgba(171, 246, 124, 0.8);
+    color: #2fb95d;
+    border-color: #2fb95d;
+}
+
+.quiz-gnu .option-btn.option-c {
+    border-color: #2fb95d;
+    background: rgba(171, 246, 124, 0.1);
+}
+
+.quiz-gnu .option-btn.option-c .option-label {
+    background: rgba(171, 246, 124, 0.6);
+    color: #2fb95d;
+    border-color: #2fb95d;
+}
+
+.quiz-gnu .option-btn.option-d {
+    border-color: #2fb95d;
+    background: rgba(171, 246, 124, 0.05);
+}
+
+.quiz-gnu .option-btn.option-d .option-label {
+    background: rgba(171, 246, 124, 0.4);
+    color: #2fb95d;
+    border-color: #2fb95d;
+}
+
+.quiz-gnu .option-btn:hover:not(:disabled) {
+    background: rgba(171, 246, 124, 0.3);
+    border-color: #2fb95d;
+    box-shadow: 
+        0 6px 0px rgba(47, 185, 93, 0.3),
+        0 8px 16px rgba(47, 185, 93, 0.15);
+}
+
+/* Цвета для квиза Академ */
+.quiz-akadem .option-btn.option-a {
+    border-color: #2b7a8a;
+    background: rgba(124, 232, 246, 0.2);
+}
+
+.quiz-akadem .option-btn.option-a .option-label {
+    background: #7ce8f6;
+    color: #2b7a8a;
+    border-color: #2b7a8a;
+}
+
+.quiz-akadem .option-btn.option-b {
+    border-color: #2b7a8a;
+    background: rgba(124, 232, 246, 0.15);
+}
+
+.quiz-akadem .option-btn.option-b .option-label {
+    background: rgba(124, 232, 246, 0.8);
+    color: #2b7a8a;
+    border-color: #2b7a8a;
+}
+
+.quiz-akadem .option-btn.option-c {
+    border-color: #2b7a8a;
+    background: rgba(124, 232, 246, 0.1);
+}
+
+.quiz-akadem .option-btn.option-c .option-label {
+    background: rgba(124, 232, 246, 0.6);
+    color: #2b7a8a;
+    border-color: #2b7a8a;
+}
+
+.quiz-akadem .option-btn.option-d {
+    border-color: #2b7a8a;
+    background: rgba(124, 232, 246, 0.05);
+}
+
+.quiz-akadem .option-btn.option-d .option-label {
+    background: rgba(124, 232, 246, 0.4);
+    color: #2b7a8a;
+    border-color: #2b7a8a;
+}
+
+.quiz-akadem .option-btn:hover:not(:disabled) {
+    background: rgba(124, 232, 246, 0.3);
+    border-color: #2b7a8a;
+    box-shadow: 
+        0 6px 0px rgba(43, 122, 138, 0.3),
+        0 8px 16px rgba(43, 122, 138, 0.15);
+}
+
+/* Состояния выбранного ответа */
+.option-btn.selected {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 0px rgba(0, 0, 0, 0.3),
+        0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.option-btn.correct {
+    background: rgba(47, 185, 93, 0.25) !important;
+    border-color: #2FB95D !important;
+    box-shadow: 
+        0 4px 0px rgba(47, 185, 93, 0.4),
+        0 8px 16px rgba(47, 185, 93, 0.25) !important;
+}
+
+.option-btn.correct .option-label {
+    background: #2FB95D !important;
+    color: #FFFFFF !important;
+    border-color: #2FB95D !important;
+}
+
+.option-btn.incorrect {
+    background: rgba(250, 87, 52, 0.25) !important;
+    border-color: #FA5734 !important;
+    box-shadow: 
+        0 4px 0px rgba(250, 87, 52, 0.4),
+        0 8px 16px rgba(250, 87, 52, 0.25) !important;
+}
+
+.option-btn.incorrect .option-label {
+    background: #FA5734 !important;
+    color: #FFFFFF !important;
+    border-color: #FA5734 !important;
+}
+
+/* Подсветка при использовании джойстика */
+.option-btn.gamepad-highlight {
+    animation: gamepadPulse 0.3s ease;
+}
+
+@keyframes gamepadPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 
+            0 8px 0px rgba(0, 0, 0, 0.4),
+            0 12px 24px rgba(0, 0, 0, 0.2);
+    }
+}
+

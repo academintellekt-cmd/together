@@ -21,7 +21,7 @@
   },
   "gameSettings": {
     "questionsPerGame": 15,
-    "totalQuestions": 117,
+    "totalQuestions": 60,
     "defaultTime": 20,
     "maxPlayers": 14
   },

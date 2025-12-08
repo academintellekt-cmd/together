@@ -19,6 +19,43 @@
             max-width: 800px;
         }
 
+        /* Исправление перекрытия логотипа Frame 2 */
+        /* Убираем белый фон и большой padding-bottom у Frame 2 */
+        body .site-header .frame-2,
+        body .site-header #frame2,
+        body .site-header .frame2 {
+            padding-bottom: 0 !important; /* Убираем padding-bottom полностью */
+            background: transparent !important; /* Делаем фон прозрачным */
+            backdrop-filter: none !important; /* Убираем размытие */
+            -webkit-backdrop-filter: none !important;
+            overflow: visible !important;
+            min-height: auto !important;
+            height: auto !important;
+        }
+        
+        /* Убираем все плашки и фоны из Frame 2 - только логотип и подпись */
+        body .site-header .frame2-content {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        
+        /* Убираем все псевдоэлементы */
+        body .site-header .frame2-content::before,
+        body .site-header .frame2-content::after {
+            display: none !important;
+            content: none !important;
+        }
+        
+        /* На мобильных - еще меньше отступ */
+        @media (max-width: 767px) {
+            body .site-header .frame2-content {
+                padding-bottom: clamp(10px, 2vh, 25px) !important;
+                margin-bottom: clamp(8px, 1.5vh, 15px);
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+            }
+        }
 
         h1 {
             text-align: center;
@@ -165,6 +202,92 @@
             font-family: 'Nunito', sans-serif;
             font-weight: 700;
             color: var(--color-dark);
+        }
+
+        /* Мобильная адаптация */
+        @media (max-width: 767px) {
+            .leaderboard-item {
+                padding: 16px 16px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .leaderboard-item.first,
+            .leaderboard-item.second,
+            .leaderboard-item.third {
+                padding-left: 50px;
+            }
+
+            .leaderboard-item.first::before,
+            .leaderboard-item.second::before,
+            .leaderboard-item.third::before {
+                left: 12px;
+                font-size: 28px;
+            }
+
+            .player-info {
+                width: 100%;
+            }
+
+            .player-name {
+                font-size: clamp(16px, 4vw, 20px);
+            }
+
+            .player-stats {
+                font-size: clamp(12px, 3vw, 14px);
+            }
+
+            .player-score {
+                font-size: clamp(24px, 6vw, 32px);
+                align-self: flex-end;
+                margin-top: 4px;
+            }
+
+            .leaderboard-list {
+                margin: 24px 0;
+            }
+
+            .subtitle {
+                margin-bottom: 24px;
+                font-size: clamp(20px, 4vw, 28px);
+            }
+
+            .empty-state {
+                padding: 40px 16px;
+            }
+
+            .empty-state-icon {
+                font-size: 48px;
+            }
+
+            .loading {
+                padding: 30px 16px;
+                font-size: clamp(18px, 4vw, 24px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .leaderboard-item {
+                padding: 12px 12px;
+            }
+
+            .leaderboard-item.first,
+            .leaderboard-item.second,
+            .leaderboard-item.third {
+                padding-left: 45px;
+            }
+
+            .leaderboard-item.first::before,
+            .leaderboard-item.second::before,
+            .leaderboard-item.third::before {
+                left: 10px;
+                font-size: 24px;
+            }
+
+            .player-score {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
