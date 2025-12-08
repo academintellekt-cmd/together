@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMX Шоу мейкер - ВМЕСТЕ</title>
+    <!-- Новая система фреймов -->
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/components.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <!-- Конфигурация видимости фреймов -->
+    <script>
+        window.pageLayoutConfig = {
+            showFrame1: true,
+            showFrame2: true,
+            showFrame4: true,
+            showFrame5: true
+        };
+    </script>
+    
+    <!-- Layout Manager -->
+    <script src="/scripts/layout.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
+    <style>
+        /* Используем общие стили из base.css, layout.css, components.css */
+        /* Дополнительные стили только для специфичных элементов DMX */
+        
+        /* Дополнительный отступ сверху для контента, чтобы не касался Frame1 */
+        .hub3 > .container {
+            padding-top: clamp(80px, 12vh, 120px) !important; /* Увеличенный отступ сверху для расстояния от Frame1 */
+        }
+        
+        .page-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(32px, 6vw, 48px);
+            color: var(--color-dark);
+            margin-bottom: clamp(20px, 4vw, 30px);
+            text-align: center;
+            font-weight: 700;
+        }
+
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: clamp(20px, 4vw, 28px);
+            margin-bottom: 20px;
+        }
+
+        /* Стили карточек и кнопок наследуются из components.css */
+        .btn-primary {
+            background: var(--color-dark);
+            color: white;
+            border: 3px solid var(--color-dark);
+        }
+
+        .btn-success {
+            background: #00C159;
+            color: white;
+            border: 3px solid #00C159;
+        }
+
+        .btn-danger {
+            background: #ff4444;
+            color: white;
+            border: 3px solid #ff4444;
+        }
+
+        .btn-warning {
+            background: #ffaa00;
+            color: white;
+            border: 3px solid #ffaa00;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .color-input {
+            flex: 1;
+            min-width: 80px;
+            padding: clamp(10px, 2vw, 12px);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            font-size: clamp(14px, 2vw, 16px);
+            font-family: 'Montserrat', sans-serif;
+            text-align: center;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-preview {
+            width: clamp(50px, 8vw, 60px);
+            height: clamp(35px, 6vw, 40px);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            background: #fff;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .player-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .player-btn {
+            padding: clamp(10px, 2vw, 12px);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            background: rgba(245, 245, 245, 0.85);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: clamp(14px, 2vw, 16px);
+            text-align: center;
+            font-family: 'Days One', sans-serif;
+            font-weight: 600;
+            color: var(--color-dark);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .player-btn:hover {
+            background: var(--color-dark);
+            color: white;
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .player-btn.active {
+            background: var(--color-dark);
+            color: white;
+        }
+
+        .log {
+            background: rgba(245, 245, 245, 0.85);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(12px, 2.5vw, 16px);
+            padding: clamp(15px, 3vw, 20px);
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(12px, 2vw, 14px);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid var(--color-dark);
+            padding-left: 10px;
+        }
+
+        .log-entry.success {
+            border-left-color: #00C159;
+        }
+
+        .log-entry.error {
+            border-left-color: #ff4444;
+        }
+
+
+        @media (max-width: 768px) {
+            /* Уменьшенный отступ сверху на мобильных - меньше расстояние до Frame1 */
+            .hub3 > .container {
+                padding-top: clamp(40px, 6vh, 60px) !important;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="with-hub">
+    <!-- HUB3: основная зона контента -->
+    <div class="hub-zone hub3">
+        <div class="container">
+            <h1 class="page-title">🎭 DMX Шоу мейкер</h1>
+
+            <div class="grid">
+                <div class="card">
+                    <h2>👥 Управление игроками</h2>
+                    <div class="player-grid" id="player-grid"></div>
+                    <div class="color-picker">
+                        <input type="number" id="r-input" class="color-input" placeholder="R" min="0" max="255" value="255">
+                        <input type="number" id="g-input" class="color-input" placeholder="G" min="0" max="255" value="255">
+                        <input type="number" id="b-input" class="color-input" placeholder="B" min="0" max="255" value="255">
+                        <div class="color-preview" id="color-preview"></div>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="setPlayerColor()">Установить цвет</button>
+                        <button class="btn btn-success" onclick="setPlayerEffect('fade')">Плавное затухание</button>
+                        <button class="btn btn-warning" onclick="setPlayerEffect('pulse')">Пульсация</button>
+                        <button class="btn btn-danger" onclick="setPlayerEffect('flash')">Мигание</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>🎭 Управление сценой</h2>
+                    <div>
+                        <button class="btn btn-primary" onclick="stageAction('bright')">Яркое освещение</button>
+                        <button class="btn btn-primary" onclick="stageAction('soft')">Мягкое освещение</button>
+                        <button class="btn btn-success" onclick="stageAction('dynamic')">Динамические эффекты</button>
+                        <button class="btn btn-warning" onclick="stageAction('final')">Финальное шоу</button>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <h3>Вспышка сцены</h3>
+                        <div class="color-picker">
+                            <input type="number" id="stage-r" class="color-input" placeholder="R" min="0" max="255" value="255">
+                            <input type="number" id="stage-g" class="color-input" placeholder="G" min="0" max="255" value="0">
+                            <input type="number" id="stage-b" class="color-input" placeholder="B" min="0" max="255" value="0">
+                        </div>
+                        <button class="btn btn-danger" onclick="stageFlash()">Вспышка</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>🔧 Общее управление</h2>
+                    <div>
+                        <button class="btn btn-danger" onclick="allOff()">Все выключить</button>
+                        <button class="btn btn-primary" onclick="setAllColor()">Установить цвет всем</button>
+                    </div>
+                    <div class="color-picker" style="margin-top: 15px;">
+                        <input type="number" id="all-r" class="color-input" placeholder="R" min="0" max="255" value="255">
+                        <input type="number" id="all-g" class="color-input" placeholder="G" min="0" max="255" value="255">
+                        <input type="number" id="all-b" class="color-input" placeholder="B" min="0" max="255" value="255">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Лог -->
+            <div class="card">
+                <h2>📋 Лог операций</h2>
+                <div class="log" id="log"></div>
+                <button class="btn btn-primary" onclick="clearLog()" style="margin-top: 10px;">Очистить лог</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER: Frame 4 и Frame 5 -->
+    <footer class="site-footer">
+        <!-- Frame 4: Правила безопасности -->
+        <section class="frame frame-4" data-frame="rules" id="hub4">
+            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
+        </section>
+
+        <!-- Frame 5: Информация о создателе -->
+        <section class="frame frame-5" data-frame="about" id="hub5">
+            <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+        </section>
+    </footer>
+
+    <script>
+        let selectedPlayer = null;
+        const API_BASE = '/api/dmx';
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            initPlayerGrid();
+            initColorPreview();
+        });
+
+        // Проверка статуса DMX для Frame1
+        async function checkDMXStatus() {
+            const statusElement = document.getElementById('dmx-status-frame1');
+            if (!statusElement) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                const data = await response.json();
+                
+                if (data.available) {
+                    statusElement.className = 'frame1-status connected';
+                    statusElement.innerHTML = '<span>💡 DMX</span>';
+                } else {
+                    statusElement.className = 'frame1-status disconnected';
+                    statusElement.innerHTML = '<span>💡 DMX</span>';
+                }
+            } catch (error) {
+                statusElement.className = 'frame1-status disconnected';
+                statusElement.innerHTML = '<span>💡 DMX</span>';
+            }
+        }
+
+        // Периодическая проверка статуса каждые 5 секунд
+        setInterval(checkDMXStatus, 5000);
+
+        // Инициализация сетки игроков
+        function initPlayerGrid() {
+            const grid = document.getElementById('player-grid');
+            
+            for (let i = 0; i < 14; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'player-btn';
+                btn.textContent = i + 1;
+                btn.onclick = () => selectPlayer(i);
+                grid.appendChild(btn);
+            }
+        }
+
+        // Выбор игрока
+        function selectPlayer(index) {
+            selectedPlayer = index;
+            document.querySelectorAll('.player-btn').forEach((btn, i) => {
+                if (i === index) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            addLog(`Выбран игрок ${index + 1}`, 'success');
+        }
+
+        // Инициализация превью цвета
+        function initColorPreview() {
+            const inputs = ['r-input', 'g-input', 'b-input'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', updateColorPreview);
+                }
+            });
+        }
+
+        function updateColorPreview() {
+            const r = document.getElementById('r-input').value || 0;
+            const g = document.getElementById('g-input').value || 0;
+            const b = document.getElementById('b-input').value || 0;
+            const preview = document.getElementById('color-preview');
+            if (preview) {
+                preview.style.background = `rgb(${r}, ${g}, ${b})`;
+            }
+        }
+
+        // Установить цвет игрока
+        async function setPlayerColor() {
+            if (selectedPlayer === null) {
+                alert('Выберите игрока');
+                return;
+            }
+
+            const r = parseInt(document.getElementById('r-input').value) || 0;
+            const g = parseInt(document.getElementById('g-input').value) || 0;
+            const b = parseInt(document.getElementById('b-input').value) || 0;
+
+            try {
+                const response = await fetch(`${API_BASE}/player/${selectedPlayer}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ r, g, b })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Игрок ${selectedPlayer + 1}: RGB(${r}, ${g}, ${b})`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Установить эффект игрока
+        async function setPlayerEffect(effect) {
+            if (selectedPlayer === null) {
+                alert('Выберите игрока');
+                return;
+            }
+
+            const r = parseInt(document.getElementById('r-input').value) || 0;
+            const g = parseInt(document.getElementById('g-input').value) || 0;
+            const b = parseInt(document.getElementById('b-input').value) || 0;
+
+            try {
+                const response = await fetch(`${API_BASE}/player/${selectedPlayer}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ r, g, b, effect, duration: 500 })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Игрок ${selectedPlayer + 1}: эффект "${effect}"`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Действие сценой
+        async function stageAction(action) {
+            try {
+                const response = await fetch(`${API_BASE}/stage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Сцена: ${action}`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Вспышка сцены
+        async function stageFlash() {
+            const r = parseInt(document.getElementById('stage-r').value) || 0;
+            const g = parseInt(document.getElementById('stage-g').value) || 0;
+            const b = parseInt(document.getElementById('stage-b').value) || 0;
+
+            try {
+                const response = await fetch(`${API_BASE}/stage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'flash', r, g, b })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Сцена: вспышка RGB(${r}, ${g}, ${b})`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Все выключить
+        async function allOff() {
+            try {
+                const response = await fetch(`${API_BASE}/all`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'off' })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog('✅ Все DMX приборы выключены', 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Установить цвет всем
+        async function setAllColor() {
+            const r = parseInt(document.getElementById('all-r').value) || 0;
+            const g = parseInt(document.getElementById('all-g').value) || 0;
+            const b = parseInt(document.getElementById('all-b').value) || 0;
+
+            try {
+                const response = await fetch(`${API_BASE}/all`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'set', r, g, b })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Все игроки: RGB(${r}, ${g}, ${b})`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Добавить запись в лог
+        function addLog(message, type = '') {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Очистить лог
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        // Обновление превью цвета при загрузке
+        updateColorPreview();
+    </script>
+
+    <script>
+        // Инициализация Frame1
+        (function() {
+            function initHubs() {
+                try {
+                    if (typeof Frame1 === 'undefined' || typeof FrameCommon === 'undefined') {
+                        console.warn('Hub скрипты еще не загружены, повторная попытка через 100мс...');
+                        setTimeout(initHubs, 100);
+                        return;
+                    }
+                    
+                    console.log('Инициализация Frame1...');
+                    
+                    // Инициализация Frame1 с кнопкой "Назад"
+                    Frame1.init({
+                        showBack: true,
+                        backUrl: '/settings.html'
+                    });
+                    
+                    // Добавляем навигацию DMX в Frame1
+                    const actionsLeft = document.getElementById('frame1-actions-left');
+                    if (actionsLeft) {
+                        // Кнопка "Шоу мейкер" (активная на этой странице)
+                        const showmakerBtn = document.createElement('a');
+                        showmakerBtn.href = '/dmx-showmaker.html';
+                        showmakerBtn.className = 'frame1-button';
+                        showmakerBtn.textContent = '⚡ Шоу мейкер';
+                        showmakerBtn.style.background = '#393639';
+                        showmakerBtn.style.color = '#FFFFFF';
+                        showmakerBtn.style.borderColor = '#393639';
+                        actionsLeft.appendChild(showmakerBtn);
+                        
+                        // Кнопка "Настройка"
+                        const configBtn = document.createElement('a');
+                        configBtn.href = '/dmx-config.html';
+                        configBtn.className = 'frame1-button';
+                        configBtn.textContent = '⚙️ Настройка';
+                        actionsLeft.appendChild(configBtn);
+                    }
+                    
+                    // Добавляем статус DMX в Frame1
+                    const actionsRight = document.getElementById('frame1-actions-right');
+                    if (actionsRight) {
+                        const statusElement = document.createElement('div');
+                        statusElement.id = 'dmx-status-frame1';
+                        statusElement.className = 'frame1-status disconnected';
+                        statusElement.innerHTML = '<span>💡 DMX</span>';
+                        statusElement.style.cssText = 'display: flex; align-items: center; gap: 6px; cursor: default;';
+                        actionsRight.appendChild(statusElement);
+                        
+                        // Проверяем статус после добавления в DOM
+                        setTimeout(() => checkDMXStatus(), 100);
+                    }
+                    
+                    // Обновление позиций
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                console.log('Frame1 успешно инициализирован');
+                            });
+                        });
+                    });
+                } catch (error) {
+                    console.error('Ошибка при инициализации Hub:', error);
+                }
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(initHubs, 200);
+                });
+            } else {
+                setTimeout(initHubs, 200);
+            }
+            
+            // Обновление при изменении размера окна
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if (typeof FrameCommon !== 'undefined') {
+                        FrameCommon._positionInitialized = false;
+                        FrameCommon._lastCorrectMarginTop = null;
+                        
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                
+                            });
+                        });
+                    }
+                }, 100);
+            });
+        })();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,2414 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMX Настройка - ВМЕСТЕ</title>
+    <!-- Новая система фреймов -->
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/components.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <!-- Конфигурация видимости фреймов -->
+    <script>
+        window.pageLayoutConfig = {
+            showFrame1: true,
+            showFrame2: true,
+            showFrame4: true,
+            showFrame5: true
+        };
+    </script>
+    
+    <!-- Layout Manager -->
+    <script src="/scripts/layout.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
+    <style>
+        /* Используем общие стили из base.css, layout.css, components.css */
+        /* Дополнительные стили только для специфичных элементов DMX */
+        
+        /* Дополнительный отступ сверху для контента, чтобы не касался Frame1 */
+        .hub3 > .container {
+            padding-top: clamp(80px, 12vh, 120px) !important; /* Увеличенный отступ сверху для расстояния от Frame1 */
+        }
+
+        /* Вкладки */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: clamp(12px, 2.5vw, 14px) clamp(20px, 4vw, 24px);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            background: rgba(245, 245, 245, 0.85);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(14px, 2vw, 16px);
+            color: var(--color-dark);
+            font-weight: 600;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn:hover {
+            background: var(--color-dark);
+            color: white;
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .tab-btn.active {
+            background: var(--color-dark);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: clamp(20px, 4vw, 28px);
+            margin-bottom: 20px;
+        }
+
+        /* Стили карточек наследуются из components.css */
+        .page-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(32px, 6vw, 48px);
+            color: var(--color-dark);
+            margin-bottom: clamp(20px, 4vw, 30px);
+            text-align: center;
+            font-weight: 700;
+        }
+
+        /* Конфигуратор каналов - стиль эквалайзера */
+        .channel-config {
+            margin-bottom: 10px;
+            display: flex;
+            gap: clamp(4px, 0.8vw, 6px);
+            justify-content: center;
+            flex-wrap: nowrap;
+            padding: clamp(10px, 2vw, 15px);
+            background: rgba(245, 245, 245, 0.5);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            border: 2px solid var(--color-dark);
+            overflow-x: auto;
+        }
+
+        .channel-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: clamp(50px, 6vw, 70px);
+            position: relative;
+            flex-shrink: 0;
+            justify-content: flex-start;
+            overflow: visible;
+        }
+
+        .channel-label {
+            font-weight: 700;
+            font-size: clamp(11px, 1.5vw, 13px);
+            color: var(--color-dark);
+            margin-bottom: 8px;
+            text-align: center;
+            cursor: help;
+            position: relative;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .channel-label:hover {
+            background: rgba(57, 54, 57, 0.1);
+        }
+
+        .channel-tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 1000;
+            max-width: 280px;
+            white-space: normal;
+            text-align: left;
+            line-height: 1.5;
+            visibility: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .channel-label:hover .channel-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .channel-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.95);
+        }
+
+
+        .channel-slider-wrapper {
+            position: relative;
+            width: clamp(80px, 12vw, 120px);
+            height: clamp(80px, 12vw, 120px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            min-height: 80px;
+            flex-shrink: 0;
+            /* Центрируем wrapper внутри item */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .channel-value-center {
+            display: none;
+        }
+
+        .channel-slider {
+            width: clamp(80px, 12vw, 120px);
+            height: 5px;
+            border-radius: 3px;
+            background: linear-gradient(to bottom, 
+                rgba(0, 200, 0, 0.3) 0%,
+                rgba(200, 200, 0, 0.3) 50%,
+                rgba(200, 0, 0, 0.3) 100%);
+            outline: none;
+            -webkit-appearance: none;
+            transform: rotate(-90deg);
+            transform-origin: center center;
+            position: absolute;
+            cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            margin: 0;
+            z-index: 1;
+            left: 50%;
+            top: 50%;
+            /* Центрируем повернутый слайдер: половина ширины слайдера = половина высоты wrapper */
+            /* После поворота на -90deg ширина становится высотой, поэтому используем половину высоты wrapper */
+            margin-left: calc(-1 * clamp(40px, 6vw, 60px));
+            margin-top: -2.5px;
+            box-sizing: border-box;
+        }
+
+        .channel-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: clamp(14px, 1.8vw, 18px);
+            height: clamp(14px, 1.8vw, 18px);
+            border-radius: 50%;
+            background: var(--color-dark);
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.3),
+                0 0 0 1px var(--color-dark);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .channel-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 
+                0 3px 6px rgba(0,0,0,0.4),
+                0 0 0 2px var(--color-dark);
+        }
+
+        .channel-slider::-moz-range-thumb {
+            width: clamp(14px, 1.8vw, 18px);
+            height: clamp(14px, 1.8vw, 18px);
+            border-radius: 50%;
+            background: var(--color-dark);
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.3),
+                0 0 0 1px var(--color-dark);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .channel-slider::-moz-range-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 
+                0 3px 6px rgba(0,0,0,0.4),
+                0 0 0 2px var(--color-dark);
+        }
+
+
+
+        .channel-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* Цветовой круг */
+        .color-picker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .color-wheel-wrapper {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            max-width: 100%;
+        }
+
+        .color-wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            cursor: crosshair;
+            border: 4px solid var(--color-dark);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .color-preview-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            border: 4px solid var(--color-dark);
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .color-inputs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .color-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .color-input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-dark);
+        }
+
+        .color-input-group input {
+            width: 80px;
+            padding: clamp(8px, 2vw, 10px);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            font-family: 'Courier New', monospace;
+            font-size: clamp(14px, 2vw, 16px);
+            text-align: center;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Пресеты */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .preset-item {
+            padding: clamp(15px, 3vw, 20px);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(12px, 2.5vw, 16px);
+            background: rgba(245, 245, 245, 0.85);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .preset-item:hover {
+            background: var(--color-dark);
+            color: white;
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .preset-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .preset-actions {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .preset-save-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .preset-save-form input {
+            flex: 1;
+            padding: clamp(10px, 2vw, 12px);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            font-family: 'Montserrat', sans-serif;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Стили кнопок наследуются из components.css */
+        .btn-primary {
+            background: var(--color-dark);
+            color: white;
+            border: 3px solid var(--color-dark);
+        }
+
+        .btn-success {
+            background: #00C159;
+            color: white;
+            border: 3px solid #00C159;
+        }
+
+        .btn-danger {
+            background: #ff4444;
+            color: white;
+            border: 3px solid #ff4444;
+        }
+
+        .btn-warning {
+            background: #ffaa00;
+            color: white;
+            border: 3px solid #ffaa00;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 2px;
+        }
+
+        .log-section {
+            max-width: 1200px;
+            margin: clamp(30px, 5vw, 40px) auto;
+            padding: 0 clamp(16px, 4vw, 24px);
+        }
+
+        .log-container {
+            padding: clamp(20px, 4vw, 28px);
+            background: rgba(245, 245, 245, 0.85);
+            border-radius: clamp(12px, 2.5vw, 20px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.15),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .log {
+            background: rgba(255, 255, 255, 0.9);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(12px, 2.5vw, 16px);
+            padding: clamp(15px, 3vw, 20px);
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(12px, 2vw, 14px);
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                inset 0 2px 4px rgba(0, 0, 0, 0.05);
+            min-height: 100px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid var(--color-dark);
+            padding-left: 10px;
+        }
+
+        .log-entry.success {
+            border-left-color: #00C159;
+        }
+
+        .log-entry.error {
+            border-left-color: #ff4444;
+        }
+
+        .address-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .address-input label {
+            font-weight: 600;
+            color: var(--color-dark);
+        }
+
+        .address-input input {
+            width: 100px;
+            padding: clamp(8px, 2vw, 10px);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            font-family: 'Courier New', monospace;
+            font-size: clamp(14px, 2vw, 16px);
+            text-align: center;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .color-input {
+            flex: 1;
+            min-width: 80px;
+            padding: clamp(10px, 2vw, 12px);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            font-size: clamp(14px, 2vw, 16px);
+            font-family: 'Montserrat', sans-serif;
+            text-align: center;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-preview {
+            width: clamp(50px, 8vw, 60px);
+            height: clamp(35px, 6vw, 40px);
+            border: 3px solid var(--color-dark);
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .player-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .player-btn {
+            padding: clamp(10px, 2vw, 12px);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            background: rgba(245, 245, 245, 0.85);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: clamp(14px, 2vw, 16px);
+            text-align: center;
+            font-family: 'Days One', sans-serif;
+            font-weight: 600;
+            color: var(--color-dark);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .player-btn:hover {
+            background: var(--color-dark);
+            color: white;
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .player-btn.active {
+            background: var(--color-dark);
+            color: white;
+        }
+
+        /* Правая панель команд */
+        .main-content-wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .main-content-left {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .commands-panel {
+            width: 380px;
+            min-width: 380px;
+            background: rgba(245, 245, 245, 0.95);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(12px, 2.5vw, 20px);
+            padding: clamp(20px, 4vw, 24px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.15),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            position: sticky;
+            top: 100px;
+        }
+
+        .commands-panel h2 {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(20px, 3vw, 24px);
+            color: var(--color-dark);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .command-form {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--color-dark);
+        }
+
+        .command-form input,
+        .command-form textarea {
+            width: 100%;
+            padding: clamp(10px, 2vw, 12px);
+            margin-bottom: 10px;
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(14px, 2vw, 16px);
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .command-form textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .command-form .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .command-form .form-row input {
+            flex: 1;
+        }
+
+        .commands-list {
+            margin-top: 20px;
+        }
+
+        .command-item {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid var(--color-dark);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            padding: clamp(12px, 2vw, 16px);
+            margin-bottom: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.1),
+                0 3px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .command-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.15),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .command-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .command-name {
+            font-weight: 700;
+            font-size: clamp(16px, 2.5vw, 18px);
+            color: var(--color-dark);
+            flex: 1;
+        }
+
+        .command-preview {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .command-color-preview {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--color-dark);
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .command-info {
+            flex: 1;
+            font-size: clamp(11px, 1.5vw, 13px);
+            color: #666;
+        }
+
+        .command-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .command-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .command-actions .btn {
+            flex: 1;
+            min-width: 70px;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .command-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .command-tag {
+            background: var(--color-dark);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: clamp(10px, 2vw, 12px);
+            margin-bottom: 15px;
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(8px, 1.5vw, 12px);
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(14px, 2vw, 16px);
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            border: 2px solid var(--color-dark);
+            border-radius: 6px;
+            background: rgba(245, 245, 245, 0.85);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--color-dark);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .command-stats {
+            font-size: 11px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            border: 3px solid var(--color-dark);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-family: 'Days One', sans-serif;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .multi-select-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 8px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .multi-select-item {
+            padding: 10px;
+            border: 2px solid var(--color-dark);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .multi-select-item:hover {
+            background: rgba(57, 54, 57, 0.1);
+        }
+
+        .multi-select-item.selected {
+            background: var(--color-dark);
+            color: white;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content-wrapper {
+                flex-direction: column;
+            }
+
+            .commands-panel {
+                width: 100%;
+                min-width: 0;
+                position: static;
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            /* Уменьшенный отступ сверху на мобильных - меньше расстояние до Frame1 */
+            .hub3 > .container {
+                padding-top: clamp(40px, 6vh, 60px) !important;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .color-wheel-wrapper {
+                width: 250px;
+                height: 250px;
+            }
+
+            .channel-config {
+                gap: 6px;
+                padding: 10px;
+            }
+
+            .channel-item {
+                width: clamp(40px, 8vw, 55px);
+            }
+
+            .channel-config {
+                gap: 4px;
+                padding: 8px;
+            }
+
+            .channel-item {
+                width: clamp(35px, 7vw, 50px);
+            }
+
+            .channel-slider-wrapper {
+                width: clamp(100px, 20vw, 140px);
+                height: clamp(100px, 20vw, 140px);
+            }
+
+            .channel-slider {
+                width: clamp(100px, 20vw, 140px);
+            }
+
+            .channel-label {
+                font-size: 10px;
+            }
+
+
+            .commands-panel {
+                padding: 15px;
+            }
+
+            .command-actions {
+                flex-direction: column;
+            }
+
+            .command-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="with-hub">
+    <!-- HUB3: основная зона контента -->
+    <div class="hub-zone hub3">
+        <div class="container">
+            <h1 class="page-title">⚙️ DMX Настройка</h1>
+
+            <div class="main-content-wrapper">
+                <div class="main-content-left">
+                    <!-- Вкладки -->
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab('channels', this)">🎛️ Настройка фонаря</button>
+                        <button class="tab-btn" onclick="switchTab('ledbar', this)">💡 LED BAR</button>
+                        <button class="tab-btn" onclick="switchTab('fog', this)">🌫️ Туман-машина</button>
+                    </div>
+
+            <!-- Вкладка: Конфигуратор каналов -->
+            <div id="tab-channels" class="tab-content active">
+                <div class="card">
+                    <h2>🎛️ Конфигуратор каналов LM70S</h2>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                        Выберите номер прожектора (1-14). Каждый прожектор использует 9 каналов DMX:
+                    </p>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 12px; padding-left: 20px;">
+                        <strong>Каналы:</strong><br>
+                        1 = Угол по оси X (0-255)<br>
+                        2 = Угол по оси Y (0-255)<br>
+                        3 = Режим работы (0-8=ВЫКЛ, 9-135=Затемнение, 136-240=Стробоскоп, 241-255=ВКЛ)<br>
+                        <strong>4 = Затемнение КРАСНЫЙ (0-255)</strong><br>
+                        <strong>5 = Затемнение ЗЕЛЕНЫЙ (0-255)</strong><br>
+                        <strong>6 = Затемнение СИНИЙ (0-255)</strong><br>
+                        7 = Затемнение БЕЛЫЙ (0-255)<br>
+                        8 = Скорость (0-255)<br>
+                        9 = Сброс настроек (150-200)<br>
+                        <strong>Формула адреса:</strong> Start(LM70S N) = 1 + (N - 1) × 9<br>
+                        <strong>Пример:</strong> LM70S #1 начинается с адреса 1, LM70S #2 - с адреса 10, и т.д.
+                    </p>
+                    <div class="address-input">
+                        <label>Номер прожектора LM70S:</label>
+                        <input type="number" id="lm70s-number" min="1" max="14" value="1" onchange="handleLM70SNumberChange()">
+                        <label>Начальный адрес DMX:</label>
+                        <input type="number" id="start-address" min="1" max="512" value="1" readonly>
+                        <button class="btn btn-primary btn-small" onclick="loadLM70SChannels(true)">Загрузить</button>
+                    </div>
+                    <div class="channel-config" id="channel-config"></div>
+                    <p style="margin-top: 15px; color: #666; font-size: 14px; font-style: italic;">
+                        💡 Изменения применяются автоматически в реальном времени при изменении любого параметра
+                    </p>
+                    <button class="btn btn-danger" onclick="resetChannels()">Сбросить все</button>
+                </div>
+            </div>
+
+            <!-- Вкладка: LED BAR -->
+            <div id="tab-ledbar" class="tab-content">
+                <div class="grid">
+                    <div class="card">
+                        <h2>💡 Управление LED BAR</h2>
+                        <div class="address-input">
+                            <label>Номер LED BAR (1-10):</label>
+                            <input type="number" id="ledbar-number" min="1" max="10" value="1">
+                        </div>
+                        <div class="color-picker">
+                            <input type="number" id="ledbar-r" class="color-input" placeholder="R" min="0" max="255" value="255">
+                            <input type="number" id="ledbar-g" class="color-input" placeholder="G" min="0" max="255" value="255">
+                            <input type="number" id="ledbar-b" class="color-input" placeholder="B" min="0" max="255" value="255">
+                            <div class="color-preview" id="ledbar-preview"></div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <button class="btn btn-primary" onclick="setLEDBarAllPixels()">Применить ко всем пикселям</button>
+                            <button class="btn btn-success" onclick="setLEDBarPixel()">Применить к пикселю</button>
+                        </div>
+                        <div class="address-input" style="margin-top: 15px;">
+                            <label>Номер пикселя (1-8):</label>
+                            <input type="number" id="ledbar-pixel" min="1" max="8" value="1">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>💡 Быстрые эффекты LED BAR</h2>
+                        <div>
+                            <button class="btn btn-primary" onclick="ledBarEffect('all-white')">Все белое</button>
+                            <button class="btn btn-success" onclick="ledBarEffect('rainbow')">Радуга</button>
+                            <button class="btn btn-warning" onclick="ledBarEffect('chase')">Погоня</button>
+                            <button class="btn btn-danger" onclick="ledBarEffect('off')">Выключить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка: Туман-машина -->
+            <div id="tab-fog" class="tab-content">
+                <div class="card">
+                    <h2>🌫️ Управление туман-машиной</h2>
+                    <p style="margin-bottom: 20px; color: #666; font-size: 14px;">
+                        Уровень: 0-4 = ВЫКЛ, 5-255 = туман (чем больше значение, тем сильнее туман)
+                    </p>
+                    <div class="address-input">
+                        <label>Уровень тумана:</label>
+                        <input type="range" id="fog-level" min="0" max="255" value="0" 
+                               oninput="document.getElementById('fog-level-value').textContent = this.value">
+                        <span id="fog-level-value" style="font-weight: bold; min-width: 50px;">0</span>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="setFogMachine()">Применить</button>
+                        <button class="btn btn-danger" onclick="setFogMachineLevel(0)">Выключить</button>
+                        <button class="btn btn-success" onclick="setFogMachineLevel(128)">Средний уровень</button>
+                        <button class="btn btn-warning" onclick="setFogMachineLevel(255)">Максимальный</button>
+                    </div>
+                </div>
+            </div>
+                </div>
+
+                <!-- Правая панель: Сохраненные команды -->
+                <div class="commands-panel">
+                    <h2>💾 Сохраненные команды</h2>
+                    
+                    <!-- Форма сохранения команды -->
+                    <div class="command-form">
+                        <input type="text" id="command-name" placeholder="Название команды" maxlength="50">
+                        <textarea id="command-description" placeholder="Описание (необязательно)" maxlength="200"></textarea>
+                        <div class="form-row">
+                            <input type="text" id="command-tags" placeholder="Теги (через запятую)">
+                        </div>
+                        <button class="btn btn-success" onclick="saveCommand()" style="width: 100%;">
+                            💾 Сохранить команду
+                        </button>
+                        <button class="btn btn-primary btn-small" onclick="saveDraft()" style="width: 100%; margin-top: 8px;">
+                            📝 Сохранить черновик
+                        </button>
+                    </div>
+
+                    <!-- Поиск и фильтры -->
+                    <input type="text" class="search-box" id="command-search" placeholder="🔍 Поиск команд..." oninput="filterCommands()">
+                    
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" onclick="setFilter('all')">Все</button>
+                        <button class="filter-btn" onclick="setFilter('popular')">Популярные</button>
+                        <button class="filter-btn" onclick="setFilter('recent')">Недавние</button>
+                    </div>
+
+                    <!-- Список команд -->
+                    <div class="commands-list" id="commands-list">
+                        <div class="empty-state">Загрузка команд...</div>
+                    </div>
+
+                    <!-- Кнопки экспорта/импорта -->
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--color-dark);">
+                        <button class="btn btn-primary btn-small" onclick="exportCommands()" style="width: 100%; margin-bottom: 8px;">
+                            📤 Экспорт команд
+                        </button>
+                        <button class="btn btn-primary btn-small" onclick="importCommands()" style="width: 100%;">
+                            📥 Импорт команд
+                        </button>
+                        <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="handleImportFile(event)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Лог операций - отдельный блок -->
+    <div class="log-section">
+        <div class="log-container">
+            <h2 style="font-family: 'Days One', sans-serif; font-size: clamp(24px, 4vw, 28px); color: var(--color-dark); margin-bottom: 15px; text-align: center;">📋 Лог операций</h2>
+            <div class="log" id="log"></div>
+            <button class="btn btn-primary" onclick="clearLog()" style="margin-top: 15px; display: block; margin-left: auto; margin-right: auto;">Очистить лог</button>
+        </div>
+    </div>
+    <!-- FOOTER: Frame 4 и Frame 5 -->
+    <footer class="site-footer">
+        <!-- Frame 4: Правила безопасности -->
+        <section class="frame frame-4" data-frame="rules" id="hub4">
+            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
+        </section>
+
+        <!-- Frame 5: Информация о создателе -->
+        <section class="frame frame-5" data-frame="about" id="hub5">
+            <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+        </section>
+    </footer>
+
+    <!-- Модальное окно для редактирования команды -->
+    <div id="edit-command-modal" class="modal">
+        <div class="modal-content">
+            <h3>✏️ Редактировать команду</h3>
+            <input type="text" id="edit-command-name" placeholder="Название команды" maxlength="50">
+            <textarea id="edit-command-description" placeholder="Описание" maxlength="200"></textarea>
+            <input type="text" id="edit-command-tags" placeholder="Теги (через запятую)">
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="saveEditedCommand()">Сохранить</button>
+                <button class="btn btn-danger" onclick="closeEditModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для применения к нескольким фонарям -->
+    <div id="apply-multiple-modal" class="modal">
+        <div class="modal-content">
+            <h3>🎯 Применить команду к нескольким фонарям</h3>
+            <p>Выберите номера фонарей (1-14):</p>
+            <div class="multi-select-grid" id="lm70s-multi-select">
+                <!-- Заполнится динамически -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-success" onclick="applyToSelectedFixtures()">Применить</button>
+                <button class="btn btn-danger" onclick="closeApplyMultipleModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/dmx';
+        const COMMANDS_API = '/api/dmx/commands';
+        let currentChannels = {};
+        let startAddress = 1;
+        let allCommands = [];
+        let currentFilter = 'all';
+        let editingCommandId = null;
+        let applyingCommandId = null;
+        let selectedFixtures = [];
+
+        // Названия каналов для LM70S (9 каналов) согласно спецификации
+        const LM70S_CHANNELS = [
+            'Угол по оси X (0-255)',
+            'Угол по оси Y (0-255)',
+            'Режим работы (0-8=ВЫКЛ, 9-135=Затемнение, 136-240=Стробоскоп, 241-255=ВКЛ)',
+            'Затемнение КРАСНЫЙ (0-255)',
+            'Затемнение ЗЕЛЕНЫЙ (0-255)',
+            'Затемнение СИНИЙ (0-255)',
+            'Затемнение БЕЛЫЙ (0-255)',
+            'Скорость (0-255)',
+            'Сброс настроек (150-200)'
+        ];
+
+        // Короткие названия каналов для компактного отображения
+        const LM70S_CHANNELS_SHORT = [
+            'X',
+            'Y',
+            'Режим',
+            'R',
+            'G',
+            'B',
+            'W',
+            'Скорость',
+            'Сброс'
+        ];
+
+        // Проверка статуса DMX для Frame1
+        async function checkDMXStatus() {
+            const statusElement = document.getElementById('dmx-status-frame1');
+            if (!statusElement) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                const data = await response.json();
+                
+                if (data.available) {
+                    statusElement.className = 'frame1-status connected';
+                    statusElement.innerHTML = '<span>💡 DMX</span>';
+                } else {
+                    statusElement.className = 'frame1-status disconnected';
+                    statusElement.innerHTML = '<span>💡 DMX</span>';
+                }
+            } catch (error) {
+                statusElement.className = 'frame1-status disconnected';
+                statusElement.innerHTML = '<span>💡 DMX</span>';
+            }
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            initColorPreview();
+            
+            const lm70sNumberInput = document.getElementById('lm70s-number');
+            if (lm70sNumberInput) {
+                const lm70sNumber = parseInt(lm70sNumberInput.value) || 1;
+                startAddress = 1 + (lm70sNumber - 1) * 9;
+                const startAddressInput = document.getElementById('start-address');
+                if (startAddressInput) {
+                    startAddressInput.value = startAddress;
+                }
+                // Загружаем каналы и отображаем бегунки при загрузке страницы
+                loadChannels().then(() => {
+                    // После загрузки каналов отображаем конфигуратор (принудительно)
+                    setTimeout(() => {
+                        renderChannelConfig(true);
+                    }, 100);
+                });
+            }
+            
+            // Инициализация превью LED BAR
+            if (document.getElementById('ledbar-preview')) {
+                document.getElementById('ledbar-preview').style.background = 'rgb(255, 255, 255)';
+            }
+
+            // Загружаем команды при загрузке страницы
+            loadCommands();
+            
+            // Загружаем черновик, если есть
+            loadDraft();
+        });
+        
+        // Периодическая проверка статуса каждые 5 секунд (после создания элемента)
+        setTimeout(() => {
+            checkDMXStatus();
+            setInterval(checkDMXStatus, 5000);
+        }, 500);
+
+        // Переключение вкладок
+        function switchTab(tabName, eventElement) {
+            // Убираем активность со всех кнопок и контента
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Активируем выбранную кнопку
+            if (eventElement) {
+                eventElement.classList.add('active');
+            } else {
+                // Находим кнопку по onclick атрибуту
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    const onclick = btn.getAttribute('onclick');
+                    if (onclick && onclick.includes(`'${tabName}'`)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+            
+            // Показываем выбранный контент
+            const tabContent = document.getElementById(`tab-${tabName}`);
+            if (tabContent) {
+                tabContent.classList.add('active');
+            } else {
+                console.error(`Вкладка с id="tab-${tabName}" не найдена`);
+            }
+        }
+
+
+
+        // Инициализация превью цвета
+        function initColorPreview() {
+            // Инициализация превью LED BAR
+            ['ledbar-r', 'ledbar-g', 'ledbar-b'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', () => {
+                        const r = parseInt(document.getElementById('ledbar-r').value) || 0;
+                        const g = parseInt(document.getElementById('ledbar-g').value) || 0;
+                        const b = parseInt(document.getElementById('ledbar-b').value) || 0;
+                        const preview = document.getElementById('ledbar-preview');
+                        if (preview) {
+                            preview.style.background = `rgb(${r}, ${g}, ${b})`;
+                        }
+                    });
+                }
+            });
+        }
+
+        // Конвертация HSV в RGB (для LED BAR эффектов)
+        function hsvToRgb(h, s, v) {
+            h = h / 360;
+            s = s / 100;
+            v = v / 100;
+            
+            let r, g, b;
+            const i = Math.floor(h * 6);
+            const f = h * 6 - i;
+            const p = v * (1 - s);
+            const q = v * (1 - f * s);
+            const t = v * (1 - (1 - f) * s);
+            
+            switch (i % 6) {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                case 5: r = v; g = p; b = q; break;
+            }
+            
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        }
+
+        // Флаг для предотвращения перезагрузки значений во время редактирования
+        let isEditingChannels = false;
+        let lastEditTime = 0; // Время последнего редактирования
+
+        // Загрузить каналы LM70S
+        async function loadLM70SChannels(force = false) {
+            if (!force) {
+                const timeSinceLastEdit = Date.now() - lastEditTime;
+                if (isEditingChannels || timeSinceLastEdit < 5000) {
+                    return;
+                }
+            }
+            
+            if (force) {
+                isEditingChannels = false;
+            }
+            
+            const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+            // Start(LM70S N) = 1 + (N - 1) * 9
+            const newStartAddress = 1 + (lm70sNumber - 1) * 9;
+            
+            // Обновляем startAddress
+            const previousStartAddress = startAddress;
+            startAddress = newStartAddress;
+            document.getElementById('start-address').value = startAddress;
+            
+            if (force && newStartAddress !== previousStartAddress) {
+                for (let i = 1; i <= 9; i++) {
+                    currentChannels[i] = undefined;
+                }
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/channels?startAddress=${startAddress}&count=9`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // ВАЖНО: Не перезаписываем значения, которые были установлены пользователем
+                    // Сохраняем текущие значения перед загрузкой
+                    const savedChannels = { ...currentChannels };
+                    
+                    const loadedChannels = data.channels || {};
+                    
+                    for (let i = 1; i <= 9; i++) {
+                        const savedValue = savedChannels[i];
+                        const loadedValue = loadedChannels[i] || 0;
+                        if (savedValue === undefined) {
+                            currentChannels[i] = loadedValue;
+                        } else {
+                            currentChannels[i] = savedValue;
+                        }
+                    }
+                    // Вызываем renderChannelConfig() только если не идет редактирование
+                    // и прошло достаточно времени с последнего редактирования
+                    const timeSinceLastEdit = Date.now() - lastEditTime;
+                    if (!isEditingChannels && timeSinceLastEdit >= 5000) {
+                        renderChannelConfig(true);
+                    } else {
+                        // Если renderChannelConfig не вызывается, обновляем слайдеры вручную
+                        // чтобы синхронизировать позицию слайдеров с загруженными значениями
+                        for (let i = 1; i <= 9; i++) {
+                            if (currentChannels[i] !== undefined) {
+                                const slider = document.querySelector(`.channel-slider[data-channel="${i}"]`);
+                                if (slider) {
+                                    updateSliderDisplay(slider, i, currentChannels[i]);
+                                }
+                            }
+                        }
+                    }
+                    addLog(`✅ Загружены каналы LM70S #${lm70sNumber} с адреса ${startAddress}`, 'success');
+                } else {
+                    addLog(`❌ Ошибка загрузки каналов: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+                    // Инициализируем пустые каналы только если их еще нет
+                if (Object.keys(currentChannels).length === 0) {
+                    for (let i = 1; i <= 9; i++) {
+                        currentChannels[i] = 0;
+                    }
+                    renderChannelConfig(true);
+                }
+            }
+        }
+
+        // Загрузить каналы (старая функция для совместимости)
+        async function loadChannels() {
+            await loadLM70SChannels();
+        }
+
+        // Обработчик изменения номера прожектора
+        function handleLM70SNumberChange() {
+            const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+            const newStartAddress = 1 + (lm70sNumber - 1) * 9;
+            
+            startAddress = newStartAddress;
+            document.getElementById('start-address').value = startAddress;
+            
+            // Очищаем текущие каналы перед загрузкой новых
+            for (let i = 1; i <= 9; i++) {
+                currentChannels[i] = undefined;
+            }
+            
+            // Загружаем каналы нового прожектора
+            loadLM70SChannels(true);
+        }
+
+        function renderChannelConfig(force = false) {
+            if (!force) {
+                const timeSinceLastEdit = Date.now() - lastEditTime;
+                if (isEditingChannels || timeSinceLastEdit < 5000) {
+                    return;
+                }
+            }
+            
+            const container = document.getElementById('channel-config');
+            if (!container) {
+                return;
+            }
+            
+            const savedChannels = { ...currentChannels };
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= 9; i++) {
+                const value = savedChannels[i] !== undefined ? savedChannels[i] : 0;
+                const channelItem = document.createElement('div');
+                channelItem.className = 'channel-item';
+                channelItem.setAttribute('data-channel-index', i);
+                const absoluteChannel = startAddress + i - 1;
+                const channelName = LM70S_CHANNELS_SHORT[i - 1];
+                const channelDescription = LM70S_CHANNELS[i - 1];
+                const invertedValue = 255 - value;
+                const channelNumber = i;
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'channel-label';
+                labelDiv.setAttribute('title', channelDescription);
+                labelDiv.textContent = channelName;
+                
+                const tooltipDiv = document.createElement('div');
+                tooltipDiv.className = 'channel-tooltip';
+                tooltipDiv.innerHTML = `${channelDescription}<br>DMX канал: ${absoluteChannel}`;
+                labelDiv.appendChild(tooltipDiv);
+                
+                const sliderWrapper = document.createElement('div');
+                sliderWrapper.className = 'channel-slider-wrapper';
+                
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.className = 'channel-slider';
+                slider.min = '0';
+                slider.max = '255';
+                slider.value = invertedValue;
+                slider.setAttribute('data-channel', channelNumber);
+                (function(chNum, sliderElement) {
+                    sliderElement.addEventListener('input', function() {
+                        updateChannelValueFromSlider(chNum, this.value, sliderElement);
+                    });
+                    sliderElement.addEventListener('change', function() {
+                        updateChannelValueFromSlider(chNum, this.value, sliderElement);
+                    });
+                })(channelNumber, slider);
+                
+                sliderWrapper.appendChild(slider);
+                
+                channelItem.appendChild(labelDiv);
+                channelItem.appendChild(sliderWrapper);
+                
+                container.appendChild(channelItem);
+            }
+            
+            Object.keys(savedChannels).forEach(ch => {
+                currentChannels[ch] = savedChannels[ch];
+            });
+        }
+
+        let applyTimeout = null;
+        const APPLY_DELAY = 50;
+
+        function updateChannelValueFromSlider(channel, sliderValue, sliderElement) {
+            const value = 255 - Math.max(0, Math.min(255, parseInt(sliderValue) || 0));
+            
+            let actualChannel = channel;
+            if (sliderElement) {
+                const elementChannel = parseInt(sliderElement.getAttribute('data-channel'));
+                if (elementChannel && !isNaN(elementChannel)) {
+                    actualChannel = elementChannel;
+                }
+            }
+            updateChannelValue(actualChannel, value, sliderElement);
+        }
+
+        function updateChannelValue(channel, value, sliderElement = null) {
+            value = Math.max(0, Math.min(255, parseInt(value) || 0));
+            
+            const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+            const currentStartAddress = 1 + (lm70sNumber - 1) * 9;
+            if (startAddress !== currentStartAddress) {
+                startAddress = currentStartAddress;
+                document.getElementById('start-address').value = startAddress;
+            }
+            
+            isEditingChannels = true;
+            lastEditTime = Date.now();
+            currentChannels[channel] = value;
+            
+            const slider = sliderElement || document.querySelector(`.channel-slider[data-channel="${channel}"]`);
+            if (slider) {
+                const sliderChannel = parseInt(slider.getAttribute('data-channel'));
+                if (sliderChannel !== channel) {
+                    const correctSlider = document.querySelector(`.channel-slider[data-channel="${channel}"]`);
+                    if (correctSlider) {
+                        updateSliderDisplay(correctSlider, channel, value);
+                    }
+                } else {
+                    updateSliderDisplay(slider, channel, value);
+                }
+            }
+            
+            // Очистить предыдущий таймер
+            if (applyTimeout) {
+                clearTimeout(applyTimeout);
+            }
+            
+                applyTimeout = setTimeout(() => {
+                    applyChannelsRealtime();
+                }, APPLY_DELAY);
+        }
+
+        function updateSliderDisplay(slider, channel, value) {
+            const sliderChannel = parseInt(slider.getAttribute('data-channel'));
+            if (sliderChannel !== channel) {
+                return;
+            }
+            slider.value = 255 - value;
+        }
+        
+        // Применить изменения в реальном времени (без лога для каждого изменения)
+        async function applyChannelsRealtime() {
+            try {
+                const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+                const currentStartAddress = 1 + (lm70sNumber - 1) * 9;
+                
+                if (currentStartAddress !== startAddress) {
+                    startAddress = currentStartAddress;
+                    document.getElementById('start-address').value = startAddress;
+                }
+                
+                const expectedStartAddress = 1 + (lm70sNumber - 1) * 9;
+                if (startAddress !== expectedStartAddress) {
+                    startAddress = expectedStartAddress;
+                    document.getElementById('start-address').value = startAddress;
+                }
+                
+                const channelsToSend = {};
+                for (let i = 1; i <= 9; i++) {
+                    if (currentChannels[i] !== undefined && currentChannels[i] !== null) {
+                        channelsToSend[i] = currentChannels[i];
+                    }
+                }
+                
+                if (Object.keys(channelsToSend).length === 0) {
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/channels`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        channels: channelsToSend,
+                        startAddress: startAddress
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    Object.keys(channelsToSend).forEach(ch => {
+                        const chNum = parseInt(ch);
+                        const value = channelsToSend[ch];
+                        const slider = document.querySelector(`.channel-slider[data-channel="${chNum}"]`);
+                        if (slider) {
+                            slider.value = 255 - value;
+                        }
+                    });
+                } else {
+                    addLog(`❌ Ошибка применения каналов: ${data.error || 'Неизвестная ошибка'}`, 'error');
+                }
+            } catch (error) {
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    addLog(`❌ Ошибка подключения к серверу`, 'error');
+                }
+            }
+        }
+
+        async function applyChannels() {
+            try {
+                const response = await fetch(`${API_BASE}/channels`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        channels: currentChannels,
+                        startAddress: startAddress
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ Применены каналы с адреса ${startAddress}`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        function resetChannels() {
+            if (confirm('Сбросить все каналы в 0?')) {
+                for (let i = 1; i <= 9; i++) {
+                    currentChannels[i] = 0;
+                }
+                renderChannelConfig(true);
+                applyChannels();
+            }
+        }
+
+
+        function addLog(message, type = '') {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        // Управление LED BAR
+        async function setLEDBarAllPixels() {
+            const barNumber = parseInt(document.getElementById('ledbar-number').value) || 1;
+            const r = parseInt(document.getElementById('ledbar-r').value) || 0;
+            const g = parseInt(document.getElementById('ledbar-g').value) || 0;
+            const b = parseInt(document.getElementById('ledbar-b').value) || 0;
+            
+            try {
+                const response = await fetch(`${API_BASE}/ledbar/${barNumber}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ r, g, b })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ LED BAR ${barNumber}: все пиксели RGB(${r}, ${g}, ${b})`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        async function setLEDBarPixel() {
+            const barNumber = parseInt(document.getElementById('ledbar-number').value) || 1;
+            const pixel = parseInt(document.getElementById('ledbar-pixel').value) || 1;
+            const r = parseInt(document.getElementById('ledbar-r').value) || 0;
+            const g = parseInt(document.getElementById('ledbar-g').value) || 0;
+            const b = parseInt(document.getElementById('ledbar-b').value) || 0;
+            
+            try {
+                const response = await fetch(`${API_BASE}/ledbar/${barNumber}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pixel, r, g, b })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    addLog(`✅ LED BAR ${barNumber}, пиксель ${pixel}: RGB(${r}, ${g}, ${b})`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        async function ledBarEffect(effect) {
+            const barNumber = parseInt(document.getElementById('ledbar-number').value) || 1;
+            let r = 0, g = 0, b = 0;
+            
+            switch(effect) {
+                case 'all-white':
+                    r = g = b = 255;
+                    break;
+                case 'rainbow':
+                    // Радуга по пикселям
+                    for (let pixel = 1; pixel <= 8; pixel++) {
+                        const hue = (pixel * 360 / 8) % 360;
+                        const rgb = hsvToRgb(hue, 100, 100);
+                        try {
+                            await fetch(`${API_BASE}/ledbar/${barNumber}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ pixel, r: rgb.r, g: rgb.g, b: rgb.b })
+                            });
+                        } catch (error) {
+                            addLog(`❌ Ошибка: ${error.message}`, 'error');
+                        }
+                    }
+                    addLog(`✅ LED BAR ${barNumber}: эффект радуги`, 'success');
+                    return;
+                case 'chase':
+                    // Эффект погони
+                    for (let pixel = 1; pixel <= 8; pixel++) {
+                        setTimeout(async () => {
+                            try {
+                                await fetch(`${API_BASE}/ledbar/${barNumber}`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ pixel, r: 255, g: 255, b: 255 })
+                                });
+                                setTimeout(async () => {
+                                    await fetch(`${API_BASE}/ledbar/${barNumber}`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ pixel, r: 0, g: 0, b: 0 })
+                                    });
+                                }, 200);
+                            } catch (error) {
+                                addLog(`❌ Ошибка: ${error.message}`, 'error');
+                            }
+                        }, pixel * 100);
+                    }
+                    addLog(`✅ LED BAR ${barNumber}: эффект погони`, 'success');
+                    return;
+                case 'off':
+                    r = g = b = 0;
+                    break;
+            }
+            
+            await setLEDBarAllPixels();
+        }
+
+
+        // Управление туман-машиной
+        async function setFogMachine() {
+            const level = parseInt(document.getElementById('fog-level').value) || 0;
+            await setFogMachineLevel(level);
+        }
+
+        async function setFogMachineLevel(level) {
+            document.getElementById('fog-level').value = level;
+            document.getElementById('fog-level-value').textContent = level;
+            
+            try {
+                const response = await fetch(`${API_BASE}/fog`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ level })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    const status = level <= 4 ? 'ВЫКЛ' : `ВКЛ (уровень ${level})`;
+                    addLog(`✅ Туман-машина: ${status}`, 'success');
+                } else {
+                    addLog(`❌ Ошибка: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // ==================== УПРАВЛЕНИЕ КОМАНДАМИ ====================
+
+        // Загрузить все команды
+        async function loadCommands() {
+            try {
+                const response = await fetch(`${COMMANDS_API}?sortBy=updatedAt&order=desc`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    allCommands = data.commands || [];
+                    renderCommands();
+                } else {
+                    console.error('Ошибка загрузки команд:', data.error);
+                    document.getElementById('commands-list').innerHTML = 
+                        '<div class="empty-state">Ошибка загрузки команд</div>';
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки команд:', error);
+                document.getElementById('commands-list').innerHTML = 
+                    '<div class="empty-state">Ошибка загрузки команд</div>';
+            }
+        }
+
+        // Сохранить команду
+        async function saveCommand() {
+            const name = document.getElementById('command-name').value.trim();
+            const description = document.getElementById('command-description').value.trim();
+            const tagsInput = document.getElementById('command-tags').value.trim();
+            const lm70sNumber = parseInt(document.getElementById('lm70s-number').value) || 1;
+            
+            if (!name) {
+                alert('Введите название команды');
+                return;
+            }
+
+            // Получаем текущие значения каналов
+            const channels = {};
+            for (let i = 1; i <= 9; i++) {
+                channels[i] = currentChannels[i] !== undefined ? currentChannels[i] : 0;
+            }
+
+            const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
+
+            try {
+                const response = await fetch(COMMANDS_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        description,
+                        tags,
+                        lm70sNumber,
+                        startAddress: startAddress,
+                        channels
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ Команда "${name}" сохранена`, 'success');
+                    document.getElementById('command-name').value = '';
+                    document.getElementById('command-description').value = '';
+                    document.getElementById('command-tags').value = '';
+                    await loadCommands();
+                } else {
+                    addLog(`❌ Ошибка сохранения: ${data.message || data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Сохранить черновик в localStorage
+        function saveDraft() {
+            const draft = {
+                name: document.getElementById('command-name').value,
+                description: document.getElementById('command-description').value,
+                tags: document.getElementById('command-tags').value,
+                channels: { ...currentChannels },
+                lm70sNumber: parseInt(document.getElementById('lm70s-number').value) || 1,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('dmx-command-draft', JSON.stringify(draft));
+            addLog('📝 Черновик сохранен', 'success');
+        }
+
+        // Загрузить черновик из localStorage
+        function loadDraft() {
+            try {
+                const draftStr = localStorage.getItem('dmx-command-draft');
+                if (draftStr) {
+                    const draft = JSON.parse(draftStr);
+                    document.getElementById('command-name').value = draft.name || '';
+                    document.getElementById('command-description').value = draft.description || '';
+                    document.getElementById('command-tags').value = draft.tags || '';
+                    
+                    // Предлагаем восстановить каналы
+                    if (confirm('Найден черновик. Восстановить параметры?')) {
+                        if (draft.channels) {
+                            Object.keys(draft.channels).forEach(ch => {
+                                currentChannels[ch] = draft.channels[ch];
+                            });
+                            renderChannelConfig(true);
+                            applyChannelsRealtime();
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки черновика:', error);
+            }
+        }
+
+        // Отобразить команды
+        function renderCommands() {
+            const container = document.getElementById('commands-list');
+            const searchQuery = document.getElementById('command-search').value.toLowerCase();
+            
+            let filtered = allCommands;
+            
+            // Поиск
+            if (searchQuery) {
+                filtered = filtered.filter(cmd => 
+                    cmd.name.toLowerCase().includes(searchQuery) ||
+                    cmd.description.toLowerCase().includes(searchQuery) ||
+                    cmd.tags.some(tag => tag.toLowerCase().includes(searchQuery))
+                );
+            }
+            
+            // Фильтры
+            if (currentFilter === 'popular') {
+                filtered = filtered.filter(cmd => (cmd.usageCount || 0) > 0)
+                    .sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0));
+            } else if (currentFilter === 'recent') {
+                filtered = filtered.sort((a, b) => 
+                    new Date(b.updatedAt) - new Date(a.updatedAt)
+                );
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state">Команды не найдены</div>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(cmd => {
+                const r = cmd.channels['4'] || 0;
+                const g = cmd.channels['5'] || 0;
+                const b = cmd.channels['6'] || 0;
+                const mode = cmd.channels['3'] || 0;
+                let modeText = 'ВЫКЛ';
+                if (mode >= 9 && mode <= 135) modeText = 'Затемнение';
+                else if (mode >= 136 && mode <= 240) modeText = 'Стробоскоп';
+                else if (mode >= 241) modeText = 'ВКЛ';
+                
+                const colorStyle = `rgb(${r}, ${g}, ${b})`;
+                const usageCount = cmd.usageCount || 0;
+                const lastUsed = cmd.lastUsedAt ? new Date(cmd.lastUsedAt).toLocaleDateString('ru-RU') : 'Никогда';
+                
+                return `
+                    <div class="command-item" data-command-id="${cmd.id}">
+                        <div class="command-header">
+                            <div class="command-name">${escapeHtml(cmd.name)}</div>
+                        </div>
+                        <div class="command-preview">
+                            <div class="command-color-preview" style="background: ${colorStyle};"></div>
+                            <div class="command-info">
+                                <div class="command-info-row">
+                                    <span>Фонарь #${cmd.lm70sNumber}</span>
+                                    <span>${modeText}</span>
+                                </div>
+                                <div class="command-info-row">
+                                    <span>X: ${cmd.channels['1'] || 0} Y: ${cmd.channels['2'] || 0}</span>
+                                    <span>Скорость: ${cmd.channels['8'] || 0}</span>
+                                </div>
+                            </div>
+                        </div>
+                        ${cmd.tags.length > 0 ? `
+                            <div class="command-tags">
+                                ${cmd.tags.map(tag => `<span class="command-tag">${escapeHtml(tag)}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        <div class="command-stats">
+                            Использовано: ${usageCount} раз | Последнее: ${lastUsed}
+                        </div>
+                        <div class="command-actions">
+                            <button class="btn btn-success btn-small" onclick="applyCommand('${cmd.id}')" title="Применить">
+                                ▶️
+                            </button>
+                            <button class="btn btn-primary btn-small" onclick="testCommand('${cmd.id}')" title="Тест (2 сек)">
+                                🧪
+                            </button>
+                            <button class="btn btn-warning btn-small" onclick="applyToMultiple('${cmd.id}')" title="К нескольким">
+                                🎯
+                            </button>
+                            <button class="btn btn-primary btn-small" onclick="editCommand('${cmd.id}')" title="Редактировать">
+                                ✏️
+                            </button>
+                            <button class="btn btn-primary btn-small" onclick="duplicateCommand('${cmd.id}')" title="Дублировать">
+                                📋
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="deleteCommand('${cmd.id}')" title="Удалить">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Применить команду
+        async function applyCommand(commandId, targetLM70SNumber = null) {
+            try {
+                const response = await fetch(`${COMMANDS_API}/${commandId}/apply`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetLM70SNumber })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ Команда применена к фонарю #${data.targetLM70SNumber}`, 'success');
+                    await loadCommands();
+                    
+                    // Обновляем интерфейс, если команда применена к текущему фонарю
+                    if (data.targetLM70SNumber === parseInt(document.getElementById('lm70s-number').value)) {
+                        loadLM70SChannels(true);
+                    }
+                } else {
+                    addLog(`❌ Ошибка применения: ${data.message || data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Тест команды (применить на 2 секунды)
+        async function testCommand(commandId) {
+            const command = allCommands.find(c => c.id === commandId);
+            if (!command) return;
+
+            // Сохраняем текущее состояние
+            const savedChannels = { ...currentChannels };
+            
+            // Применяем команду
+            await applyCommand(commandId);
+            
+            // Через 2 секунды восстанавливаем
+            setTimeout(async () => {
+                currentChannels = savedChannels;
+                renderChannelConfig(true);
+                await applyChannelsRealtime();
+                addLog('⏱️ Тест завершен, состояние восстановлено', 'success');
+            }, 2000);
+        }
+
+        // Применить к нескольким фонарям
+        function applyToMultiple(commandId) {
+            applyingCommandId = commandId;
+            const container = document.getElementById('lm70s-multi-select');
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= 14; i++) {
+                const item = document.createElement('div');
+                item.className = 'multi-select-item';
+                item.textContent = i;
+                item.onclick = function() {
+                    this.classList.toggle('selected');
+                };
+                container.appendChild(item);
+            }
+            
+            document.getElementById('apply-multiple-modal').classList.add('active');
+        }
+
+        // Применить к выбранным фонарям
+        async function applyToSelectedFixtures() {
+            const selected = Array.from(document.querySelectorAll('#lm70s-multi-select .selected'))
+                .map(el => parseInt(el.textContent));
+            
+            if (selected.length === 0) {
+                alert('Выберите хотя бы один фонарь');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${COMMANDS_API}/${applyingCommandId}/apply-multiple`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lm70sNumbers: selected })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ Команда применена к ${selected.length} фонарям`, 'success');
+                    closeApplyMultipleModal();
+                    await loadCommands();
+                } else {
+                    addLog(`❌ Ошибка: ${data.message || data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Закрыть модальное окно применения к нескольким
+        function closeApplyMultipleModal() {
+            document.getElementById('apply-multiple-modal').classList.remove('active');
+            applyingCommandId = null;
+        }
+
+        // Редактировать команду
+        function editCommand(commandId) {
+            const command = allCommands.find(c => c.id === commandId);
+            if (!command) return;
+
+            editingCommandId = commandId;
+            document.getElementById('edit-command-name').value = command.name;
+            document.getElementById('edit-command-description').value = command.description || '';
+            document.getElementById('edit-command-tags').value = command.tags.join(', ');
+            document.getElementById('edit-command-modal').classList.add('active');
+        }
+
+        // Сохранить отредактированную команду
+        async function saveEditedCommand() {
+            if (!editingCommandId) return;
+
+            const name = document.getElementById('edit-command-name').value.trim();
+            const description = document.getElementById('edit-command-description').value.trim();
+            const tagsInput = document.getElementById('edit-command-tags').value.trim();
+            const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
+
+            try {
+                const response = await fetch(`${COMMANDS_API}/${editingCommandId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description, tags })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ Команда "${name}" обновлена`, 'success');
+                    closeEditModal();
+                    await loadCommands();
+                } else {
+                    addLog(`❌ Ошибка обновления: ${data.message || data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Закрыть модальное окно редактирования
+        function closeEditModal() {
+            document.getElementById('edit-command-modal').classList.remove('active');
+            editingCommandId = null;
+        }
+
+        // Дублировать команду
+        async function duplicateCommand(commandId) {
+            const command = allCommands.find(c => c.id === commandId);
+            if (!command) return;
+
+            const newName = prompt('Введите новое название для копии:', `${command.name} (копия)`);
+            if (!newName) return;
+
+            try {
+                const response = await fetch(`${COMMANDS_API}/${commandId}/duplicate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newName: newName.trim() })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ Команда "${newName}" создана`, 'success');
+                    await loadCommands();
+                } else {
+                    addLog(`❌ Ошибка дублирования: ${data.message || data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Удалить команду
+        async function deleteCommand(commandId) {
+            const command = allCommands.find(c => c.id === commandId);
+            if (!command) return;
+
+            if (!confirm(`Удалить команду "${command.name}"?`)) return;
+
+            try {
+                const response = await fetch(`${COMMANDS_API}/${commandId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ Команда "${command.name}" удалена`, 'success');
+                    await loadCommands();
+                } else {
+                    addLog(`❌ Ошибка удаления: ${data.message || data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Фильтрация команд
+        function filterCommands() {
+            renderCommands();
+        }
+
+        // Установить фильтр
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderCommands();
+        }
+
+        // Экспорт команд
+        async function exportCommands() {
+            try {
+                const response = await fetch(`${COMMANDS_API}/export`);
+                const data = await response.json();
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dmx-commands-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                addLog('✅ Команды экспортированы', 'success');
+            } catch (error) {
+                addLog(`❌ Ошибка экспорта: ${error.message}`, 'error');
+            }
+        }
+
+        // Импорт команд
+        function importCommands() {
+            document.getElementById('import-file-input').click();
+        }
+
+        // Обработка импорта файла
+        async function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const importData = JSON.parse(e.target.result);
+                    const merge = confirm('Объединить с существующими командами? (Отмена = заменить все)');
+                    
+                    const response = await fetch(`${COMMANDS_API}/import?merge=${merge}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(importData)
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        addLog(`✅ Импортировано ${data.imported} команд`, 'success');
+                        await loadCommands();
+                    } else {
+                        addLog(`❌ Ошибка импорта: ${data.message || data.error}`, 'error');
+                    }
+                } catch (error) {
+                    addLog(`❌ Ошибка чтения файла: ${error.message}`, 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Сброс input
+        }
+
+        // Экранирование HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Закрытие модальных окон по клику вне их
+        window.onclick = function(event) {
+            const editModal = document.getElementById('edit-command-modal');
+            const applyModal = document.getElementById('apply-multiple-modal');
+            if (event.target === editModal) {
+                closeEditModal();
+            }
+            if (event.target === applyModal) {
+                closeApplyMultipleModal();
+            }
+        }
+
+        // Горячие клавиши
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+S для сохранения команды
+            if (e.ctrlKey && e.key === 's' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                saveCommand();
+            }
+            // Escape для закрытия модальных окон
+            if (e.key === 'Escape') {
+                closeEditModal();
+                closeApplyMultipleModal();
+            }
+        });
+
+    </script>
+
+    <script>
+        // Инициализация Frame1
+        (function() {
+            function initHubs() {
+                try {
+                    if (typeof Frame1 === 'undefined' || typeof FrameCommon === 'undefined') {
+                        console.warn('Hub скрипты еще не загружены, повторная попытка через 100мс...');
+                        setTimeout(initHubs, 100);
+                        return;
+                    }
+                    
+                    console.log('Инициализация Frame1...');
+                    
+                    // Инициализация Frame1 с кнопкой "Назад"
+                    Frame1.init({
+                        showBack: true,
+                        backUrl: '/dmx-showmaker.html'
+                    });
+                    
+                    // Добавляем навигацию DMX в Frame1
+                    const actionsLeft = document.getElementById('frame1-actions-left');
+                    if (actionsLeft) {
+                        // Кнопка "Шоу мейкер"
+                        const showmakerBtn = document.createElement('a');
+                        showmakerBtn.href = '/dmx-showmaker.html';
+                        showmakerBtn.className = 'frame1-button';
+                        showmakerBtn.textContent = '⚡ Шоу мейкер';
+                        actionsLeft.appendChild(showmakerBtn);
+                        
+                        // Кнопка "Настройка" (активная на этой странице)
+                        const configBtn = document.createElement('a');
+                        configBtn.href = '/dmx-config.html';
+                        configBtn.className = 'frame1-button';
+                        configBtn.textContent = '⚙️ Настройка';
+                        configBtn.style.background = '#393639';
+                        configBtn.style.color = '#FFFFFF';
+                        configBtn.style.borderColor = '#393639';
+                        actionsLeft.appendChild(configBtn);
+                    }
+                    
+                    // Добавляем статус DMX в Frame1
+                    const actionsRight = document.getElementById('frame1-actions-right');
+                    if (actionsRight) {
+                        const statusElement = document.createElement('div');
+                        statusElement.id = 'dmx-status-frame1';
+                        statusElement.className = 'frame1-status disconnected';
+                        statusElement.innerHTML = '<span>💡 DMX</span>';
+                        statusElement.style.cssText = 'display: flex; align-items: center; gap: 6px; cursor: default;';
+                        actionsRight.appendChild(statusElement);
+                        
+                        // Проверяем статус сразу после добавления в DOM и затем периодически
+                        checkDMXStatus();
+                        setInterval(checkDMXStatus, 5000);
+                    }
+                    
+                    // Обновление позиций
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                console.log('Frame1 успешно инициализирован');
+                            });
+                        });
+                    });
+                } catch (error) {
+                    console.error('Ошибка при инициализации Hub:', error);
+                }
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(initHubs, 200);
+                });
+            } else {
+                setTimeout(initHubs, 200);
+            }
+            
+            // Обновление при изменении размера окна
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if (typeof FrameCommon !== 'undefined') {
+                        FrameCommon._positionInitialized = false;
+                        FrameCommon._lastCorrectMarginTop = null;
+                        
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                
+                            });
+                        });
+                    }
+                }, 100);
+            });
+        })();
+    </script>
+</body>
+</html>
