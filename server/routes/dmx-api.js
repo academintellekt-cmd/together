@@ -515,10 +515,14 @@ router.post('/fog', async (req, res) => {
 // Получить все команды
 router.get('/commands', (req, res) => {
   try {
+    console.log('📨 GET /api/dmx/commands - получен запрос');
+    console.log('📦 Query параметры:', req.query);
+    
     const commands = getDMXCommands();
     const { search, lm70sNumber, sortBy = 'updatedAt', order = 'desc' } = req.query;
     
     let result = commands.getAllCommands();
+    console.log('📊 Найдено команд:', result.length);
     
     // Поиск
     if (search) {
@@ -586,11 +590,19 @@ router.get('/commands/:id', (req, res) => {
 // Создать новую команду
 router.post('/commands', (req, res) => {
   try {
+    console.log('📨 POST /api/dmx/commands - получен запрос');
+    console.log('📦 Тело запроса:', JSON.stringify(req.body, null, 2));
+    
     const commands = getDMXCommands();
     const command = commands.createCommand(req.body);
+    
+    console.log('✅ Команда создана:', command.id, command.name);
     res.json({ success: true, command });
   } catch (error) {
+    console.error('❌ Ошибка создания команды:', error.message);
+    console.error(error.stack);
     res.status(400).json({
+      success: false,
       error: 'Ошибка создания команды',
       message: error.message
     });

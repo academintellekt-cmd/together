@@ -1801,8 +1801,21 @@
         // Загрузить все команды
         async function loadCommands() {
             try {
+                console.log('📥 Загрузка команд из:', `${COMMANDS_API}?sortBy=updatedAt&order=desc`);
                 const response = await fetch(`${COMMANDS_API}?sortBy=updatedAt&order=desc`);
+                
+                console.log('📨 Статус ответа:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('❌ Ошибка загрузки команд:', response.status, text.substring(0, 200));
+                    document.getElementById('commands-list').innerHTML = 
+                        `<div class="empty-state">Ошибка загрузки команд: ${response.status} ${response.statusText}</div>`;
+                    return;
+                }
+                
                 const data = await response.json();
+                console.log('📦 Загружено команд:', data.commands?.length || 0);
                 
                 if (data.success) {
                     allCommands = data.commands || [];
@@ -1813,9 +1826,9 @@
                         '<div class="empty-state">Ошибка загрузки команд</div>';
                 }
             } catch (error) {
-                console.error('Ошибка загрузки команд:', error);
+                console.error('❌ Исключение при загрузке команд:', error);
                 document.getElementById('commands-list').innerHTML = 
-                    '<div class="empty-state">Ошибка загрузки команд</div>';
+                    `<div class="empty-state">Ошибка загрузки команд: ${error.message}</div>`;
             }
         }
 
@@ -1840,6 +1853,8 @@
             const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
 
             try {
+                console.log('💾 Сохранение команды:', { name, lm70sNumber, startAddress, channels });
+                
                 const response = await fetch(COMMANDS_API, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1853,7 +1868,39 @@
                     })
                 });
 
-                const data = await response.json();
+                console.log('📨 Ответ сервера:', response.status, response.statusText);
+
+                // Получаем текст ответа один раз
+                const responseText = await response.text();
+                console.log('📦 Текст ответа:', responseText.substring(0, 200));
+
+                // Проверяем статус ответа
+                if (!response.ok) {
+                    let errorMessage = `Ошибка ${response.status}: ${response.statusText}`;
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } catch (e) {
+                        // Если не удалось распарсить JSON, используем текст ответа
+                        if (responseText) {
+                            errorMessage = responseText.substring(0, 200);
+                        }
+                    }
+                    addLog(`❌ Ошибка сохранения: ${errorMessage}`, 'error');
+                    console.error('❌ Ошибка сохранения:', errorMessage);
+                    return;
+                }
+
+                // Парсим JSON только если статус OK
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    addLog(`❌ Ошибка: Сервер вернул невалидный JSON`, 'error');
+                    console.error('❌ Ошибка парсинга JSON:', e, responseText);
+                    return;
+                }
+                console.log('📦 Данные ответа:', data);
                 
                 if (data.success) {
                     addLog(`✅ Команда "${name}" сохранена`, 'success');
@@ -1862,10 +1909,14 @@
                     document.getElementById('command-tags').value = '';
                     await loadCommands();
                 } else {
-                    addLog(`❌ Ошибка сохранения: ${data.message || data.error}`, 'error');
+                    const errorMsg = data.message || data.error || 'Неизвестная ошибка';
+                    addLog(`❌ Ошибка сохранения: ${errorMsg}`, 'error');
+                    console.error('❌ Ошибка сохранения:', errorMsg);
                 }
             } catch (error) {
-                addLog(`❌ Ошибка: ${error.message}`, 'error');
+                const errorMsg = error.message || 'Ошибка сети или сервера';
+                addLog(`❌ Ошибка: ${errorMsg}`, 'error');
+                console.error('❌ Исключение при сохранении:', error);
             }
         }
 
