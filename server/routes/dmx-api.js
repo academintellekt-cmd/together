@@ -3,6 +3,7 @@ const router = express.Router();
 const { getDMXController } = require('../dmx/dmx-controller');
 const { getDMXEffects } = require('../dmx/dmx-effects');
 const { getDMXPresets } = require('../dmx/dmx-presets');
+const { getDMXCommands } = require('../dmx/dmx-commands');
 
 // Получить статус DMX системы
 router.get('/status', (req, res) => {
@@ -504,6 +505,459 @@ router.post('/fog', async (req, res) => {
   } catch (error) {
     res.status(500).json({
       error: 'Ошибка управления туман-машиной',
+      message: error.message
+    });
+  }
+});
+
+// ==================== УПРАВЛЕНИЕ КОМАНДАМИ DMX ====================
+
+// Получить все команды
+router.get('/commands', (req, res) => {
+  try {
+    console.log('📨 GET /api/dmx/commands - получен запрос');
+    console.log('📦 Query параметры:', req.query);
+    
+    const commands = getDMXCommands();
+    const { search, lm70sNumber, sortBy = 'updatedAt', order = 'desc' } = req.query;
+    
+    let result = commands.getAllCommands();
+    console.log('📊 Найдено команд:', result.length);
+    
+    // Поиск
+    if (search) {
+      result = commands.searchCommands(search);
+    }
+    
+    // Фильтрация по номеру фонаря
+    if (lm70sNumber) {
+      result = commands.filterByLM70S(lm70sNumber);
+    }
+    
+    // Сортировка
+    result.sort((a, b) => {
+      let aVal, bVal;
+      
+      switch (sortBy) {
+        case 'name':
+          aVal = a.name.toLowerCase();
+          bVal = b.name.toLowerCase();
+          return order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        case 'usageCount':
+          aVal = a.usageCount || 0;
+          bVal = b.usageCount || 0;
+          return order === 'asc' ? aVal - bVal : bVal - aVal;
+        case 'createdAt':
+          aVal = new Date(a.createdAt).getTime();
+          bVal = new Date(b.createdAt).getTime();
+          return order === 'asc' ? aVal - bVal : bVal - aVal;
+        case 'updatedAt':
+        default:
+          aVal = new Date(a.updatedAt).getTime();
+          bVal = new Date(b.updatedAt).getTime();
+          return order === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+    });
+    
+    res.json({ success: true, commands: result });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка получения команд',
+      message: error.message
+    });
+  }
+});
+
+// Получить команду по ID
+router.get('/commands/:id', (req, res) => {
+  try {
+    const commands = getDMXCommands();
+    const command = commands.getCommand(req.params.id);
+    
+    if (!command) {
+      return res.status(404).json({ error: 'Команда не найдена' });
+    }
+    
+    res.json({ success: true, command });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка получения команды',
+      message: error.message
+    });
+  }
+});
+
+// Создать новую команду
+router.post('/commands', (req, res) => {
+  try {
+    console.log('📨 POST /api/dmx/commands - получен запрос');
+    console.log('📦 Тело запроса:', JSON.stringify(req.body, null, 2));
+    
+    const commands = getDMXCommands();
+    const command = commands.createCommand(req.body);
+    
+    console.log('✅ Команда создана:', command.id, command.name);
+    if (command.fixtureCount && command.fixtureCount > 1) {
+      console.log(`   📊 Команда содержит ${command.fixtureCount} фонарей`);
+      if (command.allFixtures && Array.isArray(command.allFixtures)) {
+        console.log(`   📋 Фонари:`, command.allFixtures.map(f => `#${f.lm70sNumber} (адрес ${f.startAddress})`).join(', '));
+      }
+    }
+    res.json({ success: true, command });
+  } catch (error) {
+    console.error('❌ Ошибка создания команды:', error.message);
+    console.error(error.stack);
+    res.status(400).json({
+      success: false,
+      error: 'Ошибка создания команды',
+      message: error.message
+    });
+  }
+});
+
+// Обновить команду
+router.put('/commands/:id', (req, res) => {
+  try {
+    console.log('📝 PUT /api/dmx/commands/:id - обновление команды');
+    console.log('📦 ID команды:', req.params.id);
+    console.log('📦 Тело запроса:', JSON.stringify(req.body, null, 2));
+    
+    const commands = getDMXCommands();
+    const command = commands.updateCommand(req.params.id, req.body);
+    
+    console.log('✅ Команда обновлена:', {
+      id: command.id,
+      name: command.name,
+      fixtureCount: command.fixtureCount,
+      hasAllFixtures: !!command.allFixtures
+    });
+    
+    res.json({ success: true, command });
+  } catch (error) {
+    console.error('❌ Ошибка обновления команды:', error.message);
+    res.status(400).json({
+      error: 'Ошибка обновления команды',
+      message: error.message
+    });
+  }
+});
+
+// Удалить команду
+router.delete('/commands/:id', (req, res) => {
+  try {
+    const commands = getDMXCommands();
+    const deleted = commands.deleteCommand(req.params.id);
+    res.json({ success: true, command: deleted });
+  } catch (error) {
+    res.status(400).json({
+      error: 'Ошибка удаления команды',
+      message: error.message
+    });
+  }
+});
+
+// Дублировать команду
+router.post('/commands/:id/duplicate', (req, res) => {
+  try {
+    const commands = getDMXCommands();
+    const { newName } = req.body;
+    const duplicated = commands.duplicateCommand(req.params.id, newName);
+    res.json({ success: true, command: duplicated });
+  } catch (error) {
+    res.status(400).json({
+      error: 'Ошибка дублирования команды',
+      message: error.message
+    });
+  }
+});
+
+// Применить команду
+router.post('/commands/:id/apply', async (req, res) => {
+  try {
+    const commands = getDMXCommands();
+    const { targetLM70SNumber, testMode = false } = req.body;
+    
+    const applyResult = await commands.applyCommand(req.params.id, targetLM70SNumber);
+    
+    // Применяем команду к каналам
+    const controller = getDMXController();
+    if (!controller) {
+      return res.status(503).json({ error: 'DMX контроллер недоступен' });
+    }
+    
+    // Отправляем команду на ESP32 или другой интерфейс
+    const { channels, targetStartAddress, allFixtures, fixtureCount } = applyResult;
+    
+    // Если команда содержит несколько фонарей, применяем все
+    if (allFixtures && Array.isArray(allFixtures) && allFixtures.length > 0) {
+      const axios = require('axios');
+      const esp32Host = controller.config.interface.host || '192.168.0.71';
+      const esp32Port = controller.config.interface.port || 80;
+      const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
+      
+      // Применяем каждый фонарь отдельно
+      const applyPromises = allFixtures.map(async (fixture) => {
+        try {
+          // Преобразуем каналы фонаря в формат для отправки
+          const fixtureChannels = {};
+          for (let i = 1; i <= 9; i++) {
+            fixtureChannels[i] = fixture.channels[i] !== undefined ? fixture.channels[i] : 0;
+          }
+          
+          await axios.post(`${esp32BaseUrl}/api/dmx/channels`, {
+            channels: fixtureChannels,
+            startAddress: fixture.startAddress
+          }, {
+            timeout: 2000,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } catch (error) {
+          console.error(`Ошибка применения фонаря #${fixture.lm70sNumber}:`, error.message);
+        }
+      });
+      
+      await Promise.all(applyPromises);
+      
+      res.json({ 
+        success: true, 
+        command: applyResult.command,
+        applied: true,
+        fixtureCount: fixtureCount || allFixtures.length,
+        targetStartAddress: applyResult.targetStartAddress
+      });
+      return;
+    }
+    
+    // Если это ESP32, отправляем напрямую
+    if (controller.config && controller.config.interface.type === 'esp32') {
+      const axios = require('axios');
+      const esp32Host = controller.config.interface.host || '192.168.0.71';
+      const esp32Port = controller.config.interface.port || 80;
+      const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
+      
+      try {
+        // Если channels содержат абсолютные адреса (ключи > 9), отправляем их напрямую
+        const channelKeys = Object.keys(channels).map(k => parseInt(k));
+        const maxKey = Math.max(...channelKeys);
+        
+        if (maxKey > 9) {
+          // Каналы с абсолютными адресами - отправляем все сразу с startAddress = 1
+          await axios.post(`${esp32BaseUrl}/api/dmx/channels`, {
+            channels: channels,
+            startAddress: 1
+          }, {
+            timeout: 2000,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } else {
+          // Относительные каналы (1-9) - используем стандартную логику
+          await axios.post(`${esp32BaseUrl}/api/dmx/channels`, {
+            channels: channels,
+            startAddress: targetStartAddress
+          }, {
+            timeout: 2000,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        
+        // Если режим теста, через 2 секунды возвращаем предыдущее состояние
+        if (testMode) {
+          setTimeout(async () => {
+            // Здесь можно сохранить предыдущее состояние и восстановить его
+            // Пока просто логируем
+            console.log('⏱️ Тестовый режим: команда применена на 2 секунды');
+          }, 2000);
+        }
+        
+        res.json({ 
+          success: true, 
+          command: applyResult.command,
+          applied: true,
+          targetLM70SNumber: applyResult.targetLM70SNumber,
+          targetStartAddress
+        });
+      } catch (error) {
+        res.status(503).json({
+          error: 'ESP32 недоступен',
+          message: error.message
+        });
+      }
+    } else {
+      // Для других интерфейсов используем стандартный метод
+      const channelUpdates = {};
+      
+      // Если команда содержит несколько фонарей, применяем все
+      if (allFixtures && Array.isArray(allFixtures) && allFixtures.length > 0) {
+        allFixtures.forEach(fixture => {
+          for (let i = 1; i <= 9; i++) {
+            const channelValue = fixture.channels[i] !== undefined ? fixture.channels[i] : 0;
+            const absoluteChannel = fixture.startAddress + i - 1;
+            if (absoluteChannel >= 1 && absoluteChannel <= 512) {
+              channelUpdates[absoluteChannel] = Math.max(0, Math.min(255, channelValue));
+            }
+          }
+        });
+      } else {
+        // Стандартная логика для одного фонаря
+        Object.keys(channels).forEach(channelOffset => {
+          const channelNum = parseInt(channelOffset);
+          const value = parseInt(channels[channelOffset]);
+          
+          // Если ключ больше 9, это абсолютный адрес
+          if (channelNum > 9) {
+            channelUpdates[channelNum] = Math.max(0, Math.min(255, value));
+          } else {
+            // Относительный адрес (1-9)
+            const absoluteChannel = targetStartAddress + channelNum - 1;
+            if (absoluteChannel >= 1 && absoluteChannel <= 512) {
+              channelUpdates[absoluteChannel] = Math.max(0, Math.min(255, value));
+            }
+          }
+        });
+      }
+      
+      controller.updateChannels(channelUpdates);
+      
+      res.json({ 
+        success: true, 
+        command: applyResult.command,
+        applied: true,
+        targetLM70SNumber: applyResult.targetLM70SNumber,
+        targetStartAddress,
+        fixtureCount: fixtureCount || 1
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      error: 'Ошибка применения команды',
+      message: error.message
+    });
+  }
+});
+
+// Применить команду к нескольким фонарям
+router.post('/commands/:id/apply-multiple', async (req, res) => {
+  try {
+    const commands = getDMXCommands();
+    const { lm70sNumbers } = req.body;
+    
+    if (!Array.isArray(lm70sNumbers) || lm70sNumbers.length === 0) {
+      return res.status(400).json({ error: 'Не указаны номера фонарей' });
+    }
+    
+    const applyResults = await commands.applyCommandToMultiple(req.params.id, lm70sNumbers);
+    
+    const controller = getDMXController();
+    if (!controller) {
+      return res.status(503).json({ error: 'DMX контроллер недоступен' });
+    }
+    
+    // Применяем команду к каждому фонарю
+    const results = [];
+    
+    for (const result of applyResults) {
+      const { channels, startAddress } = result;
+      
+      if (controller.config && controller.config.interface.type === 'esp32') {
+        const axios = require('axios');
+        const esp32Host = controller.config.interface.host || '192.168.0.71';
+        const esp32Port = controller.config.interface.port || 80;
+        const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
+        
+        try {
+          await axios.post(`${esp32BaseUrl}/api/dmx/channels`, {
+            channels: channels,
+            startAddress: startAddress
+          }, {
+            timeout: 2000,
+            headers: { 'Content-Type': 'application/json' }
+          });
+          
+          results.push({ 
+            lm70SNumber: result.lm70sNumber, 
+            startAddress, 
+            success: true 
+          });
+        } catch (error) {
+          results.push({ 
+            lm70SNumber: result.lm70sNumber, 
+            startAddress, 
+            success: false, 
+            error: error.message 
+          });
+        }
+      } else {
+        const channelUpdates = {};
+        Object.keys(channels).forEach(channelOffset => {
+          const channelNum = parseInt(channelOffset);
+          const value = parseInt(channels[channelOffset]);
+          const absoluteChannel = startAddress + channelNum - 1;
+          if (absoluteChannel >= 1 && absoluteChannel <= 512) {
+            channelUpdates[absoluteChannel] = Math.max(0, Math.min(255, value));
+          }
+        });
+        
+        controller.updateChannels(channelUpdates);
+        results.push({ 
+          lm70SNumber: result.lm70sNumber, 
+          startAddress, 
+          success: true 
+        });
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      command: commands.getCommand(req.params.id),
+      results 
+    });
+  } catch (error) {
+    res.status(400).json({
+      error: 'Ошибка применения команды к нескольким фонарям',
+      message: error.message
+    });
+  }
+});
+
+// Получить популярные команды
+router.get('/commands/popular/:limit?', (req, res) => {
+  try {
+    const commands = getDMXCommands();
+    const limit = parseInt(req.params.limit) || 10;
+    const popular = commands.getPopularCommands(limit);
+    res.json({ success: true, commands: popular });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка получения популярных команд',
+      message: error.message
+    });
+  }
+});
+
+// Экспорт команд
+router.get('/commands/export', (req, res) => {
+  try {
+    const commands = getDMXCommands();
+    const exportData = commands.exportCommands();
+    res.json(exportData);
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка экспорта команд',
+      message: error.message
+    });
+  }
+});
+
+// Импорт команд
+router.post('/commands/import', (req, res) => {
+  try {
+    const commands = getDMXCommands();
+    const { merge = false } = req.query;
+    const result = commands.importCommands(req.body, merge === 'true');
+    res.json({ success: true, ...result });
+  } catch (error) {
+    res.status(400).json({
+      error: 'Ошибка импорта команд',
       message: error.message
     });
   }
