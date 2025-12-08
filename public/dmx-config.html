@@ -36,6 +36,131 @@
             padding-top: clamp(80px, 12vh, 120px) !important; /* Увеличенный отступ сверху для расстояния от Frame1 */
         }
 
+        /* Полностью убираем визуальные ограничения у карточки с эквалайзером */
+        #tab-channels .card {
+            padding: clamp(20px, 4vw, 25px) 0 !important;
+            overflow: visible !important;
+            max-width: none !important;
+            width: 100% !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+        }
+
+        /* Позволяем эквалайзеру занимать всю ширину без ограничений */
+        #tab-channels .channel-config {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            width: 100% !important;
+            max-width: none !important;
+        }
+
+        /* Убираем ограничения у вкладки для эквалайзера */
+        #tab-channels {
+            overflow-x: visible !important;
+            overflow-y: visible !important;
+            max-width: none !important;
+            width: 100% !important;
+        }
+
+        /* Убираем ограничения у родительских контейнеров */
+        .main-content-left,
+        .main-content-wrapper {
+            max-width: none !important;
+            width: 100% !important;
+        }
+
+        /* Убираем ограничения у контейнера страницы */
+        .hub3 > .container {
+            max-width: none !important;
+        }
+
+        /* Убираем ограничения у всех элементов внутри карточки */
+        #tab-channels .card > * {
+            max-width: none !important;
+        }
+
+        /* Стили для блоков фонарей */
+        .fixture-block {
+            background: rgba(245, 245, 245, 0.85);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(12px, 2.5vw, 16px);
+            padding: clamp(15px, 3vw, 20px);
+            margin-bottom: 20px;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .fixture-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--color-dark);
+        }
+
+        .fixture-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(18px, 3vw, 24px);
+            font-weight: 700;
+            color: var(--color-dark);
+        }
+
+        .fixture-info {
+            font-size: clamp(12px, 2vw, 14px);
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .fixture-delete-btn {
+            padding: clamp(8px, 1.5vw, 10px) clamp(15px, 3vw, 20px);
+            background: #ff4444;
+            color: white;
+            border: 3px solid #ff4444;
+            border-radius: clamp(6px, 1vw, 8px);
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(12px, 2vw, 14px);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .fixture-delete-btn:hover {
+            background: #cc0000;
+            border-color: #cc0000;
+            transform: translateY(-2px);
+        }
+
+        .fixture-duplicate-btn {
+            padding: clamp(8px, 1.5vw, 10px) clamp(15px, 3vw, 20px);
+            background: #44aa44;
+            color: white;
+            border: 3px solid #44aa44;
+            border-radius: clamp(6px, 1vw, 8px);
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(12px, 2vw, 14px);
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-right: 10px;
+        }
+
+        .fixture-duplicate-btn:hover {
+            background: #339933;
+            border-color: #339933;
+            transform: translateY(-2px);
+        }
+
+        #fixtures-container {
+            margin-bottom: 20px;
+        }
+
         /* Вкладки */
         .tabs {
             display: flex;
@@ -108,10 +233,11 @@
             justify-content: center;
             flex-wrap: nowrap;
             padding: clamp(10px, 2vw, 15px);
-            background: rgba(245, 245, 245, 0.5);
-            border-radius: clamp(8px, 1.5vw, 12px);
-            border: 2px solid var(--color-dark);
+            background: transparent;
+            border-radius: 0;
+            border: none;
             overflow-x: auto;
+            overflow-y: visible;
         }
 
         .channel-item {
@@ -123,6 +249,11 @@
             flex-shrink: 0;
             justify-content: flex-start;
             overflow: visible;
+            z-index: 1;
+        }
+
+        .channel-item:hover {
+            z-index: 10001;
         }
 
         .channel-label {
@@ -131,58 +262,20 @@
             color: var(--color-dark);
             margin-bottom: 8px;
             text-align: center;
-            cursor: help;
             position: relative;
-            padding: 2px 4px;
+            padding: 4px 6px;
             border-radius: 4px;
             transition: background 0.2s;
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
+            z-index: 1;
         }
 
         .channel-label:hover {
             background: rgba(57, 54, 57, 0.1);
         }
-
-        .channel-tooltip {
-            position: absolute;
-            bottom: calc(100% + 8px);
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.95);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 11px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s, visibility 0.2s;
-            z-index: 1000;
-            max-width: 280px;
-            white-space: normal;
-            text-align: left;
-            line-height: 1.5;
-            visibility: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .channel-label:hover .channel-tooltip {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .channel-tooltip::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 6px solid transparent;
-            border-top-color: rgba(0, 0, 0, 0.95);
-        }
-
 
         .channel-slider-wrapper {
             position: relative;
@@ -722,9 +815,12 @@
 
         .command-actions .btn {
             flex: 1;
-            min-width: 70px;
-            padding: 8px 12px;
-            font-size: 12px;
+            min-width: 80px;
+            padding: 8px 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .command-tags {
@@ -955,35 +1051,9 @@
             <div id="tab-channels" class="tab-content active">
                 <div class="card">
                     <h2>🎛️ Конфигуратор каналов LM70S</h2>
-                    <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                        Выберите номер прожектора (1-14). Каждый прожектор использует 9 каналов DMX:
-                    </p>
-                    <p style="margin-bottom: 15px; color: #666; font-size: 12px; padding-left: 20px;">
-                        <strong>Каналы:</strong><br>
-                        1 = Угол по оси X (0-255)<br>
-                        2 = Угол по оси Y (0-255)<br>
-                        3 = Режим работы (0-8=ВЫКЛ, 9-135=Затемнение, 136-240=Стробоскоп, 241-255=ВКЛ)<br>
-                        <strong>4 = Затемнение КРАСНЫЙ (0-255)</strong><br>
-                        <strong>5 = Затемнение ЗЕЛЕНЫЙ (0-255)</strong><br>
-                        <strong>6 = Затемнение СИНИЙ (0-255)</strong><br>
-                        7 = Затемнение БЕЛЫЙ (0-255)<br>
-                        8 = Скорость (0-255)<br>
-                        9 = Сброс настроек (150-200)<br>
-                        <strong>Формула адреса:</strong> Start(LM70S N) = 1 + (N - 1) × 9<br>
-                        <strong>Пример:</strong> LM70S #1 начинается с адреса 1, LM70S #2 - с адреса 10, и т.д.
-                    </p>
-                    <div class="address-input">
-                        <label>Номер прожектора LM70S:</label>
-                        <input type="number" id="lm70s-number" min="1" max="14" value="1" onchange="handleLM70SNumberChange()">
-                        <label>Начальный адрес DMX:</label>
-                        <input type="number" id="start-address" min="1" max="512" value="1" readonly>
-                        <button class="btn btn-primary btn-small" onclick="loadLM70SChannels(true)">Загрузить</button>
-                    </div>
-                    <div class="channel-config" id="channel-config"></div>
-                    <p style="margin-top: 15px; color: #666; font-size: 14px; font-style: italic;">
-                        💡 Изменения применяются автоматически в реальном времени при изменении любого параметра
-                    </p>
-                    <button class="btn btn-danger" onclick="resetChannels()">Сбросить все</button>
+                    
+                    <!-- Контейнер для всех фонарей -->
+                    <div id="fixtures-container"></div>
                 </div>
             </div>
 
@@ -1057,7 +1127,7 @@
                         <div class="form-row">
                             <input type="text" id="command-tags" placeholder="Теги (через запятую)">
                         </div>
-                        <button class="btn btn-success" onclick="saveCommand()" style="width: 100%;">
+                        <button class="btn btn-success" id="save-command-btn" onclick="saveCommand()" style="width: 100%;">
                             💾 Сохранить команду
                         </button>
                         <button class="btn btn-primary btn-small" onclick="saveDraft()" style="width: 100%; margin-top: 8px;">
@@ -1115,19 +1185,6 @@
         </section>
     </footer>
 
-    <!-- Модальное окно для редактирования команды -->
-    <div id="edit-command-modal" class="modal">
-        <div class="modal-content">
-            <h3>✏️ Редактировать команду</h3>
-            <input type="text" id="edit-command-name" placeholder="Название команды" maxlength="50">
-            <textarea id="edit-command-description" placeholder="Описание" maxlength="200"></textarea>
-            <input type="text" id="edit-command-tags" placeholder="Теги (через запятую)">
-            <div class="modal-actions">
-                <button class="btn btn-primary" onclick="saveEditedCommand()">Сохранить</button>
-                <button class="btn btn-danger" onclick="closeEditModal()">Отмена</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Модальное окно для применения к нескольким фонарям -->
     <div id="apply-multiple-modal" class="modal">
@@ -1151,9 +1208,12 @@
         let startAddress = 1;
         let allCommands = [];
         let currentFilter = 'all';
-        let editingCommandId = null;
         let applyingCommandId = null;
         let selectedFixtures = [];
+        
+        // Структура данных для хранения нескольких фонарей
+        let fixtures = [];
+        let nextFixtureId = 1;
 
         // Названия каналов для LM70S (9 каналов) согласно спецификации
         const LM70S_CHANNELS = [
@@ -1205,8 +1265,10 @@
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', () => {
+            initFixtures();
             initColorPreview();
             
+            // Старая логика для совместимости (если нужно)
             const lm70sNumberInput = document.getElementById('lm70s-number');
             if (lm70sNumberInput) {
                 const lm70sNumber = parseInt(lm70sNumberInput.value) || 1;
@@ -1215,13 +1277,15 @@
                 if (startAddressInput) {
                     startAddressInput.value = startAddress;
                 }
-                // Загружаем каналы и отображаем бегунки при загрузке страницы
-                loadChannels().then(() => {
-                    // После загрузки каналов отображаем конфигуратор (принудительно)
-                    setTimeout(() => {
-                        renderChannelConfig(true);
-                    }, 100);
-                });
+                // Загружаем каналы только если нет новой системы фонарей
+                if (fixtures.length === 0) {
+                    loadChannels().then(() => {
+                        // После загрузки каналов отображаем конфигуратор (принудительно)
+                        setTimeout(() => {
+                            renderChannelConfig(true);
+                        }, 100);
+                    });
+                }
             }
             
             // Инициализация превью LED BAR
@@ -1427,6 +1491,441 @@
             loadLM70SChannels(true);
         }
 
+        // ==================== УПРАВЛЕНИЕ НЕСКОЛЬКИМИ ФОНАРЯМИ ====================
+        
+        // Инициализация первого фонаря при загрузке страницы
+        function initFixtures() {
+            if (fixtures.length === 0) {
+                const firstFixture = {
+                    id: nextFixtureId++,
+                    lm70sNumber: 1,
+                    startAddress: 1,
+                    channels: {}
+                };
+                // Инициализируем каналы нулями
+                for (let i = 1; i <= 9; i++) {
+                    firstFixture.channels[i] = 0;
+                }
+                fixtures.push(firstFixture);
+            }
+            renderAllFixtures();
+        }
+        
+        // Рендеринг всех фонарей
+        function renderAllFixtures() {
+            const container = document.getElementById('fixtures-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            fixtures.forEach(fixture => {
+                const fixtureBlock = renderFixture(fixture);
+                container.appendChild(fixtureBlock);
+            });
+        }
+        
+        // Рендеринг одного фонаря с эквалайзером
+        function renderFixture(fixture) {
+            const fixtureBlock = document.createElement('div');
+            fixtureBlock.className = 'fixture-block';
+            fixtureBlock.setAttribute('data-fixture-id', fixture.id);
+            
+            // Заголовок фонаря
+            const header = document.createElement('div');
+            header.className = 'fixture-header';
+            
+            const titleDiv = document.createElement('div');
+            const title = document.createElement('div');
+            title.className = 'fixture-title';
+            title.textContent = `Фонарь #${fixture.lm70sNumber}`;
+            
+            const info = document.createElement('div');
+            info.className = 'fixture-info';
+            info.textContent = `LM70S: ${fixture.lm70sNumber} | DMX адрес: ${fixture.startAddress}`;
+            
+            titleDiv.appendChild(title);
+            titleDiv.appendChild(info);
+            
+            const duplicateBtn = document.createElement('button');
+            duplicateBtn.className = 'fixture-duplicate-btn';
+            duplicateBtn.textContent = 'Дублировать';
+            duplicateBtn.onclick = () => duplicateFixture(fixture.id);
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'fixture-delete-btn';
+            deleteBtn.textContent = 'Удалить';
+            deleteBtn.onclick = () => deleteFixture(fixture.id);
+            
+            header.appendChild(titleDiv);
+            const buttonsContainer = document.createElement('div');
+            buttonsContainer.style.display = 'flex';
+            buttonsContainer.appendChild(duplicateBtn);
+            buttonsContainer.appendChild(deleteBtn);
+            header.appendChild(buttonsContainer);
+            
+            // Эквалайзер для этого фонаря
+            const channelConfig = document.createElement('div');
+            channelConfig.className = 'channel-config';
+            channelConfig.setAttribute('data-fixture-id', fixture.id);
+            
+            // Создаем эквалайзер для этого фонаря
+            for (let i = 1; i <= 9; i++) {
+                const value = fixture.channels[i] !== undefined ? fixture.channels[i] : 0;
+                const channelItem = createChannelItem(i, value, fixture.id);
+                channelConfig.appendChild(channelItem);
+            }
+            
+            fixtureBlock.appendChild(header);
+            fixtureBlock.appendChild(channelConfig);
+            
+            return fixtureBlock;
+        }
+        
+        // Создание элемента канала для эквалайзера
+        function createChannelItem(channelNumber, value, fixtureId) {
+            const channelName = LM70S_CHANNELS_SHORT[channelNumber - 1];
+            const invertedValue = 255 - value;
+            
+            const channelItem = document.createElement('div');
+            channelItem.className = 'channel-item';
+            channelItem.setAttribute('data-channel-index', channelNumber);
+            
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'channel-label';
+            labelDiv.textContent = channelName;
+            
+            const sliderWrapper = document.createElement('div');
+            sliderWrapper.className = 'channel-slider-wrapper';
+            
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.className = 'channel-slider';
+            slider.min = '0';
+            slider.max = '255';
+            slider.value = invertedValue;
+            slider.setAttribute('data-channel', channelNumber);
+            slider.setAttribute('data-fixture-id', fixtureId);
+            
+            slider.addEventListener('input', function() {
+                updateFixtureChannel(fixtureId, channelNumber, 255 - parseInt(this.value));
+            });
+            
+            slider.addEventListener('change', function() {
+                updateFixtureChannel(fixtureId, channelNumber, 255 - parseInt(this.value));
+            });
+            
+            sliderWrapper.appendChild(slider);
+            channelItem.appendChild(labelDiv);
+            channelItem.appendChild(sliderWrapper);
+            
+            return channelItem;
+        }
+        
+        // Обновление канала конкретного фонаря
+        function updateFixtureChannel(fixtureId, channel, value) {
+            const fixture = fixtures.find(f => f.id === fixtureId);
+            if (!fixture) return;
+            
+            value = Math.max(0, Math.min(255, parseInt(value) || 0));
+            fixture.channels[channel] = value;
+            
+            // Применяем изменения в реальном времени
+            applyFixtureChannels(fixture);
+        }
+        
+        // Применение каналов фонаря к DMX
+        async function applyFixtureChannels(fixture) {
+            try {
+                const channels = {};
+                for (let i = 1; i <= 9; i++) {
+                    channels[i] = fixture.channels[i] !== undefined ? fixture.channels[i] : 0;
+                }
+                
+                const response = await fetch(`${API_BASE}/channels`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        channels: channels,
+                        startAddress: fixture.startAddress
+                    })
+                });
+                
+                if (!response.ok) {
+                    console.error('Ошибка применения каналов');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+            }
+        }
+        
+        // Дублирование фонаря
+        function duplicateFixture(fixtureId) {
+            if (fixtures.length === 0) {
+                alert('Нет фонарей для дублирования');
+                return;
+            }
+            
+            // Находим фонарь для копирования
+            const sourceFixture = fixtures.find(f => f.id === fixtureId);
+            if (!sourceFixture) {
+                alert('Фонарь не найден');
+                return;
+            }
+            
+            if (fixtures.length >= 14) {
+                alert('Максимум 14 фонарей');
+                return;
+            }
+            
+            const newLm70sNumber = fixtures.length + 1;
+            const newStartAddress = 1 + (newLm70sNumber - 1) * 9;
+            
+            const newFixture = {
+                id: nextFixtureId++,
+                lm70sNumber: newLm70sNumber,
+                startAddress: newStartAddress,
+                channels: { ...sourceFixture.channels } // Копируем каналы
+            };
+            
+            fixtures.push(newFixture);
+            renderAllFixtures();
+            
+            // Применяем настройки нового фонаря к DMX сразу после создания
+            // Небольшая задержка для гарантии, что DOM обновлен
+            setTimeout(() => {
+                applyFixtureChannels(newFixture);
+            }, 100);
+            
+            addLog(`✅ Фонарь #${newLm70sNumber} создан (скопирован с фонаря #${sourceFixture.lm70sNumber})`, 'success');
+        }
+        
+        // Удаление фонаря
+        function deleteFixture(fixtureId) {
+            if (fixtures.length <= 1) {
+                alert('Должен остаться хотя бы один фонарь');
+                return;
+            }
+            
+            const fixtureIndex = fixtures.findIndex(f => f.id === fixtureId);
+            if (fixtureIndex === -1) return;
+            
+            const fixture = fixtures[fixtureIndex];
+            
+            if (confirm(`Удалить фонарь #${fixture.lm70sNumber}?`)) {
+                fixtures.splice(fixtureIndex, 1);
+                
+                // Перенумеровываем фонари
+                fixtures.forEach((f, index) => {
+                    f.lm70sNumber = index + 1;
+                    f.startAddress = 1 + index * 9;
+                });
+                
+                renderAllFixtures();
+                addLog(`✅ Фонарь #${fixture.lm70sNumber} удален`, 'success');
+            }
+        }
+        
+        // Чтение актуальных значений каналов из DOM
+        function readFixturesFromDOM() {
+            const updatedFixtures = fixtures.map(fixture => {
+                const updatedChannels = {};
+                
+                // Читаем значения из слайдеров для этого фонаря
+                for (let i = 1; i <= 9; i++) {
+                    const slider = document.querySelector(
+                        `.channel-slider[data-fixture-id="${fixture.id}"][data-channel="${i}"]`
+                    );
+                    
+                    if (slider) {
+                        // Слайдеры инвертированы (0-255, но отображаются как 255-0)
+                        const invertedValue = parseInt(slider.value) || 0;
+                        updatedChannels[i] = 255 - invertedValue;
+                    } else {
+                        // Если слайдер не найден, используем значение из объекта
+                        updatedChannels[i] = fixture.channels[i] !== undefined ? fixture.channels[i] : 0;
+                    }
+                }
+                
+                return {
+                    ...fixture,
+                    channels: updatedChannels
+                };
+            });
+            
+            return updatedFixtures;
+        }
+        
+        // Сохранение всех фонарей в одну команду
+        async function saveAllFixtures() {
+            if (fixtures.length === 0) {
+                alert('Нет настроенных фонарей');
+                return;
+            }
+            
+            // Читаем актуальные значения из DOM перед сохранением
+            const actualFixtures = readFixturesFromDOM();
+            
+            // Обновляем массив fixtures актуальными значениями
+            fixtures = actualFixtures;
+            
+            // Объединяем все каналы всех фонарей с правильными DMX адресами
+            const allChannels = {};
+            
+            actualFixtures.forEach(fixture => {
+                for (let i = 1; i <= 9; i++) {
+                    const channelValue = fixture.channels[i] !== undefined ? fixture.channels[i] : 0;
+                    const dmxAddress = fixture.startAddress + i - 1;
+                    allChannels[dmxAddress] = channelValue;
+                }
+            });
+            
+            // Преобразуем в формат channels с относительными номерами каналов
+            // Используем первый фонарь как базовый
+            const firstFixture = actualFixtures[0];
+            const channels = {};
+            
+            // Сохраняем каналы первого фонаря как относительные (1-9)
+            for (let i = 1; i <= 9; i++) {
+                channels[i] = firstFixture.channels[i] !== undefined ? firstFixture.channels[i] : 0;
+            }
+            
+            // Для остальных фонарей добавляем их каналы с правильными адресами
+            // Но в формате команды они будут сохранены с startAddress первого фонаря
+            // и мы будем использовать расширенную структуру
+            
+            // Показываем форму сохранения и заполняем данные
+            const nameInput = document.getElementById('command-name');
+            if (nameInput && !nameInput.value.trim()) {
+                nameInput.value = `Конфигурация ${actualFixtures.length} фонарей`;
+            }
+            
+            // Сохраняем через существующую функцию, но с модифицированными данными
+            // Нужно изменить saveCommand чтобы она использовала все фонари
+            await saveCommandWithFixtures(actualFixtures, allChannels);
+        }
+        
+        // Сохранение команды с несколькими фонарями
+        async function saveCommandWithFixtures(fixturesArray, allChannels) {
+            const name = document.getElementById('command-name').value.trim();
+            const description = document.getElementById('command-description').value.trim();
+            const tagsInput = document.getElementById('command-tags').value.trim();
+            
+            if (!name) {
+                alert('Введите название команды');
+                return;
+            }
+            
+            // Используем первый фонарь как базовый для startAddress
+            const firstFixture = fixturesArray[0];
+            
+            // Объединяем все каналы всех фонарей в один объект channels
+            // Используем абсолютные DMX адреса как ключи
+            const channels = {};
+            
+            fixturesArray.forEach(fixture => {
+                for (let i = 1; i <= 9; i++) {
+                    const channelValue = fixture.channels[i] !== undefined ? fixture.channels[i] : 0;
+                    // Вычисляем абсолютный DMX адрес
+                    const absoluteDmxAddress = fixture.startAddress + i - 1;
+                    channels[absoluteDmxAddress] = channelValue;
+                }
+            });
+            
+            // Также сохраняем относительные каналы для первого фонаря (для совместимости)
+            const relativeChannels = {};
+            for (let i = 1; i <= 9; i++) {
+                relativeChannels[i] = firstFixture.channels[i] !== undefined ? firstFixture.channels[i] : 0;
+            }
+            
+            const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
+            
+            const requestBody = {
+                name,
+                description,
+                tags,
+                lm70sNumber: firstFixture.lm70sNumber,
+                startAddress: firstFixture.startAddress,
+                channels: channels, // Все каналы всех фонарей с абсолютными адресами
+                relativeChannels: relativeChannels, // Относительные каналы первого фонаря (1-9)
+                fixtureCount: fixturesArray.length,
+                allFixtures: fixturesArray.map(f => ({
+                    lm70sNumber: f.lm70sNumber,
+                    startAddress: f.startAddress,
+                    channels: f.channels
+                }))
+            };
+            
+            try {
+                console.log(`💾 Сохранение команды с несколькими фонарями:`, { 
+                    name, 
+                    fixtureCount: fixturesArray.length,
+                    requestBody: requestBody
+                });
+                
+                const response = await fetch(COMMANDS_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                console.log(`📨 Ответ сервера:`, {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok
+                });
+                
+                const responseText = await response.text();
+                
+                if (!response.ok) {
+                    let errorMessage = `Ошибка ${response.status}: ${response.statusText}`;
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } catch (e) {
+                        if (responseText) {
+                            errorMessage = responseText.substring(0, 200);
+                        }
+                    }
+                    addLog(`❌ Ошибка сохранения: ${errorMessage}`, 'error');
+                    console.error(`❌ Ошибка сохранения:`, errorMessage);
+                    return;
+                }
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    addLog(`❌ Ошибка: Сервер вернул невалидный JSON`, 'error');
+                    console.error('❌ Ошибка парсинга JSON:', e, responseText);
+                    return;
+                }
+                
+                if (data.success) {
+                    addLog(`✅ Команда "${name}" сохранена (${fixturesArray.length} фонарей)`, 'success');
+                    
+                    // Очищаем форму
+                    document.getElementById('command-name').value = '';
+                    document.getElementById('command-description').value = '';
+                    document.getElementById('command-tags').value = '';
+                    fixtures = [];
+                    nextFixtureId = 1;
+                    renderAllFixtures();
+                    
+                    await loadCommands();
+                } else {
+                    const errorMsg = data.message || data.error || 'Неизвестная ошибка';
+                    addLog(`❌ Ошибка сохранения: ${errorMsg}`, 'error');
+                    console.error(`❌ Ошибка сохранения:`, errorMsg);
+                }
+            } catch (error) {
+                const errorMsg = error.message || 'Ошибка сети или сервера';
+                addLog(`❌ Ошибка: ${errorMsg}`, 'error');
+                console.error('❌ Исключение при сохранении:', error);
+            }
+        }
+        
+        // ==================== КОНЕЦ УПРАВЛЕНИЯ НЕСКОЛЬКИМИ ФОНАРЯМИ ====================
+
         function renderChannelConfig(force = false) {
             if (!force) {
                 const timeSinceLastEdit = Date.now() - lastEditTime;
@@ -1455,13 +1954,7 @@
                 const channelNumber = i;
                 const labelDiv = document.createElement('div');
                 labelDiv.className = 'channel-label';
-                labelDiv.setAttribute('title', channelDescription);
                 labelDiv.textContent = channelName;
-                
-                const tooltipDiv = document.createElement('div');
-                tooltipDiv.className = 'channel-tooltip';
-                tooltipDiv.innerHTML = `${channelDescription}<br>DMX канал: ${absoluteChannel}`;
-                labelDiv.appendChild(tooltipDiv);
                 
                 const sliderWrapper = document.createElement('div');
                 sliderWrapper.className = 'channel-slider-wrapper';
@@ -1834,6 +2327,13 @@
 
         // Сохранить команду
         async function saveCommand() {
+            // Если есть настроенные фонари, используем новую логику
+            if (fixtures.length > 0) {
+                await saveAllFixtures();
+                return;
+            }
+            
+            // Старая логика для совместимости (если нет фонарей)
             const name = document.getElementById('command-name').value.trim();
             const description = document.getElementById('command-description').value.trim();
             const tagsInput = document.getElementById('command-tags').value.trim();
@@ -1853,7 +2353,7 @@
             const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
 
             try {
-                console.log('💾 Сохранение команды:', { name, lm70sNumber, startAddress, channels });
+                console.log(`💾 Сохранение команды:`, { name, lm70sNumber, startAddress, channels });
                 
                 const response = await fetch(COMMANDS_API, {
                     method: 'POST',
@@ -2032,20 +2532,11 @@
                             Использовано: ${usageCount} раз | Последнее: ${lastUsed}
                         </div>
                         <div class="command-actions">
-                            <button class="btn btn-success btn-small" onclick="applyCommand('${cmd.id}')" title="Применить">
+                            <button class="btn btn-success btn-small" onclick="applyCommand('${cmd.id}')" title="Включить">
                                 ▶️
                             </button>
-                            <button class="btn btn-primary btn-small" onclick="testCommand('${cmd.id}')" title="Тест (2 сек)">
+                            <button class="btn btn-primary btn-small" onclick="testCommand('${cmd.id}')" title="Тест 2 сек">
                                 🧪
-                            </button>
-                            <button class="btn btn-warning btn-small" onclick="applyToMultiple('${cmd.id}')" title="К нескольким">
-                                🎯
-                            </button>
-                            <button class="btn btn-primary btn-small" onclick="editCommand('${cmd.id}')" title="Редактировать">
-                                ✏️
-                            </button>
-                            <button class="btn btn-primary btn-small" onclick="duplicateCommand('${cmd.id}')" title="Дублировать">
-                                📋
                             </button>
                             <button class="btn btn-danger btn-small" onclick="deleteCommand('${cmd.id}')" title="Удалить">
                                 🗑️
@@ -2059,6 +2550,9 @@
         // Применить команду
         async function applyCommand(commandId, targetLM70SNumber = null) {
             try {
+                // Получаем команду для отображения фонарей
+                const command = allCommands.find(c => c.id === commandId);
+                
                 const response = await fetch(`${COMMANDS_API}/${commandId}/apply`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2068,18 +2562,90 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    addLog(`✅ Команда применена к фонарю #${data.targetLM70SNumber}`, 'success');
+                    // Формируем сообщение о применении
+                    if (data.fixtureCount && data.fixtureCount > 1) {
+                        addLog(`✅ Команда применена к ${data.fixtureCount} фонарям`, 'success');
+                    } else {
+                        const fixtureNum = data.targetLM70SNumber || command?.lm70sNumber || 'неизвестно';
+                        addLog(`✅ Команда применена к фонарю #${fixtureNum}`, 'success');
+                    }
+                    
                     await loadCommands();
                     
-                    // Обновляем интерфейс, если команда применена к текущему фонарю
-                    if (data.targetLM70SNumber === parseInt(document.getElementById('lm70s-number').value)) {
-                        loadLM70SChannels(true);
+                    // Загружаем и отображаем фонари команды
+                    if (command) {
+                        loadCommandFixtures(command);
+                    }
+                    
+                    // Обновляем интерфейс, если команда применена к текущему фонарю (старая логика)
+                    const lm70sNumberInput = document.getElementById('lm70s-number');
+                    if (lm70sNumberInput && data.targetLM70SNumber) {
+                        if (data.targetLM70SNumber === parseInt(lm70sNumberInput.value)) {
+                            loadLM70SChannels(true);
+                        }
                     }
                 } else {
                     addLog(`❌ Ошибка применения: ${data.message || data.error}`, 'error');
                 }
             } catch (error) {
                 addLog(`❌ Ошибка: ${error.message}`, 'error');
+            }
+        }
+        
+        // Загрузить фонари команды для отображения
+        function loadCommandFixtures(command) {
+            if (!command) return;
+            
+            // Очищаем текущие фонари
+            fixtures = [];
+            nextFixtureId = 1;
+            
+            if (command.allFixtures && Array.isArray(command.allFixtures) && command.allFixtures.length > 0) {
+                // Команда содержит несколько фонарей
+                command.allFixtures.forEach(fixtureData => {
+                    fixtures.push({
+                        id: nextFixtureId++,
+                        lm70sNumber: fixtureData.lm70sNumber,
+                        startAddress: fixtureData.startAddress,
+                        channels: { ...fixtureData.channels }
+                    });
+                });
+            } else {
+                // Команда содержит один фонарь
+                const channels = {};
+                for (let i = 1; i <= 9; i++) {
+                    channels[i] = command.channels[i] !== undefined ? command.channels[i] : 0;
+                }
+                
+                fixtures.push({
+                    id: nextFixtureId++,
+                    lm70sNumber: command.lm70sNumber || 1,
+                    startAddress: command.startAddress || 1,
+                    channels: channels
+                });
+            }
+            
+            // Рендерим фонари
+            renderAllFixtures();
+            
+            // Переключаемся на вкладку конфигуратора каналов
+            const channelsTab = document.getElementById('tab-channels');
+            if (channelsTab) {
+                // Убираем active со всех вкладок
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                // Добавляем active к вкладке каналов
+                channelsTab.classList.add('active');
+                
+                // Обновляем табы
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                const channelsTabBtn = document.querySelector('[onclick*="tab-channels"]');
+                if (channelsTabBtn) {
+                    channelsTabBtn.classList.add('active');
+                }
             }
         }
 
@@ -2159,53 +2725,6 @@
             applyingCommandId = null;
         }
 
-        // Редактировать команду
-        function editCommand(commandId) {
-            const command = allCommands.find(c => c.id === commandId);
-            if (!command) return;
-
-            editingCommandId = commandId;
-            document.getElementById('edit-command-name').value = command.name;
-            document.getElementById('edit-command-description').value = command.description || '';
-            document.getElementById('edit-command-tags').value = command.tags.join(', ');
-            document.getElementById('edit-command-modal').classList.add('active');
-        }
-
-        // Сохранить отредактированную команду
-        async function saveEditedCommand() {
-            if (!editingCommandId) return;
-
-            const name = document.getElementById('edit-command-name').value.trim();
-            const description = document.getElementById('edit-command-description').value.trim();
-            const tagsInput = document.getElementById('edit-command-tags').value.trim();
-            const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
-
-            try {
-                const response = await fetch(`${COMMANDS_API}/${editingCommandId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, description, tags })
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    addLog(`✅ Команда "${name}" обновлена`, 'success');
-                    closeEditModal();
-                    await loadCommands();
-                } else {
-                    addLog(`❌ Ошибка обновления: ${data.message || data.error}`, 'error');
-                }
-            } catch (error) {
-                addLog(`❌ Ошибка: ${error.message}`, 'error');
-            }
-        }
-
-        // Закрыть модальное окно редактирования
-        function closeEditModal() {
-            document.getElementById('edit-command-modal').classList.remove('active');
-            editingCommandId = null;
-        }
 
         // Дублировать команду
         async function duplicateCommand(commandId) {
@@ -2340,11 +2859,7 @@
 
         // Закрытие модальных окон по клику вне их
         window.onclick = function(event) {
-            const editModal = document.getElementById('edit-command-modal');
             const applyModal = document.getElementById('apply-multiple-modal');
-            if (event.target === editModal) {
-                closeEditModal();
-            }
             if (event.target === applyModal) {
                 closeApplyMultipleModal();
             }
@@ -2359,7 +2874,6 @@
             }
             // Escape для закрытия модальных окон
             if (e.key === 'Escape') {
-                closeEditModal();
                 closeApplyMultipleModal();
             }
         });

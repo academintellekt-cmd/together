@@ -597,6 +597,12 @@ router.post('/commands', (req, res) => {
     const command = commands.createCommand(req.body);
     
     console.log('✅ Команда создана:', command.id, command.name);
+    if (command.fixtureCount && command.fixtureCount > 1) {
+      console.log(`   📊 Команда содержит ${command.fixtureCount} фонарей`);
+      if (command.allFixtures && Array.isArray(command.allFixtures)) {
+        console.log(`   📋 Фонари:`, command.allFixtures.map(f => `#${f.lm70sNumber} (адрес ${f.startAddress})`).join(', '));
+      }
+    }
     res.json({ success: true, command });
   } catch (error) {
     console.error('❌ Ошибка создания команды:', error.message);
@@ -612,10 +618,23 @@ router.post('/commands', (req, res) => {
 // Обновить команду
 router.put('/commands/:id', (req, res) => {
   try {
+    console.log('📝 PUT /api/dmx/commands/:id - обновление команды');
+    console.log('📦 ID команды:', req.params.id);
+    console.log('📦 Тело запроса:', JSON.stringify(req.body, null, 2));
+    
     const commands = getDMXCommands();
     const command = commands.updateCommand(req.params.id, req.body);
+    
+    console.log('✅ Команда обновлена:', {
+      id: command.id,
+      name: command.name,
+      fixtureCount: command.fixtureCount,
+      hasAllFixtures: !!command.allFixtures
+    });
+    
     res.json({ success: true, command });
   } catch (error) {
+    console.error('❌ Ошибка обновления команды:', error.message);
     res.status(400).json({
       error: 'Ошибка обновления команды',
       message: error.message
@@ -667,7 +686,47 @@ router.post('/commands/:id/apply', async (req, res) => {
     }
     
     // Отправляем команду на ESP32 или другой интерфейс
-    const { channels, targetStartAddress } = applyResult;
+    const { channels, targetStartAddress, allFixtures, fixtureCount } = applyResult;
+    
+    // Если команда содержит несколько фонарей, применяем все
+    if (allFixtures && Array.isArray(allFixtures) && allFixtures.length > 0) {
+      const axios = require('axios');
+      const esp32Host = controller.config.interface.host || '192.168.0.71';
+      const esp32Port = controller.config.interface.port || 80;
+      const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
+      
+      // Применяем каждый фонарь отдельно
+      const applyPromises = allFixtures.map(async (fixture) => {
+        try {
+          // Преобразуем каналы фонаря в формат для отправки
+          const fixtureChannels = {};
+          for (let i = 1; i <= 9; i++) {
+            fixtureChannels[i] = fixture.channels[i] !== undefined ? fixture.channels[i] : 0;
+          }
+          
+          await axios.post(`${esp32BaseUrl}/api/dmx/channels`, {
+            channels: fixtureChannels,
+            startAddress: fixture.startAddress
+          }, {
+            timeout: 2000,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } catch (error) {
+          console.error(`Ошибка применения фонаря #${fixture.lm70sNumber}:`, error.message);
+        }
+      });
+      
+      await Promise.all(applyPromises);
+      
+      res.json({ 
+        success: true, 
+        command: applyResult.command,
+        applied: true,
+        fixtureCount: fixtureCount || allFixtures.length,
+        targetStartAddress: applyResult.targetStartAddress
+      });
+      return;
+    }
     
     // Если это ESP32, отправляем напрямую
     if (controller.config && controller.config.interface.type === 'esp32') {
@@ -677,13 +736,29 @@ router.post('/commands/:id/apply', async (req, res) => {
       const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
       
       try {
-        await axios.post(`${esp32BaseUrl}/api/dmx/channels`, {
-          channels: channels,
-          startAddress: targetStartAddress
-        }, {
-          timeout: 2000,
-          headers: { 'Content-Type': 'application/json' }
-        });
+        // Если channels содержат абсолютные адреса (ключи > 9), отправляем их напрямую
+        const channelKeys = Object.keys(channels).map(k => parseInt(k));
+        const maxKey = Math.max(...channelKeys);
+        
+        if (maxKey > 9) {
+          // Каналы с абсолютными адресами - отправляем все сразу с startAddress = 1
+          await axios.post(`${esp32BaseUrl}/api/dmx/channels`, {
+            channels: channels,
+            startAddress: 1
+          }, {
+            timeout: 2000,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } else {
+          // Относительные каналы (1-9) - используем стандартную логику
+          await axios.post(`${esp32BaseUrl}/api/dmx/channels`, {
+            channels: channels,
+            startAddress: targetStartAddress
+          }, {
+            timeout: 2000,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
         
         // Если режим теста, через 2 секунды возвращаем предыдущее состояние
         if (testMode) {
@@ -710,14 +785,36 @@ router.post('/commands/:id/apply', async (req, res) => {
     } else {
       // Для других интерфейсов используем стандартный метод
       const channelUpdates = {};
-      Object.keys(channels).forEach(channelOffset => {
-        const channelNum = parseInt(channelOffset);
-        const value = parseInt(channels[channelOffset]);
-        const absoluteChannel = targetStartAddress + channelNum - 1;
-        if (absoluteChannel >= 1 && absoluteChannel <= 512) {
-          channelUpdates[absoluteChannel] = Math.max(0, Math.min(255, value));
-        }
-      });
+      
+      // Если команда содержит несколько фонарей, применяем все
+      if (allFixtures && Array.isArray(allFixtures) && allFixtures.length > 0) {
+        allFixtures.forEach(fixture => {
+          for (let i = 1; i <= 9; i++) {
+            const channelValue = fixture.channels[i] !== undefined ? fixture.channels[i] : 0;
+            const absoluteChannel = fixture.startAddress + i - 1;
+            if (absoluteChannel >= 1 && absoluteChannel <= 512) {
+              channelUpdates[absoluteChannel] = Math.max(0, Math.min(255, channelValue));
+            }
+          }
+        });
+      } else {
+        // Стандартная логика для одного фонаря
+        Object.keys(channels).forEach(channelOffset => {
+          const channelNum = parseInt(channelOffset);
+          const value = parseInt(channels[channelOffset]);
+          
+          // Если ключ больше 9, это абсолютный адрес
+          if (channelNum > 9) {
+            channelUpdates[channelNum] = Math.max(0, Math.min(255, value));
+          } else {
+            // Относительный адрес (1-9)
+            const absoluteChannel = targetStartAddress + channelNum - 1;
+            if (absoluteChannel >= 1 && absoluteChannel <= 512) {
+              channelUpdates[absoluteChannel] = Math.max(0, Math.min(255, value));
+            }
+          }
+        });
+      }
       
       controller.updateChannels(channelUpdates);
       
@@ -726,7 +823,8 @@ router.post('/commands/:id/apply', async (req, res) => {
         command: applyResult.command,
         applied: true,
         targetLM70SNumber: applyResult.targetLM70SNumber,
-        targetStartAddress
+        targetStartAddress,
+        fixtureCount: fixtureCount || 1
       });
     }
   } catch (error) {

@@ -59,7 +59,9 @@ class DMXCommands {
       startAddress,
       channels,
       tags = [],
-      description = ''
+      description = '',
+      fixtureCount,
+      allFixtures
     } = commandData;
 
     if (!name || !lm70sNumber || !channels) {
@@ -71,9 +73,11 @@ class DMXCommands {
       name: name.trim(),
       lm70sNumber: parseInt(lm70sNumber),
       startAddress: parseInt(startAddress) || (1 + (parseInt(lm70sNumber) - 1) * 9),
-      channels: { ...channels },
+      channels: { ...channels }, // Сохраняем все каналы (могут быть с абсолютными адресами)
       tags: Array.isArray(tags) ? tags : [],
       description: description || '',
+      fixtureCount: fixtureCount || 1,
+      allFixtures: allFixtures || null, // Сохраняем информацию о всех фонарях
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       usageCount: 0,
@@ -87,6 +91,14 @@ class DMXCommands {
       timestamp: command.createdAt,
       channels: { ...channels }
     });
+
+    // Логируем сохранение команды с несколькими фонарями
+    if (fixtureCount && fixtureCount > 1) {
+      console.log(`✅ Сохранена команда "${command.name}" с ${fixtureCount} фонарями`);
+      if (allFixtures && Array.isArray(allFixtures)) {
+        console.log(`   Фонари:`, allFixtures.map(f => `#${f.lm70sNumber} (адрес ${f.startAddress})`).join(', '));
+      }
+    }
 
     this.commands.push(command);
     this.saveCommands();
@@ -114,6 +126,50 @@ class DMXCommands {
     }
     if (updates.tags !== undefined) command.tags = Array.isArray(updates.tags) ? updates.tags : [];
     if (updates.description !== undefined) command.description = updates.description;
+    
+    // Обновляем информацию о нескольких фонарях
+    if (updates.fixtureCount !== undefined) {
+      command.fixtureCount = parseInt(updates.fixtureCount) || 1;
+    }
+    if (updates.allFixtures !== undefined) {
+      command.allFixtures = Array.isArray(updates.allFixtures) ? updates.allFixtures.map(f => ({
+        lm70sNumber: f.lm70sNumber,
+        startAddress: f.startAddress,
+        channels: { ...f.channels }
+      })) : null;
+    }
+    
+    // Если обновлены каналы с абсолютными адресами, но нет allFixtures, создаем их
+    if (updates.channels && !updates.allFixtures) {
+      const channelKeys = Object.keys(updates.channels).map(k => parseInt(k));
+      const maxKey = Math.max(...channelKeys);
+      
+      // Если есть каналы с адресами больше 9, это несколько фонарей
+      if (maxKey > 9) {
+        const fixtureCount = Math.ceil(maxKey / 9);
+        const allFixtures = [];
+        
+        for (let i = 0; i < fixtureCount; i++) {
+          const fixtureNumber = i + 1;
+          const startAddr = 1 + i * 9;
+          const fixtureChannels = {};
+          
+          for (let ch = 1; ch <= 9; ch++) {
+            const absoluteAddr = startAddr + ch - 1;
+            fixtureChannels[ch] = updates.channels[absoluteAddr] !== undefined ? updates.channels[absoluteAddr] : 0;
+          }
+          
+          allFixtures.push({
+            lm70sNumber: fixtureNumber,
+            startAddress: startAddr,
+            channels: fixtureChannels
+          });
+        }
+        
+        command.allFixtures = allFixtures;
+        command.fixtureCount = fixtureCount;
+      }
+    }
 
     command.updatedAt = new Date().toISOString();
 
@@ -128,6 +184,15 @@ class DMXCommands {
     }
 
     this.saveCommands();
+    
+    // Логируем обновление команды с несколькими фонарями
+    if (command.fixtureCount && command.fixtureCount > 1) {
+      console.log(`✅ Обновлена команда "${command.name}" с ${command.fixtureCount} фонарями`);
+      if (command.allFixtures && Array.isArray(command.allFixtures)) {
+        console.log(`   Фонари:`, command.allFixtures.map(f => `#${f.lm70sNumber} (адрес ${f.startAddress})`).join(', '));
+      }
+    }
+    
     return command;
   }
 
@@ -261,6 +326,23 @@ class DMXCommands {
       throw new Error('Команда не найдена');
     }
 
+    // Если команда содержит несколько фонарей (allFixtures), применяем все
+    if (command.allFixtures && Array.isArray(command.allFixtures) && command.allFixtures.length > 0) {
+      // Увеличиваем счетчик использования
+      this.incrementUsage(id);
+      
+      // Возвращаем все фонари для применения
+      return {
+        command,
+        targetLM70SNumber: command.lm70sNumber,
+        targetStartAddress: command.startAddress,
+        channels: command.channels, // Все каналы с абсолютными адресами
+        allFixtures: command.allFixtures,
+        fixtureCount: command.fixtureCount || command.allFixtures.length
+      };
+    }
+
+    // Стандартная логика для одного фонаря
     const targetNumber = targetLM70SNumber || command.lm70sNumber;
     const targetStartAddress = 1 + (targetNumber - 1) * 9;
 
