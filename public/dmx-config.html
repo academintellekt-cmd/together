@@ -68,7 +68,7 @@
         }
 
         /* Убираем ограничения у родительских контейнеров */
-        .main-content-left,
+        .main-content-right,
         .main-content-wrapper {
             max-width: none !important;
             width: 100% !important;
@@ -229,14 +229,14 @@
         .channel-config {
             margin-bottom: 10px;
             display: flex;
-            gap: clamp(4px, 0.8vw, 6px);
+            gap: clamp(2px, 0.5vw, 4px);
             justify-content: center;
-            flex-wrap: nowrap;
-            padding: clamp(10px, 2vw, 15px);
+            flex-wrap: wrap;
+            padding: clamp(8px, 1.5vw, 12px);
             background: transparent;
             border-radius: 0;
             border: none;
-            overflow-x: auto;
+            overflow-x: visible;
             overflow-y: visible;
         }
 
@@ -244,9 +244,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: clamp(50px, 6vw, 70px);
+            width: clamp(35px, 4vw, 50px);
+            min-width: clamp(35px, 4vw, 50px);
             position: relative;
-            flex-shrink: 0;
+            flex-shrink: 1;
             justify-content: flex-start;
             overflow: visible;
             z-index: 1;
@@ -258,12 +259,12 @@
 
         .channel-label {
             font-weight: 700;
-            font-size: clamp(11px, 1.5vw, 13px);
+            font-size: clamp(9px, 1.2vw, 11px);
             color: var(--color-dark);
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             text-align: center;
             position: relative;
-            padding: 4px 6px;
+            padding: 2px 4px;
             border-radius: 4px;
             transition: background 0.2s;
             width: 100%;
@@ -279,13 +280,13 @@
 
         .channel-slider-wrapper {
             position: relative;
-            width: clamp(80px, 12vw, 120px);
-            height: clamp(80px, 12vw, 120px);
+            width: clamp(50px, 7vw, 80px);
+            height: clamp(50px, 7vw, 80px);
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto;
-            min-height: 80px;
+            min-height: clamp(50px, 7vw, 80px);
             flex-shrink: 0;
             /* Центрируем wrapper внутри item */
             left: 50%;
@@ -297,8 +298,8 @@
         }
 
         .channel-slider {
-            width: clamp(80px, 12vw, 120px);
-            height: 5px;
+            width: clamp(50px, 7vw, 80px);
+            height: 4px;
             border-radius: 3px;
             background: linear-gradient(to bottom, 
                 rgba(0, 200, 0, 0.3) 0%,
@@ -317,8 +318,8 @@
             top: 50%;
             /* Центрируем повернутый слайдер: половина ширины слайдера = половина высоты wrapper */
             /* После поворота на -90deg ширина становится высотой, поэтому используем половину высоты wrapper */
-            margin-left: calc(-1 * clamp(40px, 6vw, 60px));
-            margin-top: -2.5px;
+            margin-left: calc(-1 * clamp(25px, 3.5vw, 40px));
+            margin-top: -2px;
             box-sizing: border-box;
         }
 
@@ -678,14 +679,10 @@
             align-items: flex-start;
         }
 
-        .main-content-left {
+        /* Левая панель: Список сохраненных команд */
+        .commands-list-panel {
             flex: 1;
             min-width: 0;
-        }
-
-        .commands-panel {
-            width: 380px;
-            min-width: 380px;
             background: rgba(245, 245, 245, 0.95);
             border: 3px solid var(--color-dark);
             border-radius: clamp(12px, 2.5vw, 20px);
@@ -693,13 +690,15 @@
             box-shadow: 
                 0 6px 0px rgba(0, 0, 0, 0.15),
                 0 8px 16px rgba(0, 0, 0, 0.1);
-            max-height: calc(100vh - 200px);
-            overflow-y: auto;
             position: sticky;
             top: 100px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: visible;
+            overflow-x: visible;
         }
 
-        .commands-panel h2 {
+        .commands-list-panel h2 {
             font-family: 'Days One', sans-serif;
             font-size: clamp(20px, 3vw, 24px);
             color: var(--color-dark);
@@ -707,10 +706,32 @@
             text-align: center;
         }
 
+        /* Правая панель: Конфигуратор и форма сохранения */
+        .main-content-right {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
         .command-form {
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--color-dark);
+            background: rgba(245, 245, 245, 0.95);
+            border: 3px solid var(--color-dark);
+            border-radius: clamp(12px, 2.5vw, 20px);
+            padding: clamp(20px, 4vw, 24px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.15),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .command-form h3 {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(18px, 3vw, 22px);
+            color: var(--color-dark);
+            margin-bottom: 15px;
+            text-align: center;
         }
 
         .command-form input,
@@ -744,99 +765,121 @@
 
         .commands-list {
             margin-top: 20px;
+            flex: 1;
+            overflow-y: visible;
+            overflow-x: visible;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .command-item {
             background: rgba(255, 255, 255, 0.9);
             border: 2px solid var(--color-dark);
-            border-radius: clamp(8px, 1.5vw, 12px);
-            padding: clamp(12px, 2vw, 16px);
-            margin-bottom: 12px;
+            border-radius: clamp(6px, 1vw, 10px);
+            padding: clamp(8px, 1.5vw, 12px);
+            margin-bottom: 8px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 
                 0 2px 0px rgba(0, 0, 0, 0.1),
                 0 3px 6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .command-item:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
             box-shadow: 
-                0 4px 0px rgba(0, 0, 0, 0.15),
-                0 6px 12px rgba(0, 0, 0, 0.1);
+                0 3px 0px rgba(0, 0, 0, 0.15),
+                0 5px 10px rgba(0, 0, 0, 0.1);
         }
 
         .command-header {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 10px;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
         }
 
         .command-name {
             font-weight: 700;
-            font-size: clamp(16px, 2.5vw, 18px);
+            font-size: clamp(13px, 2vw, 15px);
             color: var(--color-dark);
-            flex: 1;
+            flex: 0 0 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
         }
 
         .command-preview {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
         }
 
         .command-color-preview {
-            width: 40px;
-            height: 40px;
+            width: 24px;
+            height: 24px;
             border: 2px solid var(--color-dark);
-            border-radius: 8px;
+            border-radius: 4px;
             background: #000;
+            flex-shrink: 0;
         }
 
         .command-info {
             flex: 1;
-            font-size: clamp(11px, 1.5vw, 13px);
+            font-size: clamp(10px, 1.3vw, 12px);
             color: #666;
-        }
-
-        .command-info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 4px;
-        }
-
-        .command-actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .command-actions .btn {
-            flex: 1;
-            min-width: 80px;
-            padding: 8px 6px;
-            font-size: 11px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
+        .command-info-row {
+            display: inline;
+        }
+
+        .command-info-row::after {
+            content: ' | ';
+            margin: 0 4px;
+        }
+
+        .command-info-row:last-child::after {
+            content: '';
+        }
+
+        .command-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .command-actions .btn {
+            padding: 6px 8px;
+            font-size: 12px;
+            min-width: auto;
+        }
+
         .command-tags {
             display: flex;
-            gap: 6px;
+            gap: 4px;
             flex-wrap: wrap;
-            margin-top: 8px;
+            flex-shrink: 0;
         }
 
         .command-tag {
             background: var(--color-dark);
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .search-box {
@@ -963,11 +1006,15 @@
                 flex-direction: column;
             }
 
-            .commands-panel {
+            .commands-list-panel {
                 width: 100%;
                 min-width: 0;
                 position: static;
                 max-height: none;
+            }
+
+            .main-content-right {
+                width: 100%;
             }
         }
 
@@ -987,47 +1034,69 @@
             }
 
             .channel-config {
-                gap: 6px;
-                padding: 10px;
+                gap: 2px;
+                padding: 6px;
             }
 
             .channel-item {
-                width: clamp(40px, 8vw, 55px);
-            }
-
-            .channel-config {
-                gap: 4px;
-                padding: 8px;
-            }
-
-            .channel-item {
-                width: clamp(35px, 7vw, 50px);
+                width: clamp(28px, 5vw, 40px);
+                min-width: clamp(28px, 5vw, 40px);
             }
 
             .channel-slider-wrapper {
-                width: clamp(100px, 20vw, 140px);
-                height: clamp(100px, 20vw, 140px);
+                width: clamp(35px, 6vw, 50px);
+                height: clamp(35px, 6vw, 50px);
+                min-height: clamp(35px, 6vw, 50px);
             }
 
             .channel-slider {
-                width: clamp(100px, 20vw, 140px);
+                width: clamp(35px, 6vw, 50px);
+                height: 3px;
+                margin-left: calc(-1 * clamp(17.5px, 3vw, 25px));
+                margin-top: -1.5px;
             }
 
             .channel-label {
-                font-size: 10px;
+                font-size: clamp(7px, 1vw, 9px);
+                padding: 1px 2px;
+                margin-bottom: 2px;
+            }
+
+            .channel-slider::-webkit-slider-thumb {
+                width: clamp(10px, 1.5vw, 12px);
+                height: clamp(10px, 1.5vw, 12px);
+            }
+
+            .channel-slider::-moz-range-thumb {
+                width: clamp(10px, 1.5vw, 12px);
+                height: clamp(10px, 1.5vw, 12px);
             }
 
 
-            .commands-panel {
+            .commands-list-panel {
                 padding: 15px;
             }
 
+            .command-item {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .command-name {
+                max-width: 100px;
+            }
+
+            .command-info {
+                font-size: 9px;
+            }
+
             .command-actions {
-                flex-direction: column;
+                flex-direction: row;
             }
 
             .command-actions .btn {
-                width: 100%;
+                padding: 4px 6px;
+                font-size: 10px;
             }
         }
     </style>
@@ -1039,110 +1108,13 @@
             <h1 class="page-title">⚙️ DMX Настройка</h1>
 
             <div class="main-content-wrapper">
-                <div class="main-content-left">
-                    <!-- Вкладки -->
-                    <div class="tabs">
-                        <button class="tab-btn active" onclick="switchTab('channels', this)">🎛️ Настройка фонаря</button>
-                        <button class="tab-btn" onclick="switchTab('ledbar', this)">💡 LED BAR</button>
-                        <button class="tab-btn" onclick="switchTab('fog', this)">🌫️ Туман-машина</button>
-                    </div>
-
-            <!-- Вкладка: Конфигуратор каналов -->
-            <div id="tab-channels" class="tab-content active">
-                <div class="card">
-                    <h2>🎛️ Конфигуратор каналов LM70S</h2>
-                    
-                    <!-- Контейнер для всех фонарей -->
-                    <div id="fixtures-container"></div>
-                </div>
-            </div>
-
-            <!-- Вкладка: LED BAR -->
-            <div id="tab-ledbar" class="tab-content">
-                <div class="grid">
-                    <div class="card">
-                        <h2>💡 Управление LED BAR</h2>
-                        <div class="address-input">
-                            <label>Номер LED BAR (1-10):</label>
-                            <input type="number" id="ledbar-number" min="1" max="10" value="1">
-                        </div>
-                        <div class="color-picker">
-                            <input type="number" id="ledbar-r" class="color-input" placeholder="R" min="0" max="255" value="255">
-                            <input type="number" id="ledbar-g" class="color-input" placeholder="G" min="0" max="255" value="255">
-                            <input type="number" id="ledbar-b" class="color-input" placeholder="B" min="0" max="255" value="255">
-                            <div class="color-preview" id="ledbar-preview"></div>
-                        </div>
-                        <div style="margin-top: 15px;">
-                            <button class="btn btn-primary" onclick="setLEDBarAllPixels()">Применить ко всем пикселям</button>
-                            <button class="btn btn-success" onclick="setLEDBarPixel()">Применить к пикселю</button>
-                        </div>
-                        <div class="address-input" style="margin-top: 15px;">
-                            <label>Номер пикселя (1-8):</label>
-                            <input type="number" id="ledbar-pixel" min="1" max="8" value="1">
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h2>💡 Быстрые эффекты LED BAR</h2>
-                        <div>
-                            <button class="btn btn-primary" onclick="ledBarEffect('all-white')">Все белое</button>
-                            <button class="btn btn-success" onclick="ledBarEffect('rainbow')">Радуга</button>
-                            <button class="btn btn-warning" onclick="ledBarEffect('chase')">Погоня</button>
-                            <button class="btn btn-danger" onclick="ledBarEffect('off')">Выключить</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Вкладка: Туман-машина -->
-            <div id="tab-fog" class="tab-content">
-                <div class="card">
-                    <h2>🌫️ Управление туман-машиной</h2>
-                    <p style="margin-bottom: 20px; color: #666; font-size: 14px;">
-                        Уровень: 0-4 = ВЫКЛ, 5-255 = туман (чем больше значение, тем сильнее туман)
-                    </p>
-                    <div class="address-input">
-                        <label>Уровень тумана:</label>
-                        <input type="range" id="fog-level" min="0" max="255" value="0" 
-                               oninput="document.getElementById('fog-level-value').textContent = this.value">
-                        <span id="fog-level-value" style="font-weight: bold; min-width: 50px;">0</span>
-                    </div>
-                    <div style="margin-top: 20px;">
-                        <button class="btn btn-primary" onclick="setFogMachine()">Применить</button>
-                        <button class="btn btn-danger" onclick="setFogMachineLevel(0)">Выключить</button>
-                        <button class="btn btn-success" onclick="setFogMachineLevel(128)">Средний уровень</button>
-                        <button class="btn btn-warning" onclick="setFogMachineLevel(255)">Максимальный</button>
-                    </div>
-                </div>
-            </div>
-                </div>
-
-                <!-- Правая панель: Сохраненные команды -->
-                <div class="commands-panel">
+                <!-- Левая панель: Список сохраненных команд -->
+                <div class="commands-list-panel">
                     <h2>💾 Сохраненные команды</h2>
                     
-                    <!-- Форма сохранения команды -->
-                    <div class="command-form">
-                        <input type="text" id="command-name" placeholder="Название команды" maxlength="50">
-                        <textarea id="command-description" placeholder="Описание (необязательно)" maxlength="200"></textarea>
-                        <div class="form-row">
-                            <input type="text" id="command-tags" placeholder="Теги (через запятую)">
-                        </div>
-                        <button class="btn btn-success" id="save-command-btn" onclick="saveCommand()" style="width: 100%;">
-                            💾 Сохранить команду
-                        </button>
-                        <button class="btn btn-primary btn-small" onclick="saveDraft()" style="width: 100%; margin-top: 8px;">
-                            📝 Сохранить черновик
-                        </button>
-                    </div>
-
                     <!-- Поиск и фильтры -->
                     <input type="text" class="search-box" id="command-search" placeholder="🔍 Поиск команд..." oninput="filterCommands()">
                     
-                    <div class="filter-buttons">
-                        <button class="filter-btn active" onclick="setFilter('all')">Все</button>
-                        <button class="filter-btn" onclick="setFilter('popular')">Популярные</button>
-                        <button class="filter-btn" onclick="setFilter('recent')">Недавние</button>
-                    </div>
 
                     <!-- Список команд -->
                     <div class="commands-list" id="commands-list">
@@ -1158,6 +1130,33 @@
                             📥 Импорт команд
                         </button>
                         <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="handleImportFile(event)">
+                    </div>
+                </div>
+
+                <!-- Правая панель: Конфигуратор каналов и форма сохранения -->
+                <div class="main-content-right">
+                    <!-- Конфигуратор каналов -->
+                    <div class="card">
+                        <h2>🎛️ Конфигуратор каналов LM70S</h2>
+                        
+                        <!-- Контейнер для всех фонарей -->
+                        <div id="fixtures-container"></div>
+                    </div>
+
+                    <!-- Форма сохранения команды -->
+                    <div class="command-form">
+                        <h3>💾 Сохранить команду</h3>
+                        <input type="text" id="command-name" placeholder="Название команды" maxlength="50">
+                        <textarea id="command-description" placeholder="Описание (необязательно)" maxlength="200"></textarea>
+                        <div class="form-row">
+                            <input type="text" id="command-tags" placeholder="Теги (через запятую)">
+                        </div>
+                        <button class="btn btn-success" id="save-command-btn" onclick="saveCommand()" style="width: 100%;">
+                            💾 Сохранить команду
+                        </button>
+                        <button class="btn btn-primary btn-small" onclick="saveDraft()" style="width: 100%; margin-top: 8px;">
+                            📝 Сохранить черновик
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1207,7 +1206,6 @@
         let currentChannels = {};
         let startAddress = 1;
         let allCommands = [];
-        let currentFilter = 'all';
         let applyingCommandId = null;
         let selectedFixtures = [];
         
@@ -1287,11 +1285,6 @@
                     });
                 }
             }
-            
-            // Инициализация превью LED BAR
-            if (document.getElementById('ledbar-preview')) {
-                document.getElementById('ledbar-preview').style.background = 'rgb(255, 255, 255)';
-            }
 
             // Загружаем команды при загрузке страницы
             loadCommands();
@@ -1338,21 +1331,7 @@
 
         // Инициализация превью цвета
         function initColorPreview() {
-            // Инициализация превью LED BAR
-            ['ledbar-r', 'ledbar-g', 'ledbar-b'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('input', () => {
-                        const r = parseInt(document.getElementById('ledbar-r').value) || 0;
-                        const g = parseInt(document.getElementById('ledbar-g').value) || 0;
-                        const b = parseInt(document.getElementById('ledbar-b').value) || 0;
-                        const preview = document.getElementById('ledbar-preview');
-                        if (preview) {
-                            preview.style.background = `rgb(${r}, ${g}, ${b})`;
-                        }
-                    });
-                }
-            });
+            // Инициализация будет добавлена позже для новых эквалайзеров
         }
 
         // Конвертация HSV в RGB (для LED BAR эффектов)
@@ -2476,16 +2455,6 @@
                 );
             }
             
-            // Фильтры
-            if (currentFilter === 'popular') {
-                filtered = filtered.filter(cmd => (cmd.usageCount || 0) > 0)
-                    .sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0));
-            } else if (currentFilter === 'recent') {
-                filtered = filtered.sort((a, b) => 
-                    new Date(b.updatedAt) - new Date(a.updatedAt)
-                );
-            }
-            
             if (filtered.length === 0) {
                 container.innerHTML = '<div class="empty-state">Команды не найдены</div>';
                 return;
@@ -2502,8 +2471,6 @@
                 else if (mode >= 241) modeText = 'ВКЛ';
                 
                 const colorStyle = `rgb(${r}, ${g}, ${b})`;
-                const usageCount = cmd.usageCount || 0;
-                const lastUsed = cmd.lastUsedAt ? new Date(cmd.lastUsedAt).toLocaleDateString('ru-RU') : 'Никогда';
                 
                 return `
                     <div class="command-item" data-command-id="${cmd.id}">
@@ -2513,14 +2480,10 @@
                         <div class="command-preview">
                             <div class="command-color-preview" style="background: ${colorStyle};"></div>
                             <div class="command-info">
-                                <div class="command-info-row">
-                                    <span>Фонарь #${cmd.lm70sNumber}</span>
-                                    <span>${modeText}</span>
-                                </div>
-                                <div class="command-info-row">
-                                    <span>X: ${cmd.channels['1'] || 0} Y: ${cmd.channels['2'] || 0}</span>
-                                    <span>Скорость: ${cmd.channels['8'] || 0}</span>
-                                </div>
+                                <span class="command-info-row">Фонарь #${cmd.lm70sNumber}</span>
+                                <span class="command-info-row">${modeText}</span>
+                                <span class="command-info-row">X: ${cmd.channels['1'] || 0} Y: ${cmd.channels['2'] || 0}</span>
+                                <span class="command-info-row">Скорость: ${cmd.channels['8'] || 0}</span>
                             </div>
                         </div>
                         ${cmd.tags.length > 0 ? `
@@ -2528,9 +2491,6 @@
                                 ${cmd.tags.map(tag => `<span class="command-tag">${escapeHtml(tag)}</span>`).join('')}
                             </div>
                         ` : ''}
-                        <div class="command-stats">
-                            Использовано: ${usageCount} раз | Последнее: ${lastUsed}
-                        </div>
                         <div class="command-actions">
                             <button class="btn btn-success btn-small" onclick="applyCommand('${cmd.id}')" title="Включить">
                                 ▶️
@@ -2784,11 +2744,9 @@
             renderCommands();
         }
 
-        // Установить фильтр
+        // Установить фильтр (удалено - фильтры больше не используются)
         function setFilter(filter) {
-            currentFilter = filter;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            // Фильтры удалены
             renderCommands();
         }
 
