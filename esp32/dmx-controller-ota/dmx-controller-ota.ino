@@ -80,6 +80,7 @@
 #include <WebServer.h>
 #include <ArduinoJson.h>
 #include <ArduinoOTA.h>
+#include <ESPmDNS.h>
 
 // ========== КОНФИГУРАЦИЯ ==========
 // Настройки WiFi
@@ -897,16 +898,9 @@ void setup() {
   
   WiFi.mode(WIFI_STA);
   
-  // Настройка статического IP адреса
-  IPAddress local_IP(192, 168, 0, 71);
-  IPAddress gateway(192, 168, 0, 1);
-  IPAddress subnet(255, 255, 255, 0);
-  
-  if (!WiFi.config(local_IP, gateway, subnet)) {
-    Serial.println("[WiFi] Ошибка настройки статического IP!");
-  } else {
-    Serial.println("[WiFi] Статический IP настроен: 192.168.0.71");
-  }
+  // Используем DHCP для автоматического получения IP адреса
+  // Это позволяет работать в любой локальной сети без изменения кода
+  Serial.println("[WiFi] Использование DHCP для получения IP адреса...");
   
   WiFi.begin(ssid, password);
   
@@ -928,6 +922,20 @@ void setup() {
     Serial.print(WiFi.RSSI());
     Serial.println(" dBm");
     
+    // Настройка mDNS для доступа по имени хоста
+    const char* mdnsHostname = "esp32-dmx";
+    if (MDNS.begin(mdnsHostname)) {
+      Serial.println("[mDNS] mDNS запущен");
+      Serial.print("[mDNS] Доступен по адресу: http://");
+      Serial.print(mdnsHostname);
+      Serial.println(".local");
+      Serial.print("[mDNS] Или по IP: http://");
+      Serial.println(WiFi.localIP());
+    } else {
+      Serial.println("[mDNS] Ошибка запуска mDNS!");
+      Serial.println("[mDNS] Используйте IP адрес для подключения");
+    }
+    
     // Быстрое мигание при успешном подключении
     for (int i = 0; i < 5; i++) {
       digitalWrite(LED_PIN, HIGH);
@@ -940,8 +948,8 @@ void setup() {
     Serial.println("[WARN] Проверьте SSID и пароль в коде");
   }
   
-  // Настройка OTA
-  ArduinoOTA.setHostname("esp32-dmx-controller");
+  // Настройка OTA (используем то же имя хоста, что и для mDNS)
+  ArduinoOTA.setHostname("esp32-dmx");
   
   if (strlen(ota_password) > 0) {
     ArduinoOTA.setPassword(ota_password);
@@ -1052,8 +1060,10 @@ void setup() {
   Serial.println();
   Serial.println("УПРАВЛЕНИЕ:");
   Serial.println("1. Веб-пульт: http://localhost:3000/dmx-control.html");
-  Serial.println("2. Прямое управление: http://" + WiFi.localIP().toString());
-  Serial.println("3. OTA обновления: http://" + WiFi.localIP().toString() + "/update");
+  Serial.println("2. Прямое управление: http://esp32-dmx.local");
+  Serial.println("   Или по IP: http://" + WiFi.localIP().toString());
+  Serial.println("3. OTA обновления: http://esp32-dmx.local/update");
+  Serial.println("   Или по IP: http://" + WiFi.localIP().toString() + "/update");
   Serial.println();
   Serial.println("УПРАВЛЕНИЕ 14 RGB ПРОЖЕКТОРАМИ:");
   Serial.println("  - Каждый прожектор использует 9 каналов (14 прожекторов = каналы 1-126)");
@@ -1077,6 +1087,7 @@ void setup() {
 
 void loop() {
   ArduinoOTA.handle();  // Обработка OTA обновлений
+  MDNS.update();        // Обновление mDNS (необходимо вызывать периодически)
   server.handleClient();  // Обработка HTTP запросов
   
   // Отправка DMX кадров с нужной частотой

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const dns = require('dns');
 
 class DMXController {
   constructor() {
@@ -95,12 +96,34 @@ class DMXController {
         // ESP32 через HTTP
         try {
           const axios = require('axios');
-          const esp32Host = this.config.interface.host || '192.168.1.100';
+          const esp32Host = this.config.interface.host || 'esp32-dmx.local';
           const esp32Port = this.config.interface.port || 80;
-          const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
+          
+          // Функция для получения базового URL с поддержкой mDNS
+          const getEsp32BaseUrl = () => {
+            // Если это IP адрес, используем напрямую
+            if (/^\d+\.\d+\.\d+\.\d+$/.test(esp32Host)) {
+              return `http://${esp32Host}:${esp32Port}`;
+            }
+            // Если это .local домен (mDNS), используем напрямую
+            // axios и Node.js должны автоматически разрешить его через mDNS
+            return `http://${esp32Host}:${esp32Port}`;
+          };
+          
+          const esp32BaseUrl = getEsp32BaseUrl();
+          
+          console.log(`🔍 Попытка подключения к ESP32: ${esp32BaseUrl}`);
+          if (esp32Host.endsWith('.local')) {
+            console.log('   Используется mDNS (.local домен)');
+            console.log('   Убедитесь, что ESP32 и сервер в одной сети');
+          }
           
           // Проверка доступности ESP32
-          axios.get(`${esp32BaseUrl}/api/dmx/status`, { timeout: 3000 })
+          axios.get(`${esp32BaseUrl}/api/dmx/status`, { 
+            timeout: 5000,
+            // Для mDNS может потребоваться больше времени на первое подключение
+            // axios автоматически использует dns.lookup для разрешения имен
+          })
             .then((response) => {
               if (response.data && response.data.available) {
                 console.log(`✅ ESP32 DMX контроллер доступен: ${esp32BaseUrl}`);

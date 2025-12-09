@@ -24,8 +24,11 @@ try {
 }
 
 if (!esp32IP) {
-  console.log('📋 Использование: node test-esp32-connection.js [IP_ESP32]');
-  console.log('   Или укажите IP в server/dmx/dmx-config.json');
+  console.log('📋 Использование: node test-esp32-connection.js [IP_ESP32_или_hostname]');
+  console.log('   Или укажите host/IP в server/dmx/dmx-config.json');
+  console.log('   Примеры:');
+  console.log('     node test-esp32-connection.js esp32-dmx.local');
+  console.log('     node test-esp32-connection.js 192.168.0.71');
   process.exit(1);
 }
 
@@ -186,8 +189,11 @@ async function runTests() {
     console.log('\n💡 Что проверить:');
     console.log('   1. ESP32 прошит прошивкой dmx-controller-ota.ino');
     console.log('   2. ESP32 подключен к WiFi (проверьте Serial Monitor)');
-    console.log('   3. IP адрес правильный (проверьте в Serial Monitor)');
+    console.log('   3. Используйте имя хоста esp32-dmx.local или IP адрес');
     console.log('   4. ESP32 и компьютер в одной WiFi сети');
+    if (esp32IP && esp32IP.endsWith('.local')) {
+      console.log('   5. Для mDNS (.local) убедитесь, что mDNS работает в системе');
+    }
     process.exit(1);
   }
   

@@ -271,7 +271,7 @@ router.post('/channels', async (req, res) => {
     // Если это ESP32, отправляем напрямую на ESP32 через правильный endpoint
     if (controller.config && controller.config.interface.type === 'esp32') {
       const axios = require('axios');
-      const esp32Host = controller.config.interface.host || '192.168.0.71';
+      const esp32Host = controller.config.interface.host || 'esp32-dmx.local';
       const esp32Port = controller.config.interface.port || 80;
       const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
       
@@ -374,7 +374,7 @@ router.get('/channels', async (req, res) => {
     // Если это ESP32, запрашиваем напрямую с ESP32
     if (controller.config && controller.config.interface.type === 'esp32') {
       const axios = require('axios');
-      const esp32Host = controller.config.interface.host || '192.168.0.71';
+      const esp32Host = controller.config.interface.host || 'esp32-dmx.local';
       const esp32Port = controller.config.interface.port || 80;
       const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
       
@@ -605,7 +605,7 @@ router.post('/commands/:id/apply', async (req, res) => {
     // Если команда содержит несколько фонарей, применяем все
     if (allFixtures && Array.isArray(allFixtures) && allFixtures.length > 0) {
       const axios = require('axios');
-      const esp32Host = controller.config.interface.host || '192.168.0.71';
+      const esp32Host = controller.config.interface.host || 'esp32-dmx.local';
       const esp32Port = controller.config.interface.port || 80;
       const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
       
@@ -645,7 +645,7 @@ router.post('/commands/:id/apply', async (req, res) => {
     // Если это ESP32, отправляем напрямую
     if (controller.config && controller.config.interface.type === 'esp32') {
       const axios = require('axios');
-      const esp32Host = controller.config.interface.host || '192.168.0.71';
+      const esp32Host = controller.config.interface.host || 'esp32-dmx.local';
       const esp32Port = controller.config.interface.port || 80;
       const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
       
@@ -774,7 +774,7 @@ router.post('/commands/:id/apply-multiple', async (req, res) => {
       
       if (controller.config && controller.config.interface.type === 'esp32') {
         const axios = require('axios');
-        const esp32Host = controller.config.interface.host || '192.168.0.71';
+        const esp32Host = controller.config.interface.host || 'esp32-dmx.local';
         const esp32Port = controller.config.interface.port || 80;
         const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
         
