@@ -1,0 +1,67 @@
+{
+  "playerStates": {
+    "OFF": null,
+    "WAITING_FOR_READY": "player-waiting",
+    "READY": "player-ready",
+    "ANSWERING": "player-answering",
+    "COUNTDOWN": "player-countdown",
+    "LOCKED_IN": "player-locked-in",
+    "CORRECT": "player-correct",
+    "INCORRECT": "player-incorrect",
+    "WINNER": "player-winner",
+    "LEADER": "player-leader"
+  },
+  "gamePhases": {
+    "LOBBY": {
+      "defaultPlayerState": "OFF",
+      "globalEffect": null
+    },
+    "WAITING_ALL_READY": {
+      "defaultPlayerState": "WAITING_FOR_READY",
+      "globalEffect": null
+    },
+    "QUESTION_COUNTDOWN": {
+      "defaultPlayerState": "COUNTDOWN",
+      "globalEffect": "countdown-effect"
+    },
+    "QUESTION_ACTIVE": {
+      "defaultPlayerState": "ANSWERING",
+      "globalEffect": null
+    },
+    "SHOW_CORRECT_ANSWER": {
+      "defaultPlayerState": null,
+      "globalEffect": "show-correct-flash"
+    },
+    "SHOW_RESULTS": {
+      "defaultPlayerState": null,
+      "globalEffect": "results-effect"
+    },
+    "GAME_FINISHED": {
+      "defaultPlayerState": "OFF",
+      "globalEffect": "final-show"
+    }
+  },
+  "globalEffects": {
+    "countdown-effect": {
+      "type": "stage",
+      "action": "dim"
+    },
+    "show-correct-flash": {
+      "type": "stage",
+      "action": "flash",
+      "color": [
+        0,
+        255,
+        0
+      ]
+    },
+    "results-effect": {
+      "type": "stage",
+      "action": "dynamic"
+    },
+    "final-show": {
+      "type": "stage",
+      "action": "final"
+    }
+  }
+}
