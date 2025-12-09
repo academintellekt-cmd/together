@@ -56,6 +56,21 @@ try {
   dmxIntegration = null;
 }
 
+// Инициализация системы состояний освещения
+let lightingEngine = null;
+let GameEvent = null;
+try {
+  const { getDMXScenarioEngine } = require('./server/dmx/dmx-scenario-engine');
+  const lightingStates = require('./server/dmx/dmx-lighting-states');
+  GameEvent = lightingStates.GameEvent;
+  lightingEngine = getDMXScenarioEngine();
+  console.log('✅ Система состояний освещения инициализирована');
+} catch (error) {
+  console.warn('⚠️ Система состояний освещения недоступна:', error.message);
+  lightingEngine = null;
+  GameEvent = null;
+}
+
 // Хранилище рейтинга для соло-режима
 let leaderboard = [];
 
@@ -1342,6 +1357,17 @@ app.post('/api/create-room', (req, res) => {
   }
   const roomCode = generateRoomCode();
   
+  // Инициализация системы освещения для новой комнаты
+  if (lightingEngine && GameEvent) {
+    try {
+      lightingEngine.handleGameEvent(roomCode, GameEvent.GAME_STARTED, {
+        playerCount: 14
+      });
+    } catch (error) {
+      console.warn('⚠️ Ошибка инициализации освещения для комнаты:', error.message);
+    }
+  }
+  
   // Для мультиплеера выбираем 15 случайных вопросов из всех доступных
   // Если создается комната через /api/create-room, это всегда мультиплеер
   let questionsForRoom = [...quiz.questions];
@@ -1513,9 +1539,21 @@ io.on('connection', (socket) => {
     io.to(normalizedRoomCode).emit('player-list-updated', { players: room.players });
     console.log(`Игрок ${normalizedPlayerName} подключен к комнате ${normalizedRoomCode}`);
     
-    // DMX: игрок подключился
+    // DMX: игрок подключился (старая система)
     if (dmxIntegration) {
       dmxIntegration.onPlayerJoin(normalizedRoomCode, socket.id);
+    }
+    
+    // Система состояний освещения: игрок подключился
+    if (lightingEngine && GameEvent) {
+      try {
+        const playerIndex = room.players.length - 1; // Индекс только что добавленного игрока
+        lightingEngine.handleGameEvent(normalizedRoomCode, GameEvent.PLAYER_JOINED, {
+          playerIndex: playerIndex
+        });
+      } catch (error) {
+        console.warn('⚠️ Ошибка обработки события PLAYER_JOINED:', error.message);
+      }
     }
   });
 
@@ -1532,9 +1570,22 @@ io.on('connection', (socket) => {
     
     io.to(roomCode).emit('game-started');
     
-    // DMX: игра началась
+    // DMX: игра началась (старая система)
     if (dmxIntegration) {
       dmxIntegration.onGameStarted(roomCode);
+    }
+    
+    // Система состояний освещения: игра началась
+    if (lightingEngine && GameEvent) {
+      try {
+        lightingEngine.handleGameEvent(roomCode, GameEvent.GAME_STARTED, {
+          playerCount: room.players.length
+        });
+        // Устанавливаем всех игроков в состояние ожидания готовности
+        lightingEngine.handleGameEvent(roomCode, GameEvent.ALL_PLAYERS_READY);
+      } catch (error) {
+        console.warn('⚠️ Ошибка обработки события GAME_STARTED:', error.message);
+      }
     }
     
     setTimeout(() => {
@@ -1583,9 +1634,20 @@ io.on('connection', (socket) => {
     
     io.to(roomCode).emit('question', questionData);
     
-    // DMX: вопрос показан
+    // DMX: вопрос показан (старая система)
     if (dmxIntegration) {
       dmxIntegration.onQuestionShown(roomCode);
+    }
+    
+    // Система состояний освещения: вопрос начался
+    if (lightingEngine && GameEvent) {
+      try {
+        lightingEngine.handleGameEvent(roomCode, GameEvent.QUESTION_STARTED, {
+          questionId: `q${room.currentQuestion + 1}`
+        });
+      } catch (error) {
+        console.warn('⚠️ Ошибка обработки события QUESTION_STARTED:', error.message);
+      }
     }
 
     // Таймер для автоматического перехода к результатам
@@ -1660,7 +1722,7 @@ io.on('connection', (socket) => {
       newScore: player.score
     });
     
-    // DMX: игрок ответил
+    // DMX: игрок ответил (старая система)
     if (dmxIntegration) {
       dmxIntegration.onPlayerAnswer(roomCode, socket.id);
       
@@ -1669,6 +1731,21 @@ io.on('connection', (socket) => {
         dmxIntegration.onCorrectAnswer(roomCode, socket.id);
       } else {
         dmxIntegration.onIncorrectAnswer(roomCode, socket.id);
+      }
+    }
+    
+    // Система состояний освещения: игрок ответил
+    if (lightingEngine && GameEvent) {
+      try {
+        const playerIndex = room.players.findIndex(p => p.id === socket.id);
+        if (playerIndex !== -1) {
+          lightingEngine.handleGameEvent(roomCode, GameEvent.PLAYER_ANSWERED, {
+            playerIndex: playerIndex,
+            isCorrect: isCorrect
+          });
+        }
+      } catch (error) {
+        console.warn('⚠️ Ошибка обработки события PLAYER_ANSWERED:', error.message);
       }
     }
     
@@ -1714,9 +1791,45 @@ io.on('connection', (socket) => {
       players: room.players.sort((a, b) => b.score - a.score)
     });
 
-    // DMX: показать результаты
+    // DMX: показать результаты (старая система)
     if (dmxIntegration) {
       dmxIntegration.onShowResults(roomCode, results);
+    }
+    
+    // Система состояний освещения: показать правильный ответ
+    if (lightingEngine && GameEvent) {
+      try {
+        // Формируем результаты для каждого игрока
+        const lightingResults = room.players.map((player, index) => {
+          const answer = room.answers.get(player.id);
+          return {
+            playerIndex: index,
+            isCorrect: answer ? answer.isCorrect : false
+          };
+        });
+        
+        lightingEngine.handleGameEvent(roomCode, GameEvent.SHOW_CORRECT_ANSWER, {
+          results: lightingResults
+        });
+        
+        // Через небольшую задержку показываем результаты с лидерами
+        setTimeout(() => {
+          const sortedPlayers = [...room.players].sort((a, b) => b.score - a.score);
+          const maxScore = sortedPlayers.length > 0 ? sortedPlayers[0].score : 0;
+          
+          const scoreboard = room.players.map((player, index) => ({
+            playerIndex: index,
+            score: player.score,
+            isLeader: player.score === maxScore && maxScore > 0
+          }));
+          
+          lightingEngine.handleGameEvent(roomCode, GameEvent.SHOW_RESULTS, {
+            scoreboard: scoreboard
+          });
+        }, 2000);
+      } catch (error) {
+        console.warn('⚠️ Ошибка обработки событий результатов:', error.message);
+      }
     }
 
     // Не переходим автоматически - ждем подтверждения готовности от всех игроков
@@ -1748,6 +1861,15 @@ io.on('connection', (socket) => {
 
     // Автоматически переходим к следующему вопросу, когда все игроки готовы
     if (allReady && room.gameState === 'results') {
+      // Система состояний освещения: все игроки готовы
+      if (lightingEngine && GameEvent) {
+        try {
+          lightingEngine.handleGameEvent(roomCode, GameEvent.ALL_PLAYERS_READY);
+        } catch (error) {
+          console.warn('⚠️ Ошибка обработки события ALL_PLAYERS_READY:', error.message);
+        }
+      }
+      
       // Небольшая задержка для визуальной обратной связи
       setTimeout(() => {
         // Проверяем еще раз, что игра все еще в состоянии results и все готовы
@@ -1779,6 +1901,21 @@ io.on('connection', (socket) => {
       room.readyPlayers.add(socket.id);
       room.lastActivity = Date.now(); // Обновляем активность
       console.log(`Игрок ${player.name} готов к следующему вопросу`);
+      
+      // Система состояний освещения: игрок готов
+      if (lightingEngine && GameEvent) {
+        try {
+          const playerIndex = room.players.findIndex(p => p.id === socket.id);
+          if (playerIndex !== -1) {
+            lightingEngine.handleGameEvent(roomCode, GameEvent.PLAYER_READY, {
+              playerIndex: playerIndex
+            });
+          }
+        } catch (error) {
+          console.warn('⚠️ Ошибка обработки события PLAYER_READY:', error.message);
+        }
+      }
+      
       updateReadyStatus(roomCode);
     }
   });
@@ -1819,9 +1956,34 @@ io.on('connection', (socket) => {
       results: finalResults
     });
     
-    // DMX: игра завершена
+    // DMX: игра завершена (старая система)
     if (dmxIntegration) {
       dmxIntegration.onGameFinished(roomCode, finalResults);
+    }
+    
+    // Система состояний освещения: игра завершена
+    if (lightingEngine && GameEvent) {
+      try {
+        const finalResultsWithRank = finalResults.map((player, index) => {
+          const playerIndex = room.players.findIndex(p => p.id === player.id);
+          return {
+            playerIndex: playerIndex !== -1 ? playerIndex : index,
+            score: player.score,
+            rank: index + 1
+          };
+        });
+        
+        lightingEngine.handleGameEvent(roomCode, GameEvent.GAME_FINISHED, {
+          finalResults: finalResultsWithRank
+        });
+        
+        // Очищаем комнату через некоторое время
+        setTimeout(() => {
+          lightingEngine.cleanupRoom(roomCode);
+        }, 10000);
+      } catch (error) {
+        console.warn('⚠️ Ошибка обработки события GAME_FINISHED:', error.message);
+      }
     }
   }
 
@@ -1854,9 +2016,17 @@ function cleanupInactiveRooms() {
     // Удаляем комнаты, которые завершены и неактивны более ROOM_TIMEOUT
     if (room.gameState === 'finished' && room.lastActivity) {
       if (now - room.lastActivity > ROOM_TIMEOUT) {
-        // DMX: очистка комнаты
+        // DMX: очистка комнаты (старая система)
         if (dmxIntegration) {
           dmxIntegration.cleanupRoom(code);
+        }
+        // Система состояний освещения: очистка комнаты
+        if (lightingEngine) {
+          try {
+            lightingEngine.cleanupRoom(code);
+          } catch (error) {
+            console.warn(`⚠️ Ошибка очистки освещения для комнаты ${code}:`, error.message);
+          }
         }
         rooms.delete(code);
         cleanedCount++;
@@ -1866,6 +2036,14 @@ function cleanupInactiveRooms() {
     // Удаляем комнаты в лобби без активности более ROOM_TIMEOUT
     else if (room.gameState === 'lobby' && room.lastActivity) {
       if (now - room.lastActivity > ROOM_TIMEOUT) {
+        // Система состояний освещения: очистка комнаты
+        if (lightingEngine) {
+          try {
+            lightingEngine.cleanupRoom(code);
+          } catch (error) {
+            console.warn(`⚠️ Ошибка очистки освещения для комнаты ${code}:`, error.message);
+          }
+        }
         rooms.delete(code);
         cleanedCount++;
         console.log(`🗑️ Удалена неактивная комната в лобби: ${code}`);

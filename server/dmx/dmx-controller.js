@@ -269,6 +269,37 @@ class DMXController {
     }
   }
 
+  // Обновить каналы для конкретного адреса (относительные каналы 1-9)
+  updateChannelsForAddress(startAddress, channels) {
+    if (!this.universe) {
+      console.warn('⚠️ DMX универсум не инициализирован');
+      return;
+    }
+    
+    // Преобразуем относительные каналы (1-9) в абсолютные адреса
+    const absoluteChannels = {};
+    Object.keys(channels).forEach(channelOffset => {
+      const channelNum = parseInt(channelOffset);
+      const value = parseInt(channels[channelOffset]);
+      
+      if (!isNaN(channelNum) && !isNaN(value)) {
+        const absoluteChannel = startAddress + channelNum - 1;
+        if (absoluteChannel >= 1 && absoluteChannel <= 512) {
+          absoluteChannels[absoluteChannel] = Math.max(0, Math.min(255, value));
+        }
+      }
+    });
+    
+    if (Object.keys(absoluteChannels).length > 0) {
+      try {
+        this.universe.update(absoluteChannels);
+        this.currentState = { ...this.currentState, ...absoluteChannels };
+      } catch (error) {
+        console.error('❌ Ошибка обновления каналов для адреса:', error);
+      }
+    }
+  }
+
   // Установить все каналы в значение
   allOff() {
     if (!this.universe) return;

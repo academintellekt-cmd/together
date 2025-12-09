@@ -423,92 +423,6 @@ router.get('/channels', async (req, res) => {
   }
 });
 
-// Управление LED BAR
-router.post('/ledbar/:number', async (req, res) => {
-  try {
-    const controller = getDMXController();
-    if (!controller) {
-      return res.status(503).json({ error: 'DMX контроллер недоступен' });
-    }
-    
-    const barNumber = parseInt(req.params.number);
-    const { r, g, b, pixel } = req.body;
-    
-    if (barNumber < 1 || barNumber > 10) {
-      return res.status(400).json({ error: 'Неверный номер LED BAR (1-10)' });
-    }
-    
-    // Отправляем команду напрямую на ESP32
-    const axios = require('axios');
-    const esp32Host = controller.config.interface.host || '192.168.0.71';
-    const esp32Port = controller.config.interface.port || 80;
-    const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
-    
-    try {
-      const response = await axios.post(`${esp32BaseUrl}/api/dmx/ledbar/${barNumber}`, {
-        r, g, b, pixel
-      }, {
-        timeout: 2000,
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      res.json(response.data);
-    } catch (error) {
-      res.status(503).json({
-        error: 'ESP32 недоступен',
-        message: error.message
-      });
-    }
-  } catch (error) {
-    res.status(500).json({
-      error: 'Ошибка управления LED BAR',
-      message: error.message
-    });
-  }
-});
-
-// Управление туман-машиной
-router.post('/fog', async (req, res) => {
-  try {
-    const controller = getDMXController();
-    if (!controller) {
-      return res.status(503).json({ error: 'DMX контроллер недоступен' });
-    }
-    
-    const { level } = req.body;
-    
-    if (level === undefined || level < 0 || level > 255) {
-      return res.status(400).json({ error: 'Неверный уровень тумана (0-255)' });
-    }
-    
-    // Отправляем команду напрямую на ESP32
-    const axios = require('axios');
-    const esp32Host = controller.config.interface.host || '192.168.0.71';
-    const esp32Port = controller.config.interface.port || 80;
-    const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
-    
-    try {
-      const response = await axios.post(`${esp32BaseUrl}/api/dmx/fog`, {
-        level
-      }, {
-        timeout: 2000,
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      res.json(response.data);
-    } catch (error) {
-      res.status(503).json({
-        error: 'ESP32 недоступен',
-        message: error.message
-      });
-    }
-  } catch (error) {
-    res.status(500).json({
-      error: 'Ошибка управления туман-машиной',
-      message: error.message
-    });
-  }
-});
 
 // ==================== УПРАВЛЕНИЕ КОМАНДАМИ DMX ====================
 
@@ -958,6 +872,195 @@ router.post('/commands/import', (req, res) => {
   } catch (error) {
     res.status(400).json({
       error: 'Ошибка импорта команд',
+      message: error.message
+    });
+  }
+});
+
+// ==================== УПРАВЛЕНИЕ СОСТОЯНИЯМИ ОСВЕЩЕНИЯ ====================
+
+const { getDMXScenarioEngine } = require('../dmx/dmx-scenario-engine');
+const { GameEvent, PlayerLightingState, GamePhase } = require('../dmx/dmx-lighting-states');
+
+// Обработать событие игры (основной endpoint для интеграции с игрой)
+router.post('/scenario/event', (req, res) => {
+  try {
+    const { roomCode, event, data } = req.body;
+    
+    if (!roomCode || !event) {
+      return res.status(400).json({
+        error: 'Не указаны roomCode и event'
+      });
+    }
+    
+    const engine = getDMXScenarioEngine();
+    engine.handleGameEvent(roomCode, event, data || {});
+    
+    res.json({ success: true, event, roomCode });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка обработки события',
+      message: error.message
+    });
+  }
+});
+
+// Установить состояние игрока вручную
+router.post('/scenario/player-state', (req, res) => {
+  try {
+    const { roomCode, playerIndex, state, forcePriority } = req.body;
+    
+    if (roomCode === undefined || playerIndex === undefined || !state) {
+      return res.status(400).json({
+        error: 'Не указаны roomCode, playerIndex или state'
+      });
+    }
+    
+    const engine = getDMXScenarioEngine();
+    const result = engine.setPlayerState(roomCode, playerIndex, state, forcePriority === true);
+    
+    res.json({ success: result, roomCode, playerIndex, state });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка установки состояния игрока',
+      message: error.message
+    });
+  }
+});
+
+// Установить состояние для всех игроков
+router.post('/scenario/all-players-state', (req, res) => {
+  try {
+    const { roomCode, state, forcePriority } = req.body;
+    
+    if (!roomCode || !state) {
+      return res.status(400).json({
+        error: 'Не указаны roomCode или state'
+      });
+    }
+    
+    const engine = getDMXScenarioEngine();
+    const results = engine.stateManager.setAllPlayersState(roomCode, state, forcePriority === true);
+    
+    res.json({ success: true, roomCode, state, results });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка установки состояния всех игроков',
+      message: error.message
+    });
+  }
+});
+
+// Установить фазу игры
+router.post('/scenario/game-phase', (req, res) => {
+  try {
+    const { roomCode, phase } = req.body;
+    
+    if (!roomCode || !phase) {
+      return res.status(400).json({
+        error: 'Не указаны roomCode или phase'
+      });
+    }
+    
+    const engine = getDMXScenarioEngine();
+    const result = engine.setGamePhase(roomCode, phase);
+    
+    res.json({ success: result, roomCode, phase });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка установки фазы игры',
+      message: error.message
+    });
+  }
+});
+
+// Получить текущее состояние игрока
+router.get('/scenario/player-state', (req, res) => {
+  try {
+    const { roomCode, playerIndex } = req.query;
+    
+    if (roomCode === undefined || playerIndex === undefined) {
+      return res.status(400).json({
+        error: 'Не указаны roomCode или playerIndex'
+      });
+    }
+    
+    const engine = getDMXScenarioEngine();
+    const state = engine.getPlayerState(roomCode, parseInt(playerIndex));
+    
+    res.json({ success: true, roomCode, playerIndex: parseInt(playerIndex), state });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка получения состояния игрока',
+      message: error.message
+    });
+  }
+});
+
+// Получить текущую фазу игры
+router.get('/scenario/game-phase', (req, res) => {
+  try {
+    const { roomCode } = req.query;
+    
+    if (!roomCode) {
+      return res.status(400).json({
+        error: 'Не указан roomCode'
+      });
+    }
+    
+    const engine = getDMXScenarioEngine();
+    const phase = engine.getGamePhase(roomCode);
+    
+    res.json({ success: true, roomCode, phase });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка получения фазы игры',
+      message: error.message
+    });
+  }
+});
+
+// Получить статистику комнаты (для отладки)
+router.get('/scenario/room-stats', (req, res) => {
+  try {
+    const { roomCode } = req.query;
+    
+    if (!roomCode) {
+      return res.status(400).json({
+        error: 'Не указан roomCode'
+      });
+    }
+    
+    const engine = getDMXScenarioEngine();
+    const stats = engine.getRoomStats(roomCode);
+    
+    if (!stats) {
+      return res.status(404).json({
+        error: 'Комната не найдена'
+      });
+    }
+    
+    res.json({ success: true, roomCode, stats });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка получения статистики комнаты',
+      message: error.message
+    });
+  }
+});
+
+// Получить список доступных событий и состояний (для документации)
+router.get('/scenario/definitions', (req, res) => {
+  try {
+    res.json({
+      success: true,
+      events: GameEvent,
+      playerStates: PlayerLightingState,
+      gamePhases: GamePhase,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка получения определений',
       message: error.message
     });
   }
