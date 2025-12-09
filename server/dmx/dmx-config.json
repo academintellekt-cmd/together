@@ -2,7 +2,7 @@
   "universe": 0,
   "interface": {
     "type": "esp32",
-    "host": "esp32-dmx.local",
+    "host": "192.168.0.172",
     "port": 80
   },
   "players": {

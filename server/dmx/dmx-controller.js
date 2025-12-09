@@ -11,6 +11,7 @@ class DMXController {
     this.currentState = {};
     this.animationTimers = new Map();
     this.initialized = false;
+    this.statusCheckInterval = null; // Интервал для проверки статуса ESP32
     
     try {
       this.loadConfig();
@@ -187,8 +188,13 @@ class DMXController {
           this.isConnected = true;
           console.log(`✅ DMX ESP32 подключен: ${esp32BaseUrl}`);
           
+          // Очищаем предыдущий интервал, если есть
+          if (this.statusCheckInterval) {
+            clearInterval(this.statusCheckInterval);
+          }
+          
           // Периодическая проверка статуса ESP32 (каждые 10 секунд)
-          setInterval(() => {
+          this.statusCheckInterval = setInterval(() => {
             axios.get(`${esp32BaseUrl}/api/dmx/status`, { timeout: 2000 })
               .then((response) => {
                 if (response.data && response.data.available) {
@@ -347,6 +353,12 @@ class DMXController {
       clearInterval(timer);
     });
     this.animationTimers.clear();
+    
+    // Останавливаем проверку статуса ESP32
+    if (this.statusCheckInterval) {
+      clearInterval(this.statusCheckInterval);
+      this.statusCheckInterval = null;
+    }
   }
 
   // Получить текущее состояние канала
@@ -361,6 +373,8 @@ class DMXController {
       connected: this.isConnected,
       universe: this.config.universe,
       interface: this.config.interface.type,
+      host: this.config.interface.host,
+      port: this.config.interface.port,
       players: {
         count: this.config.players.count,
         startAddress: this.config.players.startAddress
@@ -371,6 +385,36 @@ class DMXController {
         effects: this.config.stage.effects
       }
     };
+  }
+
+  // Обновить конфигурацию интерфейса (например, IP адрес)
+  updateInterfaceConfig(newConfig) {
+    try {
+      // Обновляем конфигурацию в памяти
+      if (newConfig.host !== undefined) {
+        this.config.interface.host = newConfig.host;
+      }
+      if (newConfig.port !== undefined) {
+        this.config.interface.port = newConfig.port;
+      }
+      if (newConfig.type !== undefined) {
+        this.config.interface.type = newConfig.type;
+      }
+
+      // Сохраняем в файл
+      const configPath = path.join(__dirname, 'dmx-config.json');
+      fs.writeFileSync(configPath, JSON.stringify(this.config, null, 2), 'utf8');
+      console.log('✅ DMX конфигурация обновлена и сохранена');
+
+      // Переинициализируем подключение
+      this.stopAllAnimations();
+      this.initialize();
+
+      return { success: true, config: this.config.interface };
+    } catch (error) {
+      console.error('❌ Ошибка обновления конфигурации:', error);
+      throw error;
+    }
   }
 }
 
@@ -414,8 +458,24 @@ function getDMXController() {
   return dmxControllerInstance;
 }
 
+// Функция для пересоздания контроллера (для обновления конфигурации)
+function recreateDMXController() {
+  if (dmxControllerInstance) {
+    // Останавливаем все анимации перед пересозданием
+    try {
+      dmxControllerInstance.stopAllAnimations();
+    } catch (error) {
+      console.warn('⚠️ Ошибка при остановке анимаций:', error.message);
+    }
+  }
+  
+  dmxControllerInstance = null;
+  return getDMXController();
+}
+
 module.exports = {
   DMXController,
-  getDMXController
+  getDMXController,
+  recreateDMXController
 };
 
