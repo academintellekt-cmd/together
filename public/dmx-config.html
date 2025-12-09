@@ -1208,6 +1208,7 @@
         let allCommands = [];
         let applyingCommandId = null;
         let selectedFixtures = [];
+        let editingCommandId = null; // ID команды, которая сейчас редактируется
         
         // Структура данных для хранения нескольких фонарей
         let fixtures = [];
@@ -1334,34 +1335,6 @@
             // Инициализация будет добавлена позже для новых эквалайзеров
         }
 
-        // Конвертация HSV в RGB (для LED BAR эффектов)
-        function hsvToRgb(h, s, v) {
-            h = h / 360;
-            s = s / 100;
-            v = v / 100;
-            
-            let r, g, b;
-            const i = Math.floor(h * 6);
-            const f = h * 6 - i;
-            const p = v * (1 - s);
-            const q = v * (1 - f * s);
-            const t = v * (1 - (1 - f) * s);
-            
-            switch (i % 6) {
-                case 0: r = v; g = t; b = p; break;
-                case 1: r = q; g = v; b = p; break;
-                case 2: r = p; g = v; b = t; break;
-                case 3: r = p; g = q; b = v; break;
-                case 4: r = t; g = p; b = v; break;
-                case 5: r = v; g = p; b = q; break;
-            }
-            
-            return {
-                r: Math.round(r * 255),
-                g: Math.round(g * 255),
-                b: Math.round(b * 255)
-            };
-        }
 
         // Флаг для предотвращения перезагрузки значений во время редактирования
         let isEditingChannels = false;
@@ -2131,142 +2104,6 @@
             document.getElementById('log').innerHTML = '';
         }
 
-        // Управление LED BAR
-        async function setLEDBarAllPixels() {
-            const barNumber = parseInt(document.getElementById('ledbar-number').value) || 1;
-            const r = parseInt(document.getElementById('ledbar-r').value) || 0;
-            const g = parseInt(document.getElementById('ledbar-g').value) || 0;
-            const b = parseInt(document.getElementById('ledbar-b').value) || 0;
-            
-            try {
-                const response = await fetch(`${API_BASE}/ledbar/${barNumber}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ r, g, b })
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    addLog(`✅ LED BAR ${barNumber}: все пиксели RGB(${r}, ${g}, ${b})`, 'success');
-                } else {
-                    addLog(`❌ Ошибка: ${data.error}`, 'error');
-                }
-            } catch (error) {
-                addLog(`❌ Ошибка: ${error.message}`, 'error');
-            }
-        }
-
-        async function setLEDBarPixel() {
-            const barNumber = parseInt(document.getElementById('ledbar-number').value) || 1;
-            const pixel = parseInt(document.getElementById('ledbar-pixel').value) || 1;
-            const r = parseInt(document.getElementById('ledbar-r').value) || 0;
-            const g = parseInt(document.getElementById('ledbar-g').value) || 0;
-            const b = parseInt(document.getElementById('ledbar-b').value) || 0;
-            
-            try {
-                const response = await fetch(`${API_BASE}/ledbar/${barNumber}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pixel, r, g, b })
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    addLog(`✅ LED BAR ${barNumber}, пиксель ${pixel}: RGB(${r}, ${g}, ${b})`, 'success');
-                } else {
-                    addLog(`❌ Ошибка: ${data.error}`, 'error');
-                }
-            } catch (error) {
-                addLog(`❌ Ошибка: ${error.message}`, 'error');
-            }
-        }
-
-        async function ledBarEffect(effect) {
-            const barNumber = parseInt(document.getElementById('ledbar-number').value) || 1;
-            let r = 0, g = 0, b = 0;
-            
-            switch(effect) {
-                case 'all-white':
-                    r = g = b = 255;
-                    break;
-                case 'rainbow':
-                    // Радуга по пикселям
-                    for (let pixel = 1; pixel <= 8; pixel++) {
-                        const hue = (pixel * 360 / 8) % 360;
-                        const rgb = hsvToRgb(hue, 100, 100);
-                        try {
-                            await fetch(`${API_BASE}/ledbar/${barNumber}`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ pixel, r: rgb.r, g: rgb.g, b: rgb.b })
-                            });
-                        } catch (error) {
-                            addLog(`❌ Ошибка: ${error.message}`, 'error');
-                        }
-                    }
-                    addLog(`✅ LED BAR ${barNumber}: эффект радуги`, 'success');
-                    return;
-                case 'chase':
-                    // Эффект погони
-                    for (let pixel = 1; pixel <= 8; pixel++) {
-                        setTimeout(async () => {
-                            try {
-                                await fetch(`${API_BASE}/ledbar/${barNumber}`, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ pixel, r: 255, g: 255, b: 255 })
-                                });
-                                setTimeout(async () => {
-                                    await fetch(`${API_BASE}/ledbar/${barNumber}`, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ pixel, r: 0, g: 0, b: 0 })
-                                    });
-                                }, 200);
-                            } catch (error) {
-                                addLog(`❌ Ошибка: ${error.message}`, 'error');
-                            }
-                        }, pixel * 100);
-                    }
-                    addLog(`✅ LED BAR ${barNumber}: эффект погони`, 'success');
-                    return;
-                case 'off':
-                    r = g = b = 0;
-                    break;
-            }
-            
-            await setLEDBarAllPixels();
-        }
-
-
-        // Управление туман-машиной
-        async function setFogMachine() {
-            const level = parseInt(document.getElementById('fog-level').value) || 0;
-            await setFogMachineLevel(level);
-        }
-
-        async function setFogMachineLevel(level) {
-            document.getElementById('fog-level').value = level;
-            document.getElementById('fog-level-value').textContent = level;
-            
-            try {
-                const response = await fetch(`${API_BASE}/fog`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ level })
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    const status = level <= 4 ? 'ВЫКЛ' : `ВКЛ (уровень ${level})`;
-                    addLog(`✅ Туман-машина: ${status}`, 'success');
-                } else {
-                    addLog(`❌ Ошибка: ${data.error}`, 'error');
-                }
-            } catch (error) {
-                addLog(`❌ Ошибка: ${error.message}`, 'error');
-            }
-        }
 
         // ==================== УПРАВЛЕНИЕ КОМАНДАМИ ====================
 
@@ -2495,9 +2332,15 @@
                             <button class="btn btn-success btn-small" onclick="applyCommand('${cmd.id}')" title="Включить">
                                 ▶️
                             </button>
-                            <button class="btn btn-primary btn-small" onclick="testCommand('${cmd.id}')" title="Тест 2 сек">
-                                🧪
-                            </button>
+                            ${editingCommandId === cmd.id ? `
+                                <button class="btn btn-success btn-small" onclick="updateCommand('${cmd.id}')" title="Сохранить изменения">
+                                    💾
+                                </button>
+                            ` : `
+                                <button class="btn btn-primary btn-small" onclick="testCommand('${cmd.id}')" title="Тест 2 сек">
+                                    🧪
+                                </button>
+                            `}
                             <button class="btn btn-danger btn-small" onclick="deleteCommand('${cmd.id}')" title="Удалить">
                                 🗑️
                             </button>
@@ -2530,12 +2373,16 @@
                         addLog(`✅ Команда применена к фонарю #${fixtureNum}`, 'success');
                     }
                     
-                    await loadCommands();
+                    // Устанавливаем режим редактирования
+                    editingCommandId = commandId;
                     
-                    // Загружаем и отображаем фонари команды
+                    // Загружаем и отображаем фонари команды в эквалайзер
                     if (command) {
                         loadCommandFixtures(command);
                     }
+                    
+                    // Перерисовываем список команд, чтобы показать кнопку "Сохранить изменения"
+                    await loadCommands();
                     
                     // Обновляем интерфейс, если команда применена к текущему фонарю (старая логика)
                     const lm70sNumberInput = document.getElementById('lm70s-number');
@@ -2616,17 +2463,141 @@
 
             // Сохраняем текущее состояние
             const savedChannels = { ...currentChannels };
+            const savedFixtures = JSON.parse(JSON.stringify(fixtures));
             
-            // Применяем команду
-            await applyCommand(commandId);
+            // Применяем команду напрямую через API без установки режима редактирования
+            try {
+                const response = await fetch(`${COMMANDS_API}/${commandId}/apply`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ testMode: true })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ Тест команды "${command.name}" запущен`, 'success');
+                } else {
+                    addLog(`❌ Ошибка применения: ${data.message || data.error}`, 'error');
+                    return;
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+                return;
+            }
             
             // Через 2 секунды восстанавливаем
             setTimeout(async () => {
                 currentChannels = savedChannels;
+                fixtures = savedFixtures;
                 renderChannelConfig(true);
+                renderAllFixtures();
                 await applyChannelsRealtime();
                 addLog('⏱️ Тест завершен, состояние восстановлено', 'success');
             }, 2000);
+        }
+
+        // Сохранить изменения в команду
+        async function updateCommand(commandId) {
+            try {
+                const command = allCommands.find(c => c.id === commandId);
+                if (!command) {
+                    addLog(`❌ Команда не найдена`, 'error');
+                    return;
+                }
+
+                // Получаем текущие значения из fixtures
+                let updateData = {};
+                
+                if (fixtures.length === 0) {
+                    addLog(`❌ Нет данных для сохранения`, 'error');
+                    return;
+                }
+                
+                if (fixtures.length > 1) {
+                    // Команда содержит несколько фонарей
+                    updateData.allFixtures = fixtures.map(f => ({
+                        lm70sNumber: f.lm70sNumber,
+                        startAddress: f.startAddress,
+                        channels: { ...f.channels }
+                    }));
+                    updateData.fixtureCount = fixtures.length;
+                    
+                    // Также обновляем базовые поля для совместимости
+                    const firstFixture = fixtures[0];
+                    updateData.lm70sNumber = firstFixture.lm70sNumber;
+                    updateData.startAddress = firstFixture.startAddress;
+                    
+                    // Объединяем все каналы в один объект с абсолютными адресами
+                    const channels = {};
+                    fixtures.forEach(fixture => {
+                        for (let i = 1; i <= 9; i++) {
+                            const channelValue = fixture.channels[i] !== undefined ? fixture.channels[i] : 0;
+                            const absoluteDmxAddress = fixture.startAddress + i - 1;
+                            channels[absoluteDmxAddress] = channelValue;
+                        }
+                    });
+                    updateData.channels = channels;
+                } else {
+                    // Команда содержит один фонарь
+                    const firstFixture = fixtures[0];
+                    const channels = {};
+                    for (let i = 1; i <= 9; i++) {
+                        channels[i] = firstFixture.channels[i] !== undefined ? firstFixture.channels[i] : 0;
+                    }
+                    updateData.channels = channels;
+                    updateData.lm70sNumber = firstFixture.lm70sNumber;
+                    updateData.startAddress = firstFixture.startAddress;
+                }
+
+                console.log(`💾 Обновление команды ${commandId}:`, updateData);
+
+                const response = await fetch(`${COMMANDS_API}/${commandId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updateData)
+                });
+
+                const responseText = await response.text();
+                
+                if (!response.ok) {
+                    let errorMessage = `Ошибка ${response.status}: ${response.statusText}`;
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } catch (e) {
+                        if (responseText) {
+                            errorMessage = responseText.substring(0, 200);
+                        }
+                    }
+                    addLog(`❌ Ошибка обновления: ${errorMessage}`, 'error');
+                    return;
+                }
+
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    addLog(`❌ Ошибка: Сервер вернул невалидный JSON`, 'error');
+                    return;
+                }
+
+                if (data.success) {
+                    addLog(`✅ Команда "${command.name}" обновлена`, 'success');
+                    
+                    // Сбрасываем режим редактирования
+                    editingCommandId = null;
+                    
+                    // Перезагружаем список команд
+                    await loadCommands();
+                } else {
+                    const errorMsg = data.message || data.error || 'Неизвестная ошибка';
+                    addLog(`❌ Ошибка обновления: ${errorMsg}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Ошибка: ${error.message}`, 'error');
+                console.error('❌ Исключение при обновлении команды:', error);
+            }
         }
 
         // Применить к нескольким фонарям
@@ -2935,3 +2906,4 @@
     </script>
 </body>
 </html>
+
