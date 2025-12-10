@@ -46,15 +46,7 @@ app.use('/data/media', express.static(path.join(__dirname, 'data/media')));
 const rooms = new Map();
 const players = new Map();
 
-// Инициализация DMX интеграции
-try {
-  const { DMXIntegration } = require('./server/dmx/dmx-integration');
-  dmxIntegration = new DMXIntegration(io, rooms, players);
-  console.log('✅ DMX интеграция инициализирована');
-} catch (error) {
-  console.warn('⚠️ DMX интеграция недоступна:', error.message);
-  dmxIntegration = null;
-}
+// Инициализация DMX интеграции будет выполнена после создания io (см. строку 1458)
 
 // Инициализация системы состояний освещения
 let lightingEngine = null;
