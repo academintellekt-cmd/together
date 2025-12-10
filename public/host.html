@@ -1215,6 +1215,9 @@
                 const nextBtnStatus = document.getElementById('next-btn-status');
                 nextBtn.disabled = true;
                 nextBtnStatus.textContent = 'Ожидание готовности всех игроков...';
+                
+                // Запускаем проверку джойстика для управления кнопкой "Следующий вопрос"
+                startGamepadCheck();
             });
 
             // Статус готовности игроков
@@ -1241,13 +1244,19 @@
             });
 
             // Следующий вопрос
-            document.getElementById('next-btn').addEventListener('click', () => {
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.addEventListener('click', () => {
                 // Показываем таймер в Frame1 перед следующим вопросом
                 const hub1Timer = document.getElementById('frame1-timer');
                 if (hub1Timer) {
                     hub1Timer.style.display = 'inline-block';
                 }
                 socket.emit('next-question', roomCode);
+            });
+            
+            // Запускаем проверку джойстика при показе экрана результатов
+            socket.on('question-results', () => {
+                startGamepadCheck();
             });
 
             // Финальные результаты
@@ -1369,6 +1378,167 @@
                 }
             }, 100);
         });
+
+        // ========== ПОДДЕРЖКА ДЖОЙСТИКА ==========
+        let gamepad = null;
+        let joystickConfig = null;
+        let gamepadUpdateInterval = null;
+        let lastPressedButton = null;
+        let lastPressedTime = 0;
+
+        // Загрузка конфигурации джойстика
+        function loadJoystickConfig() {
+            const saved = localStorage.getItem('joystickConfig');
+            if (!saved) {
+                joystickConfig = null;
+                return false;
+            }
+            
+            try {
+                const parsed = JSON.parse(saved);
+                if (parsed && typeof parsed === 'object') {
+                    joystickConfig = {
+                        buttons: parsed.buttons || {},
+                        axes: parsed.axes || {}
+                    };
+                    return true;
+                } else {
+                    joystickConfig = null;
+                    return false;
+                }
+            } catch (e) {
+                joystickConfig = null;
+                return false;
+            }
+        }
+
+        // Получение джойстика
+        function getGamepad() {
+            const gamepads = navigator.getGamepads();
+            for (let i = 0; i < gamepads.length; i++) {
+                if (gamepads[i]) {
+                    return gamepads[i];
+                }
+            }
+            return null;
+        }
+
+        // Обработка нажатий кнопок джойстика
+        function handleGamepadInput() {
+            if (!gamepad) {
+                return;
+            }
+            
+            if (!joystickConfig || !joystickConfig.buttons) {
+                return;
+            }
+            
+            const resultsScreen = document.getElementById('results-screen');
+            const nextBtn = document.getElementById('next-btn');
+            const currentTime = Date.now();
+            const buttons = joystickConfig.buttons;
+            
+            // Обработка кнопки 9 на экране результатов (следующий вопрос)
+            if (resultsScreen && resultsScreen.style.display !== 'none') {
+                if (nextBtn && !nextBtn.disabled) {
+                    // Проверяем кнопку 9
+                    if (buttons['Кнопка 9'] !== undefined) {
+                        const button9Index = buttons['Кнопка 9'];
+                        if (gamepad.buttons[button9Index] && gamepad.buttons[button9Index].pressed) {
+                            const buttonKey = `Кнопка 9-${button9Index}`;
+                            if (lastPressedButton !== buttonKey || (currentTime - lastPressedTime) >= 300) {
+                                lastPressedButton = buttonKey;
+                                lastPressedTime = currentTime;
+                                
+                                // Эмулируем клик по кнопке следующего вопроса
+                                nextBtn.click();
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Сбрасываем флаг, если ни одна кнопка не нажата
+            let anyButtonPressed = false;
+            for (const [command, buttonIndex] of Object.entries(buttons)) {
+                if (gamepad.buttons[buttonIndex] && gamepad.buttons[buttonIndex].pressed) {
+                    anyButtonPressed = true;
+                    break;
+                }
+            }
+            if (!anyButtonPressed) {
+                lastPressedButton = null;
+            }
+        }
+
+        // Запуск проверки джойстика
+        function startGamepadCheck() {
+            const configLoaded = loadJoystickConfig();
+            
+            if (gamepadUpdateInterval) {
+                clearInterval(gamepadUpdateInterval);
+            }
+            
+            gamepad = getGamepad();
+            if (!gamepad) {
+                return;
+            }
+            
+            if (configLoaded && joystickConfig && joystickConfig.buttons) {
+                gamepadUpdateInterval = setInterval(updateGamepad, 50);
+            }
+        }
+
+        // Остановка проверки джойстика
+        function stopGamepadCheck() {
+            if (gamepadUpdateInterval) {
+                clearInterval(gamepadUpdateInterval);
+                gamepadUpdateInterval = null;
+            }
+        }
+
+        // Обновление состояния джойстика
+        function updateGamepad() {
+            const currentGamepad = getGamepad();
+            if (currentGamepad) {
+                gamepad = currentGamepad;
+                handleGamepadInput();
+            }
+        }
+
+        // Инициализация джойстика
+        function initJoystick() {
+            const configLoaded = loadJoystickConfig();
+            
+            const initialGamepad = getGamepad();
+            if (initialGamepad) {
+                gamepad = initialGamepad;
+                if (configLoaded && joystickConfig && joystickConfig.buttons) {
+                    startGamepadCheck();
+                }
+            }
+            
+            window.addEventListener('gamepadconnected', (e) => {
+                gamepad = e.gamepad;
+                const reloaded = loadJoystickConfig();
+                if (reloaded && joystickConfig && joystickConfig.buttons) {
+                    startGamepadCheck();
+                }
+            });
+            
+            window.addEventListener('gamepaddisconnected', (e) => {
+                gamepad = null;
+                stopGamepadCheck();
+            });
+        }
+
+        // Инициализация джойстика при загрузке страницы
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initJoystick);
+        } else {
+            initJoystick();
+        }
     </script>
 </body>
 </html>

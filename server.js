@@ -104,7 +104,7 @@ function normalizeQuizId(quizIdOrName) {
   if (!quizIdOrName) return null;
   
   // Если это уже ID (короткая строка без пробелов или с дефисом), возвращаем как есть
-  if (quizIdOrName === 'gnu' || quizIdOrName === 'friends-quiz' || quizIdOrName === 'akadem') {
+  if (quizIdOrName === 'gnu' || quizIdOrName === 'friends-quiz' || quizIdOrName === 'akadem' || quizIdOrName === 'gazprom') {
     return quizIdOrName;
   }
   
@@ -155,6 +155,12 @@ function normalizeQuizId(quizIdOrName) {
   if (lowerQuizIdOrName.startsWith('академгородок')) {
     console.log(`🔄 normalizeQuizId: "${quizIdOrName}" распознан как "akadem" (начинается с "академгородок")`);
     return 'akadem';
+  }
+  
+  // Проверяем для Газпрома
+  if (lowerQuizIdOrName.includes('газпром') || lowerQuizIdOrName.includes('тестирование сотрудников')) {
+    console.log(`🔄 normalizeQuizId: "${quizIdOrName}" распознан как "gazprom" (содержит "газпром" или "тестирование сотрудников")`);
+    return 'gazprom';
   }
   
   // Если ничего не подошло, возвращаем как есть (может быть старый формат)

@@ -98,12 +98,13 @@ function parseQuestionsFile(content) {
   }
   
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+    const originalLine = lines[i];
+    const line = originalLine.trim();
     
     // Пропускаем пустые строки и комментарии
     if (!line || line.startsWith('//') || (line.startsWith('#') && !line.startsWith('Q:'))) {
       // Если пустая строка после вопроса - сохраняем вопрос (новый формат)
-      if (isNewFormat && currentQuestion && line === '' && currentOptions.length > 0) {
+      if (isNewFormat && currentQuestion && originalLine.trim() === '' && currentOptions.length > 0) {
         if (currentCorrect === -1) {
           console.warn(`Вопрос "${currentQuestion}" не имеет правильного ответа`);
           currentCorrect = 0;

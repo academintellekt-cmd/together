@@ -630,16 +630,52 @@
                 return;
             }
             
-            // Обработка ответов - только на экране вопроса
             const questionScreen = document.getElementById('question-screen');
+            const resultsScreen = document.getElementById('results-screen');
+            const currentTime = Date.now();
+            const buttons = joystickConfig.buttons;
+            
+            // Обработка кнопки 9 на экране результатов (играть снова)
+            if (resultsScreen && resultsScreen.style.display !== 'none') {
+                const playAgainBtn = document.getElementById('play-again-btn');
+                if (playAgainBtn && !playAgainBtn.disabled) {
+                    // Проверяем кнопку 9
+                    if (buttons['Кнопка 9'] !== undefined) {
+                        const button9Index = buttons['Кнопка 9'];
+                        if (gamepad.buttons[button9Index] && gamepad.buttons[button9Index].pressed) {
+                            const buttonKey = `Кнопка 9-${button9Index}`;
+                            if (lastPressedButton !== buttonKey || (currentTime - lastPressedTime) >= 300) {
+                                lastPressedButton = buttonKey;
+                                lastPressedTime = currentTime;
+                                
+                                console.log(`🎮 Джойстик: Кнопка 9 (кнопка ${button9Index}) -> Играть снова`);
+                                
+                                // Эмулируем клик по кнопке "Играть снова"
+                                playAgainBtn.click();
+                                return; // Обработали нажатие, выходим
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Обработка ответов - только на экране вопроса и если еще не ответили
             if (!questionScreen || questionScreen.style.display === 'none' || hasAnswered) {
+                // Сбрасываем флаг, если ни одна кнопка не нажата
+                let anyButtonPressed = false;
+                for (const [command, buttonIndex] of Object.entries(buttons)) {
+                    if (gamepad.buttons[buttonIndex] && gamepad.buttons[buttonIndex].pressed) {
+                        anyButtonPressed = true;
+                        break;
+                    }
+                }
+                if (!anyButtonPressed) {
+                    lastPressedButton = null;
+                }
                 return;
             }
             
-            // Проверяем нажатые кнопки
-            const buttons = joystickConfig.buttons;
-            const currentTime = Date.now();
-            
+            // Обработка вариантов ответа (кнопки 1-4)
             for (const [command, buttonIndex] of Object.entries(buttons)) {
                 // Проверяем, что кнопка нажата
                 if (gamepad.buttons[buttonIndex] && gamepad.buttons[buttonIndex].pressed) {
@@ -652,25 +688,32 @@
                     // Извлекаем номер кнопки из названия (например, "Кнопка 1" -> 1)
                     const match = command.match(/Кнопка (\d+)/);
                     if (match) {
-                        const answerIndex = parseInt(match[1]) - 1; // Кнопка 1 = ответ 0, Кнопка 2 = ответ 1 и т.д.
+                        const buttonNumber = parseInt(match[1]);
                         
-                        // Проверяем, что такой вариант ответа существует
-                        const options = document.querySelectorAll('.option-btn');
-                        if (answerIndex >= 0 && answerIndex < options.length) {
-                            lastPressedButton = buttonKey;
-                            lastPressedTime = currentTime;
+                        // Кнопки 1-4 для вариантов ответа
+                        if (buttonNumber >= 1 && buttonNumber <= 4) {
+                            const answerIndex = buttonNumber - 1; // Кнопка 1 = ответ 0, Кнопка 2 = ответ 1 и т.д.
                             
-                            // Подсвечиваем кнопку перед выбором ответа
-                            highlightOptionByGamepad(answerIndex);
-                            console.log(`🎮 Джойстик: ${command} (кнопка ${buttonIndex}) -> Ответ ${answerIndex + 1} (${options[answerIndex].querySelector('.option-text')?.textContent || 'неизвестно'})`);
-                            
-                            // Небольшая задержка для визуального эффекта
-                            setTimeout(() => {
-                                selectAnswer(answerIndex);
-                            }, 100);
-                            return; // Обработали нажатие, выходим
-                        } else {
-                            console.warn(`⚠️ Джойстик: Ответ ${answerIndex + 1} не существует (всего вариантов: ${options.length})`);
+                            // Проверяем, что такой вариант ответа существует
+                            const options = document.querySelectorAll('.option-btn');
+                            if (answerIndex >= 0 && answerIndex < options.length && !hasAnswered) {
+                                lastPressedButton = buttonKey;
+                                lastPressedTime = currentTime;
+                                
+                                // Подсвечиваем кнопку перед выбором ответа
+                                highlightOptionByGamepad(answerIndex);
+                                console.log(`🎮 Джойстик: ${command} (кнопка ${buttonIndex}) -> Ответ ${answerIndex + 1} (${options[answerIndex].querySelector('.option-text')?.textContent || 'неизвестно'})`);
+                                
+                                // Небольшая задержка для визуального эффекта
+                                setTimeout(() => {
+                                    selectAnswer(answerIndex);
+                                }, 100);
+                                return; // Обработали нажатие, выходим
+                            } else if (answerIndex >= 0 && answerIndex < options.length) {
+                                console.warn(`⚠️ Джойстик: Уже ответили на вопрос`);
+                            } else {
+                                console.warn(`⚠️ Джойстик: Ответ ${answerIndex + 1} не существует (всего вариантов: ${options.length})`);
+                            }
                         }
                     }
                 }
@@ -1024,9 +1067,9 @@
             // Сбрасываем флаг ответа для нового вопроса
             hasAnswered = false;
 
-            // Отображение изображения вопроса
+            // Отображение изображения вопроса (не показываем для квиза gazprom)
             let imageContainer = document.getElementById('question-image-container');
-            if (question.image) {
+            if (question.image && quizId !== 'gazprom') {
                 if (!imageContainer) {
                     imageContainer = document.createElement('div');
                     imageContainer.className = 'question-image-container';
@@ -1537,4 +1580,5 @@
     </script>
 </body>
 </html>
+
 

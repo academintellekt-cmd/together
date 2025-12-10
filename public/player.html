@@ -717,6 +717,7 @@
                 return;
             }
             
+            // Обработка вариантов ответа (кнопки 1-4)
             for (const [command, buttonIndex] of Object.entries(buttons)) {
                 // Проверяем, что кнопка нажата
                 if (gamepad.buttons[buttonIndex] && gamepad.buttons[buttonIndex].pressed) {
@@ -729,25 +730,32 @@
                     // Извлекаем номер кнопки из названия (например, "Кнопка 1" -> 1)
                     const match = command.match(/Кнопка (\d+)/);
                     if (match) {
-                        const answerIndex = parseInt(match[1]) - 1; // Кнопка 1 = ответ 0, Кнопка 2 = ответ 1 и т.д.
+                        const buttonNumber = parseInt(match[1]);
                         
-                        // Проверяем, что такой вариант ответа существует
-                        const options = document.querySelectorAll('.option-btn');
-                        if (answerIndex >= 0 && answerIndex < options.length) {
-                            lastPressedButton = buttonKey;
-                            lastPressedTime = currentTime;
+                        // Кнопки 1-4 для вариантов ответа
+                        if (buttonNumber >= 1 && buttonNumber <= 4) {
+                            const answerIndex = buttonNumber - 1; // Кнопка 1 = ответ 0, Кнопка 2 = ответ 1 и т.д.
                             
-                            // Подсвечиваем кнопку перед выбором ответа
-                            highlightOptionByGamepad(answerIndex);
-                            console.log(`🎮 Джойстик: ${command} (кнопка ${buttonIndex}) -> Ответ ${answerIndex + 1} (${options[answerIndex].querySelector('.option-text')?.textContent || 'неизвестно'})`);
-                            
-                            // Небольшая задержка для визуального эффекта
-                            setTimeout(() => {
-                                selectAnswer(answerIndex);
-                            }, 100);
-                            return; // Обработали нажатие, выходим
-                        } else {
-                            console.warn(`⚠️ Джойстик: Ответ ${answerIndex + 1} не существует (всего вариантов: ${options.length})`);
+                            // Проверяем, что такой вариант ответа существует
+                            const options = document.querySelectorAll('.option-btn');
+                            if (answerIndex >= 0 && answerIndex < options.length && !hasAnswered) {
+                                lastPressedButton = buttonKey;
+                                lastPressedTime = currentTime;
+                                
+                                // Подсвечиваем кнопку перед выбором ответа
+                                highlightOptionByGamepad(answerIndex);
+                                console.log(`🎮 Джойстик: ${command} (кнопка ${buttonIndex}) -> Ответ ${answerIndex + 1} (${options[answerIndex].querySelector('.option-text')?.textContent || 'неизвестно'})`);
+                                
+                                // Небольшая задержка для визуального эффекта
+                                setTimeout(() => {
+                                    selectAnswer(answerIndex);
+                                }, 100);
+                                return; // Обработали нажатие, выходим
+                            } else if (answerIndex >= 0 && answerIndex < options.length) {
+                                console.warn(`⚠️ Джойстик: Уже ответили на вопрос`);
+                            } else {
+                                console.warn(`⚠️ Джойстик: Ответ ${answerIndex + 1} не существует (всего вариантов: ${options.length})`);
+                            }
                         }
                     }
                 }
@@ -1125,9 +1133,9 @@
             const progress = (questionNum / totalQuestions) * 100;
             document.getElementById('progress-bar').style.width = progress + '%';
             
-            // Отображение изображения вопроса
+            // Отображение изображения вопроса (не показываем для квиза gazprom)
             let imageContainer = document.getElementById('question-image-container');
-            if (data.image) {
+            if (data.image && data.quizId !== 'gazprom') {
                 if (!imageContainer) {
                     imageContainer = document.createElement('div');
                     imageContainer.className = 'question-image-container';

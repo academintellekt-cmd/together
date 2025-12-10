@@ -1,0 +1,30 @@
+{
+  "id": "gazprom",
+  "name": "Тестирование сотрудников Газпрома",
+  "description": "Проверка знаний сотрудников ПАО Газпром",
+  "icon": "⛽",
+  "soloMode": true,
+  "multiplayerMode": true,
+  "password": "",
+  "passwordRequired": false,
+  "colors": {
+    "background": "#00A651",
+    "text": "#006B3C",
+    "shadow": "rgba(0, 107, 60, 0.3)"
+  },
+  "display": {
+    "title": "ГАЗПРОМ",
+    "subtitle": "тестирование сотрудников",
+    "phrase": "знания - наша сила",
+    "questionsDisplay": "15 из {total}",
+    "timeDisplay": "по {time} сек"
+  },
+  "gameSettings": {
+    "questionsPerGame": 15,
+    "totalQuestions": 0,
+    "defaultTime": 20,
+    "maxPlayers": 14
+  },
+  "questionsFile": "gazprom.txt"
+}
+
