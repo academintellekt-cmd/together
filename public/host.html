@@ -1058,6 +1058,9 @@
                 if (hub1StartBtn) {
                     hub1StartBtn.style.display = 'none';
                 }
+                
+                // Запускаем проверку джойстика при начале игры
+                startGamepadCheck();
             });
 
             // Вопрос
@@ -1110,6 +1113,9 @@
                 playersData.forEach((playerData) => {
                     playerData.ready = false;
                 });
+                
+                // Запускаем проверку джойстика для нового вопроса
+                startGamepadCheck();
                 updateHub();
                 
                 // Таймер
@@ -1440,19 +1446,25 @@
             
             // Обработка кнопки 9 на экране результатов (следующий вопрос)
             if (resultsScreen && resultsScreen.style.display !== 'none') {
-                if (nextBtn && !nextBtn.disabled) {
-                    // Проверяем кнопку 9
+                if (nextBtn) {
+                    // Проверяем кнопку 9 только если кнопка не disabled
                     if (buttons['Кнопка 9'] !== undefined) {
                         const button9Index = buttons['Кнопка 9'];
                         if (gamepad.buttons[button9Index] && gamepad.buttons[button9Index].pressed) {
                             const buttonKey = `Кнопка 9-${button9Index}`;
                             if (lastPressedButton !== buttonKey || (currentTime - lastPressedTime) >= 300) {
-                                lastPressedButton = buttonKey;
-                                lastPressedTime = currentTime;
-                                
-                                // Эмулируем клик по кнопке следующего вопроса
-                                nextBtn.click();
-                                return;
+                                if (!nextBtn.disabled) {
+                                    lastPressedButton = buttonKey;
+                                    lastPressedTime = currentTime;
+                                    
+                                    console.log(`🎮 Джойстик: Кнопка 9 (кнопка ${button9Index}) -> Следующий вопрос`);
+                                    
+                                    // Эмулируем клик по кнопке следующего вопроса
+                                    nextBtn.click();
+                                    return;
+                                } else {
+                                    console.log(`🎮 Джойстик: Кнопка 9 нажата, но кнопка "Следующий вопрос" заблокирована`);
+                                }
                             }
                         }
                     }
@@ -1482,11 +1494,18 @@
             
             gamepad = getGamepad();
             if (!gamepad) {
+                console.warn('⚠️ Джойстик не подключен');
                 return;
             }
             
             if (configLoaded && joystickConfig && joystickConfig.buttons) {
+                const buttonCount = Object.keys(joystickConfig.buttons).filter(k => k.startsWith('Кнопка')).length;
+                console.log(`🎮 Запуск проверки джойстика. Настроено кнопок: ${buttonCount}`);
+                console.log('📋 Конфигурация:', joystickConfig);
                 gamepadUpdateInterval = setInterval(updateGamepad, 50);
+            } else {
+                console.warn('⚠️ Конфигурация джойстика не найдена или неполная. Джойстик не будет работать.');
+                console.warn('💡 Настройте джойстик: /joystick-test/joystick.html');
             }
         }
 

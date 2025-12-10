@@ -993,6 +993,9 @@
             // Скрываем элементы Frame1 до получения вопроса
             hideFrame1Elements();
             
+            // Запускаем проверку джойстика при начале игры
+            startGamepadCheck();
+            
             // Скрываем кнопку "Назад" во время игры
             const backButton = document.querySelector('.back-button');
             if (backButton) {
