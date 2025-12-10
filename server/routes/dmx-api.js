@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getDMXController } = require('../dmx/dmx-controller');
+const { getDMXController, recreateDMXController } = require('../dmx/dmx-controller');
 const { getDMXEffects } = require('../dmx/dmx-effects');
 const { getDMXPresets } = require('../dmx/dmx-presets');
 const { getDMXCommands } = require('../dmx/dmx-commands');
@@ -1182,6 +1182,81 @@ router.get('/scenario/definitions', (req, res) => {
   } catch (error) {
     res.status(500).json({
       error: 'Ошибка получения определений',
+      message: error.message
+    });
+  }
+});
+
+// ==================== УПРАВЛЕНИЕ КОНФИГУРАЦИЕЙ ====================
+
+// Получить текущую конфигурацию интерфейса
+router.get('/config', (req, res) => {
+  try {
+    const controller = getDMXController();
+    if (!controller) {
+      return res.status(503).json({ error: 'DMX контроллер недоступен' });
+    }
+    
+    res.json({
+      success: true,
+      interface: controller.config.interface
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка получения конфигурации',
+      message: error.message
+    });
+  }
+});
+
+// Обновить конфигурацию интерфейса (IP адрес, порт и т.д.)
+router.put('/config', (req, res) => {
+  try {
+    const controller = getDMXController();
+    if (!controller) {
+      return res.status(503).json({ error: 'DMX контроллер недоступен' });
+    }
+    
+    const { host, port, type } = req.body;
+    
+    if (!host && !port && !type) {
+      return res.status(400).json({ 
+        error: 'Не указаны параметры для обновления (host, port или type)' 
+      });
+    }
+    
+    const updateConfig = {};
+    if (host !== undefined) {
+      // Проверяем формат IP адреса или доменного имени
+      if (typeof host !== 'string' || host.trim() === '') {
+        return res.status(400).json({ error: 'Неверный формат host' });
+      }
+      updateConfig.host = host.trim();
+    }
+    if (port !== undefined) {
+      const portNum = parseInt(port);
+      if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
+        return res.status(400).json({ error: 'Неверный формат port (1-65535)' });
+      }
+      updateConfig.port = portNum;
+    }
+    if (type !== undefined) {
+      if (!['esp32', 'artnet', 'usb'].includes(type)) {
+        return res.status(400).json({ error: 'Неверный тип интерфейса (esp32, artnet, usb)' });
+      }
+      updateConfig.type = type;
+    }
+    
+    controller.updateInterfaceConfig(updateConfig);
+    
+    res.json({
+      success: true,
+      message: 'Конфигурация обновлена и контроллер переинициализирован',
+      interface: controller.config.interface
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка обновления конфигурации',
       message: error.message
     });
   }
