@@ -119,10 +119,7 @@ class DMXController {
             console.log('   Убедитесь, что ESP32 и сервер в одной сети');
           }
           
-          // Проверка доступности ESP32 (асинхронная, не блокирует инициализацию)
-          // Сначала предполагаем, что ESP32 доступен, проверка произойдет асинхронно
-          this.isConnected = true;
-          
+          // Проверка доступности ESP32
           axios.get(`${esp32BaseUrl}/api/dmx/status`, { 
             timeout: 5000,
             // Для mDNS может потребоваться больше времени на первое подключение
@@ -140,62 +137,20 @@ class DMXController {
             .catch((error) => {
               console.warn(`⚠️ ESP32 недоступен: ${error.message}`);
               console.warn('   Убедитесь, что ESP32 подключен к WiFi и прошит прошивкой');
-              console.warn('   Система будет работать в режиме эмуляции');
               this.isConnected = false;
             });
           
           this.universe = {
             update: async (channels) => {
-              if (!this.isConnected) {
-                // В режиме эмуляции логируем только первые несколько каналов
-                const channelKeys = Object.keys(channels).slice(0, 5);
-                const preview = channelKeys.reduce((acc, key) => {
-                  acc[key] = channels[key];
-                  return acc;
-                }, {});
-                if (Object.keys(channels).length > 5) {
-                  console.log(`🎭 DMX Эмуляция: ${Object.keys(channels).length} каналов (показаны первые 5):`, preview);
-                } else {
-                  console.log('🎭 DMX Эмуляция:', channels);
-                }
-                this.currentState = { ...this.currentState, ...channels };
-                return;
-              }
-              
               try {
                 // Преобразуем каналы в формат для ESP32
-                // Каналы могут быть абсолютными (1-512) или относительными (1-9)
-                const channelKeys = Object.keys(channels).map(k => parseInt(k));
-                const maxKey = Math.max(...channelKeys);
-                const minKey = Math.min(...channelKeys);
+                const channelsObj = {};
+                Object.keys(channels).forEach(channel => {
+                  channelsObj[channel] = channels[channel];
+                });
                 
-                // Если максимальный ключ больше 9, это абсолютные адреса
-                // Если максимальный ключ <= 9, это относительные адреса
-                let channelsObj = {};
-                let startAddress = 1;
-                
-                if (maxKey > 9) {
-                  // Абсолютные адреса - отправляем как есть с startAddress = 1
-                  // ESP32 ожидает относительные каналы (1-9) и startAddress
-                  // Но мы можем отправить абсолютные адреса напрямую
-                  channelsObj = {};
-                  Object.keys(channels).forEach(channel => {
-                    channelsObj[channel] = channels[channel];
-                  });
-                  startAddress = 1; // ESP32 будет использовать абсолютные адреса из ключей
-                } else {
-                  // Относительные адреса (1-9) - используем минимальный адрес как startAddress
-                  channelsObj = {};
-                  Object.keys(channels).forEach(channel => {
-                    channelsObj[channel] = channels[channel];
-                  });
-                  startAddress = minKey; // Используем минимальный адрес
-                }
-                
-                // Используем правильный endpoint /api/dmx/channels
-                await axios.post(`${esp32BaseUrl}/api/dmx/channels`, {
-                  channels: channelsObj,
-                  startAddress: startAddress
+                await axios.post(`${esp32BaseUrl}/api/batch`, {
+                  channels: channelsObj
                 }, {
                   timeout: 1000,
                   headers: { 'Content-Type': 'application/json' }
@@ -207,21 +162,12 @@ class DMXController {
                 // Только при критических ошибках
                 if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
                   console.warn(`⚠️ ESP32 недоступен: ${error.message}`);
-                  this.isConnected = false;
                 }
               }
             },
             updateAll: async (value) => {
-              if (!this.isConnected) {
-                console.log(`🎭 DMX Эмуляция: все 512 каналов = ${value}`);
-                for (let i = 1; i <= 512; i++) {
-                  this.currentState[i] = value;
-                }
-                return;
-              }
-              
               try {
-                await axios.post(`${esp32BaseUrl}/api/dmx/all`, {
+                await axios.post(`${esp32BaseUrl}/api/all`, {
                   action: 'off'
                 }, {
                   timeout: 1000,
@@ -234,14 +180,13 @@ class DMXController {
               } catch (error) {
                 if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
                   console.warn(`⚠️ ESP32 недоступен: ${error.message}`);
-                  this.isConnected = false;
                 }
               }
             }
           };
           
-          console.log(`✅ DMX ESP32 инициализирован: ${esp32BaseUrl}`);
-          console.log('   Проверка подключения выполняется асинхронно...');
+          this.isConnected = true;
+          console.log(`✅ DMX ESP32 подключен: ${esp32BaseUrl}`);
           
           // Очищаем предыдущий интервал, если есть
           if (this.statusCheckInterval) {
