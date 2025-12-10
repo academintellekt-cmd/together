@@ -59,22 +59,27 @@ class DMXStateManager {
     const playerStateMap = this.playerStates.get(roomCode);
     const priorityStateMap = this.priorityStates.get(roomCode);
     
-    // Проверяем приоритеты, если не принудительная установка
-    if (!forcePriority && priorityStateMap.has(playerIndex)) {
+    // Если принудительная установка или это приоритетное состояние (>= 6), всегда применяем
+    if (forcePriority || getStatePriority(state) >= 6) {
+      playerStateMap.set(playerIndex, state);
+      priorityStateMap.set(playerIndex, state);
+      this.applyPlayerState(roomCode, playerIndex, state);
+      return true;
+    }
+    
+    // Проверяем приоритеты для обычных состояний
+    if (priorityStateMap.has(playerIndex)) {
       const currentPriority = priorityStateMap.get(playerIndex);
       if (isStateMoreImportant(currentPriority, state)) {
         // Текущее приоритетное состояние важнее, игнорируем новое
         return false;
       }
+      // Новое состояние важнее - очищаем старое приоритетное
+      priorityStateMap.delete(playerIndex);
     }
     
     // Устанавливаем состояние
     playerStateMap.set(playerIndex, state);
-    
-    // Если это приоритетное состояние, сохраняем его
-    if (forcePriority || getStatePriority(state) >= 7) { // CORRECT, INCORRECT, WINNER, LEADER
-      priorityStateMap.set(playerIndex, state);
-    }
     
     // Применяем DMX команду
     this.applyPlayerState(roomCode, playerIndex, state);
@@ -91,9 +96,19 @@ class DMXStateManager {
     }
     
     const playerStateMap = this.playerStates.get(roomCode);
+    const priorityStateMap = this.priorityStates.get(roomCode);
     const results = [];
     
     playerStateMap.forEach((currentState, playerIndex) => {
+      // Если у игрока есть приоритетное состояние и мы не принуждаем, пропускаем
+      if (!forcePriority && priorityStateMap.has(playerIndex)) {
+        const currentPriority = priorityStateMap.get(playerIndex);
+        if (isStateMoreImportant(currentPriority, state)) {
+          results.push({ playerIndex, success: false, reason: 'priority' });
+          return;
+        }
+      }
+      
       const result = this.setPlayerState(roomCode, playerIndex, state, forcePriority);
       results.push({ playerIndex, success: result });
     });
@@ -179,34 +194,29 @@ class DMXStateManager {
    * Применить состояние игрока (найти команду и отправить на DMX)
    */
   applyPlayerState(roomCode, playerIndex, state) {
-    if (!this.controller) {
-      console.warn('⚠️ DMX контроллер недоступен');
-      return;
-    }
+    if (!this.controller) return;
+    if (playerIndex === undefined || playerIndex < 0 || playerIndex >= 14) return;
     
-    // Получаем имя команды для состояния
     const commandName = this.stateMapping.getCommandNameForPlayerState(state);
-    
     if (!commandName) {
-      // Если команда не найдена, выключаем прожектор
       if (state === PlayerLightingState.OFF) {
         this.turnOffPlayerFixture(roomCode, playerIndex);
       }
       return;
     }
     
-    // Находим команду
     const command = this.stateMapping.findCommandByNameOrTag(commandName);
+    if (!command || !command.channels) return;
     
-    if (!command) {
-      console.warn(`⚠️ Команда "${commandName}" для состояния "${state}" не найдена`);
+    let dmxAddress;
+    try {
+      dmxAddress = this.controller.getPlayerAddress(playerIndex);
+    } catch (error) {
       return;
     }
     
-    // Вычисляем DMX адрес для игрока
-    const dmxAddress = this.controller.getPlayerAddress(playerIndex);
+    if (!dmxAddress || dmxAddress < 1 || dmxAddress > 512) return;
     
-    // Применяем команду
     this.applyCommandToAddress(command, dmxAddress);
   }
 
@@ -214,42 +224,56 @@ class DMXStateManager {
    * Применить команду к DMX адресу
    */
   applyCommandToAddress(command, startAddress) {
-    if (!this.controller) return;
+    if (!this.controller || !command || !startAddress) return;
+    
+    const channels = {};
     
     // Если команда содержит несколько фонарей (allFixtures)
     if (command.allFixtures && Array.isArray(command.allFixtures) && command.allFixtures.length > 0) {
       // Применяем первый фонарь из команды (так как мы применяем к одному игроку)
       const firstFixture = command.allFixtures[0];
-      const channels = {};
       
       for (let i = 1; i <= 9; i++) {
-        const channelValue = firstFixture.channels[i] !== undefined ? firstFixture.channels[i] : 0;
-        channels[i] = channelValue;
+        const channelValue = firstFixture.channels && firstFixture.channels[i] !== undefined 
+          ? parseInt(firstFixture.channels[i]) 
+          : 0;
+        const absoluteAddress = startAddress + i - 1;
+        if (absoluteAddress >= 1 && absoluteAddress <= 512) {
+          channels[absoluteAddress] = Math.max(0, Math.min(255, channelValue));
+        }
       }
-      
-      this.controller.updateChannelsForAddress(startAddress, channels);
-    } else {
+    } else if (command.channels) {
       // Стандартная команда с каналами
-      const channels = {};
-      
       // Преобразуем относительные каналы (1-9) в абсолютные адреса
       Object.keys(command.channels).forEach(channelOffset => {
         const channelNum = parseInt(channelOffset);
         const value = parseInt(command.channels[channelOffset]);
         
+        if (isNaN(channelNum) || isNaN(value)) return;
+        
         if (channelNum <= 9) {
-          // Относительный канал - используем его как есть
-          channels[channelNum] = value;
+          // Относительный канал (1-9) - преобразуем в абсолютный адрес
+          const absoluteAddress = startAddress + channelNum - 1;
+          if (absoluteAddress >= 1 && absoluteAddress <= 512) {
+            channels[absoluteAddress] = Math.max(0, Math.min(255, value));
+          }
         } else {
-          // Абсолютный адрес - вычисляем смещение
-          const offset = channelNum - command.startAddress;
-          if (offset >= 1 && offset <= 9) {
-            channels[offset] = value;
+          // Абсолютный адрес в команде - вычисляем смещение относительно startAddress команды
+          const commandStart = command.startAddress || 1;
+          const offset = channelNum - commandStart;
+          if (offset >= 0 && offset < 9) {
+            const absoluteAddress = startAddress + offset;
+            if (absoluteAddress >= 1 && absoluteAddress <= 512) {
+              channels[absoluteAddress] = Math.max(0, Math.min(255, value));
+            }
           }
         }
       });
-      
-      this.controller.updateChannelsForAddress(startAddress, channels);
+    }
+    
+    // Отправляем все каналы одним запросом
+    if (Object.keys(channels).length > 0) {
+      this.controller.updateChannels(channels);
     }
   }
 

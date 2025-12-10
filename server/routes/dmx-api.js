@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getDMXController, recreateDMXController } = require('../dmx/dmx-controller');
+const { getDMXController } = require('../dmx/dmx-controller');
 const { getDMXEffects } = require('../dmx/dmx-effects');
 const { getDMXPresets } = require('../dmx/dmx-presets');
 const { getDMXCommands } = require('../dmx/dmx-commands');
@@ -276,27 +276,53 @@ router.post('/channels', async (req, res) => {
       const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
       
       console.log(`🔗 Отправка на ESP32: ${esp32BaseUrl}/api/dmx/channels`);
+      console.log(`📦 Данные для ESP32:`, {
+        channels: channels,
+        startAddress: baseAddress,
+        channelCount: Object.keys(channels).length
+      });
       
       try {
-        const response = await axios.post(`${esp32BaseUrl}/api/dmx/channels`, {
+        const requestData = {
           channels: channels,
           startAddress: baseAddress
-        }, {
-          timeout: 2000,
-          headers: { 'Content-Type': 'application/json' },
+        };
+        
+        console.log(`📤 Отправка POST запроса на ${esp32BaseUrl}/api/dmx/channels`);
+        console.log(`📋 Тело запроса:`, JSON.stringify(requestData, null, 2));
+        
+        const response = await axios.post(`${esp32BaseUrl}/api/dmx/channels`, requestData, {
+          timeout: 5000, // Увеличиваем таймаут до 5 секунд
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
           validateStatus: function (status) {
-            return status < 500; // Разрешаем статусы < 500
+            // Разрешаем все статусы для детального логирования
+            return true;
           }
         });
         
-        console.log('✅ ESP32 ответил:', {
+        console.log('📥 ESP32 ответил:', {
           status: response.status,
+          statusText: response.statusText,
           contentType: response.headers['content-type'],
           data: response.data
         });
         
+        // Если статус не 200, логируем ошибку
+        if (response.status !== 200) {
+          console.error(`❌ ESP32 вернул статус ${response.status}:`, response.data);
+          return res.status(response.status).json({
+            error: 'ESP32 вернул ошибку',
+            status: response.status,
+            message: typeof response.data === 'object' ? response.data.error || JSON.stringify(response.data) : response.data
+          });
+        }
+        
         // Проверяем, что ответ действительно JSON
         if (response.headers['content-type'] && response.headers['content-type'].includes('application/json')) {
+          console.log('✅ Успешно получен JSON ответ от ESP32');
           return res.json(response.data);
         } else {
           console.error('❌ ESP32 вернул не JSON:', {
@@ -305,25 +331,54 @@ router.post('/channels', async (req, res) => {
           });
           return res.status(503).json({
             error: 'ESP32 вернул неверный формат ответа',
-            message: 'Ожидался JSON, получен другой формат'
+            message: 'Ожидался JSON, получен другой формат',
+            contentType: response.headers['content-type']
           });
         }
       } catch (error) {
-        console.error('❌ Ошибка отправки на ESP32:', error.message);
+        console.error('❌ Ошибка отправки на ESP32:');
+        console.error('   Тип ошибки:', error.name);
+        console.error('   Сообщение:', error.message);
+        console.error('   Код:', error.code);
+        
         if (error.response) {
-          console.error('   Статус:', error.response.status);
+          // Сервер ответил, но статус ошибки
+          console.error('   Статус ответа:', error.response.status);
           console.error('   Заголовки:', error.response.headers);
-          console.error('   Данные:', typeof error.response.data === 'string' 
-            ? error.response.data.substring(0, 200) 
-            : error.response.data);
+          console.error('   Данные ответа:', typeof error.response.data === 'string' 
+            ? error.response.data.substring(0, 500) 
+            : JSON.stringify(error.response.data, null, 2));
+          
+          return res.status(error.response.status || 503).json({
+            error: 'ESP32 вернул ошибку',
+            status: error.response.status,
+            message: typeof error.response.data === 'object' 
+              ? (error.response.data.error || JSON.stringify(error.response.data))
+              : error.response.data,
+            details: 'Проверьте логи ESP32 для деталей'
+          });
         } else if (error.request) {
+          // Запрос отправлен, но ответа нет
           console.error('   Запрос отправлен, но ответа нет');
+          console.error('   URL:', error.config?.url);
+          console.error('   Метод:', error.config?.method);
+          console.error('   Данные запроса:', error.config?.data);
+          
+          return res.status(503).json({
+            error: 'ESP32 недоступен',
+            message: 'Запрос отправлен, но ответа нет',
+            details: `Проверьте, что ESP32 доступен по адресу ${esp32BaseUrl} и подключен к WiFi`,
+            code: error.code || 'ETIMEDOUT'
+          });
+        } else {
+          // Другая ошибка
+          console.error('   Другая ошибка:', error);
+          return res.status(500).json({
+            error: 'Ошибка при отправке запроса на ESP32',
+            message: error.message,
+            details: 'Проверьте логи сервера для деталей'
+          });
         }
-        return res.status(503).json({
-          error: 'ESP32 недоступен',
-          message: error.message,
-          details: error.response ? `Статус: ${error.response.status}` : 'Нет ответа от ESP32'
-        });
       }
     }
     
@@ -378,25 +433,47 @@ router.get('/channels', async (req, res) => {
       const esp32Port = controller.config.interface.port || 80;
       const esp32BaseUrl = `http://${esp32Host}:${esp32Port}`;
       
+      console.log(`🔗 GET запрос к ESP32: ${esp32BaseUrl}/api/dmx/channels`);
+      console.log(`📦 Параметры: startAddress=${baseAddress}, count=${channelCount}`);
+      
       try {
         const response = await axios.get(`${esp32BaseUrl}/api/dmx/channels`, {
           params: {
             startAddress: baseAddress,
             count: channelCount
           },
-          timeout: 2000
+          timeout: 5000, // Увеличиваем таймаут
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        console.log('✅ ESP32 ответил на GET:', {
+          status: response.status,
+          data: response.data
         });
         
         return res.json(response.data);
       } catch (error) {
-        console.error('❌ Ошибка запроса к ESP32:', error.message);
+        console.error('❌ Ошибка GET запроса к ESP32:');
+        console.error('   Тип ошибки:', error.name);
+        console.error('   Сообщение:', error.message);
+        console.error('   Код:', error.code);
+        
+        if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+          console.error(`   ⚠️ ESP32 недоступен по адресу ${esp32BaseUrl}`);
+          console.error('   💡 Совет: Если используете .local домен на Windows, попробуйте указать IP адрес в dmx-config.json');
+        }
+        
         // Возвращаем пустые каналы в случае ошибки
         const channels = {};
         for (let i = 1; i <= channelCount; i++) {
           channels[i] = 0;
         }
         return res.json({
-          success: true,
+          success: false,
+          error: 'ESP32 недоступен',
+          message: error.message,
           startAddress: baseAddress,
           channels
         });
@@ -1061,81 +1138,6 @@ router.get('/scenario/definitions', (req, res) => {
   } catch (error) {
     res.status(500).json({
       error: 'Ошибка получения определений',
-      message: error.message
-    });
-  }
-});
-
-// ==================== УПРАВЛЕНИЕ КОНФИГУРАЦИЕЙ ====================
-
-// Получить текущую конфигурацию интерфейса
-router.get('/config', (req, res) => {
-  try {
-    const controller = getDMXController();
-    if (!controller) {
-      return res.status(503).json({ error: 'DMX контроллер недоступен' });
-    }
-    
-    res.json({
-      success: true,
-      interface: controller.config.interface
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: 'Ошибка получения конфигурации',
-      message: error.message
-    });
-  }
-});
-
-// Обновить конфигурацию интерфейса (IP адрес, порт и т.д.)
-router.put('/config', (req, res) => {
-  try {
-    const controller = getDMXController();
-    if (!controller) {
-      return res.status(503).json({ error: 'DMX контроллер недоступен' });
-    }
-    
-    const { host, port, type } = req.body;
-    
-    if (!host && !port && !type) {
-      return res.status(400).json({ 
-        error: 'Не указаны параметры для обновления (host, port или type)' 
-      });
-    }
-    
-    const updateConfig = {};
-    if (host !== undefined) {
-      // Проверяем формат IP адреса или доменного имени
-      if (typeof host !== 'string' || host.trim() === '') {
-        return res.status(400).json({ error: 'Неверный формат host' });
-      }
-      updateConfig.host = host.trim();
-    }
-    if (port !== undefined) {
-      const portNum = parseInt(port);
-      if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
-        return res.status(400).json({ error: 'Неверный формат port (1-65535)' });
-      }
-      updateConfig.port = portNum;
-    }
-    if (type !== undefined) {
-      if (!['esp32', 'artnet', 'usb'].includes(type)) {
-        return res.status(400).json({ error: 'Неверный тип интерфейса (esp32, artnet, usb)' });
-      }
-      updateConfig.type = type;
-    }
-    
-    controller.updateInterfaceConfig(updateConfig);
-    
-    res.json({
-      success: true,
-      message: 'Конфигурация обновлена и контроллер переинициализирован',
-      interface: controller.config.interface
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: 'Ошибка обновления конфигурации',
       message: error.message
     });
   }

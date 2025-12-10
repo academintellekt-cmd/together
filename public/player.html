@@ -672,15 +672,50 @@
                 return;
             }
             
-            // Обработка ответов - только на экране вопроса
             const questionScreen = document.getElementById('question-screen');
-            if (!questionScreen || questionScreen.style.display === 'none' || hasAnswered) {
-                return;
+            const resultsScreen = document.getElementById('results-screen');
+            const currentTime = Date.now();
+            const buttons = joystickConfig.buttons;
+            
+            // Обработка кнопки 9 на экране результатов (готов к следующему вопросу)
+            if (resultsScreen && resultsScreen.style.display !== 'none') {
+                const readyBtn = document.getElementById('ready-btn');
+                if (readyBtn && readyBtn.style.display !== 'none' && !readyBtn.disabled) {
+                    // Проверяем кнопку 9
+                    if (buttons['Кнопка 9'] !== undefined) {
+                        const button9Index = buttons['Кнопка 9'];
+                        if (gamepad.buttons[button9Index] && gamepad.buttons[button9Index].pressed) {
+                            const buttonKey = `Кнопка 9-${button9Index}`;
+                            if (lastPressedButton !== buttonKey || (currentTime - lastPressedTime) >= 300) {
+                                lastPressedButton = buttonKey;
+                                lastPressedTime = currentTime;
+                                
+                                console.log(`🎮 Джойстик: Кнопка 9 (кнопка ${button9Index}) -> Готов к следующему вопросу`);
+                                
+                                // Эмулируем клик по кнопке готовности
+                                readyBtn.click();
+                                return; // Обработали нажатие, выходим
+                            }
+                        }
+                    }
+                }
             }
             
-            // Проверяем нажатые кнопки
-            const buttons = joystickConfig.buttons;
-            const currentTime = Date.now();
+            // Обработка ответов - только на экране вопроса
+            if (!questionScreen || questionScreen.style.display === 'none' || hasAnswered) {
+                // Сбрасываем флаг, если ни одна кнопка не нажата
+                let anyButtonPressed = false;
+                for (const [command, buttonIndex] of Object.entries(buttons)) {
+                    if (gamepad.buttons[buttonIndex] && gamepad.buttons[buttonIndex].pressed) {
+                        anyButtonPressed = true;
+                        break;
+                    }
+                }
+                if (!anyButtonPressed) {
+                    lastPressedButton = null;
+                }
+                return;
+            }
             
             for (const [command, buttonIndex] of Object.entries(buttons)) {
                 // Проверяем, что кнопка нажата
@@ -1345,6 +1380,9 @@
             readyBtn.textContent = 'Готов к следующему вопросу?';
             readyStatus.style.display = 'none';
             isReady = false; // Сбрасываем флаг готовности
+            
+            // Запускаем проверку джойстика для работы кнопки 9 на экране результатов
+            startGamepadCheck();
         });
 
         // Кнопка готовности

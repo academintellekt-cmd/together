@@ -173,19 +173,23 @@ class DMXStateMapping {
     const commands = getDMXCommands();
     const allCommands = commands.getAllCommands();
     
+    if (!allCommands || allCommands.length === 0) return null;
+    
+    const lowerCommandName = commandName.toLowerCase().trim();
+    
     // Сначала ищем по точному имени
-    let command = allCommands.find(cmd => 
-      cmd.name.toLowerCase() === commandName.toLowerCase() ||
-      cmd.id === commandName
-    );
+    let command = allCommands.find(cmd => {
+      if (!cmd || !cmd.name) return false;
+      return cmd.name.toLowerCase().trim() === lowerCommandName || cmd.id === commandName;
+    });
     
     if (command) return command;
     
     // Если не нашли, ищем по тегам
-    command = allCommands.find(cmd => 
-      Array.isArray(cmd.tags) && 
-      cmd.tags.some(tag => tag.toLowerCase() === commandName.toLowerCase())
-    );
+    command = allCommands.find(cmd => {
+      if (!cmd || !Array.isArray(cmd.tags)) return false;
+      return cmd.tags.some(tag => tag && tag.toLowerCase().trim() === lowerCommandName);
+    });
     
     return command || null;
   }

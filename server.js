@@ -6,10 +6,10 @@ const path = require('path');
 const fs = require('fs');
 const { loadAllQuizzes } = require('./server/utils/quiz-loader');
 
-// DMX интеграция
-let dmxIntegration = null;
+// DMX интеграция - новая система сценариев
+let dmxScenarioEngine = null;
 try {
-  const { DMXIntegration } = require('./server/dmx/dmx-integration');
+  const { getDMXScenarioEngine } = require('./server/dmx/dmx-scenario-engine');
   // Инициализация будет после создания io, rooms, players
 } catch (error) {
   console.warn('⚠️ DMX модуль недоступен:', error.message);
@@ -46,29 +46,14 @@ app.use('/data/media', express.static(path.join(__dirname, 'data/media')));
 const rooms = new Map();
 const players = new Map();
 
-// Инициализация DMX интеграции
-try {
-  const { DMXIntegration } = require('./server/dmx/dmx-integration');
-  dmxIntegration = new DMXIntegration(io, rooms, players);
-  console.log('✅ DMX интеграция инициализирована');
-} catch (error) {
-  console.warn('⚠️ DMX интеграция недоступна:', error.message);
-  dmxIntegration = null;
-}
-
-// Инициализация системы состояний освещения
-let lightingEngine = null;
-let GameEvent = null;
+// Инициализация DMX системы сценариев
 try {
   const { getDMXScenarioEngine } = require('./server/dmx/dmx-scenario-engine');
-  const lightingStates = require('./server/dmx/dmx-lighting-states');
-  GameEvent = lightingStates.GameEvent;
-  lightingEngine = getDMXScenarioEngine();
-  console.log('✅ Система состояний освещения инициализирована');
+  dmxScenarioEngine = getDMXScenarioEngine();
+  console.log('✅ DMX система сценариев инициализирована');
 } catch (error) {
-  console.warn('⚠️ Система состояний освещения недоступна:', error.message);
-  lightingEngine = null;
-  GameEvent = null;
+  console.warn('⚠️ DMX система сценариев недоступна:', error.message);
+  dmxScenarioEngine = null;
 }
 
 // Хранилище рейтинга для соло-режима
@@ -107,8 +92,8 @@ const MAX_ROOMS = 50; // Максимум активных комнат одно
 const MAX_TOTAL_PLAYERS = 500; // Максимум игроков на сервере
 const MAX_LEADERBOARD_ENTRIES = 1000; // Максимум записей рейтинга в памяти
 const ROOM_TIMEOUT = 30 * 60 * 1000; // 30 минут неактивности для очистки комнаты
-const LEADERBOARD_QUEUE_BATCH_SIZE = 1; // Размер батча для записи в Google Sheets (1 = записывать сразу)
-const LEADERBOARD_QUEUE_INTERVAL = 2 * 1000; // Интервал записи батча (2 секунды для оставшихся записей)
+const LEADERBOARD_QUEUE_BATCH_SIZE = 10; // Размер батча для записи в Google Sheets
+const LEADERBOARD_QUEUE_INTERVAL = 30 * 1000; // Интервал записи батча (30 секунд)
 
 // Очередь для батчинга записей в Google Sheets
 const leaderboardQueue = [];
@@ -131,24 +116,8 @@ function normalizeQuizId(quizIdOrName) {
     for (const [id, quiz] of Object.entries(quizzes)) {
       const quizNameLower = (quiz.name || '').toLowerCase().trim();
       const quizTitleLower = (quiz.display && quiz.display.title ? quiz.display.title : '').toLowerCase().trim();
-      const quizSubtitleLower = (quiz.display && quiz.display.subtitle ? quiz.display.subtitle : '').toLowerCase().trim();
       
-      // Точное совпадение
       if (quizNameLower === lowerQuizIdOrName || quizTitleLower === lowerQuizIdOrName) {
-        console.log(`🔄 normalizeQuizId: "${quizIdOrName}" найден по названию квиза как "${id}"`);
-        return id;
-      }
-      
-      // Частичное совпадение - если запрашиваемое название содержит название квиза или наоборот
-      // Это помогает найти "Академгородок: история и легенды" даже если в Google Sheets немного другой формат
-      if (quizNameLower && (lowerQuizIdOrName.includes(quizNameLower) || quizNameLower.includes(lowerQuizIdOrName))) {
-        console.log(`🔄 normalizeQuizId: "${quizIdOrName}" найден по частичному совпадению с названием "${quiz.name}" как "${id}"`);
-        return id;
-      }
-      
-      // Проверяем по subtitle (например, "история и легенды")
-      if (quizSubtitleLower && lowerQuizIdOrName.includes(quizSubtitleLower)) {
-        console.log(`🔄 normalizeQuizId: "${quizIdOrName}" найден по subtitle "${quizSubtitleLower}" как "${id}"`);
         return id;
       }
     }
@@ -162,18 +131,17 @@ function normalizeQuizId(quizIdOrName) {
   }
   // Проверяем для Академгородка - более точные совпадения
   // Проверяем различные варианты написания
-  
-  // Сначала проверяем точное совпадение с полным названием
-  if (lowerQuizIdOrName === 'академгородок: история и легенды' || 
-      lowerQuizIdOrName === 'академгородок история и легенды' ||
-      lowerQuizIdOrName.includes('академгородок') && lowerQuizIdOrName.includes('история') && lowerQuizIdOrName.includes('легенды')) {
-    console.log(`🔄 normalizeQuizId: "${quizIdOrName}" распознан как "akadem" (полное название)`);
-    return 'akadem';
-  }
+  const akademPatterns = [
+    'академ',
+    'академгородок',
+    'история и легенды',
+    'история',
+    'легенды'
+  ];
   
   // Если содержит "академ" или "академгородок" - это точно академ
   if (lowerQuizIdOrName.includes('академ') || lowerQuizIdOrName.includes('академгородок')) {
-    console.log(`🔄 normalizeQuizId: "${quizIdOrName}" распознан как "akadem" (содержит "академ" или "академгородок")`);
+    console.log(`🔄 normalizeQuizId: "${quizIdOrName}" распознан как "akadem" (содержит "академ")`);
     return 'akadem';
   }
   
@@ -348,15 +316,9 @@ async function loadLeaderboardFromGoogleSheets() {
                         const originalQuizId = entry.quizId;
                         const normalizedQuizId = normalizeQuizId(originalQuizId) || originalQuizId;
                         
-                        // Логируем, если quizId изменился или если это академ
+                        // Логируем, если quizId изменился
                         if (originalQuizId !== normalizedQuizId) {
                           console.log(`🔄 Нормализация quizId: "${originalQuizId}" -> "${normalizedQuizId}"`);
-                        }
-                        
-                        // Дополнительное логирование для академ
-                        const lowerOriginal = (originalQuizId || '').toLowerCase();
-                        if (lowerOriginal.includes('академ') || lowerOriginal.includes('история') || lowerOriginal.includes('легенды')) {
-                          console.log(`📋 Академ запись: "${originalQuizId}" -> нормализован в "${normalizedQuizId}", игрок: "${entry.playerName}"`);
                         }
                         
                         return {
@@ -425,27 +387,21 @@ async function loadLeaderboardFromGoogleSheets() {
                 console.log(`🔍 Найдено ${possibleAkadem.length} записей, которые могут быть для академгородка:`, possibleAkadem.map(e => ({ player: e.playerName, quizId: e.quizId })));
               }
               
-                      // Нормализуем quizId для каждой записи
-                      const processedLeaderboard = data.leaderboard.map(entry => {
-                        const originalQuizId = entry.quizId;
-                        const normalizedQuizId = normalizeQuizId(originalQuizId) || originalQuizId;
-                        
-                        // Логируем, если quizId изменился или если это академ
-                        if (originalQuizId !== normalizedQuizId) {
-                          console.log(`🔄 Нормализация quizId: "${originalQuizId}" -> "${normalizedQuizId}"`);
-                        }
-                        
-                        // Дополнительное логирование для академ
-                        const lowerOriginal = (originalQuizId || '').toLowerCase();
-                        if (lowerOriginal.includes('академ') || lowerOriginal.includes('история') || lowerOriginal.includes('легенды')) {
-                          console.log(`📋 Академ запись: "${originalQuizId}" -> нормализован в "${normalizedQuizId}", игрок: "${entry.playerName}"`);
-                        }
-                        
-                        return {
-                          ...entry,
-                          quizId: normalizedQuizId
-                        };
-                      });
+              // Нормализуем quizId для каждой записи
+              const processedLeaderboard = data.leaderboard.map(entry => {
+                const originalQuizId = entry.quizId;
+                const normalizedQuizId = normalizeQuizId(originalQuizId) || originalQuizId;
+                
+                // Логируем, если quizId изменился
+                if (originalQuizId !== normalizedQuizId) {
+                  console.log(`🔄 Нормализация quizId: "${originalQuizId}" -> "${normalizedQuizId}"`);
+                }
+                
+                return {
+                  ...entry,
+                  quizId: normalizedQuizId
+                };
+              });
               
               // Логируем все уникальные quizId после нормализации
               const normalizedQuizIds = [...new Set(processedLeaderboard.map(e => e.quizId))];
@@ -492,30 +448,21 @@ async function loadLeaderboardFromGoogleSheets() {
 async function processLeaderboardQueue() {
   if (leaderboardQueue.length === 0) return;
   
-  // Берем все записи из очереди (или батч, если их много)
-  const batchSize = Math.min(leaderboardQueue.length, LEADERBOARD_QUEUE_BATCH_SIZE);
-  const batch = leaderboardQueue.splice(0, batchSize);
-  console.log(`📤 Запись ${batch.length} записи(ей) в Google Sheets...`);
+  const batch = leaderboardQueue.splice(0, LEADERBOARD_QUEUE_BATCH_SIZE);
+  console.log(`📤 Запись батча из ${batch.length} записей в Google Sheets...`);
   
-  // Записываем каждую запись из батча параллельно
-  const promises = batch.map(result => {
-    console.log(`📝 Запись результата "${result.playerName}" (${result.score} очков) для "${result.quizId}"...`);
-    return writeToGoogleSheets(result);
-  });
+  // Записываем каждую запись из батча
+  const promises = batch.map(result => writeToGoogleSheets(result));
   const results = await Promise.allSettled(promises);
   
   const successCount = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
   console.log(`✅ Записано ${successCount}/${batch.length} записей в Google Sheets`);
   
-  // Если были ошибки, логируем их
-  results.forEach((result, index) => {
-    if (result.status === 'rejected') {
-      console.error(`❌ Ошибка записи записи ${index + 1}:`, result.reason);
-    }
-  });
-  
-  // Не обновляем рейтинг из Google Sheets после каждой записи (это медленно)
-  // Обновление происходит периодически через initializeLeaderboard
+  // Если все успешно, обновляем рейтинг из Google Sheets
+  if (successCount === batch.length && batch.length > 0) {
+    console.log('🔄 Обновляем рейтинг из Google Sheets...');
+    await initializeLeaderboard();
+  }
 }
 
 // Функция записи результата в Google Sheets через Apps Script Web App
@@ -945,14 +892,10 @@ app.post('/api/leaderboard', (req, res) => {
     return res.status(400).json({ error: 'Недостаточно данных' });
   }
   
-  // Нормализуем quizId при сохранении для единообразия
-  const normalizedQuizId = normalizeQuizId(quizId) || quizId;
-  console.log(`💾 Сохранение результата: quizId="${quizId}" -> нормализован в "${normalizedQuizId}"`);
-  
   const result = {
     id: Date.now().toString(),
     playerName: playerName.trim(),
-    quizId: normalizedQuizId, // Сохраняем нормализованный quizId
+    quizId: quizId,
     score: score,
     correctAnswers: correctAnswers || 0,
     totalQuestions: totalQuestions || 0,
@@ -962,8 +905,6 @@ app.post('/api/leaderboard', (req, res) => {
   };
   
   leaderboard.push(result);
-  console.log(`✅ Результат добавлен в память: "${result.playerName}" (${result.score} очков) для квиза "${normalizedQuizId}"`);
-  console.log(`📊 Всего записей в памяти: ${leaderboard.length}`);
   
     // Сортируем по очкам (от большего к меньшему)
     leaderboard.sort((a, b) => {
@@ -981,11 +922,10 @@ app.post('/api/leaderboard', (req, res) => {
   // Добавляем в очередь для батчинга (асинхронно, не блокируем ответ)
   leaderboardQueue.push(result);
   
-  // Записываем сразу (асинхронно, не блокируем ответ клиенту)
-  // Используем setImmediate для немедленного выполнения после ответа клиенту
-  setImmediate(() => {
+  // Если очередь достигла размера батча, записываем немедленно
+  if (leaderboardQueue.length >= LEADERBOARD_QUEUE_BATCH_SIZE) {
     processLeaderboardQueue();
-  });
+  }
   
   res.json({ success: true, result: result });
 });
@@ -1043,7 +983,7 @@ app.get('/api/leaderboard', (req, res) => {
   
   // Фильтруем по quizId, если указан
   if (quizId) {
-    const normalizedQuizId = normalizeQuizId(quizId) || quizId;
+    const normalizedQuizId = normalizeQuizId(quizId);
     console.log(`🔍 Фильтрация рейтинга: запрошен quizId="${quizId}", нормализован в "${normalizedQuizId}"`);
     console.log(`📊 Всего записей в рейтинге: ${leaderboard.length}`);
     
@@ -1051,108 +991,33 @@ app.get('/api/leaderboard', (req, res) => {
     const uniqueQuizIds = [...new Set(leaderboard.map(r => r.quizId))];
     console.log(`📊 Уникальные quizId в рейтинге:`, uniqueQuizIds);
     
-    // Фильтруем результаты, нормализуя quizId из рейтинга
-    let matchCount = 0;
     results = leaderboard.filter(r => {
-      // Нормализуем quizId из записи рейтинга
-      const rQuizId = normalizeQuizId(r.quizId) || r.quizId;
+      const rQuizId = normalizeQuizId(r.quizId);
       const matches = rQuizId === normalizedQuizId;
       if (matches) {
-        matchCount++;
-        if (matchCount <= 10) { // Логируем первые 10 совпадений
-          console.log(`✅ Найдено совпадение ${matchCount}: "${r.quizId}" -> "${rQuizId}", игрок: "${r.playerName}", очки: ${r.score}`);
-        }
-      } else {
-        // Логируем несовпадения для отладки (только первые несколько)
-        if (matchCount === 0 && leaderboard.indexOf(r) < 5) {
-          console.log(`❌ Не совпало: "${r.quizId}" -> "${rQuizId}" (ожидали "${normalizedQuizId}")`);
-        }
+        console.log(`✅ Найдено совпадение: "${r.quizId}" -> "${rQuizId}"`);
       }
       return matches;
     });
     
     console.log(`📊 Найдено результатов после фильтрации: ${results.length}`);
-    
-    // Дополнительное логирование для академ
-    if (normalizedQuizId === 'akadem' && results.length > 0) {
-      console.log(`📋 Все записи для академ (${results.length}):`, results.map(r => ({
-        player: r.playerName,
-        score: r.score,
-        quizId: r.quizId,
-        normalized: normalizeQuizId(r.quizId)
-      })));
-    }
-    
-    // Если результатов мало или нет, проверяем альтернативные варианты для академ
-    if ((results.length === 0 || results.length < 3) && (quizId.toLowerCase().includes('академ') || quizId.toLowerCase().includes('akadem') || normalizedQuizId === 'akadem')) {
-      console.log(`🔍 Попытка найти результаты для академ городка альтернативным способом...`);
-      console.log(`📊 Текущее количество результатов: ${results.length}`);
-      
-      // Проверяем все записи в рейтинге, которые могут быть для академ
-      const allPossibleAkadem = leaderboard.filter(r => {
-        const rQuizId = normalizeQuizId(r.quizId) || r.quizId;
-        const rQuizIdLower = (r.quizId || '').toLowerCase();
-        // Проверяем по нормализованному ID или по содержимому строки
-        return rQuizId === 'akadem' || 
-               rQuizIdLower.includes('академ') || 
-               rQuizIdLower.includes('академгородок') ||
-               (rQuizIdLower.includes('история') && rQuizIdLower.includes('легенды'));
-      });
-      
-      if (allPossibleAkadem.length > 0) {
-        console.log(`🔍 Найдено ${allPossibleAkadem.length} потенциальных записей для академ:`);
-        allPossibleAkadem.slice(0, 10).forEach(r => {
-          console.log(`  - "${r.quizId}" -> "${normalizeQuizId(r.quizId)}", игрок: "${r.playerName}", очки: ${r.score}`);
-        });
-        
-        // Если нашли больше записей, чем было, используем их
-        if (allPossibleAkadem.length > results.length) {
-          console.log(`✅ Используем ${allPossibleAkadem.length} записей вместо ${results.length}`);
-          results = allPossibleAkadem;
-        }
-      }
-    }
   }
   
   // Группируем по игрокам и берем лучший результат каждого
   const playerBestScores = {};
-  let skippedCount = 0;
   results.forEach(result => {
     // Пропускаем результаты с пустыми именами или нулевыми очками
     if (!result.playerName || result.playerName.trim() === '' || result.score === 0) {
-      skippedCount++;
-      if (skippedCount <= 3) {
-        console.log(`⏭️ Пропущена запись: имя="${result.playerName}", очки=${result.score}`);
-      }
       return;
     }
     
     const key = result.playerName.toLowerCase().trim();
     
     // Если игрока еще нет или его новый результат лучше
-    const isAkadem = quizId && (quizId.toLowerCase().includes('академ') || quizId.toLowerCase().includes('akadem'));
-    if (!playerBestScores[key]) {
+    if (!playerBestScores[key] || playerBestScores[key].score < result.score) {
       playerBestScores[key] = result;
-      if (isAkadem) {
-        console.log(`➕ Добавлен игрок "${result.playerName}" с очками ${result.score}`);
-      }
-    } else if (playerBestScores[key].score < result.score) {
-      if (isAkadem) {
-        console.log(`🔄 Обновлен результат для "${result.playerName}": ${playerBestScores[key].score} -> ${result.score}`);
-      }
-      playerBestScores[key] = result;
-    } else {
-      if (isAkadem) {
-        console.log(`⏭️ Пропущен худший результат для "${result.playerName}": ${result.score} (лучший: ${playerBestScores[key].score})`);
-      }
     }
   });
-  
-  if (skippedCount > 0) {
-    console.log(`📊 Пропущено записей: ${skippedCount}`);
-  }
-  
-  console.log(`📊 Уникальных игроков после группировки: ${Object.keys(playerBestScores).length}`);
   
   // Сортируем по очкам (от большего к меньшему)
   const sortedResults = Object.values(playerBestScores).sort((a, b) => {
@@ -1163,56 +1028,19 @@ app.get('/api/leaderboard', (req, res) => {
   // Ограничиваем до 50 лучших игроков
   const topResults = sortedResults.slice(0, 50);
   
-  // Финальное логирование для отладки
-  if (quizId && (quizId.toLowerCase().includes('академ') || quizId.toLowerCase().includes('akadem'))) {
-    console.log(`📊 ФИНАЛЬНЫЙ РЕЗУЛЬТАТ для "${quizId}":`);
-    console.log(`  - Всего записей в рейтинге: ${leaderboard.length}`);
-    console.log(`  - После фильтрации по quizId: ${results.length}`);
-    console.log(`  - Уникальных игроков: ${Object.keys(playerBestScores).length}`);
-    console.log(`  - Возвращаем топ игроков: ${topResults.length}`);
-    if (topResults.length > 0) {
-      console.log(`  - Топ-3 игрока:`, topResults.slice(0, 3).map(r => `${r.playerName} (${r.score} очков)`));
-    }
-  }
-  
   res.json(topResults);
 });
 
 // Тестовый endpoint для принудительной загрузки рейтинга
 app.get('/api/reload-leaderboard', async (req, res) => {
   console.log('🔄 Принудительная перезагрузка рейтинга...');
-  console.log(`📊 Текущее количество записей в памяти: ${leaderboard.length}`);
   
   try {
     const savedLeaderboard = await loadLeaderboardFromGoogleSheets();
     
-    // Сохраняем текущие записи из памяти (новые результаты, которые еще не в Google Sheets)
-    const currentLeaderboardIds = new Set(leaderboard.map(r => r.id));
-    const newResults = leaderboard.filter(r => {
-      // Оставляем только те результаты, которых нет в загруженных данных
-      // или которые новее (по timestamp)
-      const foundInSaved = savedLeaderboard.find(s => s.id === r.id);
-      return !foundInSaved || (foundInSaved && r.timestamp > foundInSaved.timestamp);
-    });
-    
-    console.log(`📊 Загружено из Google Sheets: ${savedLeaderboard.length} записей`);
-    console.log(`📊 Новых результатов в памяти (еще не в Google Sheets): ${newResults.length}`);
-    
     if (savedLeaderboard.length > 0) {
-      // Объединяем данные: сначала загруженные из Google Sheets, затем новые из памяти
-      const mergedLeaderboard = [...savedLeaderboard];
-      
-      // Добавляем новые результаты, которых нет в загруженных данных
-      newResults.forEach(newResult => {
-        const exists = mergedLeaderboard.find(r => r.id === newResult.id);
-        if (!exists) {
-          mergedLeaderboard.push(newResult);
-          console.log(`➕ Добавлен новый результат в память: "${newResult.playerName}" (${newResult.score} очков) для "${newResult.quizId}"`);
-        }
-      });
-      
       leaderboard.length = 0; // Очищаем текущий массив
-      leaderboard.push(...mergedLeaderboard); // Добавляем объединенные данные
+      leaderboard.push(...savedLeaderboard); // Добавляем загруженные данные
       
       // Сортируем по очкам (от большего к меньшему)
       leaderboard.sort((a, b) => {
@@ -1220,29 +1048,23 @@ app.get('/api/reload-leaderboard', async (req, res) => {
         return a.timestamp - b.timestamp; // При одинаковых очках - кто раньше
       });
       
-      console.log(`✅ Рейтинг обновлен: ${leaderboard.length} записей (${savedLeaderboard.length} из Google Sheets + ${newResults.length} новых)`);
-      
       res.json({ 
         success: true, 
         message: `Рейтинг перезагружен: ${leaderboard.length} записей`,
         leaderboard: leaderboard 
       });
     } else {
-      // Если не удалось загрузить из Google Sheets, оставляем текущие данные в памяти
-      console.log(`⚠️ Не удалось загрузить из Google Sheets, оставляем ${leaderboard.length} записей в памяти`);
       res.json({ 
         success: false, 
-        message: 'Не удалось загрузить рейтинг из Google Sheets, используем данные из памяти',
-        leaderboard: leaderboard 
+        message: 'Не удалось загрузить рейтинг из Google Sheets',
+        leaderboard: [] 
       });
     }
   } catch (error) {
     console.error('❌ Ошибка перезагрузки рейтинга:', error);
-    // При ошибке оставляем текущие данные в памяти
-    res.json({ 
+    res.status(500).json({ 
       success: false, 
-      message: 'Ошибка перезагрузки рейтинга: ' + error.message + ', используем данные из памяти',
-      leaderboard: leaderboard 
+      message: 'Ошибка перезагрузки рейтинга: ' + error.message 
     });
   }
 });
@@ -1357,17 +1179,6 @@ app.post('/api/create-room', (req, res) => {
   }
   const roomCode = generateRoomCode();
   
-  // Инициализация системы освещения для новой комнаты
-  if (lightingEngine && GameEvent) {
-    try {
-      lightingEngine.handleGameEvent(roomCode, GameEvent.GAME_STARTED, {
-        playerCount: 14
-      });
-    } catch (error) {
-      console.warn('⚠️ Ошибка инициализации освещения для комнаты:', error.message);
-    }
-  }
-  
   // Для мультиплеера выбираем 15 случайных вопросов из всех доступных
   // Если создается комната через /api/create-room, это всегда мультиплеер
   let questionsForRoom = [...quiz.questions];
@@ -1455,14 +1266,21 @@ app.post('/api/create-room', (req, res) => {
   res.json({ roomCode });
 });
 
-// Инициализация DMX интеграции (после создания io)
+// Инициализация DMX системы сценариев (после создания io)
 try {
-  const { DMXIntegration } = require('./server/dmx/dmx-integration');
-  dmxIntegration = new DMXIntegration(io, rooms, players);
-  console.log('✅ DMX интеграция инициализирована');
+  const { getDMXScenarioEngine } = require('./server/dmx/dmx-scenario-engine');
+  dmxScenarioEngine = getDMXScenarioEngine();
+  console.log('✅ DMX система сценариев инициализирована');
 } catch (error) {
-  console.warn('⚠️ DMX интеграция недоступна:', error.message);
-  dmxIntegration = null;
+  console.warn('⚠️ DMX система сценариев недоступна:', error.message);
+  dmxScenarioEngine = null;
+}
+
+// Вспомогательная функция для получения индекса игрока в комнате
+function getPlayerIndex(roomCode, playerId) {
+  const room = rooms.get(roomCode);
+  if (!room || !room.players) return -1;
+  return room.players.findIndex(p => p.id === playerId);
 }
 
 // Подключение через Socket.io
@@ -1539,21 +1357,12 @@ io.on('connection', (socket) => {
     io.to(normalizedRoomCode).emit('player-list-updated', { players: room.players });
     console.log(`Игрок ${normalizedPlayerName} подключен к комнате ${normalizedRoomCode}`);
     
-    // DMX: игрок подключился (старая система)
-    if (dmxIntegration) {
-      dmxIntegration.onPlayerJoin(normalizedRoomCode, socket.id);
-    }
-    
-    // Система состояний освещения: игрок подключился
-    if (lightingEngine && GameEvent) {
-      try {
-        const playerIndex = room.players.length - 1; // Индекс только что добавленного игрока
-        lightingEngine.handleGameEvent(normalizedRoomCode, GameEvent.PLAYER_JOINED, {
-          playerIndex: playerIndex
-        });
-      } catch (error) {
-        console.warn('⚠️ Ошибка обработки события PLAYER_JOINED:', error.message);
-      }
+    // DMX: игрок подключился
+    const playerIndex = getPlayerIndex(normalizedRoomCode, socket.id);
+    if (dmxScenarioEngine && playerIndex !== -1) {
+      dmxScenarioEngine.handleGameEvent(normalizedRoomCode, 'PLAYER_JOINED', {
+        playerIndex
+      });
     }
   });
 
@@ -1570,22 +1379,11 @@ io.on('connection', (socket) => {
     
     io.to(roomCode).emit('game-started');
     
-    // DMX: игра началась (старая система)
-    if (dmxIntegration) {
-      dmxIntegration.onGameStarted(roomCode);
-    }
-    
-    // Система состояний освещения: игра началась
-    if (lightingEngine && GameEvent) {
-      try {
-        lightingEngine.handleGameEvent(roomCode, GameEvent.GAME_STARTED, {
-          playerCount: room.players.length
-        });
-        // Устанавливаем всех игроков в состояние ожидания готовности
-        lightingEngine.handleGameEvent(roomCode, GameEvent.ALL_PLAYERS_READY);
-      } catch (error) {
-        console.warn('⚠️ Ошибка обработки события GAME_STARTED:', error.message);
-      }
+    // DMX: игра началась
+    if (dmxScenarioEngine) {
+      dmxScenarioEngine.handleGameEvent(roomCode, 'GAME_STARTED', {
+        playerCount: room.players.length
+      });
     }
     
     setTimeout(() => {
@@ -1634,20 +1432,11 @@ io.on('connection', (socket) => {
     
     io.to(roomCode).emit('question', questionData);
     
-    // DMX: вопрос показан (старая система)
-    if (dmxIntegration) {
-      dmxIntegration.onQuestionShown(roomCode);
-    }
-    
-    // Система состояний освещения: вопрос начался
-    if (lightingEngine && GameEvent) {
-      try {
-        lightingEngine.handleGameEvent(roomCode, GameEvent.QUESTION_STARTED, {
-          questionId: `q${room.currentQuestion + 1}`
-        });
-      } catch (error) {
-        console.warn('⚠️ Ошибка обработки события QUESTION_STARTED:', error.message);
-      }
+    // DMX: вопрос показан
+    if (dmxScenarioEngine) {
+      dmxScenarioEngine.handleGameEvent(roomCode, 'QUESTION_STARTED', {
+        questionId: question.id
+      });
     }
 
     // Таймер для автоматического перехода к результатам
@@ -1722,31 +1511,13 @@ io.on('connection', (socket) => {
       newScore: player.score
     });
     
-    // DMX: игрок ответил (старая система)
-    if (dmxIntegration) {
-      dmxIntegration.onPlayerAnswer(roomCode, socket.id);
-      
-      // DMX: правильный/неправильный ответ
-      if (isCorrect) {
-        dmxIntegration.onCorrectAnswer(roomCode, socket.id);
-      } else {
-        dmxIntegration.onIncorrectAnswer(roomCode, socket.id);
-      }
-    }
-    
-    // Система состояний освещения: игрок ответил
-    if (lightingEngine && GameEvent) {
-      try {
-        const playerIndex = room.players.findIndex(p => p.id === socket.id);
-        if (playerIndex !== -1) {
-          lightingEngine.handleGameEvent(roomCode, GameEvent.PLAYER_ANSWERED, {
-            playerIndex: playerIndex,
-            isCorrect: isCorrect
-          });
-        }
-      } catch (error) {
-        console.warn('⚠️ Ошибка обработки события PLAYER_ANSWERED:', error.message);
-      }
+    // DMX: игрок ответил
+    const playerIndex = getPlayerIndex(roomCode, socket.id);
+    if (dmxScenarioEngine && playerIndex !== -1) {
+      dmxScenarioEngine.handleGameEvent(roomCode, 'PLAYER_ANSWERED', {
+        playerIndex,
+        isCorrect
+      });
     }
     
     // Обновляем статус ответов
@@ -1784,52 +1555,38 @@ io.on('connection', (socket) => {
     const question = room.questions[room.currentQuestion];
     const results = Array.from(room.answers.values());
 
+    const sortedPlayers = room.players.sort((a, b) => b.score - a.score);
     io.to(roomCode).emit('results', {
       correctAnswer: question.correct,
       correctAnswerText: question.options[question.correct],
       results: results,
-      players: room.players.sort((a, b) => b.score - a.score)
+      players: sortedPlayers
     });
 
-    // DMX: показать результаты (старая система)
-    if (dmxIntegration) {
-      dmxIntegration.onShowResults(roomCode, results);
-    }
-    
-    // Система состояний освещения: показать правильный ответ
-    if (lightingEngine && GameEvent) {
-      try {
-        // Формируем результаты для каждого игрока
-        const lightingResults = room.players.map((player, index) => {
-          const answer = room.answers.get(player.id);
-          return {
-            playerIndex: index,
-            isCorrect: answer ? answer.isCorrect : false
-          };
+    // DMX: показать правильный ответ и результаты
+    if (dmxScenarioEngine) {
+      // Сначала показываем правильный ответ с результатами всех игроков
+      const resultsWithIndices = results.map(result => ({
+        playerIndex: getPlayerIndex(roomCode, result.playerId),
+        isCorrect: result.isCorrect
+      })).filter(r => r.playerIndex !== -1);
+      
+      dmxScenarioEngine.handleGameEvent(roomCode, 'SHOW_CORRECT_ANSWER', {
+        results: resultsWithIndices
+      });
+      
+      // Затем показываем результаты с таблицей лидеров
+      const scoreboard = sortedPlayers.map((player, index) => ({
+        playerIndex: getPlayerIndex(roomCode, player.id),
+        score: player.score,
+        isLeader: index === 0
+      })).filter(p => p.playerIndex !== -1);
+      
+      setTimeout(() => {
+        dmxScenarioEngine.handleGameEvent(roomCode, 'SHOW_RESULTS', {
+          scoreboard
         });
-        
-        lightingEngine.handleGameEvent(roomCode, GameEvent.SHOW_CORRECT_ANSWER, {
-          results: lightingResults
-        });
-        
-        // Через небольшую задержку показываем результаты с лидерами
-        setTimeout(() => {
-          const sortedPlayers = [...room.players].sort((a, b) => b.score - a.score);
-          const maxScore = sortedPlayers.length > 0 ? sortedPlayers[0].score : 0;
-          
-          const scoreboard = room.players.map((player, index) => ({
-            playerIndex: index,
-            score: player.score,
-            isLeader: player.score === maxScore && maxScore > 0
-          }));
-          
-          lightingEngine.handleGameEvent(roomCode, GameEvent.SHOW_RESULTS, {
-            scoreboard: scoreboard
-          });
-        }, 2000);
-      } catch (error) {
-        console.warn('⚠️ Ошибка обработки событий результатов:', error.message);
-      }
+      }, 500);
     }
 
     // Не переходим автоматически - ждем подтверждения готовности от всех игроков
@@ -1861,15 +1618,6 @@ io.on('connection', (socket) => {
 
     // Автоматически переходим к следующему вопросу, когда все игроки готовы
     if (allReady && room.gameState === 'results') {
-      // Система состояний освещения: все игроки готовы
-      if (lightingEngine && GameEvent) {
-        try {
-          lightingEngine.handleGameEvent(roomCode, GameEvent.ALL_PLAYERS_READY);
-        } catch (error) {
-          console.warn('⚠️ Ошибка обработки события ALL_PLAYERS_READY:', error.message);
-        }
-      }
-      
       // Небольшая задержка для визуальной обратной связи
       setTimeout(() => {
         // Проверяем еще раз, что игра все еще в состоянии results и все готовы
@@ -1902,21 +1650,25 @@ io.on('connection', (socket) => {
       room.lastActivity = Date.now(); // Обновляем активность
       console.log(`Игрок ${player.name} готов к следующему вопросу`);
       
-      // Система состояний освещения: игрок готов
-      if (lightingEngine && GameEvent) {
-        try {
-          const playerIndex = room.players.findIndex(p => p.id === socket.id);
-          if (playerIndex !== -1) {
-            lightingEngine.handleGameEvent(roomCode, GameEvent.PLAYER_READY, {
-              playerIndex: playerIndex
-            });
-          }
-        } catch (error) {
-          console.warn('⚠️ Ошибка обработки события PLAYER_READY:', error.message);
-        }
+      // DMX: игрок готов
+      const playerIndex = getPlayerIndex(roomCode, socket.id);
+      if (dmxScenarioEngine && playerIndex !== -1) {
+        dmxScenarioEngine.handleGameEvent(roomCode, 'PLAYER_READY', {
+          playerIndex
+        });
       }
       
       updateReadyStatus(roomCode);
+      
+      // Проверяем, все ли готовы
+      if (room.readyPlayers.size === room.players.length && room.players.length > 0) {
+        // DMX: все игроки готовы
+        if (dmxScenarioEngine) {
+          dmxScenarioEngine.handleGameEvent(roomCode, 'ALL_PLAYERS_READY', {
+            readyPlayers: Array.from(room.readyPlayers).map(id => getPlayerIndex(roomCode, id)).filter(i => i !== -1)
+          });
+        }
+      }
     }
   });
 
@@ -1956,34 +1708,17 @@ io.on('connection', (socket) => {
       results: finalResults
     });
     
-    // DMX: игра завершена (старая система)
-    if (dmxIntegration) {
-      dmxIntegration.onGameFinished(roomCode, finalResults);
-    }
-    
-    // Система состояний освещения: игра завершена
-    if (lightingEngine && GameEvent) {
-      try {
-        const finalResultsWithRank = finalResults.map((player, index) => {
-          const playerIndex = room.players.findIndex(p => p.id === player.id);
-          return {
-            playerIndex: playerIndex !== -1 ? playerIndex : index,
-            score: player.score,
-            rank: index + 1
-          };
-        });
-        
-        lightingEngine.handleGameEvent(roomCode, GameEvent.GAME_FINISHED, {
-          finalResults: finalResultsWithRank
-        });
-        
-        // Очищаем комнату через некоторое время
-        setTimeout(() => {
-          lightingEngine.cleanupRoom(roomCode);
-        }, 10000);
-      } catch (error) {
-        console.warn('⚠️ Ошибка обработки события GAME_FINISHED:', error.message);
-      }
+    // DMX: игра завершена
+    if (dmxScenarioEngine) {
+      const finalResultsWithIndices = finalResults.map((player, index) => ({
+        playerIndex: getPlayerIndex(roomCode, player.id),
+        score: player.score,
+        rank: index + 1
+      })).filter(p => p.playerIndex !== -1);
+      
+      dmxScenarioEngine.handleGameEvent(roomCode, 'GAME_FINISHED', {
+        finalResults: finalResultsWithIndices
+      });
     }
   }
 
@@ -2016,17 +1751,9 @@ function cleanupInactiveRooms() {
     // Удаляем комнаты, которые завершены и неактивны более ROOM_TIMEOUT
     if (room.gameState === 'finished' && room.lastActivity) {
       if (now - room.lastActivity > ROOM_TIMEOUT) {
-        // DMX: очистка комнаты (старая система)
-        if (dmxIntegration) {
-          dmxIntegration.cleanupRoom(code);
-        }
-        // Система состояний освещения: очистка комнаты
-        if (lightingEngine) {
-          try {
-            lightingEngine.cleanupRoom(code);
-          } catch (error) {
-            console.warn(`⚠️ Ошибка очистки освещения для комнаты ${code}:`, error.message);
-          }
+        // DMX: очистка комнаты
+        if (dmxScenarioEngine) {
+          dmxScenarioEngine.cleanupRoom(code);
         }
         rooms.delete(code);
         cleanedCount++;
@@ -2036,14 +1763,6 @@ function cleanupInactiveRooms() {
     // Удаляем комнаты в лобби без активности более ROOM_TIMEOUT
     else if (room.gameState === 'lobby' && room.lastActivity) {
       if (now - room.lastActivity > ROOM_TIMEOUT) {
-        // Система состояний освещения: очистка комнаты
-        if (lightingEngine) {
-          try {
-            lightingEngine.cleanupRoom(code);
-          } catch (error) {
-            console.warn(`⚠️ Ошибка очистки освещения для комнаты ${code}:`, error.message);
-          }
-        }
         rooms.delete(code);
         cleanedCount++;
         console.log(`🗑️ Удалена неактивная комната в лобби: ${code}`);
@@ -2098,11 +1817,9 @@ if (require.main === module) {
       await initializeLeaderboard();
     }, 5 * 60 * 1000); // 5 минут
     
-    // Обработка очереди рейтинга (для оставшихся записей, если что-то не записалось сразу)
-    // Основная запись происходит сразу при сохранении результата через setImmediate
+    // Обработка очереди рейтинга (батчинг) каждые LEADERBOARD_QUEUE_INTERVAL
     setInterval(() => {
       if (leaderboardQueue.length > 0) {
-        console.log(`⏰ Периодическая проверка: осталось ${leaderboardQueue.length} записей в очереди`);
         processLeaderboardQueue();
       }
     }, LEADERBOARD_QUEUE_INTERVAL);

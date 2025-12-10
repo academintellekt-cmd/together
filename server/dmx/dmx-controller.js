@@ -11,7 +11,6 @@ class DMXController {
     this.currentState = {};
     this.animationTimers = new Map();
     this.initialized = false;
-    this.statusCheckInterval = null; // Интервал для проверки статуса ESP32
     
     try {
       this.loadConfig();
@@ -119,55 +118,76 @@ class DMXController {
             console.log('   Убедитесь, что ESP32 и сервер в одной сети');
           }
           
-          // Проверка доступности ESP32
+          // Проверка доступности ESP32 (асинхронная, не блокирует инициализацию)
+          // Сначала предполагаем, что ESP32 доступен, проверка произойдет асинхронно
+          this.isConnected = true;
+          
+          // Проверяем доступность ESP32
           axios.get(`${esp32BaseUrl}/api/dmx/status`, { 
-            timeout: 5000,
-            // Для mDNS может потребоваться больше времени на первое подключение
-            // axios автоматически использует dns.lookup для разрешения имен
+            timeout: 3000
           })
             .then((response) => {
               if (response.data && response.data.available) {
                 console.log(`✅ ESP32 DMX контроллер доступен: ${esp32BaseUrl}`);
                 this.isConnected = true;
               } else {
-                console.warn(`⚠️ ESP32 недоступен: статус не подтвержден`);
                 this.isConnected = false;
               }
             })
-            .catch((error) => {
-              console.warn(`⚠️ ESP32 недоступен: ${error.message}`);
-              console.warn('   Убедитесь, что ESP32 подключен к WiFi и прошит прошивкой');
+            .catch(() => {
               this.isConnected = false;
             });
           
           this.universe = {
             update: async (channels) => {
+              if (!this.isConnected) {
+                this.currentState = { ...this.currentState, ...channels };
+                return;
+              }
+              
               try {
-                // Преобразуем каналы в формат для ESP32
+                const channelKeys = Object.keys(channels).map(k => parseInt(k)).filter(k => !isNaN(k)).sort((a, b) => a - b);
+                
+                if (channelKeys.length === 0) return;
+                
+                const minAddress = Math.min(...channelKeys);
                 const channelsObj = {};
-                Object.keys(channels).forEach(channel => {
-                  channelsObj[channel] = channels[channel];
+                
+                channelKeys.forEach(absoluteAddress => {
+                  const relativeChannel = absoluteAddress - minAddress + 1;
+                  if (relativeChannel >= 1 && relativeChannel <= 9) {
+                    channelsObj[relativeChannel] = channels[absoluteAddress];
+                  }
                 });
                 
-                await axios.post(`${esp32BaseUrl}/api/batch`, {
-                  channels: channelsObj
+                if (Object.keys(channelsObj).length === 0) return;
+                
+                await axios.post(`${esp32BaseUrl}/api/dmx/channels`, {
+                  channels: channelsObj,
+                  startAddress: minAddress
                 }, {
-                  timeout: 1000,
+                  timeout: 500,
                   headers: { 'Content-Type': 'application/json' }
                 });
                 
                 this.currentState = { ...this.currentState, ...channels };
               } catch (error) {
-                // Не логируем каждую ошибку, чтобы не засорять консоль
-                // Только при критических ошибках
-                if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
-                  console.warn(`⚠️ ESP32 недоступен: ${error.message}`);
+                if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
+                  this.isConnected = false;
                 }
               }
             },
             updateAll: async (value) => {
+              if (!this.isConnected) {
+                console.log(`🎭 DMX Эмуляция: все 512 каналов = ${value}`);
+                for (let i = 1; i <= 512; i++) {
+                  this.currentState[i] = value;
+                }
+                return;
+              }
+              
               try {
-                await axios.post(`${esp32BaseUrl}/api/all`, {
+                await axios.post(`${esp32BaseUrl}/api/dmx/all`, {
                   action: 'off'
                 }, {
                   timeout: 1000,
@@ -180,21 +200,17 @@ class DMXController {
               } catch (error) {
                 if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
                   console.warn(`⚠️ ESP32 недоступен: ${error.message}`);
+                  this.isConnected = false;
                 }
               }
             }
           };
           
-          this.isConnected = true;
-          console.log(`✅ DMX ESP32 подключен: ${esp32BaseUrl}`);
-          
-          // Очищаем предыдущий интервал, если есть
-          if (this.statusCheckInterval) {
-            clearInterval(this.statusCheckInterval);
-          }
+          console.log(`✅ DMX ESP32 инициализирован: ${esp32BaseUrl}`);
+          console.log('   Проверка подключения выполняется асинхронно...');
           
           // Периодическая проверка статуса ESP32 (каждые 10 секунд)
-          this.statusCheckInterval = setInterval(() => {
+          setInterval(() => {
             axios.get(`${esp32BaseUrl}/api/dmx/status`, { timeout: 2000 })
               .then((response) => {
                 if (response.data && response.data.available) {
@@ -353,12 +369,6 @@ class DMXController {
       clearInterval(timer);
     });
     this.animationTimers.clear();
-    
-    // Останавливаем проверку статуса ESP32
-    if (this.statusCheckInterval) {
-      clearInterval(this.statusCheckInterval);
-      this.statusCheckInterval = null;
-    }
   }
 
   // Получить текущее состояние канала
@@ -373,8 +383,6 @@ class DMXController {
       connected: this.isConnected,
       universe: this.config.universe,
       interface: this.config.interface.type,
-      host: this.config.interface.host,
-      port: this.config.interface.port,
       players: {
         count: this.config.players.count,
         startAddress: this.config.players.startAddress
@@ -385,36 +393,6 @@ class DMXController {
         effects: this.config.stage.effects
       }
     };
-  }
-
-  // Обновить конфигурацию интерфейса (например, IP адрес)
-  updateInterfaceConfig(newConfig) {
-    try {
-      // Обновляем конфигурацию в памяти
-      if (newConfig.host !== undefined) {
-        this.config.interface.host = newConfig.host;
-      }
-      if (newConfig.port !== undefined) {
-        this.config.interface.port = newConfig.port;
-      }
-      if (newConfig.type !== undefined) {
-        this.config.interface.type = newConfig.type;
-      }
-
-      // Сохраняем в файл
-      const configPath = path.join(__dirname, 'dmx-config.json');
-      fs.writeFileSync(configPath, JSON.stringify(this.config, null, 2), 'utf8');
-      console.log('✅ DMX конфигурация обновлена и сохранена');
-
-      // Переинициализируем подключение
-      this.stopAllAnimations();
-      this.initialize();
-
-      return { success: true, config: this.config.interface };
-    } catch (error) {
-      console.error('❌ Ошибка обновления конфигурации:', error);
-      throw error;
-    }
   }
 }
 
@@ -458,24 +436,8 @@ function getDMXController() {
   return dmxControllerInstance;
 }
 
-// Функция для пересоздания контроллера (для обновления конфигурации)
-function recreateDMXController() {
-  if (dmxControllerInstance) {
-    // Останавливаем все анимации перед пересозданием
-    try {
-      dmxControllerInstance.stopAllAnimations();
-    } catch (error) {
-      console.warn('⚠️ Ошибка при остановке анимаций:', error.message);
-    }
-  }
-  
-  dmxControllerInstance = null;
-  return getDMXController();
-}
-
 module.exports = {
   DMXController,
-  getDMXController,
-  recreateDMXController
+  getDMXController
 };
 

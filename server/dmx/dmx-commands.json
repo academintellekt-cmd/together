@@ -1,219 +1,122 @@
 [
   {
-    "id": "1765255092378-gsp737k87",
-    "name": "player-winner",
+    "id": "1765374829552-ngilbhm6s",
+    "name": "player- OFF",
     "lm70sNumber": 1,
     "startAddress": 1,
     "channels": {
       "1": 128,
       "2": 128,
-      "3": 255,
-      "4": 255,
-      "5": 255,
-      "6": 0,
-      "7": 0,
-      "8": 128,
-      "9": 0
-    },
-    "tags": [
-      "winner",
-      "state",
-      "pulse",
-      "lighting"
-    ],
-    "description": "Игрок: победитель (золотой с пульсацией)",
-    "fixtureCount": 1,
-    "allFixtures": null,
-    "createdAt": "2025-12-09T04:38:12.378Z",
-    "updatedAt": "2025-12-09T06:30:55.717Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "usageCount": 12,
-    "lastUsedAt": "2025-12-10T13:20:24.061Z",
-=======
-    "usageCount": 30,
-    "lastUsedAt": "2025-12-09T11:19:58.640Z",
->>>>>>> 617300430a53ae97f9595af521fc7eb5c3669da7
-=======
-    "usageCount": 5,
-    "lastUsedAt": "2025-12-09T08:37:34.543Z",
->>>>>>> parent of c14ab38 (Поверка работы  DMX)
-    "history": [
-      {
-        "version": 1,
-        "timestamp": "2025-12-09T04:38:12.378Z",
-        "channels": {
-          "1": 128,
-          "2": 128,
-          "3": 136,
-          "4": 255,
-          "5": 215,
-          "6": 0,
-          "7": 0,
-          "8": 128,
-          "9": 0
-        }
-      },
-      {
-        "version": 2,
-        "timestamp": "2025-12-09T06:30:55.717Z",
-        "channels": {
-          "1": 128,
-          "2": 128,
-          "3": 255,
-          "4": 255,
-          "5": 255,
-          "6": 0,
-          "7": 0,
-          "8": 128,
-          "9": 0
-        }
-      }
-    ]
-  },
-  {
-    "id": "1765255092378-uijl934gm",
-    "name": "player-correct",
-    "lm70sNumber": 1,
-    "startAddress": 1,
-    "channels": {
-      "1": 128,
-      "2": 128,
-      "3": 255,
+      "3": 241,
       "4": 0,
-      "5": 255,
-      "6": 0,
-      "7": 0,
-      "8": 128,
-      "9": 0
-    },
-    "tags": [
-      "correct",
-      "state",
-      "pulse",
-      "lighting"
-    ],
-    "description": "Игрок: правильный ответ (зелёный с пульсацией)",
-    "fixtureCount": 1,
-    "allFixtures": null,
-    "createdAt": "2025-12-09T04:38:12.378Z",
-    "updatedAt": "2025-12-09T06:30:45.100Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "usageCount": 10,
-    "lastUsedAt": "2025-12-10T13:20:56.957Z",
-=======
-    "usageCount": 17,
-    "lastUsedAt": "2025-12-09T11:20:03.771Z",
->>>>>>> 617300430a53ae97f9595af521fc7eb5c3669da7
-=======
-    "usageCount": 5,
-    "lastUsedAt": "2025-12-09T06:31:08.016Z",
->>>>>>> parent of c14ab38 (Поверка работы  DMX)
-    "history": [
-      {
-        "version": 1,
-        "timestamp": "2025-12-09T04:38:12.378Z",
-        "channels": {
-          "1": 128,
-          "2": 128,
-          "3": 136,
-          "4": 0,
-          "5": 255,
-          "6": 0,
-          "7": 0,
-          "8": 128,
-          "9": 0
-        }
-      },
-      {
-        "version": 2,
-        "timestamp": "2025-12-09T06:30:45.100Z",
-        "channels": {
-          "1": 128,
-          "2": 128,
-          "3": 255,
-          "4": 0,
-          "5": 255,
-          "6": 0,
-          "7": 0,
-          "8": 128,
-          "9": 0
-        }
-      }
-    ]
-  },
-  {
-    "id": "1765255092378-9xryexrgg",
-    "name": "player-incorrect",
-    "lm70sNumber": 1,
-    "startAddress": 1,
-    "channels": {
-      "1": 128,
-      "2": 128,
-      "3": 255,
-      "4": 255,
       "5": 0,
       "6": 0,
       "7": 0,
-      "8": 128,
+      "8": 0,
       "9": 0
     },
-    "tags": [
-      "incorrect",
-      "state",
-      "pulse",
-      "lighting"
-    ],
-    "description": "Игрок: неправильный ответ (красный с пульсацией)",
+    "tags": [],
+    "description": "",
     "fixtureCount": 1,
-    "allFixtures": null,
-    "createdAt": "2025-12-09T04:38:12.378Z",
-    "updatedAt": "2025-12-09T06:30:36.299Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "usageCount": 5,
-    "lastUsedAt": "2025-12-10T13:03:05.310Z",
-=======
-    "usageCount": 15,
-    "lastUsedAt": "2025-12-09T11:20:21.004Z",
->>>>>>> 617300430a53ae97f9595af521fc7eb5c3669da7
-=======
-    "usageCount": 4,
-    "lastUsedAt": "2025-12-09T06:31:06.600Z",
->>>>>>> parent of c14ab38 (Поверка работы  DMX)
-    "history": [
+    "allFixtures": [
       {
-        "version": 1,
-        "timestamp": "2025-12-09T04:38:12.378Z",
+        "lm70sNumber": 1,
+        "startAddress": 1,
         "channels": {
           "1": 128,
           "2": 128,
-          "3": 136,
-          "4": 255,
+          "3": 241,
+          "4": 0,
           "5": 0,
           "6": 0,
           "7": 0,
-          "8": 128,
+          "8": 0,
+          "9": 0
+        }
+      }
+    ],
+    "createdAt": "2025-12-10T13:53:49.552Z",
+    "updatedAt": "2025-12-10T13:53:49.552Z",
+    "usageCount": 5,
+    "lastUsedAt": "2025-12-10T14:05:25.576Z",
+    "history": [
+      {
+        "version": 1,
+        "timestamp": "2025-12-10T13:53:49.552Z",
+        "channels": {
+          "1": 128,
+          "2": 128,
+          "3": 241,
+          "4": 0,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0
+        }
+      }
+    ]
+  },
+  {
+    "id": "1765255092375-ts2vhmgw5",
+    "name": "player-waiting",
+    "lm70sNumber": 1,
+    "startAddress": 1,
+    "channels": {
+      "1": 128,
+      "2": 128,
+      "3": 241,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 255,
+      "8": 0,
+      "9": 0
+    },
+    "tags": [
+      "waiting",
+      "state",
+      "lighting"
+    ],
+    "description": "Игрок: ожидание готовности (тёплый жёлтый цвет)",
+    "fixtureCount": 1,
+    "allFixtures": null,
+    "createdAt": "2025-12-09T04:38:12.375Z",
+    "updatedAt": "2025-12-10T13:52:34.491Z",
+    "lastUsedAt": "2025-12-10T14:05:21.033Z",
+    "history": [
+      {
+        "version": 1,
+        "timestamp": "2025-12-09T04:38:12.375Z",
+        "channels": {
+          "1": 128,
+          "2": 128,
+          "3": 241,
+          "4": 255,
+          "5": 255,
+          "6": 100,
+          "7": 50,
+          "8": 0,
           "9": 0
         }
       },
       {
         "version": 2,
-        "timestamp": "2025-12-09T06:30:36.299Z",
+        "timestamp": "2025-12-10T13:52:34.491Z",
         "channels": {
           "1": 128,
           "2": 128,
-          "3": 255,
-          "4": 255,
+          "3": 241,
+          "4": 0,
           "5": 0,
           "6": 0,
-          "7": 0,
-          "8": 128,
+          "7": 255,
+          "8": 0,
           "9": 0
         }
       }
-    ]
+    ],
+    "usageCount": 5
   },
   {
     "id": "1765255092379-44ulm2qqp",
@@ -241,19 +144,9 @@
     "fixtureCount": 1,
     "allFixtures": null,
     "createdAt": "2025-12-09T04:38:12.379Z",
-    "updatedAt": "2025-12-09T06:30:18.883Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "usageCount": 20,
-    "lastUsedAt": "2025-12-10T13:21:43.904Z",
-=======
-    "usageCount": 24,
-    "lastUsedAt": "2025-12-09T11:20:18.736Z",
->>>>>>> 617300430a53ae97f9595af521fc7eb5c3669da7
-=======
-    "usageCount": 19,
-    "lastUsedAt": "2025-12-09T06:31:04.200Z",
->>>>>>> parent of c14ab38 (Поверка работы  DMX)
+    "updatedAt": "2025-12-10T13:51:12.049Z",
+    "usageCount": 28,
+    "lastUsedAt": "2025-12-10T14:05:24.585Z",
     "history": [
       {
         "version": 1,
@@ -318,6 +211,192 @@
     ]
   },
   {
+    "id": "1765255092378-gsp737k87",
+    "name": "player-winner",
+    "lm70sNumber": 1,
+    "startAddress": 1,
+    "channels": {
+      "1": 128,
+      "2": 128,
+      "3": 255,
+      "4": 255,
+      "5": 255,
+      "6": 0,
+      "7": 0,
+      "8": 128,
+      "9": 0
+    },
+    "tags": [
+      "winner",
+      "state",
+      "pulse",
+      "lighting"
+    ],
+    "description": "Игрок: победитель (золотой с пульсацией)",
+    "fixtureCount": 1,
+    "allFixtures": null,
+    "createdAt": "2025-12-09T04:38:12.378Z",
+    "updatedAt": "2025-12-09T06:30:55.717Z",
+    "usageCount": 23,
+    "lastUsedAt": "2025-12-10T14:00:03.394Z",
+    "history": [
+      {
+        "version": 1,
+        "timestamp": "2025-12-09T04:38:12.378Z",
+        "channels": {
+          "1": 128,
+          "2": 128,
+          "3": 136,
+          "4": 255,
+          "5": 215,
+          "6": 0,
+          "7": 0,
+          "8": 128,
+          "9": 0
+        }
+      },
+      {
+        "version": 2,
+        "timestamp": "2025-12-09T06:30:55.717Z",
+        "channels": {
+          "1": 128,
+          "2": 128,
+          "3": 255,
+          "4": 255,
+          "5": 255,
+          "6": 0,
+          "7": 0,
+          "8": 128,
+          "9": 0
+        }
+      }
+    ]
+  },
+  {
+    "id": "1765255092378-uijl934gm",
+    "name": "player-correct",
+    "lm70sNumber": 1,
+    "startAddress": 1,
+    "channels": {
+      "1": 128,
+      "2": 128,
+      "3": 255,
+      "4": 0,
+      "5": 255,
+      "6": 0,
+      "7": 0,
+      "8": 128,
+      "9": 0
+    },
+    "tags": [
+      "correct",
+      "state",
+      "pulse",
+      "lighting"
+    ],
+    "description": "Игрок: правильный ответ (зелёный с пульсацией)",
+    "fixtureCount": 1,
+    "allFixtures": null,
+    "createdAt": "2025-12-09T04:38:12.378Z",
+    "updatedAt": "2025-12-09T06:30:45.100Z",
+    "usageCount": 18,
+    "lastUsedAt": "2025-12-10T14:00:04.706Z",
+    "history": [
+      {
+        "version": 1,
+        "timestamp": "2025-12-09T04:38:12.378Z",
+        "channels": {
+          "1": 128,
+          "2": 128,
+          "3": 136,
+          "4": 0,
+          "5": 255,
+          "6": 0,
+          "7": 0,
+          "8": 128,
+          "9": 0
+        }
+      },
+      {
+        "version": 2,
+        "timestamp": "2025-12-09T06:30:45.100Z",
+        "channels": {
+          "1": 128,
+          "2": 128,
+          "3": 255,
+          "4": 0,
+          "5": 255,
+          "6": 0,
+          "7": 0,
+          "8": 128,
+          "9": 0
+        }
+      }
+    ]
+  },
+  {
+    "id": "1765255092378-9xryexrgg",
+    "name": "player-incorrect",
+    "lm70sNumber": 1,
+    "startAddress": 1,
+    "channels": {
+      "1": 128,
+      "2": 128,
+      "3": 255,
+      "4": 255,
+      "5": 0,
+      "6": 0,
+      "7": 0,
+      "8": 128,
+      "9": 0
+    },
+    "tags": [
+      "incorrect",
+      "state",
+      "pulse",
+      "lighting"
+    ],
+    "description": "Игрок: неправильный ответ (красный с пульсацией)",
+    "fixtureCount": 1,
+    "allFixtures": null,
+    "createdAt": "2025-12-09T04:38:12.378Z",
+    "updatedAt": "2025-12-09T06:30:36.299Z",
+    "usageCount": 10,
+    "lastUsedAt": "2025-12-10T14:00:06.226Z",
+    "history": [
+      {
+        "version": 1,
+        "timestamp": "2025-12-09T04:38:12.378Z",
+        "channels": {
+          "1": 128,
+          "2": 128,
+          "3": 136,
+          "4": 255,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 128,
+          "9": 0
+        }
+      },
+      {
+        "version": 2,
+        "timestamp": "2025-12-09T06:30:36.299Z",
+        "channels": {
+          "1": 128,
+          "2": 128,
+          "3": 255,
+          "4": 255,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 128,
+          "9": 0
+        }
+      }
+    ]
+  },
+  {
     "id": "1765255092378-2zekj51lu",
     "name": "player-countdown",
     "lm70sNumber": 1,
@@ -343,18 +422,8 @@
     "allFixtures": null,
     "createdAt": "2025-12-09T04:38:12.378Z",
     "updatedAt": "2025-12-09T04:38:12.378Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "usageCount": 7,
-    "lastUsedAt": "2025-12-10T13:20:58.547Z",
-=======
-    "usageCount": 9,
-    "lastUsedAt": "2025-12-09T11:20:23.854Z",
->>>>>>> 617300430a53ae97f9595af521fc7eb5c3669da7
-=======
-    "usageCount": 5,
-    "lastUsedAt": "2025-12-09T06:30:21.683Z",
->>>>>>> parent of c14ab38 (Поверка работы  DMX)
+    "usageCount": 10,
+    "lastUsedAt": "2025-12-10T13:53:06.080Z",
     "history": [
       {
         "version": 1,
@@ -399,18 +468,8 @@
     "allFixtures": null,
     "createdAt": "2025-12-09T04:38:12.378Z",
     "updatedAt": "2025-12-09T04:38:12.378Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "usageCount": 5,
-    "lastUsedAt": "2025-12-10T13:02:20.392Z",
-=======
     "usageCount": 7,
-    "lastUsedAt": "2025-12-09T11:17:55.389Z",
->>>>>>> 617300430a53ae97f9595af521fc7eb5c3669da7
-=======
-    "usageCount": 4,
-    "lastUsedAt": "2025-12-09T06:30:57.033Z",
->>>>>>> parent of c14ab38 (Поверка работы  DMX)
+    "lastUsedAt": "2025-12-10T13:52:12.555Z",
     "history": [
       {
         "version": 1,
@@ -455,18 +514,8 @@
     "allFixtures": null,
     "createdAt": "2025-12-09T04:38:12.377Z",
     "updatedAt": "2025-12-09T04:38:12.377Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "usageCount": 4,
-    "lastUsedAt": "2025-12-10T13:21:01.515Z",
-=======
-    "usageCount": 5,
-    "lastUsedAt": "2025-12-09T10:36:42.306Z",
->>>>>>> 617300430a53ae97f9595af521fc7eb5c3669da7
-=======
-    "usageCount": 3,
-    "lastUsedAt": "2025-12-09T06:31:11.333Z",
->>>>>>> parent of c14ab38 (Поверка работы  DMX)
+    "usageCount": 6,
+    "lastUsedAt": "2025-12-10T13:52:13.835Z",
     "history": [
       {
         "version": 1,
@@ -511,17 +560,7 @@
     "allFixtures": null,
     "createdAt": "2025-12-09T04:38:12.377Z",
     "updatedAt": "2025-12-09T04:38:12.377Z",
-<<<<<<< HEAD
-    "usageCount": 3,
-<<<<<<< HEAD
-    "lastUsedAt": "2025-12-10T13:11:42.242Z",
-=======
-    "lastUsedAt": "2025-12-09T10:36:43.791Z",
->>>>>>> 617300430a53ae97f9595af521fc7eb5c3669da7
-=======
-    "usageCount": 2,
-    "lastUsedAt": "2025-12-09T06:31:12.117Z",
->>>>>>> parent of c14ab38 (Поверка работы  DMX)
+    "lastUsedAt": "2025-12-10T13:53:15.048Z",
     "history": [
       {
         "version": 1,
@@ -538,62 +577,8 @@
           "9": 0
         }
       }
-    ]
-  },
-  {
-    "id": "1765255092375-ts2vhmgw5",
-    "name": "player-waiting",
-    "lm70sNumber": 1,
-    "startAddress": 1,
-    "channels": {
-      "1": 128,
-      "2": 128,
-      "3": 241,
-      "4": 255,
-      "5": 255,
-      "6": 100,
-      "7": 50,
-      "8": 0,
-      "9": 0
-    },
-    "tags": [
-      "waiting",
-      "state",
-      "lighting"
     ],
-    "description": "Игрок: ожидание готовности (тёплый жёлтый цвет)",
-    "fixtureCount": 1,
-    "allFixtures": null,
-    "createdAt": "2025-12-09T04:38:12.375Z",
-    "updatedAt": "2025-12-09T04:38:12.376Z",
-<<<<<<< HEAD
-    "usageCount": 3,
-<<<<<<< HEAD
-    "lastUsedAt": "2025-12-10T13:03:13.573Z",
-=======
-    "lastUsedAt": "2025-12-09T10:36:46.058Z",
->>>>>>> 617300430a53ae97f9595af521fc7eb5c3669da7
-=======
-    "usageCount": 2,
-    "lastUsedAt": "2025-12-09T06:31:13.034Z",
->>>>>>> parent of c14ab38 (Поверка работы  DMX)
-    "history": [
-      {
-        "version": 1,
-        "timestamp": "2025-12-09T04:38:12.375Z",
-        "channels": {
-          "1": 128,
-          "2": 128,
-          "3": 241,
-          "4": 255,
-          "5": 255,
-          "6": 100,
-          "7": 50,
-          "8": 0,
-          "9": 0
-        }
-      }
-    ]
+    "usageCount": 4
   },
   {
     "id": "1765192762434-45v16n0ir",
@@ -757,17 +742,7 @@
     ],
     "createdAt": "2025-12-08T10:13:32.242Z",
     "updatedAt": "2025-12-08T10:13:32.242Z",
-<<<<<<< HEAD
-    "usageCount": 14,
-<<<<<<< HEAD
     "lastUsedAt": "2025-12-10T13:21:41.641Z",
-=======
-    "lastUsedAt": "2025-12-09T10:36:55.458Z",
->>>>>>> 617300430a53ae97f9595af521fc7eb5c3669da7
-=======
-    "usageCount": 12,
-    "lastUsedAt": "2025-12-09T04:43:18.125Z",
->>>>>>> parent of c14ab38 (Поверка работы  DMX)
     "history": [
       {
         "version": 1,
@@ -848,18 +823,8 @@
     ],
     "createdAt": "2025-12-08T10:10:44.799Z",
     "updatedAt": "2025-12-08T10:10:44.799Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "usageCount": 17,
-    "lastUsedAt": "2025-12-10T13:21:40.313Z",
-=======
-    "usageCount": 15,
-    "lastUsedAt": "2025-12-09T10:58:39.788Z",
->>>>>>> 617300430a53ae97f9595af521fc7eb5c3669da7
-=======
-    "usageCount": 12,
-    "lastUsedAt": "2025-12-09T04:53:22.164Z",
->>>>>>> parent of c14ab38 (Поверка работы  DMX)
+    "usageCount": 19,
+    "lastUsedAt": "2025-12-10T13:49:05.454Z",
     "history": [
       {
         "version": 1,
@@ -949,18 +914,8 @@
     ],
     "createdAt": "2025-12-08T10:06:57.842Z",
     "updatedAt": "2025-12-08T10:06:57.842Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
     "usageCount": 14,
     "lastUsedAt": "2025-12-10T13:21:37.164Z",
-=======
-    "usageCount": 12,
-    "lastUsedAt": "2025-12-09T10:58:41.022Z",
->>>>>>> 617300430a53ae97f9595af521fc7eb5c3669da7
-=======
-    "usageCount": 8,
-    "lastUsedAt": "2025-12-08T11:19:39.918Z",
->>>>>>> parent of c14ab38 (Поверка работы  DMX)
     "history": [
       {
         "version": 1,

@@ -2,7 +2,7 @@
   "universe": 0,
   "interface": {
     "type": "esp32",
-    "host": "esp32-dmx.local",
+    "host": "192.168.0.172",
     "port": 80
   },
   "players": {
@@ -52,6 +52,91 @@
     "pulseSpeed": 500,
     "fadeSpeed": 300,
     "flashDuration": 200
+  },
+  "algorithm": {
+    "description": "Алгоритм работы DMX команд в игре - какая команда вызывается после какого события (актуальная система сценариев)",
+    "events": [
+      {
+        "event": "Игрок подключается к комнате",
+        "trigger": "PLAYER_JOINED",
+        "action": "Устанавливается состояние WAITING_FOR_READY для этого игрока",
+        "command": "player-waiting",
+        "description": "Игрок видит жёлтый цвет (ожидание готовности)"
+      },
+      {
+        "event": "Хост запускает игру",
+        "trigger": "GAME_STARTED",
+        "action": "Инициализируется комната, все игроки переходят в состояние OFF",
+        "command": "Выключение всех прожекторов",
+        "description": "Игра началась, все прожекторы выключены, фаза игры: LOBBY"
+      },
+      {
+        "event": "Игрок нажимает кнопку 'Готов' (после результатов вопроса)",
+        "trigger": "PLAYER_READY",
+        "action": "Игрок переходит в состояние READY",
+        "command": "player-ready",
+        "description": "Игрок видит белый яркий цвет (готов к следующему вопросу)"
+      },
+      {
+        "event": "Все игроки готовы к следующему вопросу",
+        "trigger": "ALL_PLAYERS_READY",
+        "action": "Фаза игры меняется на QUESTION_COUNTDOWN, все игроки переходят в состояние COUNTDOWN",
+        "command": "player-countdown + глобальный эффект countdown-effect (сцена приглушается)",
+        "description": "Игроки видят голубой цвет, сцена приглушается"
+      },
+      {
+        "event": "Вопрос показан на экране",
+        "trigger": "QUESTION_STARTED",
+        "action": "Фаза игры: QUESTION_ACTIVE, все игроки переходят в состояние ANSWERING",
+        "command": "player-answering",
+        "description": "Игроки видят мягкое серое освещение (думают/отвечают)"
+      },
+      {
+        "event": "Игрок отправляет ответ",
+        "trigger": "PLAYER_ANSWERED",
+        "action": "Если результат известен (isCorrect передан): CORRECT или INCORRECT, иначе LOCKED_IN",
+        "command": "player-correct (зелёный с пульсацией) / player-incorrect (красный с пульсацией) / player-locked-in (синий)",
+        "description": "Результат известен сразу - показывается правильный/неправильный ответ, иначе ответ зафиксирован"
+      },
+      {
+        "event": "Показывается правильный ответ",
+        "trigger": "SHOW_CORRECT_ANSWER",
+        "action": "Фаза игры: SHOW_CORRECT_ANSWER, для каждого игрока устанавливается CORRECT или INCORRECT",
+        "command": "player-correct / player-incorrect + глобальный эффект show-correct-flash (зелёная вспышка сцены)",
+        "description": "Все игроки видят свой результат: зелёный (правильно) или красный (неправильно), сцена мигает зелёным"
+      },
+      {
+        "event": "Показываются результаты вопроса (таблица лидеров)",
+        "trigger": "SHOW_RESULTS",
+        "action": "Фаза игры: SHOW_RESULTS, лидер получает состояние WINNER, остальные - WAITING_FOR_READY",
+        "command": "player-winner (для лидера) / player-waiting (для остальных) + глобальный эффект results-effect (динамические эффекты сцены)",
+        "description": "Лидер видит золотой цвет с пульсацией, остальные возвращаются к жёлтому (ожидание следующего вопроса). Приоритетные состояния сбрасываются через 5 секунд"
+      },
+      {
+        "event": "Игра завершена",
+        "trigger": "GAME_FINISHED",
+        "action": "Фаза игры: GAME_FINISHED, победитель (ранг 1) получает состояние WINNER, остальные - OFF",
+        "command": "player-winner (для победителя) / выключение (для остальных) + глобальный эффект final-show (финальное шоу сцены)",
+        "description": "Победитель видит золотой цвет с пульсацией, остальные выключены, сцена показывает финальное шоу"
+      }
+    ],
+    "system": {
+      "name": "DMX Scenario Engine",
+      "version": "2.0",
+      "components": [
+        "dmx-scenario-engine.js - обработка игровых событий",
+        "dmx-state-manager.js - управление состояниями игроков и фаз игры",
+        "dmx-state-mapping.js - маппинг состояний на DMX команды",
+        "dmx-controller.js - отправка команд на ESP32",
+        "dmx-commands.js - управление командами DMX"
+      ]
+    },
+    "notes": [
+      "Приоритеты состояний: OFF (0) < WAITING_FOR_READY (1) < READY (2) < ANSWERING (3) < COUNTDOWN (4) < LOCKED_IN (5) < INCORRECT (6) < CORRECT (7) < LEADER (8) < WINNER (9)",
+      "Приоритетные состояния (CORRECT, INCORRECT, WINNER, LEADER) могут быть принудительно установлены и не перезаписываются обычными состояниями",
+      "Приоритетные состояния автоматически сбрасываются через 5 секунд после SHOW_RESULTS",
+      "Система использует только новую архитектуру сценариев (dmx-scenario-engine), старая система (dmx-integration) удалена"
+    ]
   }
 }
 
