@@ -4,7 +4,9 @@
  * Интегрирован с Frame1 и Frame2
  */
 
-const LayoutManager = {
+// Предотвращаем повторное объявление при двойной загрузке скрипта
+if (typeof LayoutManager === 'undefined') {
+    var LayoutManager = {
     /**
      * Инициализация системы layout
      * Применяет конфигурацию видимости фреймов из window.pageLayoutConfig
@@ -354,4 +356,5 @@ if (document.readyState === 'loading') {
 if (typeof window !== 'undefined') {
     window.LayoutManager = LayoutManager;
 }
+} // Закрываем блок проверки typeof LayoutManager === 'undefined'
 

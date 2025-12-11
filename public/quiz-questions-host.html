@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Квиз-Questions - Главный экран</title>
+    <!-- Новая система фреймов -->
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/components.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <!-- Конфигурация видимости фреймов -->
+    <script>
+        window.pageLayoutConfig = {
+            showFrame1: true,
+            showFrame2: true,  // Показываем Frame2 для отображения игроков
+            showFrame4: true,
+            showFrame5: true
+        };
+    </script>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Layout Manager -->
+    <script src="/scripts/layout.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
+    <script src="/scripts/frame2.js"></script>
+    
+    <!-- Модальное окно для ввода пароля -->
+    <div id="password-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(56, 54, 56, 0.85); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: #F2F2F2; padding: 30px; border-radius: 25px; text-align: center; max-width: 400px; width: 90%; border: 3px solid #383638; box-shadow: 0 6px 0px rgba(0, 193, 89, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2); box-sizing: border-box;">
+            <h2 style="margin-bottom: 15px; font-size: 24px; font-family: 'Days One', sans-serif; color: #00C159; font-weight: 700;">Введите пароль</h2>
+            <p style="margin-bottom: 15px; font-size: 14px; color: #383638; font-family: 'Nunito', sans-serif;">
+                Эта комната защищена паролем
+            </p>
+            <input type="password" id="password-input" placeholder="Пароль" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 3px solid #383638; background: #FFFFFF; color: #383638; font-size: 16px; text-align: center; font-family: 'Days One', sans-serif; font-weight: 600; letter-spacing: 2px; box-sizing: border-box;" autofocus>
+            <div id="password-error" style="color: #ff7674; margin-bottom: 15px; font-size: 13px; display: none; font-family: 'Nunito', sans-serif; font-weight: 600; min-height: 20px;"></div>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%;">
+                <button id="password-submit" class="btn" style="background: #00C159; border: 3px solid #383638; color: #FFFFFF; font-weight: 700; padding: 12px 24px; font-size: 16px; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Ввод</button>
+                <button id="password-cancel" class="btn secondary" style="background: #F2F2F2; border: 3px solid #383638; color: #383638; padding: 12px 24px; font-size: 16px; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap;">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для подтверждения начала игры -->
+    <div id="start-game-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(56, 54, 56, 0.85); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: #F2F2F2; padding: 30px; border-radius: 25px; text-align: center; max-width: 400px; width: 90%; border: 3px solid #383638; box-shadow: 0 6px 0px rgba(0, 193, 89, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2); box-sizing: border-box; position: relative; z-index: 10001;">
+            <h2 style="margin-bottom: 15px; font-size: 24px; font-family: 'Days One', sans-serif; color: #00C159; font-weight: 700;">Все ли готовы к игре?</h2>
+            <p style="margin-bottom: 20px; font-size: 14px; color: #383638; font-family: 'Nunito', sans-serif;">
+                Убедитесь, что все игроки подключены и готовы начать
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%;">
+                <button id="start-game-confirm" class="frame1-button" style="background: #00C159 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Начать игру</button>
+                <button id="start-game-cancel" class="frame1-button" style="background: #ff7664 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap;">Назад</button>
+            </div>
+        </div>
+    </div>
+    <style>
+        /* Специфичные стили для страницы хоста */
+        .lobby-screen {
+            text-align: center;
+        }
+        
+        #qrcode {
+            display: block;
+            margin: 0 auto;
+            width: clamp(250px, 40vw, 400px);
+            height: clamp(250px, 40vw, 400px);
+            max-width: 100%;
+            cursor: default;
+        }
+        
+        .player-link {
+            margin-top: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            color: #354fba;
+            text-decoration: underline;
+            word-break: break-all;
+            max-width: 100%;
+        }
+        
+        .player-link:hover {
+            color: #00C159;
+        }
+
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 40px 0 20px 0;
+            text-align: center;
+        }
+
+        .qr-instruction {
+            font-family: 'Caveat', cursive;
+            color: #354fba;
+            font-size: clamp(20px, 4vw, 28px);
+            margin: 0 0 20px 0;
+            font-weight: 400;
+        }
+
+        .qr-placeholder {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 16px;
+            opacity: 0.7;
+            color: #393639;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Адаптивные стили для QR-кода */
+        @media (max-width: 768px) {
+            .qr-container {
+                margin: 15px 0;
+            }
+            
+            #qrcode {
+                width: clamp(200px, 50vw, 300px);
+                height: clamp(200px, 50vw, 300px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .qr-container {
+                margin: 25px 0 10px 0;
+            }
+            
+            #qrcode {
+                width: clamp(180px, 60vw, 250px);
+                height: clamp(180px, 60vw, 250px);
+            }
+        }
+
+        .commission-link {
+            margin-top: 30px;
+            padding: 15px 30px;
+            background: #abf67c;
+            border: 3px solid #393639;
+            border-radius: 16px;
+            color: #393639;
+            text-decoration: none;
+            font-family: 'Days One', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            display: inline-block;
+            box-shadow: 
+                0 4px 0px rgba(47, 185, 93, 0.3),
+                0 8px 16px rgba(47, 185, 93, 0.1);
+            transition: all 0.3s;
+        }
+
+        .commission-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(47, 185, 93, 0.4),
+                0 10px 20px rgba(47, 185, 93, 0.2);
+        }
+
+        .question-screen {
+            text-align: center;
+            display: none;
+        }
+
+        .question-text {
+            font-size: clamp(24px, 4vw, 36px);
+            margin: 30px 0;
+            line-height: 1.4;
+            font-family: 'Days One', sans-serif;
+            color: #393639;
+            padding: 20px;
+            background: rgba(245, 245, 245, 0.9);
+            border: 3px solid #393639;
+            border-radius: 16px;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer {
+            font-size: 48px;
+            font-weight: 700;
+            color: #393639;
+            margin: 20px 0;
+            font-family: 'Days One', sans-serif;
+        }
+
+        .timer.urgent {
+            color: #ff7664;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .status {
+            font-size: 18px;
+            color: #393639;
+            margin: 20px 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .leaderboard {
+            background: rgba(245, 245, 245, 0.9);
+            border: 3px solid #393639;
+            border-radius: 16px;
+            padding: 25px;
+            margin: 30px auto;
+            max-width: 600px;
+            box-shadow: 
+                0 4px 0px rgba(57, 54, 57, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .leaderboard h3 {
+            font-family: 'Days One', sans-serif;
+            font-size: 24px;
+            color: #393639;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            margin: 10px 0;
+            background: #FFFFFF;
+            border: 2px solid #393639;
+            border-radius: 12px;
+            font-family: 'Days One', sans-serif;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .leaderboard-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.3),
+                0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .leaderboard-item .player-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #393639;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .leaderboard-item .player-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #00C159;
+        }
+
+        .frame1-timer {
+            font-family: 'Days One', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #393639;
+            min-width: 40px;
+            text-align: center;
+            padding: 4px 12px;
+            background: rgba(245, 245, 245, 0.85);
+            border: 2px solid #393639;
+            border-radius: 8px;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .frame1-timer.urgent {
+            color: #ff7664;
+            background: rgba(255, 118, 100, 0.15);
+            border-color: #ff7664;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .frame1-question-number {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #393639;
+            opacity: 0.8;
+            white-space: nowrap;
+            display: none;
+        }
+
+        .btn {
+            font-family: 'Days One', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .start-game-btn {
+            background: #abf67c !important;
+            color: #2fb95d !important;
+            border-color: #2fb95d !important;
+        }
+
+        .start-game-btn:hover {
+            background: #abf67c !important;
+            color: #2fb95d !important;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+    </style>
+</head>
+<body class="with-hub">
+
+    <!-- HUB3: основная зона контента (лобби, игра, результаты) -->
+    <div class="hub-zone hub3">
+        <div class="container">
+            <!-- Лобби -->
+            <div id="lobby-screen" class="lobby-screen">
+                <div class="status" style="display: none;"></div>
+                <div id="qr-placeholder" class="qr-placeholder" style="display: none;">
+                    Загрузка QR-кода...
+                </div>
+                <div id="qr-container" class="qr-container" style="display: none;">
+                    <p class="qr-instruction">наведи камеру или<br>нажми на QR для подключения</p>
+                    <canvas id="qrcode"></canvas>
+                    <a id="player-link" href="#" target="_blank" class="player-link" style="display: none;"></a>
+                    <a id="commission-link" href="#" target="_blank" class="commission-link" style="display: none;">Страница счетной комиссии</a>
+                </div>
+            </div>
+
+            <!-- Игровой экран -->
+            <div id="game-screen" class="game-screen" style="display: none;">
+                <!-- Вопрос -->
+                <div id="question-screen" class="question-screen">
+                    <div id="question-text" class="question-text"></div>
+                    <div id="timer" class="timer">60</div>
+                    <div class="status" id="question-status">Игроки отвечают...</div>
+                    <div id="answers-count" class="status" style="margin-top: 10px;"></div>
+                </div>
+
+                <!-- Результаты вопроса -->
+                <div id="results-screen" class="results-screen" style="display: none;">
+                    <h2>Ожидание проверки комиссией</h2>
+                    <div class="status" id="verification-status">Комиссия проверяет ответы...</div>
+                    <div class="leaderboard" id="leaderboard-container" style="display: none;">
+                        <h3>Таблица лидеров</h3>
+                        <div id="leaderboard"></div>
+                    </div>
+                </div>
+
+                <!-- Финальные результаты -->
+                <div id="final-results" class="final-results" style="display: none;">
+                    <h1>Игра завершена!</h1>
+                    <div class="leaderboard">
+                        <h2>Финальные результаты</h2>
+                        <div id="final-leaderboard"></div>
+                    </div>
+                    <button id="restart-btn" class="btn" onclick="location.reload()">Новая игра</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER: Frame 4 и Frame 5 -->
+    <footer class="site-footer">
+        <!-- Frame 4: Правила безопасности -->
+        <section class="frame frame-4" data-frame="rules" id="hub4">
+            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
+        </section>
+
+        <!-- Frame 5: Информация о создателе -->
+        <section class="frame frame-5" data-frame="about" id="hub5">
+            <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+        </section>
+    </footer>
+
+    <script>
+        // Проверка, что страница открыта через сервер
+        if (window.location.protocol === 'file:') {
+            document.body.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: white;">
+                    <h1 style="font-size: 48px; margin-bottom: 20px;">⚠️ Ошибка</h1>
+                    <p style="font-size: 24px; margin-bottom: 30px;">
+                        Страница открыта неправильно!
+                    </p>
+                    <p style="font-size: 18px; margin-bottom: 30px;">
+                        Откройте страницу через сервер: http://localhost:3000/quiz-questions-host.html
+                    </p>
+                </div>
+            `;
+            throw new Error('Страница должна быть открыта через http://localhost:3000/');
+        }
+
+        // Ожидание загрузки socket.io
+        function waitForSocketIO(callback, maxAttempts = 50) {
+            let attempts = 0;
+            const checkInterval = setInterval(() => {
+                attempts++;
+                if (typeof io !== 'undefined') {
+                    clearInterval(checkInterval);
+                    callback();
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(checkInterval);
+                    console.error('Socket.io не загружен за 5 секунд!');
+                }
+            }, 100);
+        }
+
+        waitForSocketIO(() => {
+            initApp();
+        });
+
+        let socket = null;
+        let roomCode = null;
+        let currentTimer = null;
+        let serverUrl = null;
+        let questionTime = 60000; // 1 минута в миллисекундах
+        let quizId = null;
+
+        // Хранилище данных игроков
+        let playersData = new Map(); // playerId -> {name, ready}
+
+        // Функция для определения цвета квиза
+        function getQuizColors(quizId) {
+            const quizColors = {
+                'gnu': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' },
+                'gazprom': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' },
+                'akadem': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' },
+                'quiz-questions': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' },
+                'friends-quiz': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' }, // Обратная совместимость
+                'gnu-multiplayer': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' } // Обратная совместимость
+            };
+            return quizColors[quizId] || { bg: '#FFFFFF', text: '#393639', shadow: 'rgba(57, 54, 57, 0.3)' };
+        }
+        
+        // Функция для применения цветов к кнопкам
+        function applyQuizColors(colors) {
+            const style = document.createElement('style');
+            style.id = 'quiz-colors-style';
+            style.textContent = `
+                .btn:not(.back-button-hub):not(.password-button) {
+                    background: ${colors.bg} !important;
+                    color: ${colors.text} !important;
+                    box-shadow: 0 6px 0px ${colors.shadow}, 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+                }
+                .btn:not(.back-button-hub):not(.password-button):hover:not(:disabled) {
+                    box-shadow: 0 8px 0px ${colors.shadow}, 0 12px 24px rgba(0, 0, 0, 0.15) !important;
+                }
+            `;
+            // Удаляем старый стиль, если есть
+            const oldStyle = document.getElementById('quiz-colors-style');
+            if (oldStyle) {
+                oldStyle.remove();
+            }
+            document.head.appendChild(style);
+        }
+
+        function initApp() {
+            // Получаем quizId из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            quizId = urlParams.get('quiz') || 'quiz-questions';
+            
+            // Применяем цвета квиза к кнопкам
+            if (quizId) {
+                const colors = getQuizColors(quizId);
+                applyQuizColors(colors);
+            }
+            
+            socket = io();
+
+            // Инициализация Frame1
+            Frame1.init({
+                showBack: true,
+                backUrl: '/index.html',
+                showSettings: false
+            });
+
+            // Инициализация Frame2
+            Frame2.init();
+
+            // Инициализация модального окна для подтверждения начала игры
+            initStartGameModal();
+
+            // Инициализация модального окна для ввода пароля
+            initPasswordModal();
+
+            // Регистрируем обработчики WebSocket событий ПЕРЕД созданием комнаты
+            setupSocketHandlers();
+
+            // Создание комнаты при загрузке
+            createRoom();
+        }
+
+        // Настройка обработчиков WebSocket событий
+        function setupSocketHandlers() {
+            // WebSocket события
+            socket.on('intellectual-host-connected', (data) => {
+                console.log('✅ Хост подключен:', data);
+                console.log('Игроки в данных:', data.players);
+                playersData.clear();
+                (data.players || []).forEach(player => {
+                    console.log('Добавление игрока при подключении хоста:', player.id, player.name);
+                    playersData.set(player.id, {
+                        name: player.name,
+                        ready: false
+                    });
+                });
+                console.log('Всего игроков после подключения хоста:', playersData.size);
+                updateHub();
+                
+                // Добавляем кнопку "Начать игру" в Frame1 сразу после подключения
+                addStartGameButton();
+            });
+
+            // Обновление списка игроков
+            socket.on('intellectual-player-list-updated', (data) => {
+                console.log('📋 Получено обновление списка игроков:', data);
+                playersData.clear();
+                (data.players || []).forEach(player => {
+                    console.log('Добавление игрока:', player.id, player.name);
+                    playersData.set(player.id, {
+                        name: player.name,
+                        ready: false
+                    });
+                });
+                console.log('Всего игроков в playersData:', playersData.size);
+                updateHub();
+                
+                // Убеждаемся, что кнопка "Начать игру" есть
+                const existingButton = document.querySelector('.start-game-btn');
+                if (!existingButton) {
+                    addStartGameButton();
+                }
+            });
+
+            socket.on('intellectual-question-started', (data) => {
+                const { question, questionIndex, totalQuestions } = data;
+                document.getElementById('lobby-screen').style.display = 'none';
+                document.getElementById('game-screen').style.display = 'block';
+                document.getElementById('question-screen').style.display = 'block';
+                document.getElementById('results-screen').style.display = 'none';
+                
+                // Скрываем кнопку "Начать игру" в Frame1
+                const startBtn = document.querySelector('.start-game-btn');
+                if (startBtn) {
+                    startBtn.style.display = 'none';
+                }
+                
+                // Скрываем таблицу лидеров при новом вопросе
+                const leaderboardContainer = document.getElementById('leaderboard-container');
+                if (leaderboardContainer) {
+                    leaderboardContainer.style.display = 'none';
+                }
+                
+                // Сбрасываем статус всех игроков - они еще не ответили
+                playersData.forEach((data, playerId) => {
+                    data.ready = false; // Красный - не ответил
+                });
+                updateHub();
+                
+                document.getElementById('question-text').textContent = question.question;
+                updateQuestionNumber(questionIndex + 1, totalQuestions);
+                
+                // Запускаем таймер на 10 секунд
+                let secondsLeft = 10;
+                updateTimer(secondsLeft);
+                
+                if (currentTimer) {
+                    clearInterval(currentTimer);
+                }
+                
+                currentTimer = setInterval(() => {
+                    secondsLeft--;
+                    updateTimer(secondsLeft);
+                    
+                    if (secondsLeft <= 0) {
+                        clearInterval(currentTimer);
+                        socket.emit('intellectual-question-timeout', roomCode);
+                    }
+                }, 1000);
+            });
+            
+            // Обработчик для отображения таблицы лидеров (после нажатия кнопки "Таблица результатов" на комиссии)
+            socket.on('intellectual-show-leaderboard', (data) => {
+                const { players } = data;
+                // Показываем таблицу лидеров на хосте
+                updateLeaderboard(players);
+                const leaderboardContainer = document.getElementById('leaderboard-container');
+                if (leaderboardContainer) {
+                    leaderboardContainer.style.display = 'block';
+                }
+                document.getElementById('verification-status').textContent = 
+                    'Таблица лидеров отображена. Ожидание следующего вопроса...';
+            });
+
+            socket.on('error', (data) => {
+                console.error('Ошибка:', data.message);
+                alert(data.message);
+            });
+
+            socket.on('intellectual-player-answered', (data) => {
+                const { playerName, playerId, answersCount, totalPlayers } = data;
+                document.getElementById('answers-count').textContent = 
+                    `Ответили: ${answersCount} из ${totalPlayers}`;
+                
+                // Обновляем статус игрока - когда игрок ответил, он становится ready (зеленым)
+                if (playerId) {
+                    const playerData = playersData.get(playerId);
+                    if (playerData) {
+                        playerData.ready = true; // Зеленый - ответил
+                        updateHub();
+                    }
+                } else if (playerName) {
+                    // Если playerId не передан, ищем по имени
+                    for (const [id, data] of playersData.entries()) {
+                        if (data.name === playerName) {
+                            data.ready = true; // Зеленый - ответил
+                            updateHub();
+                            break;
+                        }
+                    }
+                }
+            });
+
+            socket.on('intellectual-question-ended', () => {
+                if (currentTimer) {
+                    clearInterval(currentTimer);
+                }
+                document.getElementById('question-screen').style.display = 'none';
+                document.getElementById('results-screen').style.display = 'block';
+                document.getElementById('verification-status').textContent = 
+                    'Комиссия проверяет ответы...';
+            });
+
+            socket.on('intellectual-verification-update', (data) => {
+                const { verifiedCount, totalAnswers } = data;
+                document.getElementById('verification-status').textContent = 
+                    `Проверено: ${verifiedCount} из ${totalAnswers}`;
+            });
+
+            socket.on('intellectual-game-finished', (data) => {
+                const { players } = data;
+                document.getElementById('results-screen').style.display = 'none';
+                document.getElementById('final-results').style.display = 'block';
+                updateLeaderboard(players);
+            });
+        }
+
+        // Функция показа модального окна для ввода пароля
+        function showPasswordModal(callback) {
+            const modal = document.getElementById('password-modal');
+            const passwordInput = document.getElementById('password-input');
+            const passwordError = document.getElementById('password-error');
+            const submitBtn = document.getElementById('password-submit');
+            const cancelBtn = document.getElementById('password-cancel');
+            
+            modal.style.display = 'flex';
+            passwordInput.value = '';
+            passwordError.style.display = 'none';
+            passwordInput.focus();
+            
+            const handleSubmit = () => {
+                const password = passwordInput.value.trim();
+                if (!password) {
+                    passwordError.textContent = 'Введите пароль';
+                    passwordError.style.display = 'block';
+                    return;
+                }
+                modal.style.display = 'none';
+                callback(password);
+            };
+            
+            const handleCancel = () => {
+                modal.style.display = 'none';
+                window.location.href = '/index.html';
+            };
+            
+            submitBtn.onclick = handleSubmit;
+            cancelBtn.onclick = handleCancel;
+            
+            passwordInput.onkeypress = (e) => {
+                if (e.key === 'Enter') {
+                    handleSubmit();
+                }
+            };
+        }
+
+        // Инициализация модального окна для ввода пароля
+        function initPasswordModal() {
+            const modal = document.getElementById('password-modal');
+            const passwordInput = document.getElementById('password-input');
+            const submitBtn = document.getElementById('password-submit');
+            const cancelBtn = document.getElementById('password-cancel');
+            
+            if (submitBtn) {
+                submitBtn.addEventListener('click', () => {
+                    const password = passwordInput.value.trim();
+                    if (!password) {
+                        const passwordError = document.getElementById('password-error');
+                        if (passwordError) {
+                            passwordError.textContent = 'Введите пароль';
+                            passwordError.style.display = 'block';
+                        }
+                        return;
+                    }
+                    modal.style.display = 'none';
+                    createRoom(password);
+                });
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    modal.style.display = 'none';
+                    window.location.href = '/index.html';
+                });
+            }
+            
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        submitBtn.click();
+                    }
+                });
+            }
+        }
+
+        // Обновление игроков в Frame2
+        function updateHub() {
+            console.log('🔄 Обновление игроков. Всего игроков:', playersData.size);
+            
+            // Проверяем, что Frame2 инициализирован
+            if (typeof Frame2 === 'undefined') {
+                console.warn('⚠️ Frame2 не инициализирован');
+                return;
+            }
+            
+            // Очищаем всех игроков из Frame2
+            Frame2.clearPlayers();
+            
+            if (playersData.size === 0) {
+                console.log('ℹ️ Нет игроков для отображения');
+                return;
+            }
+            
+            // Добавляем игроков в Frame2
+            playersData.forEach((data, playerId) => {
+                console.log('➕ Добавление игрока в Frame2:', playerId, data.name);
+                const status = data.ready ? 'ready' : 'waiting';
+                try {
+                    Frame2.addPlayerIcon(playerId, data.name || 'Player', status);
+                } catch (error) {
+                    console.error('❌ Ошибка при добавлении игрока в Frame2:', error);
+                }
+            });
+            console.log('✅ Игроки обновлены в Frame2');
+        }
+
+        // Функция показа модального окна для подтверждения начала игры
+        function showStartGameModal() {
+            const modal = document.getElementById('start-game-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        }
+        
+        // Начало игры
+        function handleStartGame() {
+            if (playersData.size === 0) {
+                alert('Дождитесь подключения игроков');
+                return;
+            }
+            socket.emit('intellectual-start-question', roomCode);
+        }
+        
+        // Инициализация модального окна для подтверждения начала игры
+        function initStartGameModal() {
+            const modal = document.getElementById('start-game-modal');
+            const confirmBtn = document.getElementById('start-game-confirm');
+            const cancelBtn = document.getElementById('start-game-cancel');
+            
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', () => {
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
+                    handleStartGame();
+                });
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Закрытие модального окна при клике вне его области
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        // Получение IP-адреса сервера (с кэшированием)
+        let serverUrlPromise = null;
+        async function getServerUrl() {
+            // Если уже есть запрос в процессе, возвращаем его
+            if (serverUrlPromise) {
+                return serverUrlPromise;
+            }
+            
+            // Если уже есть результат, возвращаем его
+            if (serverUrl) {
+                return Promise.resolve(serverUrl);
+            }
+            
+            // Создаем новый запрос
+            serverUrlPromise = (async () => {
+                try {
+                    const response = await fetch('/api/server-ip');
+                    const data = await response.json();
+                    serverUrl = data.url;
+                    console.log('IP сервера:', serverUrl);
+                    return serverUrl;
+                } catch (error) {
+                    console.error('Ошибка получения IP:', error);
+                    // Используем текущий origin как fallback
+                    serverUrl = window.location.origin;
+                    return serverUrl;
+                } finally {
+                    // Очищаем promise после завершения
+                    serverUrlPromise = null;
+                }
+            })();
+            
+            return serverUrlPromise;
+        }
+
+        // Генерация QR-кода через API
+        async function generateQRCode(roomCode) {
+            // Получаем URL сервера с IP-адресом
+            if (!serverUrl) {
+                await getServerUrl();
+            }
+            
+            // Формируем URL для игрока
+            const baseUrl = serverUrl || window.location.origin;
+            const playerUrl = `${baseUrl}/quiz-questions-player.html?room=${roomCode}`;
+            const commissionUrl = `${baseUrl}/quiz-questions-commission.html?room=${roomCode}`;
+            console.log('Генерация QR-кода для URL:', playerUrl);
+            
+            const qrContainer = document.getElementById('qr-container');
+            const qrPlaceholder = document.getElementById('qr-placeholder');
+            const qrCanvas = document.getElementById('qrcode');
+            const playerLink = document.getElementById('player-link');
+            const commissionLink = document.getElementById('commission-link');
+            
+            // Показываем индикатор загрузки
+            qrPlaceholder.style.display = 'block';
+            qrPlaceholder.innerHTML = 'Генерация QR-кода...';
+            qrContainer.style.display = 'none';
+            
+            // Генерируем QR-код через API
+            const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(playerUrl)}`;
+            const img = document.createElement('img');
+            img.src = apiUrl;
+            img.alt = 'QR Code';
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.crossOrigin = 'anonymous';
+            
+            img.onload = function() {
+                try {
+                    // Очищаем canvas и рисуем изображение
+                    const ctx = qrCanvas.getContext('2d');
+                    qrCanvas.width = 400;
+                    qrCanvas.height = 400;
+                    // Очищаем canvas
+                    ctx.clearRect(0, 0, 400, 400);
+                    // Рисуем белый фон
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, 400, 400);
+                    // Рисуем QR-код
+                    ctx.drawImage(img, 0, 0, 400, 400);
+                    qrPlaceholder.style.display = 'none';
+                    qrContainer.style.display = 'flex';
+                    console.log('QR-код успешно сгенерирован через API');
+                    
+                    // Добавляем ссылку под QR-кодом
+                    if (playerLink) {
+                        playerLink.href = playerUrl;
+                        playerLink.textContent = playerUrl;
+                        playerLink.style.display = 'block';
+                    }
+                    
+                    if (commissionLink) {
+                        commissionLink.href = commissionUrl;
+                        commissionLink.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Ошибка при отрисовке QR-кода:', error);
+                    // Если не получилось нарисовать на canvas, просто показываем изображение
+                    const qrInstruction = qrContainer.querySelector('.qr-instruction');
+                    qrContainer.innerHTML = '';
+                    if (qrInstruction) {
+                        qrContainer.appendChild(qrInstruction);
+                    }
+                    qrContainer.appendChild(img);
+                    
+                    // Добавляем ссылку под QR-кодом
+                    if (playerLink) {
+                        playerLink.href = playerUrl;
+                        playerLink.textContent = playerUrl;
+                        playerLink.style.display = 'block';
+                    }
+                    
+                    if (commissionLink) {
+                        commissionLink.href = commissionUrl;
+                        commissionLink.style.display = 'block';
+                    }
+                    
+                    qrPlaceholder.style.display = 'none';
+                    qrContainer.style.display = 'flex';
+                }
+            };
+            
+            img.onerror = function() {
+                console.error('Не удалось загрузить QR-код через API');
+                qrPlaceholder.style.display = 'block';
+                qrPlaceholder.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <strong>QR-код недоступен</strong><br>
+                        Используйте ссылку выше<br>
+                    </div>
+                `;
+                qrContainer.style.display = 'none';
+            };
+            
+            // Загружаем изображение
+            img.style.display = 'none';
+            document.body.appendChild(img);
+        }
+
+        // Создание комнаты
+        async function createRoom(password = null) {
+            const qrPlaceholder = document.getElementById('qr-placeholder');
+            
+            try {
+                console.log('Попытка создать комнату...');
+                
+                // Начинаем получение IP-адреса сервера параллельно (не блокируем создание комнаты)
+                const serverUrlPromise = getServerUrl();
+                
+                // Пароли для разных квизов
+                const passwords = {
+                    'gnu': '1234',
+                    'gazprom': '1234',
+                    'akadem': '1234',
+                    'quiz-questions': null, // По умолчанию без пароля
+                    'friends-quiz': '1234', // Обратная совместимость
+                    'gnu-multiplayer': '1234' // Обратная совместимость
+                };
+                
+                // Ключи localStorage для разных квизов
+                const storageKeys = {
+                    'gnu': 'gnuPasswordVerified',
+                    'gazprom': 'gazpromPasswordVerified',
+                    'akadem': 'akademPasswordVerified',
+                    'quiz-questions': null,
+                    'friends-quiz': 'gnuPasswordVerified', // Обратная совместимость
+                    'gnu-multiplayer': 'gnuPasswordVerified' // Обратная совместимость
+                };
+                
+                // Проверяем, пришел ли пользователь со страницы выбора режима
+                const urlParams = new URLSearchParams(window.location.search);
+                const passwordParam = urlParams.get('password');
+                const storageKey = storageKeys[quizId];
+                const passwordVerified = passwordParam === 'verified' || (storageKey && localStorage.getItem(storageKey) === 'true');
+                
+                // Если пароль уже проверен на странице выбора режима, передаем его автоматически
+                const requiredPassword = passwords[quizId];
+                if (requiredPassword && passwordVerified && !password) {
+                    password = requiredPassword;
+                }
+                
+                const requestBody = { quizId: quizId || 'quiz-questions' };
+                if (password) {
+                    requestBody.password = password;
+                }
+                
+                const response = await fetch('/api/quiz-questions/create-room', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    let errorData;
+                    try {
+                        errorData = await response.json();
+                    } catch (e) {
+                        errorData = { error: `Ошибка сервера: ${response.status} ${response.statusText}` };
+                    }
+                    
+                    if (errorData.requiresPassword) {
+                        // Проверяем, пришел ли пользователь со страницы выбора режима
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const passwordParam = urlParams.get('password');
+                        const storageKeys = {
+                            'gnu': 'gnuPasswordVerified',
+                            'gazprom': 'gazpromPasswordVerified',
+                            'akadem': 'akademPasswordVerified',
+                            'quiz-questions': null,
+                            'friends-quiz': 'gnuPasswordVerified',
+                            'gnu-multiplayer': 'gnuPasswordVerified'
+                        };
+                        const passwords = {
+                            'gnu': '1234',
+                            'gazprom': '1234',
+                            'akadem': '1234',
+                            'quiz-questions': null,
+                            'friends-quiz': '1234',
+                            'gnu-multiplayer': '1234'
+                        };
+                        const storageKey = storageKeys[quizId];
+                        const passwordVerified = passwordParam === 'verified' || (storageKey && localStorage.getItem(storageKey) === 'true');
+                        
+                        // Если пароль уже проверен, но сервер все равно требует пароль, пробуем еще раз с паролем
+                        const requiredPassword = passwords[quizId];
+                        if (passwordVerified && requiredPassword) {
+                            createRoom(requiredPassword);
+                            return;
+                        }
+                        
+                        // Показываем модальное окно для ввода пароля только если пароль не был проверен
+                        showPasswordModal((enteredPassword) => {
+                            if (storageKey) {
+                                localStorage.setItem(storageKey, 'true');
+                            }
+                            createRoom(enteredPassword);
+                        });
+                        return;
+                    }
+                    throw new Error(errorData.error || `Ошибка сервера: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Комната создана:', data);
+                
+                if (!data.roomCode) {
+                    throw new Error('Сервер не вернул код комнаты');
+                }
+                
+                roomCode = data.roomCode;
+                console.log('Код комнаты установлен:', roomCode);
+                
+                // Генерируем QR-код
+                console.log('Начинаем генерацию QR-кода...');
+                await generateQRCode(roomCode);
+                
+                // Подключаемся к комнате как хост
+                socket.emit('intellectual-host-join', roomCode);
+            } catch (error) {
+                console.error('Ошибка создания комнаты:', error);
+                
+                // Показываем подробную ошибку
+                if (qrPlaceholder) {
+                    qrPlaceholder.style.display = 'block';
+                    qrPlaceholder.innerHTML = `
+                        <strong>Ошибка:</strong><br>
+                        ${error.message}<br><br>
+                        <strong>Убедитесь, что:</strong><br>
+                        1. Сервер запущен (npm start)<br>
+                        2. Вы открыли страницу через http://localhost:3000/quiz-questions-host.html<br>
+                        3. Нет проблем с сетью
+                    `;
+                }
+            }
+        }
+
+        // Обновление таймера
+        function updateTimer(seconds) {
+            const timerEl = document.getElementById('timer');
+            const frame1Timer = document.querySelector('.frame1-timer');
+            
+            if (timerEl) {
+                timerEl.textContent = seconds;
+                if (seconds <= 10) {
+                    timerEl.classList.add('urgent');
+                } else {
+                    timerEl.classList.remove('urgent');
+                }
+            }
+            
+            if (frame1Timer) {
+                frame1Timer.textContent = seconds;
+                frame1Timer.style.display = 'inline-block';
+                if (seconds <= 10) {
+                    frame1Timer.classList.add('urgent');
+                } else {
+                    frame1Timer.classList.remove('urgent');
+                }
+            }
+        }
+
+        // Обновление номера вопроса в Frame1
+        function updateQuestionNumber(current, total) {
+            const questionNumberEl = document.querySelector('.frame1-question-number');
+            if (questionNumberEl) {
+                questionNumberEl.textContent = `Вопрос ${current} из ${total}`;
+                questionNumberEl.style.display = 'block';
+            }
+        }
+
+        // Обновление таблицы лидеров
+        function updateLeaderboard(players) {
+            const leaderboardEl = document.getElementById('leaderboard') || document.getElementById('final-leaderboard');
+            if (!leaderboardEl) return;
+            
+            const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+            
+            leaderboardEl.innerHTML = sortedPlayers.map((player, index) => `
+                <div class="leaderboard-item">
+                    <span class="player-name">${index + 1}. ${player.name}</span>
+                    <span class="player-score">${player.score} очков</span>
+                </div>
+            `).join('');
+        }
+
+
+        // Функция добавления кнопки "Начать игру"
+        function addStartGameButton() {
+            const actionsRight = document.getElementById('frame1-actions-right');
+            if (!actionsRight) {
+                console.warn('frame1-actions-right не найден, повторная попытка через 500ms');
+                setTimeout(addStartGameButton, 500);
+                return;
+            }
+            
+            // Проверяем, не добавлена ли уже кнопка
+            const existingButton = actionsRight.querySelector('.start-game-btn');
+            if (existingButton) {
+                console.log('Кнопка "Начать игру" уже существует');
+                existingButton.style.display = 'inline-block'; // Убеждаемся, что кнопка видна
+                return;
+            }
+            
+            const startButton = document.createElement('button');
+            startButton.className = 'frame1-button start-game-btn';
+            startButton.textContent = '▶ Начать игру';
+            startButton.style.display = 'inline-block';
+            startButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                showStartGameModal();
+            });
+            actionsRight.appendChild(startButton);
+            if (typeof FrameCommon !== 'undefined' && FrameCommon.applyCharacterColor) {
+                FrameCommon.applyCharacterColor();
+            }
+            console.log('✅ Кнопка "Начать игру" добавлена');
+        }
+
+
+        socket.on('error', (data) => {
+            console.error('Ошибка:', data.message);
+            alert(data.message);
+        });
+    </script>
+    
+    <!-- Layout Manager -->
+    <script src="/scripts/layout.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame2.js"></script>
+</body>
+</html>
+

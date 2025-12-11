@@ -3,7 +3,9 @@
  * Оптимизированная версия с улучшенными алгоритмами и правилами вызовов
  */
 
-const FrameCommon = {
+// Предотвращаем повторное объявление при двойной загрузке скрипта
+if (typeof FrameCommon === 'undefined') {
+    var FrameCommon = {
     // Флаги для предотвращения множественных вызовов
     _initialized: false,
     _resizeHandlerAttached: false,
@@ -291,4 +293,15 @@ const FrameCommon = {
     },
     
 };
+
+// Экспорт для использования в других скриптах
+if (typeof window !== 'undefined') {
+    window.FrameCommon = FrameCommon;
+}
+
+// Инициализация FrameCommon
+if (typeof FrameCommon !== 'undefined' && FrameCommon.init) {
+    FrameCommon.init();
+}
+} // Закрываем блок проверки typeof FrameCommon === 'undefined'
 

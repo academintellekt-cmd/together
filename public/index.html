@@ -1457,7 +1457,15 @@
                     // Инициализация Frame1 с кнопкой "Войти" и "Настройки"
                     Frame1.init({
                         showLogin: true,
-                        showSettings: true
+                        showSettings: true,
+                        customButtons: [
+                            {
+                                text: '📝 Квиз-Questions',
+                                url: '/quiz-questions-host.html',
+                                position: 'right',
+                                className: ''
+                            }
+                        ]
                     });
                     
                     // Инициализация Frame2 с логотипом и фразой
@@ -1537,7 +1545,15 @@
                 // Инициализация Frame1 (Frame 1)
                 Frame1.init({
                     showLogin: true,
-                    showSettings: true
+                    showSettings: true,
+                    customButtons: [
+                        {
+                            text: '📝 Квиз-Questions',
+                            url: '/quiz-questions-host.html',
+                            position: 'right',
+                            className: ''
+                        }
+                    ]
                 });
                 
                 // Инициализация Frame2 (Frame 2) - будет скрыт через pageLayoutConfig

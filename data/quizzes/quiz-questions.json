@@ -1,0 +1,28 @@
+{
+  "id": "quiz-questions",
+  "name": "Квиз-Questions",
+  "description": "Интеллектуальная игра с проверкой ответов комиссией",
+  "icon": "📝",
+  "soloMode": false,
+  "multiplayerMode": true,
+  "password": "",
+  "passwordRequired": false,
+  "colors": {
+    "background": "#abf67c",
+    "text": "#2fb95d",
+    "shadow": "rgba(47, 185, 93, 0.3)"
+  },
+  "display": {
+    "title": "КВИЗ-QUESTIONS",
+    "subtitle": "интеллектуальная игра",
+    "phrase": "30 вопросов с проверкой комиссии"
+  },
+  "gameSettings": {
+    "questionsPerGame": 30,
+    "totalQuestions": 30,
+    "defaultTime": 60,
+    "maxPlayers": 50
+  },
+  "questionsFile": "quiz-questions.txt"
+}
+
