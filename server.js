@@ -36,6 +36,17 @@ try {
   console.warn('⚠️ DMX API routes недоступны:', error.message);
 }
 
+// Quiz-Questions API routes
+try {
+  const { router: quizQuestionsApiRouter, intellectualRooms: quizQuestionsRooms } = require('./server/routes/quiz-questions-api');
+  app.use('/api/quiz-questions', quizQuestionsApiRouter);
+  // Экспортируем хранилище комнат для использования в WebSocket обработчиках
+  global.intellectualRooms = quizQuestionsRooms;
+  console.log('✅ Quiz-Questions API routes зарегистрированы');
+} catch (error) {
+  console.warn('⚠️ Quiz-Questions API routes недоступны:', error.message);
+}
+
 // Статический middleware - после API роутов
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/Geometria', express.static(path.join(__dirname, 'Geometria')));
@@ -1727,6 +1738,317 @@ io.on('connection', (socket) => {
     }
   }
 
+  // ========== ОБРАБОТЧИКИ ДЛЯ QUIZ-QUESTIONS (ИНТЕЛЛЕКТУАЛЬНАЯ ИГРА) ==========
+  
+  // Хост подключается к интеллектуальной игре
+  socket.on('intellectual-host-join', (roomCode) => {
+    const intellectualRooms = global.intellectualRooms;
+    if (!intellectualRooms) {
+      socket.emit('error', { message: 'Система интеллектуальной игры недоступна' });
+      return;
+    }
+    
+    const room = intellectualRooms.get(roomCode);
+    if (!room) {
+      socket.emit('error', { message: 'Комната не найдена' });
+      return;
+    }
+    
+    room.host = socket.id;
+    room.lastActivity = Date.now();
+    socket.join(roomCode);
+    socket.emit('intellectual-host-connected', { roomCode, players: room.players });
+    console.log(`📋 Хост подключен к интеллектуальной комнате ${roomCode}`);
+  });
+
+  // Игрок подключается к интеллектуальной игре
+  socket.on('intellectual-player-join', ({ roomCode, playerName }) => {
+    console.log(`🔵 Попытка подключения игрока: roomCode=${roomCode}, playerName=${playerName}`);
+    
+    const intellectualRooms = global.intellectualRooms;
+    if (!intellectualRooms) {
+      console.error('❌ Система интеллектуальной игры недоступна');
+      socket.emit('error', { message: 'Система интеллектуальной игры недоступна' });
+      return;
+    }
+    
+    if (!roomCode || !playerName) {
+      console.error('❌ Не указаны roomCode или playerName');
+      socket.emit('error', { message: 'Не указаны код комнаты или имя игрока' });
+      return;
+    }
+    
+    const room = intellectualRooms.get(roomCode);
+    if (!room) {
+      console.error(`❌ Комната ${roomCode} не найдена. Доступные комнаты:`, Array.from(intellectualRooms.keys()));
+      socket.emit('error', { message: 'Комната не найдена' });
+      return;
+    }
+
+    if (room.gameState !== 'lobby') {
+      console.error(`❌ Игра в комнате ${roomCode} уже началась. Состояние: ${room.gameState}`);
+      socket.emit('error', { message: 'Игра уже началась' });
+      return;
+    }
+
+    const player = {
+      id: socket.id,
+      name: playerName.trim(),
+      score: 0
+    };
+
+    room.players.push(player);
+    room.lastActivity = Date.now();
+    socket.join(roomCode);
+    
+    console.log(`✅ Игрок ${playerName} (${socket.id}) подключен к интеллектуальной комнате ${roomCode}. Всего игроков: ${room.players.length}`);
+    
+    socket.emit('intellectual-player-connected', { roomCode, playerName });
+    
+    // Уведомляем всех (включая хост) об обновлении списка игроков
+    io.to(roomCode).emit('intellectual-player-list-updated', { players: room.players });
+    
+    console.log(`📢 Отправлено обновление списка игроков в комнату ${roomCode}`);
+  });
+
+  // Счетная комиссия подключается
+  socket.on('intellectual-commission-join', ({ roomCode }) => {
+    const intellectualRooms = global.intellectualRooms;
+    if (!intellectualRooms) {
+      socket.emit('error', { message: 'Система интеллектуальной игры недоступна' });
+      return;
+    }
+    
+    const room = intellectualRooms.get(roomCode);
+    if (!room) {
+      socket.emit('error', { message: 'Комната не найдена' });
+      return;
+    }
+    
+    room.commission = socket.id;
+    room.lastActivity = Date.now();
+    socket.join(roomCode);
+    socket.emit('intellectual-commission-connected', { roomCode });
+    console.log(`📊 Счетная комиссия подключена к комнате ${roomCode}`);
+  });
+
+  // Игрок отправляет ответ
+  socket.on('intellectual-answer', ({ roomCode, answer, time }) => {
+    const intellectualRooms = global.intellectualRooms;
+    if (!intellectualRooms) return;
+    
+    const room = intellectualRooms.get(roomCode);
+    // Принимаем ответы даже если игра уже в состоянии waiting-verification (таймер закончился)
+    if (!room || (room.gameState !== 'question' && room.gameState !== 'waiting-verification')) return;
+
+    const player = room.players.find(p => p.id === socket.id);
+    if (!player) return;
+
+    room.answers.set(socket.id, {
+      text: answer || '', // Пустой ответ, если не указан
+      time: time,
+      submittedAt: Date.now()
+    });
+
+    room.lastActivity = Date.now();
+
+    // Уведомляем хост о новом ответе
+    io.to(room.host).emit('intellectual-player-answered', {
+      playerName: player.name,
+      playerId: player.id,
+      answersCount: room.answers.size,
+      totalPlayers: room.players.length
+    });
+
+    // Уведомляем комиссию о новом ответе
+    if (room.commission) {
+      io.to(room.commission).emit('intellectual-new-answer');
+    }
+
+    console.log(`📝 Игрок ${player.name} отправил ответ в комнате ${roomCode}${answer ? '' : ' (пустой)'}`);
+  });
+
+  // Хост или комиссия начинает вопрос
+  socket.on('intellectual-start-question', (roomCode) => {
+    const intellectualRooms = global.intellectualRooms;
+    if (!intellectualRooms) return;
+    
+    const room = intellectualRooms.get(roomCode);
+    // Разрешаем как хосту, так и комиссии запускать следующий вопрос
+    if (!room || (room.host !== socket.id && room.commission !== socket.id)) return;
+    if (room.currentQuestion >= room.questions.length) {
+      // Игра завершена
+      room.gameState = 'finished';
+      io.to(roomCode).emit('intellectual-game-finished', {
+        players: room.players.sort((a, b) => b.score - a.score)
+      });
+      return;
+    }
+
+    const question = room.questions[room.currentQuestion];
+    room.gameState = 'question';
+    room.questionStartTime = Date.now();
+    room.answers.clear();
+    room.verifiedAnswers.clear();
+    room.lastActivity = Date.now();
+
+    io.to(roomCode).emit('intellectual-question-started', {
+      question: question,
+      questionIndex: room.currentQuestion,
+      totalQuestions: room.questions.length
+    });
+
+    console.log(`❓ Начат вопрос ${room.currentQuestion + 1} в комнате ${roomCode}`);
+  });
+
+  // Таймер вопроса истек
+  socket.on('intellectual-question-timeout', (roomCode) => {
+    const intellectualRooms = global.intellectualRooms;
+    if (!intellectualRooms) return;
+    
+    const room = intellectualRooms.get(roomCode);
+    if (!room || room.host !== socket.id) return;
+
+    room.gameState = 'waiting-verification';
+    room.lastActivity = Date.now();
+
+    // Отправляем пустые ответы для игроков, которые не ответили
+    room.players.forEach(player => {
+      if (!room.answers.has(player.id)) {
+        room.answers.set(player.id, {
+          text: '',
+          time: room.questionStartTime ? Date.now() - room.questionStartTime : 0,
+          submittedAt: Date.now()
+        });
+        
+        // Уведомляем комиссию о новом ответе
+        if (room.commission) {
+          io.to(room.commission).emit('intellectual-new-answer');
+        }
+        
+        console.log(`📝 Автоматически добавлен пустой ответ для игрока ${player.name} (время истекло)`);
+      }
+    });
+
+    io.to(roomCode).emit('intellectual-question-ended');
+    console.log(`⏰ Время вопроса истекло в комнате ${roomCode}. Добавлены пустые ответы для неответивших игроков.`);
+  });
+
+    // Комиссия обновила проверку
+    socket.on('intellectual-verification-updated', ({ roomCode, questionIndex }) => {
+      const intellectualRooms = global.intellectualRooms;
+      if (!intellectualRooms) return;
+      
+      const room = intellectualRooms.get(roomCode);
+      if (!room || room.commission !== socket.id) return;
+
+      const verifiedCount = room.verifiedAnswers.size;
+      const totalAnswers = room.answers.size;
+
+      io.to(roomCode).emit('intellectual-verification-update', {
+        verifiedCount: verifiedCount,
+        totalAnswers: totalAnswers
+      });
+
+      // Если все ответы проверены, уведомляем (но НЕ переходим автоматически)
+      if (verifiedCount === totalAnswers && totalAnswers > 0) {
+        room.gameState = 'waiting-next-question';
+        
+        // Отправляем результаты каждому игроку индивидуально
+        const currentQuestion = room.questions[room.currentQuestion];
+        room.players.forEach(player => {
+          const playerAnswer = room.answers.get(player.id);
+          const verification = room.verifiedAnswers.get(player.id);
+          
+          io.to(player.id).emit('intellectual-question-result', {
+            question: {
+              question: currentQuestion.question,
+              answer: currentQuestion.answer
+            },
+            playerAnswer: playerAnswer ? (playerAnswer.text || '') : '',
+            correctAnswer: currentQuestion.answer || '',
+            isCorrect: verification ? verification.isCorrect : false,
+            pointsEarned: verification ? verification.score : 0,
+            currentScore: player.score,
+            questionIndex: room.currentQuestion,
+            totalQuestions: room.questions.length
+          });
+        });
+        
+        io.to(roomCode).emit('intellectual-verification-complete', {
+          players: room.players.sort((a, b) => b.score - a.score)
+        });
+      }
+    });
+
+    // Комиссия показывает таблицу лидеров на хосте
+    socket.on('intellectual-show-leaderboard', ({ roomCode, players }) => {
+      const intellectualRooms = global.intellectualRooms;
+      if (!intellectualRooms) return;
+      
+      const room = intellectualRooms.get(roomCode);
+      if (!room || room.commission !== socket.id) return;
+      
+      // Останавливаем таймер вопроса, если он еще идет
+      room.gameState = 'waiting-next-question';
+      
+      // Останавливаем таймер для всех игроков и хоста
+      io.to(roomCode).emit('intellectual-question-ended');
+      
+      // Отправляем таблицу лидеров на хост
+      if (room.host) {
+        io.to(room.host).emit('intellectual-show-leaderboard', {
+          players: players || room.players.sort((a, b) => b.score - a.score)
+        });
+      }
+      
+      console.log(`📊 Таблица лидеров отправлена на хост в комнате ${roomCode}. Таймер остановлен.`);
+    });
+
+    // Комиссия переходит к следующему вопросу
+    socket.on('intellectual-next-question', (roomCode) => {
+      const intellectualRooms = global.intellectualRooms;
+      if (!intellectualRooms) return;
+      
+      const room = intellectualRooms.get(roomCode);
+      if (!room || room.commission !== socket.id) return;
+      
+      // Проверяем, что все ответы проверены
+      const verifiedCount = room.verifiedAnswers.size;
+      const totalAnswers = room.answers.size;
+      
+      if (verifiedCount !== totalAnswers || totalAnswers === 0) {
+        console.log(`⚠️ Не все ответы проверены в комнате ${roomCode} (проверено: ${verifiedCount}/${totalAnswers})`);
+        socket.emit('error', { message: 'Не все ответы проверены' });
+        return;
+      }
+      
+      // Переходим к следующему вопросу
+      room.currentQuestion++;
+      if (room.currentQuestion < room.questions.length) {
+        // Запускаем следующий вопрос напрямую
+        const question = room.questions[room.currentQuestion];
+        room.gameState = 'question';
+        room.questionStartTime = Date.now();
+        room.answers.clear();
+        room.verifiedAnswers.clear();
+        room.lastActivity = Date.now();
+
+        io.to(roomCode).emit('intellectual-question-started', {
+          question: question,
+          questionIndex: room.currentQuestion,
+          totalQuestions: room.questions.length
+        });
+
+        console.log(`❓ Начат вопрос ${room.currentQuestion + 1} в комнате ${roomCode} (по запросу комиссии)`);
+      } else {
+        room.gameState = 'finished';
+        io.to(roomCode).emit('intellectual-game-finished', {
+          players: room.players.sort((a, b) => b.score - a.score)
+        });
+      }
+    });
+
   // Отключение
   socket.on('disconnect', () => {
     const player = players.get(socket.id);
@@ -1741,6 +2063,23 @@ io.on('connection', (socket) => {
       }
       players.delete(socket.id);
     }
+    
+    // Обработка отключения для интеллектуальной игры
+    const intellectualRooms = global.intellectualRooms;
+    if (intellectualRooms) {
+      for (const [code, room] of intellectualRooms.entries()) {
+        if (room.host === socket.id || room.commission === socket.id) {
+          room.lastActivity = Date.now();
+        }
+        if (room.players.some(p => p.id === socket.id)) {
+          room.players = room.players.filter(p => p.id !== socket.id);
+          room.answers.delete(socket.id);
+          room.verifiedAnswers.delete(socket.id);
+          io.to(code).emit('intellectual-player-list-updated', { players: room.players });
+        }
+      }
+    }
+    
     console.log('Отключение:', socket.id);
   });
 });
