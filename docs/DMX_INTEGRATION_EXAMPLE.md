@@ -488,3 +488,4 @@ const phase = lightingEngine.getGamePhase(roomCode);
 console.log('Фаза игры:', phase);
 ```
 
+

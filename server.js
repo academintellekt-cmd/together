@@ -103,67 +103,45 @@ const leaderboardQueue = [];
 function normalizeQuizId(quizIdOrName) {
   if (!quizIdOrName) return null;
   
-  // Если это уже ID (короткая строка без пробелов или с дефисом), возвращаем как есть
-  if (quizIdOrName === 'gnu' || quizIdOrName === 'friends-quiz' || quizIdOrName === 'akadem' || quizIdOrName === 'gazprom') {
+  const knownIds = ['gnu', 'friends-quiz', 'akadem', 'gazprom'];
+  if (knownIds.includes(quizIdOrName)) {
     return quizIdOrName;
   }
   
-  // Приводим к нижнему регистру для сравнения
-  const lowerQuizIdOrName = quizIdOrName.toLowerCase().trim();
+  const lower = quizIdOrName.toLowerCase().trim();
   
-  // Проверяем по названиям квизов (если quizzes уже загружен)
+  // Газпром
+  if (lower.includes('газпром') || 
+      (lower.includes('тестирование') && lower.includes('сотрудников'))) {
+    return 'gazprom';
+  }
+  
+  // Академгородок
+  if (lower.includes('академ') || lower.includes('академгородок') ||
+      (lower.includes('история') && lower.includes('легенды'))) {
+    return 'akadem';
+  }
+  
+  // ГНУ
+  if (lower.includes('гну') || lower.includes('чемпионат') || 
+      lower.includes('братишек') || lower.includes('цели')) {
+    return 'gnu';
+  }
+  
+  // Проверка по названиям квизов
   if (typeof quizzes !== 'undefined' && quizzes) {
     for (const [id, quiz] of Object.entries(quizzes)) {
-      const quizNameLower = (quiz.name || '').toLowerCase().trim();
-      const quizTitleLower = (quiz.display && quiz.display.title ? quiz.display.title : '').toLowerCase().trim();
+      const quizName = (quiz.name || '').toLowerCase().trim();
+      const quizTitle = (quiz.display?.title || '').toLowerCase().trim();
       
-      if (quizNameLower === lowerQuizIdOrName || quizTitleLower === lowerQuizIdOrName) {
+      if (quizName === lower || quizTitle === lower ||
+          lower.includes(quizName) || quizName.includes(lower) ||
+          lower.includes(quizTitle) || quizTitle.includes(lower)) {
         return id;
       }
     }
   }
   
-  // Если не нашли совпадение, проверяем частичные совпадения
-  // Проверяем для ГНУ
-  if (lowerQuizIdOrName.includes('гну') || lowerQuizIdOrName.includes('чемпионат') || 
-      lowerQuizIdOrName.includes('братишек') || lowerQuizIdOrName.includes('цели')) {
-    return 'gnu';
-  }
-  // Проверяем для Академгородка - более точные совпадения
-  // Проверяем различные варианты написания
-  const akademPatterns = [
-    'академ',
-    'академгородок',
-    'история и легенды',
-    'история',
-    'легенды'
-  ];
-  
-  // Если содержит "академ" или "академгородок" - это точно академ
-  if (lowerQuizIdOrName.includes('академ') || lowerQuizIdOrName.includes('академгородок')) {
-    console.log(`🔄 normalizeQuizId: "${quizIdOrName}" распознан как "akadem" (содержит "академ")`);
-    return 'akadem';
-  }
-  
-  // Если содержит и "история" и "легенды" - это тоже академ
-  if (lowerQuizIdOrName.includes('история') && lowerQuizIdOrName.includes('легенды')) {
-    console.log(`🔄 normalizeQuizId: "${quizIdOrName}" распознан как "akadem" (содержит "история" и "легенды")`);
-    return 'akadem';
-  }
-  
-  // Если начинается с "академгородок" - это академ
-  if (lowerQuizIdOrName.startsWith('академгородок')) {
-    console.log(`🔄 normalizeQuizId: "${quizIdOrName}" распознан как "akadem" (начинается с "академгородок")`);
-    return 'akadem';
-  }
-  
-  // Проверяем для Газпрома
-  if (lowerQuizIdOrName.includes('газпром') || lowerQuizIdOrName.includes('тестирование сотрудников')) {
-    console.log(`🔄 normalizeQuizId: "${quizIdOrName}" распознан как "gazprom" (содержит "газпром" или "тестирование сотрудников")`);
-    return 'gazprom';
-  }
-  
-  // Если ничего не подошло, возвращаем как есть (может быть старый формат)
   return quizIdOrName;
 }
 
@@ -172,14 +150,20 @@ async function initializeLeaderboard() {
   console.log('🔄 Загрузка рейтинга из Google Sheets...');
   const savedLeaderboard = await loadLeaderboardFromGoogleSheets();
   
+  // Полностью заменяем данные в памяти данными из Google Sheets
+  leaderboard.length = 0;
+  
   if (savedLeaderboard.length > 0) {
-    leaderboard.length = 0; // Очищаем текущий массив
-    leaderboard.push(...savedLeaderboard); // Добавляем загруженные данные
+    // Нормализуем quizId для всех записей
+    savedLeaderboard.forEach(entry => {
+      const normalizedQuizId = normalizeQuizId(entry.quizId) || entry.quizId;
+      leaderboard.push({ ...entry, quizId: normalizedQuizId });
+    });
     
     // Сортируем по очкам (от большего к меньшему)
     leaderboard.sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
-      return a.timestamp - b.timestamp; // При одинаковых очках - кто раньше
+      return a.timestamp - b.timestamp;
     });
     
     console.log(`✅ Рейтинг загружен: ${leaderboard.length} записей`);
@@ -901,7 +885,7 @@ app.post('/api/leaderboard', (req, res) => {
   const result = {
     id: Date.now().toString(),
     playerName: playerName.trim(),
-    quizId: quizId,
+    quizId: normalizeQuizId(quizId) || quizId,
     score: score,
     correctAnswers: correctAnswers || 0,
     totalQuestions: totalQuestions || 0,
@@ -925,10 +909,20 @@ app.post('/api/leaderboard', (req, res) => {
       console.log(`📊 Рейтинг ограничен до ${MAX_LEADERBOARD_ENTRIES} записей в памяти`);
     }
 
-  // Добавляем в очередь для батчинга (асинхронно, не блокируем ответ)
-  leaderboardQueue.push(result);
+  // Записываем результат в Google Sheets сразу (асинхронно, не блокируем ответ)
+  writeToGoogleSheets(result).then(success => {
+    if (!success) {
+      // Если запись не удалась, добавляем в очередь для повторной попытки
+      leaderboardQueue.push(result);
+      console.log('⚠️ Запись в Google Sheets не удалась, добавлено в очередь для повторной попытки');
+    }
+  }).catch(error => {
+    // В случае ошибки добавляем в очередь для повторной попытки
+    leaderboardQueue.push(result);
+    console.error('❌ Ошибка записи в Google Sheets, добавлено в очередь для повторной попытки:', error.message);
+  });
   
-  // Если очередь достигла размера батча, записываем немедленно
+  // Если очередь достигла размера батча, обрабатываем её (на случай накопления ошибок)
   if (leaderboardQueue.length >= LEADERBOARD_QUEUE_BATCH_SIZE) {
     processLeaderboardQueue();
   }
@@ -989,38 +983,26 @@ app.get('/api/leaderboard', (req, res) => {
   
   // Фильтруем по quizId, если указан
   if (quizId) {
-    const normalizedQuizId = normalizeQuizId(quizId);
-    console.log(`🔍 Фильтрация рейтинга: запрошен quizId="${quizId}", нормализован в "${normalizedQuizId}"`);
-    console.log(`📊 Всего записей в рейтинге: ${leaderboard.length}`);
-    
-    // Логируем все уникальные quizId в рейтинге
-    const uniqueQuizIds = [...new Set(leaderboard.map(r => r.quizId))];
-    console.log(`📊 Уникальные quizId в рейтинге:`, uniqueQuizIds);
+    const normalizedQuizId = normalizeQuizId(quizId) || quizId;
     
     results = leaderboard.filter(r => {
-      const rQuizId = normalizeQuizId(r.quizId);
-      const matches = rQuizId === normalizedQuizId;
-      if (matches) {
-        console.log(`✅ Найдено совпадение: "${r.quizId}" -> "${rQuizId}"`);
-      }
-      return matches;
+      if (!r.quizId) return false;
+      
+      const rNormalized = normalizeQuizId(r.quizId);
+      return rNormalized === normalizedQuizId;
     });
-    
-    console.log(`📊 Найдено результатов после фильтрации: ${results.length}`);
   }
   
   // Группируем по игрокам и берем лучший результат каждого
   const playerBestScores = {};
   results.forEach(result => {
-    // Пропускаем результаты с пустыми именами или нулевыми очками
-    if (!result.playerName || result.playerName.trim() === '' || result.score === 0) {
-      return;
-    }
+    if (!result.playerName?.trim()) return;
     
-    const key = result.playerName.toLowerCase().trim();
+    const key = result.playerName.trim().toLowerCase().replace(/\s+/g, ' ');
+    const current = playerBestScores[key];
     
-    // Если игрока еще нет или его новый результат лучше
-    if (!playerBestScores[key] || playerBestScores[key].score < result.score) {
+    if (!current || result.score > current.score || 
+        (result.score === current.score && result.timestamp > current.timestamp)) {
       playerBestScores[key] = result;
     }
   });
@@ -1042,30 +1024,47 @@ app.get('/api/reload-leaderboard', async (req, res) => {
   console.log('🔄 Принудительная перезагрузка рейтинга...');
   
   try {
+    // Сохраняем очередь перед перезагрузкой
+    const currentQueue = [...leaderboardQueue];
+    
+    // Если есть записи в очереди, записываем их перед перезагрузкой
+    if (currentQueue.length > 0) {
+      const batch = [...currentQueue];
+      leaderboardQueue.splice(0, currentQueue.length);
+      const promises = batch.map(result => writeToGoogleSheets(result));
+      await Promise.allSettled(promises);
+    }
+    
+    // Загружаем данные из Google Sheets (это источник истины)
     const savedLeaderboard = await loadLeaderboardFromGoogleSheets();
     
+    // Полностью заменяем данные в памяти данными из Google Sheets
+    leaderboard.length = 0;
+    
     if (savedLeaderboard.length > 0) {
-      leaderboard.length = 0; // Очищаем текущий массив
-      leaderboard.push(...savedLeaderboard); // Добавляем загруженные данные
+      // Нормализуем quizId для всех записей
+      savedLeaderboard.forEach(entry => {
+        const normalizedQuizId = normalizeQuizId(entry.quizId) || entry.quizId;
+        leaderboard.push({ ...entry, quizId: normalizedQuizId });
+      });
       
       // Сортируем по очкам (от большего к меньшему)
       leaderboard.sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
-        return a.timestamp - b.timestamp; // При одинаковых очках - кто раньше
+        return a.timestamp - b.timestamp;
       });
       
-      res.json({ 
-        success: true, 
-        message: `Рейтинг перезагружен: ${leaderboard.length} записей`,
-        leaderboard: leaderboard 
-      });
-    } else {
-      res.json({ 
-        success: false, 
-        message: 'Не удалось загрузить рейтинг из Google Sheets',
-        leaderboard: [] 
-      });
+      // Ограничиваем до MAX_LEADERBOARD_ENTRIES лучших результатов в памяти
+      if (leaderboard.length > MAX_LEADERBOARD_ENTRIES) {
+        leaderboard.splice(MAX_LEADERBOARD_ENTRIES);
+      }
     }
+    
+    res.json({ 
+      success: true, 
+      message: `Рейтинг перезагружен: ${leaderboard.length} записей`,
+      leaderboard: leaderboard 
+    });
   } catch (error) {
     console.error('❌ Ошибка перезагрузки рейтинга:', error);
     res.status(500).json({ 

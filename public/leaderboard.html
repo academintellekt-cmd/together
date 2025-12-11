@@ -411,7 +411,12 @@
                 
                 // Затем загружаем обновленные данные с фильтром по quizId
                 // Нормализуем quizId для запроса
-                const requestQuizId = quizId === 'akadem' || quizId === 'академ' || quizId === 'академгородок' ? 'akadem' : quizId;
+                let requestQuizId = quizId;
+                if (quizId === 'akadem' || quizId === 'академ' || quizId === 'академгородок') {
+                    requestQuizId = 'akadem';
+                } else if (quizId === 'gazprom' || quizId && (quizId.toLowerCase().includes('газпром') || quizId.toLowerCase().includes('тестирование'))) {
+                    requestQuizId = 'gazprom';
+                }
                 const leaderboardUrl = requestQuizId ? `/api/leaderboard?quizId=${encodeURIComponent(requestQuizId)}` : '/api/leaderboard';
                 console.log('📊 Запрос рейтинга по URL:', leaderboardUrl);
                 const response = await fetch(leaderboardUrl);
