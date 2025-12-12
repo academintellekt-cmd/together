@@ -1,7 +1,7 @@
 #!/bin/bash
 # Скрипт запуска сервера квиза
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 # Поиск Node.js
 NODE_CMD=""

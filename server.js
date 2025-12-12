@@ -49,9 +49,10 @@ try {
 
 // Статический middleware - после API роутов
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/Geometria', express.static(path.join(__dirname, 'Geometria')));
-app.use('/joystick-test', express.static(path.join(__dirname, 'joystick-test')));
+app.use('/fonts', express.static(path.join(__dirname, 'public/fonts')));
+app.use('/joystick-test', express.static(path.join(__dirname, 'tests/joystick-test')));
 app.use('/data/media', express.static(path.join(__dirname, 'data/media')));
+app.use('/docs', express.static(path.join(__dirname, 'docs')));
 
 // Хранилище комнат и игроков
 const rooms = new Map();
@@ -167,7 +168,14 @@ async function initializeLeaderboard() {
   if (savedLeaderboard.length > 0) {
     // Нормализуем quizId для всех записей
     savedLeaderboard.forEach(entry => {
+      const originalQuizId = entry.quizId;
       const normalizedQuizId = normalizeQuizId(entry.quizId) || entry.quizId;
+      
+      // Логируем записи "роман" при загрузке
+      if (entry.playerName?.toLowerCase().includes('роман')) {
+        console.log(`🔍 Загрузка "роман" из Google Sheets: оригинальный quizId="${originalQuizId}", нормализованный="${normalizedQuizId}", очки=${entry.score}, дата=${entry.date}`);
+      }
+      
       leaderboard.push({ ...entry, quizId: normalizedQuizId });
     });
     
@@ -176,6 +184,14 @@ async function initializeLeaderboard() {
       if (b.score !== a.score) return b.score - a.score;
       return a.timestamp - b.timestamp;
     });
+    
+    // Проверяем, есть ли "роман" в загруженных данных
+    const romanEntries = leaderboard.filter(e => e.playerName?.toLowerCase().includes('роман'));
+    if (romanEntries.length > 0) {
+      console.log(`📊 Найдено ${romanEntries.length} записей "роман" в загруженном рейтинге:`, romanEntries.map(e => ({ quizId: e.quizId, score: e.score, date: e.date })));
+    } else {
+      console.log(`⚠️ Записи "роман" НЕ найдены в загруженном рейтинге`);
+    }
     
     console.log(`✅ Рейтинг загружен: ${leaderboard.length} записей`);
   } else {
@@ -485,6 +501,11 @@ async function writeToGoogleSheets(result) {
       ? Math.round((result.correctAnswers / result.totalQuestions) * 100) 
       : 0;
 
+    // Сохраняем нормализованный quizId, но также сохраняем название для отображения
+    // ВАЖНО: quizId должен быть нормализованным ID (akadem, gnu, gazprom), а не названием
+    const normalizedQuizId = result.quizId; // Уже нормализован при сохранении
+    const quizName = quizzes[normalizedQuizId]?.name || result.quizId;
+    
     const data = {
       date: result.date,
       playerName: result.playerName,
@@ -493,8 +514,14 @@ async function writeToGoogleSheets(result) {
       totalQuestions: result.totalQuestions,
       timeSpent: result.timeSpent, // Передаем в секундах, Apps Script сам отформатирует
       percentage: percentage,
-      quizId: (result.quizId === 'friends-quiz' || result.quizId === 'gnu') ? (quizzes['gnu']?.name || 'Чемпионат ГНУ') : (quizzes[result.quizId]?.name || result.quizId)
+      quizId: normalizedQuizId, // Сохраняем нормализованный ID, а не название
+      quizName: quizName // Название для отображения (если нужно)
     };
+    
+    // Логируем сохранение в Google Sheets
+    if (result.playerName?.toLowerCase().includes('роман')) {
+      console.log(`📝 Сохранение "роман" в Google Sheets: quizId="${normalizedQuizId}", quizName="${quizName}", очки=${result.score}`);
+    }
 
     const https = require('https');
     const http = require('http');
@@ -893,10 +920,16 @@ app.post('/api/leaderboard', (req, res) => {
     return res.status(400).json({ error: 'Недостаточно данных' });
   }
   
+  const originalQuizId = quizId;
+  const normalizedQuizId = normalizeQuizId(quizId) || quizId;
+  
+  // Логируем сохранение результата для отладки
+  console.log(`💾 Сохранение результата: игрок="${playerName.trim()}", оригинальный quizId="${originalQuizId}", нормализованный quizId="${normalizedQuizId}", очки=${score}`);
+  
   const result = {
     id: Date.now().toString(),
     playerName: playerName.trim(),
-    quizId: normalizeQuizId(quizId) || quizId,
+    quizId: normalizedQuizId,
     score: score,
     correctAnswers: correctAnswers || 0,
     totalQuestions: totalQuestions || 0,
@@ -995,13 +1028,23 @@ app.get('/api/leaderboard', (req, res) => {
   // Фильтруем по quizId, если указан
   if (quizId) {
     const normalizedQuizId = normalizeQuizId(quizId) || quizId;
+    console.log(`📊 Запрос лидерборда: оригинальный quizId="${quizId}", нормализованный="${normalizedQuizId}", всего записей в памяти=${leaderboard.length}`);
     
     results = leaderboard.filter(r => {
       if (!r.quizId) return false;
       
       const rNormalized = normalizeQuizId(r.quizId);
-      return rNormalized === normalizedQuizId;
+      const matches = rNormalized === normalizedQuizId;
+      
+      // Логируем первые несколько записей для отладки
+      if (leaderboard.indexOf(r) < 5) {
+        console.log(`  📋 Запись: игрок="${r.playerName}", quizId="${r.quizId}" -> нормализованный="${rNormalized}", совпадает=${matches}`);
+      }
+      
+      return matches;
     });
+    
+    console.log(`📊 После фильтрации найдено ${results.length} записей для quizId="${normalizedQuizId}"`);
   }
   
   // Группируем по игрокам и берем лучший результат каждого
@@ -1012,9 +1055,17 @@ app.get('/api/leaderboard', (req, res) => {
     const key = result.playerName.trim().toLowerCase().replace(/\s+/g, ' ');
     const current = playerBestScores[key];
     
+    // Логируем для отладки, если это игрок "роман"
+    if (key.includes('роман')) {
+      console.log(`  🔍 Найден результат для "роман": очки=${result.score}, quizId="${result.quizId}", timestamp=${result.timestamp}, текущий лучший=${current ? current.score : 'нет'}`);
+    }
+    
     if (!current || result.score > current.score || 
         (result.score === current.score && result.timestamp > current.timestamp)) {
       playerBestScores[key] = result;
+      if (key.includes('роман')) {
+        console.log(`  ✅ Обновлен лучший результат для "роман": очки=${result.score}`);
+      }
     }
   });
   
@@ -1026,6 +1077,19 @@ app.get('/api/leaderboard', (req, res) => {
   
   // Ограничиваем до 50 лучших игроков
   const topResults = sortedResults.slice(0, 50);
+  
+  // Проверяем, попал ли "роман" в топ-50
+  const romanInTop = topResults.find(r => r.playerName?.toLowerCase().includes('роман'));
+  if (romanInTop) {
+    console.log(`✅ "роман" в топ-50: позиция=${topResults.indexOf(romanInTop) + 1}, очки=${romanInTop.score}`);
+  } else {
+    console.log(`⚠️ "роман" НЕ попал в топ-50. Всего результатов после фильтрации: ${results.length}, после группировки: ${sortedResults.length}`);
+    // Ищем "роман" во всех результатах
+    const allRoman = sortedResults.filter(r => r.playerName?.toLowerCase().includes('роман'));
+    if (allRoman.length > 0) {
+      console.log(`  📋 Найдено результатов "роман" во всех данных: ${allRoman.length}`, allRoman.map(r => ({ score: r.score, quizId: r.quizId })));
+    }
+  }
   
   res.json(topResults);
 });

@@ -16,7 +16,7 @@
 
 1. **Откройте прошивку:**
    ```
-   esp32/dmx-controller-ota/dmx-controller-ota.ino
+   hardware/esp32/dmx-controller-ota/dmx-controller-ota.ino
    ```
 
 2. **Настройте WiFi** (строки 36-37):

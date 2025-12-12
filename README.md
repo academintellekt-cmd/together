@@ -19,7 +19,7 @@ brew install node
 ### 2. Запустите сервер
 
 ```bash
-./start.sh
+./scripts/start.sh
 ```
 
 Или вручную:
@@ -59,12 +59,12 @@ npm start
 
 **Команда для деплоя:**
 ```bash
-./deploy.sh 109.107.187.189 root
+./scripts/deploy.sh 109.107.187.189 root
 ```
 
 **Пароль:** `t6LP6kJBE_9w663RR=Mc`
 
-📖 **Подробные инструкции по деплою:** см. [docs/SETUP.md](./docs/SETUP.md)
+📖 **Подробные инструкции по деплою:** см. [docs/setup/SETUP.md](./docs/setup/SETUP.md)
 
 ## 🎮 Как играть
 
@@ -111,8 +111,10 @@ npm start
 together/
 ├── server.js              # Сервер на Node.js с Socket.io
 ├── package.json           # Зависимости проекта
-├── start.sh              # Скрипт запуска
-├── deploy.sh             # Скрипт деплоя
+├── scripts/              # Скрипты
+│   ├── start.sh         # Скрипт запуска
+│   ├── deploy.sh        # Скрипт деплоя
+│   └── create-quiz.js   # Создание квизов
 ├── public/               # Статические файлы
 │   ├── index.html        # Главная страница
 │   ├── host.html         # Главный экран для хоста
@@ -122,12 +124,15 @@ together/
 │   ├── gnu-quiz.html     # Страница квиза ГНУ
 │   ├── leaderboard.html # Рейтинг
 │   ├── images/           # Изображения
-│   └── styles/           # Стили
-│       ├── brand-style.css
-│       ├── layout.css
-│       ├── frame1.css
-│       └── frame2.css
-├── server/               # Серверные утилиты
+│   ├── styles/           # Стили
+│   │   ├── base.css
+│   │   ├── components.css
+│   │   ├── layout.css
+│   │   ├── frame1.css
+│   │   ├── frame2.css
+│   │   └── quiz-card.css
+│   └── fonts/            # Шрифты Geometria
+├── server/               # Серверный код
 │   ├── utils/
 │   │   └── quiz-loader.js # Загрузка квизов
 │   ├── dmx/              # DMX система управления освещением
@@ -137,11 +142,22 @@ together/
 │   │   ├── dmx-presets.js
 │   │   └── dmx-config.json
 │   └── routes/
-│       └── dmx-api.js     # HTTP API для DMX
+│       ├── dmx-api.js     # HTTP API для DMX
+│       └── quiz-questions-api.js
 ├── data/                  # Данные квизов
 │   ├── quizzes/          # Конфигурации квизов (JSON)
 │   └── questions/        # Вопросы для квизов (TXT)
-└── Geometria/            # Шрифты
+├── hardware/             # Аппаратное обеспечение
+│   └── esp32/            # ESP32 контроллер DMX
+├── docs/                 # Документация
+│   ├── setup/            # Настройка и развертывание
+│   ├── architecture/     # Архитектура
+│   ├── dmx/              # DMX документация
+│   ├── guides/           # Руководства
+│   ├── design/           # Дизайн и брендинг
+│   └── changelog/        # История изменений
+├── tests/                # Тестовые файлы
+└── scripts/              # Скрипты
 ```
 
 ## 🔧 Решение проблем

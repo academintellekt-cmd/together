@@ -32,8 +32,8 @@ tar -czf quiz-deploy.tar.gz \
     --exclude=RENDER_UPDATE.md \
     --exclude=ИНСТРУКЦИЯ_ЗАПУСКА.md \
     --exclude=УСТАНОВКА.md \
-    --exclude=Geometria \
-    server.js package.json package-lock.json public/ start.sh nodemon.json server/ data/ joystick-test/
+    --exclude=public/fonts \
+    server.js package.json package-lock.json public/ scripts/start.sh nodemon.json server/ data/ tests/
 
 echo "📤 Загрузка файлов на сервер..."
 echo "💡 Введите пароль от сервера:"
@@ -81,7 +81,7 @@ echo "📋 Установка зависимостей..."
 npm install --production --silent
 
 echo "🔧 Настройка прав доступа..."
-chmod +x start.sh 2>/dev/null || true
+chmod +x scripts/start.sh 2>/dev/null || true
 
 echo "🔥 Настройка файрвола..."
 ufw allow 3000 2>/dev/null || echo "Порт 3000 уже открыт"

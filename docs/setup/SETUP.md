@@ -8,13 +8,13 @@
 
 ### 🚀 Основной деплой
 ```bash
-cd /Users/romanfilipenko/Documents/together && ./deploy.sh 109.107.187.189 root
+cd /Users/romanfilipenko/Documents/together && ./scripts/deploy.sh 109.107.187.189 root
 ```
 **Пароль:** `t6LP6kJBE_9w663RR=Mc`
 
 ### 🔄 Коммит + Деплой
 ```bash
-cd /Users/romanfilipenko/Documents/together && git add . && git commit -m "Update: $(date)" && git push && ./deploy.sh 109.107.187.189 root
+cd /Users/romanfilipenko/Documents/together && git add . && git commit -m "Update: $(date)" && git push && ./scripts/deploy.sh 109.107.187.189 root
 ```
 **Пароль:** `t6LP6kJBE_9w663RR=Mc`
 
@@ -88,7 +88,7 @@ sudo systemctl status nginx
 
 #### Основная команда:
 ```bash
-cd /Users/romanfilipenko/Documents/together && ./deploy.sh 109.107.187.189 root
+cd /Users/romanfilipenko/Documents/together && ./scripts/deploy.sh 109.107.187.189 root
 ```
 
 #### При запросе пароля введите:
@@ -116,7 +116,7 @@ npm install
 #### 2️⃣ **Запуск деплоя:**
 ```bash
 # Запускаем скрипт деплоя
-./deploy.sh 109.107.187.189 root
+./scripts/deploy.sh 109.107.187.189 root
 ```
 
 #### 3️⃣ **Что происходит автоматически:**
@@ -590,10 +590,10 @@ function doGet(e) {
 ### Основные команды:
 ```bash
 # Деплой
-cd /Users/romanfilipenko/Documents/together && ./deploy.sh 109.107.187.189 root
+cd /Users/romanfilipenko/Documents/together && ./scripts/deploy.sh 109.107.187.189 root
 
 # Коммит + деплой
-cd /Users/romanfilipenko/Documents/together && git add . && git commit -m "Update" && git push && ./deploy.sh 109.107.187.189 root
+cd /Users/romanfilipenko/Documents/together && git add . && git commit -m "Update" && git push && ./scripts/deploy.sh 109.107.187.189 root
 
 # Подключение к серверу
 ssh root@109.107.187.189
