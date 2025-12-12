@@ -199,7 +199,20 @@ router.post('/verify-answer', (req, res) => {
     action: 'verify'
   });
   
-  room.verifiedAnswers.set(playerId, verification);
+  // Сохраняем playerId в объекте verification для правильного сопоставления
+  verification.playerId = playerId;
+  
+  // Находим правильный ключ для хранения (может быть socket.id или playerId)
+  // Проверяем, есть ли ответ с таким playerId
+  let storageKey = playerId;
+  for (const [socketId, answer] of room.answers.entries()) {
+    if (answer.playerId === playerId || socketId === playerId) {
+      storageKey = socketId; // Используем socket.id как ключ
+      break;
+    }
+  }
+  
+  room.verifiedAnswers.set(storageKey, verification);
   
   // Добавляем в историю изменений
   room.verificationHistory.push({

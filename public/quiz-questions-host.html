@@ -148,6 +148,104 @@
             font-family: 'Days One', sans-serif;
             font-size: 18px;
             font-weight: 700;
+        }
+
+        /* Модальное окно для QR-кода */
+        .qr-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .qr-modal.active {
+            display: flex;
+        }
+        
+        .qr-modal-content {
+            background: rgba(245, 245, 245, 0.95);
+            border: 3px solid #393639;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 
+                0 4px 0px rgba(57, 54, 57, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        
+        .qr-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #393639;
+            cursor: pointer;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s;
+        }
+        
+        .qr-modal-close:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+        
+        .qr-modal h2 {
+            font-family: 'Days One', sans-serif;
+            font-size: 24px;
+            color: #393639;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .qr-modal-qr-container {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .qr-modal-qr-container img {
+            max-width: 100%;
+            height: auto;
+            border: 3px solid #393639;
+            border-radius: 12px;
+            padding: 10px;
+            background: #FFFFFF;
+        }
+        
+        .qr-modal-link {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+            word-break: break-all;
+        }
+        
+        .qr-modal-link a {
+            color: #354fba;
+            text-decoration: underline;
+        }
+        
+        .qr-modal-link a:hover {
+            color: #00C159;
+        }
             display: inline-block;
             box-shadow: 
                 0 4px 0px rgba(47, 185, 93, 0.3),
@@ -358,7 +456,6 @@
                     <p class="qr-instruction">наведи камеру или<br>нажми на QR для подключения</p>
                     <canvas id="qrcode"></canvas>
                     <a id="player-link" href="#" target="_blank" class="player-link" style="display: none;"></a>
-                    <a id="commission-link" href="#" target="_blank" class="commission-link" style="display: none;">Страница счетной комиссии</a>
                 </div>
             </div>
 
@@ -505,7 +602,7 @@
             // Инициализация Frame1
             Frame1.init({
                 showBack: true,
-                backUrl: '/index.html',
+                backUrl: 'back', // Использует history.back() или document.referrer
                 showSettings: false
             });
 
@@ -542,8 +639,10 @@
                 console.log('Всего игроков после подключения хоста:', playersData.size);
                 updateHub();
                 
-                // Добавляем кнопку "Начать игру" в Frame1 сразу после подключения
+                // Добавляем кнопки в Frame1 сразу после подключения
                 addStartGameButton();
+                showQRCodeButton();
+                showCommissionButton();
             });
 
             // Обновление списка игроков
@@ -560,11 +659,13 @@
                 console.log('Всего игроков в playersData:', playersData.size);
                 updateHub();
                 
-                // Убеждаемся, что кнопка "Начать игру" есть
+                // Убеждаемся, что кнопки есть
                 const existingButton = document.querySelector('.start-game-btn');
                 if (!existingButton) {
                     addStartGameButton();
                 }
+                showQRCodeButton();
+                showCommissionButton();
             });
 
             socket.on('intellectual-question-started', (data) => {
@@ -891,7 +992,6 @@
             const qrPlaceholder = document.getElementById('qr-placeholder');
             const qrCanvas = document.getElementById('qrcode');
             const playerLink = document.getElementById('player-link');
-            const commissionLink = document.getElementById('commission-link');
             
             // Показываем индикатор загрузки
             qrPlaceholder.style.display = 'block';
@@ -931,10 +1031,6 @@
                         playerLink.style.display = 'block';
                     }
                     
-                    if (commissionLink) {
-                        commissionLink.href = commissionUrl;
-                        commissionLink.style.display = 'block';
-                    }
                 } catch (error) {
                     console.error('Ошибка при отрисовке QR-кода:', error);
                     // Если не получилось нарисовать на canvas, просто показываем изображение
@@ -952,10 +1048,6 @@
                         playerLink.style.display = 'block';
                     }
                     
-                    if (commissionLink) {
-                        commissionLink.href = commissionUrl;
-                        commissionLink.style.display = 'block';
-                    }
                     
                     qrPlaceholder.style.display = 'none';
                     qrContainer.style.display = 'flex';
@@ -1200,6 +1292,298 @@
             console.log('✅ Кнопка "Начать игру" добавлена');
         }
 
+        // Функция показа кнопки QR-кода
+        function showQRCodeButton() {
+            if (!roomCode) {
+                console.warn('⚠️ roomCode не установлен, кнопка QR-кода не будет показана');
+                return;
+            }
+            
+            let qrButton = document.getElementById('frame1-qr-btn');
+            const actionsRight = document.getElementById('frame1-actions-right');
+            
+            if (!actionsRight) {
+                console.warn('⚠️ frame1-actions-right не найден');
+                setTimeout(showQRCodeButton, 500);
+                return;
+            }
+            
+            // Если кнопка не найдена, создаем её
+            if (!qrButton) {
+                console.log('Создаем кнопку QR-кода...');
+                qrButton = document.createElement('button');
+                qrButton.id = 'frame1-qr-btn';
+                qrButton.className = 'frame1-button';
+                qrButton.textContent = '📱 QR код';
+                qrButton.style.cssText = `
+                    padding: 8px 16px;
+                    background: rgba(245, 245, 245, 0.85);
+                    border: 2px solid #393639;
+                    border-radius: 12px;
+                    color: #393639;
+                    font-family: 'Days One', sans-serif;
+                    font-size: 14px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1);
+                    letter-spacing: 0.5px;
+                    text-transform: uppercase;
+                `;
+                qrButton.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 6px 0px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.15)';
+                    this.style.background = 'rgba(245, 245, 245, 0.6)';
+                });
+                qrButton.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0px)';
+                    this.style.boxShadow = '0 2px 0px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1)';
+                    this.style.background = 'rgba(245, 245, 245, 0.85)';
+                });
+                
+                // Добавляем кнопку перед кнопкой "Начать игру"
+                const startButton = document.querySelector('.start-game-btn');
+                if (startButton && startButton.parentNode) {
+                    actionsRight.insertBefore(qrButton, startButton);
+                } else {
+                    actionsRight.appendChild(qrButton);
+                }
+            }
+            
+            // Убеждаемся, что обработчик клика установлен
+            const newQrButton = qrButton.cloneNode(true);
+            qrButton.parentNode.replaceChild(newQrButton, qrButton);
+            newQrButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                showQRCodeModal();
+            });
+            
+            // Показываем кнопку
+            newQrButton.style.display = 'inline-block';
+            console.log('✅ Кнопка QR-кода показана, код комнаты:', roomCode);
+        }
+
+        // Функция показа кнопки "Проверка" (комиссия)
+        function showCommissionButton() {
+            if (!roomCode) {
+                console.warn('⚠️ roomCode не установлен, кнопка Проверка не будет показана');
+                return;
+            }
+            
+            let commissionButton = document.getElementById('frame1-commission-btn');
+            const actionsRight = document.getElementById('frame1-actions-right');
+            
+            if (!actionsRight) {
+                console.warn('⚠️ frame1-actions-right не найден');
+                setTimeout(showCommissionButton, 500);
+                return;
+            }
+            
+            // Если кнопка не найдена, создаем её
+            if (!commissionButton) {
+                console.log('Создаем кнопку Проверка...');
+                commissionButton = document.createElement('button');
+                commissionButton.id = 'frame1-commission-btn';
+                commissionButton.className = 'frame1-button';
+                commissionButton.textContent = 'Проверка';
+                commissionButton.style.cssText = `
+                    padding: 8px 16px;
+                    background: rgba(171, 246, 124, 0.85);
+                    border: 2px solid #393639;
+                    border-radius: 12px;
+                    color: #393639;
+                    font-family: 'Days One', sans-serif;
+                    font-size: 14px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1);
+                    letter-spacing: 0.5px;
+                    text-transform: uppercase;
+                `;
+                commissionButton.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 6px 0px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.15)';
+                    this.style.background = 'rgba(171, 246, 124, 0.6)';
+                });
+                commissionButton.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0px)';
+                    this.style.boxShadow = '0 2px 0px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1)';
+                    this.style.background = 'rgba(171, 246, 124, 0.85)';
+                });
+                
+                // Добавляем кнопку перед кнопкой "Начать игру"
+                const startButton = document.querySelector('.start-game-btn');
+                if (startButton && startButton.parentNode) {
+                    actionsRight.insertBefore(commissionButton, startButton);
+                } else {
+                    actionsRight.appendChild(commissionButton);
+                }
+            }
+            
+            // Убеждаемся, что обработчик клика установлен
+            const newCommissionButton = commissionButton.cloneNode(true);
+            commissionButton.parentNode.replaceChild(newCommissionButton, commissionButton);
+            newCommissionButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openCommissionPage();
+            });
+            
+            // Показываем кнопку
+            newCommissionButton.style.display = 'inline-block';
+            console.log('✅ Кнопка Проверка показана, код комнаты:', roomCode);
+        }
+
+        // Функция открытия страницы комиссии
+        async function openCommissionPage() {
+            if (!roomCode) {
+                console.warn('Код комнаты не установлен');
+                return;
+            }
+            
+            if (!serverUrl) {
+                await getServerUrl();
+            }
+            const baseUrl = serverUrl || window.location.origin;
+            const commissionUrl = `${baseUrl}/quiz-questions-commission.html?room=${roomCode}`;
+            window.open(commissionUrl, '_blank');
+        }
+
+        // Функция показа модального окна QR-кода
+        async function showQRCodeModal() {
+            if (!roomCode) {
+                console.warn('Код комнаты не установлен');
+                return;
+            }
+            
+            const modal = document.getElementById('qr-modal');
+            if (!modal) {
+                console.error('Модальное окно QR-кода не найдено');
+                return;
+            }
+            
+            const linkEl = document.getElementById('qr-modal-link');
+            const qrContainer = document.getElementById('qr-modal-qr-container');
+            let qrPlaceholder = document.getElementById('qr-modal-placeholder');
+            
+            // Создаем placeholder, если его нет
+            if (!qrPlaceholder) {
+                qrPlaceholder = document.createElement('div');
+                qrPlaceholder.id = 'qr-modal-placeholder';
+                qrPlaceholder.style.padding = '20px';
+                qrContainer.appendChild(qrPlaceholder);
+            }
+            
+            // Получаем URL для ссылки
+            if (!serverUrl) {
+                await getServerUrl();
+            }
+            const baseUrl = serverUrl || window.location.origin;
+            const playerUrl = `${baseUrl}/quiz-questions-player.html?room=${roomCode}`;
+            if (linkEl) {
+                linkEl.innerHTML = `<a href="${playerUrl}" target="_blank">${playerUrl}</a>`;
+            }
+            
+            // Показываем индикатор загрузки
+            qrPlaceholder.style.display = 'block';
+            qrPlaceholder.textContent = 'Генерация QR-кода...';
+            qrContainer.innerHTML = '';
+            qrContainer.appendChild(qrPlaceholder);
+            
+            // Генерируем QR-код через API
+            const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(playerUrl)}`;
+            const img = document.createElement('img');
+            img.src = apiUrl;
+            img.alt = 'QR Code';
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.border = '3px solid #393639';
+            img.style.borderRadius = '12px';
+            img.style.padding = '10px';
+            img.style.background = '#FFFFFF';
+            
+            img.onload = function() {
+                qrPlaceholder.style.display = 'none';
+                qrContainer.innerHTML = '';
+                qrContainer.appendChild(img);
+                console.log('QR-код успешно сгенерирован');
+            };
+            
+            img.onerror = function() {
+                console.error('Не удалось загрузить QR-код через API');
+                qrPlaceholder.style.display = 'block';
+                qrPlaceholder.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <strong>QR-код недоступен</strong><br>
+                        Используйте код комнаты выше
+                    </div>
+                `;
+            };
+            
+            // Показываем модальное окно
+            modal.classList.add('active');
+            console.log('Модальное окно QR-кода открыто');
+        }
+        
+        // Закрыть модальное окно
+        window.closeQRCodeModal = function() {
+            const modal = document.getElementById('qr-modal');
+            if (modal) {
+                modal.classList.remove('active');
+                console.log('Модальное окно QR-кода закрыто');
+            } else {
+                console.warn('Модальное окно QR-кода не найдено при попытке закрытия');
+            }
+        };
+        
+        // Обработчики для закрытия модального окна (инициализируются один раз)
+        let qrModalHandlersInitialized = false;
+        function initQRModalHandlers() {
+            if (qrModalHandlersInitialized) {
+                console.log('Обработчики QR-модального окна уже инициализированы');
+                return;
+            }
+            
+            const modal = document.getElementById('qr-modal');
+            const closeBtn = document.getElementById('qr-modal-close');
+            
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.closeQRCodeModal();
+                });
+                console.log('Обработчик закрытия QR-модального окна установлен');
+            }
+            
+            // Закрытие при клике вне модального окна
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        window.closeQRCodeModal();
+                    }
+                });
+            }
+            
+            // Закрытие по Escape (один обработчик на весь документ)
+            document.addEventListener('keydown', function escapeHandler(e) {
+                if (e.key === 'Escape' && modal && modal.classList.contains('active')) {
+                    window.closeQRCodeModal();
+                }
+            });
+            
+            qrModalHandlersInitialized = true;
+        }
+        
+        // Инициализируем обработчики после загрузки DOM
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initQRModalHandlers);
+        } else {
+            initQRModalHandlers();
+        }
+
 
         socket.on('error', (data) => {
             console.error('Ошибка:', data.message);
@@ -1207,6 +1591,18 @@
         });
     </script>
     
+    <!-- Модальное окно для QR-кода -->
+    <div id="qr-modal" class="qr-modal">
+        <div class="qr-modal-content">
+            <span class="qr-modal-close" id="qr-modal-close">&times;</span>
+            <h2>QR-код для подключения</h2>
+            <div class="qr-modal-qr-container" id="qr-modal-qr-container">
+                <div id="qr-modal-placeholder" style="padding: 20px;">Генерация QR-кода...</div>
+            </div>
+            <div class="qr-modal-link" id="qr-modal-link"></div>
+        </div>
+    </div>
+
     <!-- Layout Manager -->
     <script src="/scripts/layout.js"></script>
     <script src="/scripts/frame-common.js"></script>

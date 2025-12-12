@@ -477,14 +477,311 @@
         function setupSocketHandlers() {
             // WebSocket события
             socket.on('intellectual-commission-connected', (data) => {
-                console.log('✅ Комиссия подключена:', data);
-                const waitingScreen = document.getElementById('waiting-screen');
-                const waitingStatus = document.getElementById('waiting-status');
-                if (waitingScreen) {
-                    waitingScreen.style.display = 'block';
-                }
-                if (waitingStatus) {
-                    waitingStatus.textContent = `Подключено к комнате ${roomCode}. Ожидание начала проверки...`;
+                console.log('✅ Комиссия подключена, данные:', data);
+                console.log('✅ isReconnection:', data.isReconnection, 'gameState:', data.gameState);
+                
+                // Если игра уже началась (независимо от того, переподключение это или первое подключение), восстанавливаем состояние
+                if (data.gameState && data.gameState !== 'lobby' && data.gameState !== 'finished') {
+                    console.log(`🔄 ${data.isReconnection ? 'Переподключение' : 'Подключение'} комиссии: восстанавливаем состояние игры`, data);
+                    
+                    if (data.gameState === 'question' || data.gameState === 'waiting-verification') {
+                        // Игра идет, восстанавливаем текущий вопрос и ответы
+                        if (data.currentQuestion) {
+                            const question = data.currentQuestion;
+                            currentQuestionIndex = question.questionNumber - 1;
+                            currentQuestion = {
+                                question: question.question,
+                                options: question.options,
+                                correct: null // Правильный ответ не отправляется комиссии
+                            };
+                            
+                            const waitingScreen = document.getElementById('waiting-screen');
+                            const verificationScreen = document.getElementById('verification-screen');
+                            const nextQuestionBtn = document.getElementById('next-question-btn');
+                            const showLeaderboardBtn = document.getElementById('show-leaderboard-btn');
+                            
+                            if (waitingScreen) {
+                                waitingScreen.style.display = 'none';
+                            }
+                            if (verificationScreen) {
+                                verificationScreen.style.display = 'block';
+                            }
+                            if (nextQuestionBtn) {
+                                nextQuestionBtn.style.display = 'none';
+                                nextQuestionBtn.disabled = false;
+                            }
+                            if (showLeaderboardBtn) {
+                                showLeaderboardBtn.style.display = 'none';
+                                showLeaderboardBtn.disabled = false;
+                                showLeaderboardBtn.textContent = 'Таблица результатов';
+                            }
+                            
+                            // Обновляем вопрос в UI
+                            const questionNumberEl = document.getElementById('question-number');
+                            const questionTextEl = document.getElementById('question-text');
+                            const correctAnswerEl = document.getElementById('correct-answer');
+                            
+                            if (questionNumberEl) {
+                                questionNumberEl.textContent = question.questionNumber;
+                            }
+                            if (questionTextEl) {
+                                questionTextEl.textContent = question.question;
+                            }
+                            if (correctAnswerEl) {
+                                correctAnswerEl.textContent = 'Правильный ответ не показывается комиссии';
+                            }
+                            
+                            // Восстанавливаем ответы
+                            if (data.answers && data.answers.length > 0) {
+                                console.log(`📋 Восстановление ${data.answers.length} ответов из данных подключения`, data.answers);
+                                // Нормализуем данные ответов для совместимости
+                                answers = data.answers.map(ans => ({
+                                    playerId: ans.playerId || ans.id || '',
+                                    playerName: ans.playerName || 'Неизвестный',
+                                    answer: ans.answer || ans.text || '',
+                                    text: ans.text || ans.answer || '',
+                                    time: ans.time || 0,
+                                    verified: false,
+                                    verification: null
+                                }));
+                                console.log(`✅ Нормализованные ответы:`, answers);
+                                
+                                // Обновляем счетчик ответов
+                                const totalAnswersEl = document.getElementById('total-answers');
+                                if (totalAnswersEl) {
+                                    totalAnswersEl.textContent = answers.length;
+                                }
+                                
+                                // Отображаем ответы
+                                updateAnswersList();
+                            } else {
+                                console.log(`📋 Ответы не получены в данных подключения, загружаем с сервера...`);
+                                // Загружаем ответы с сервера
+                                setTimeout(() => {
+                                    loadAnswers();
+                                }, 500);
+                            }
+                            
+                            // Восстанавливаем проверенные ответы после отображения ответов
+                            setTimeout(() => {
+                                if (data.verifiedAnswers && data.verifiedAnswers.length > 0) {
+                                    console.log(`📋 Восстановление ${data.verifiedAnswers.length} проверенных ответов`);
+                                    
+                                    // Обновляем данные ответов с информацией о проверке
+                                    data.verifiedAnswers.forEach(verified => {
+                                        console.log(`🔍 Поиск ответа для проверенного playerId=${verified.playerId}`);
+                                        console.log(`🔍 Доступные ответы:`, answers.map(a => ({ 
+                                            playerId: a.playerId || a.id, 
+                                            id: a.id,
+                                            playerName: a.playerName 
+                                        })));
+                                        
+                                        // Ищем ответ по playerId, учитывая разные форматы
+                                        const answer = answers.find(a => {
+                                            const aPlayerId = a.playerId || a.id || '';
+                                            const vPlayerId = verified.playerId || '';
+                                            return aPlayerId === vPlayerId || a.id === vPlayerId || aPlayerId === vPlayerId;
+                                        });
+                                        
+                                        if (answer) {
+                                            console.log(`✅ Найден ответ для проверки: playerId=${answer.playerId || answer.id}, playerName=${answer.playerName}`);
+                                            answer.verification = {
+                                                isCorrect: verified.isCorrect,
+                                                score: verified.score
+                                            };
+                                            answer.verified = true;
+                                        } else {
+                                            console.warn(`⚠️ Ответ не найден для проверенного playerId=${verified.playerId}. Доступные playerId:`, answers.map(a => ({ playerId: a.playerId || a.id, id: a.id })));
+                                        }
+                                    });
+                                    
+                                    // Обновляем UI
+                                    updateAnswersList();
+                                    
+                                    // Проверяем, все ли ответы проверены
+                                    const allVerified = answers.every(answer => answer.verified);
+                                    const verifiedCount = answers.filter(a => a.verified).length;
+                                    const totalAnswers = answers.length;
+                                    console.log(`📊 Статус проверки: все проверены=${allVerified}, проверено=${verifiedCount}/${totalAnswers}`);
+                                    
+                                    if (allVerified && data.verifiedAnswers.length === totalAnswers && totalAnswers > 0) {
+                                        console.log(`✅ Все ответы проверены, показываем кнопку "Таблица результатов"`);
+                                        const showLeaderboardBtn = document.getElementById('show-leaderboard-btn');
+                                        if (showLeaderboardBtn) {
+                                            showLeaderboardBtn.style.display = 'block';
+                                            showLeaderboardBtn.disabled = false;
+                                        }
+                                        
+                                        // Сохраняем данные игроков для использования
+                                        window.verifiedPlayers = data.verifiedAnswers.map(v => {
+                                            const answer = answers.find(a => a.playerId === v.playerId);
+                                            return {
+                                                id: v.playerId,
+                                                name: answer ? answer.playerName : 'Неизвестный',
+                                                score: v.score
+                                            };
+                                        });
+                                    } else if (verifiedCount > 0 && verifiedCount < totalAnswers) {
+                                        console.log(`📊 Частично проверено: ${verifiedCount}/${totalAnswers}`);
+                                    } else if (totalAnswers === 0) {
+                                        console.log(`⚠️ Нет ответов для отображения`);
+                                    }
+                                } else if (answers.length > 0) {
+                                    // Есть ответы, но нет проверенных - значит еще не проверяли
+                                    console.log(`📋 Есть ${answers.length} ответов, но они еще не проверены`);
+                                }
+                            }, 200);
+                        }
+                    } else if (data.gameState === 'waiting-next-question') {
+                        // Ожидание следующего вопроса - показываем последний вопрос, ответы и кнопку "Таблица результатов"
+                        console.log(`⏳ Состояние: ожидание следующего вопроса, восстанавливаем последний вопрос и ответы`);
+                        const waitingScreen = document.getElementById('waiting-screen');
+                        const verificationScreen = document.getElementById('verification-screen');
+                        const nextQuestionBtn = document.getElementById('next-question-btn');
+                        const showLeaderboardBtn = document.getElementById('show-leaderboard-btn');
+                        
+                        // Показываем экран проверки, а не ожидания
+                        if (waitingScreen) {
+                            waitingScreen.style.display = 'none';
+                        }
+                        if (verificationScreen) {
+                            verificationScreen.style.display = 'block';
+                        }
+                        
+                        // Восстанавливаем вопрос, если он есть
+                        if (data.currentQuestion) {
+                            const question = data.currentQuestion;
+                            currentQuestionIndex = question.questionNumber - 1;
+                            currentQuestion = {
+                                question: question.question,
+                                options: question.options,
+                                correct: null
+                            };
+                            
+                            const questionNumberEl = document.getElementById('question-number');
+                            const questionTextEl = document.getElementById('question-text');
+                            const correctAnswerEl = document.getElementById('correct-answer');
+                            
+                            if (questionNumberEl) {
+                                questionNumberEl.textContent = question.questionNumber;
+                            }
+                            if (questionTextEl) {
+                                questionTextEl.textContent = question.question;
+                            }
+                            if (correctAnswerEl) {
+                                correctAnswerEl.textContent = 'Правильный ответ не показывается комиссии';
+                            }
+                        }
+                        
+                        // Восстанавливаем ответы
+                        if (data.answers && data.answers.length > 0) {
+                            console.log(`📋 Восстановление ${data.answers.length} ответов из состояния waiting-next-question`);
+                            answers = data.answers.map(ans => ({
+                                playerId: ans.playerId || ans.id || '',
+                                playerName: ans.playerName || 'Неизвестный',
+                                answer: ans.answer || ans.text || '',
+                                text: ans.text || ans.answer || '',
+                                time: ans.time || 0,
+                                verified: false,
+                                verification: null
+                            }));
+                            
+                            const totalAnswersEl = document.getElementById('total-answers');
+                            if (totalAnswersEl) {
+                                totalAnswersEl.textContent = answers.length;
+                            }
+                            
+                            updateAnswersList();
+                            
+                            // Восстанавливаем проверенные ответы
+                            setTimeout(() => {
+                                if (data.verifiedAnswers && data.verifiedAnswers.length > 0) {
+                                    console.log(`📋 Восстановление ${data.verifiedAnswers.length} проверенных ответов`);
+                                    
+                                    data.verifiedAnswers.forEach(verified => {
+                                        console.log(`🔍 Поиск ответа для проверенного playerId=${verified.playerId}`);
+                                        console.log(`🔍 Доступные ответы:`, answers.map(a => ({ 
+                                            playerId: a.playerId || a.id, 
+                                            id: a.id,
+                                            playerName: a.playerName 
+                                        })));
+                                        
+                                        // Ищем ответ по playerId, учитывая разные форматы
+                                        const answer = answers.find(a => {
+                                            const aPlayerId = a.playerId || a.id || '';
+                                            const vPlayerId = verified.playerId || '';
+                                            return aPlayerId === vPlayerId || a.id === vPlayerId || aPlayerId === vPlayerId;
+                                        });
+                                        
+                                        if (answer) {
+                                            console.log(`✅ Найден ответ для проверки: playerId=${answer.playerId || answer.id}, playerName=${answer.playerName}`);
+                                            answer.verification = {
+                                                isCorrect: verified.isCorrect,
+                                                score: verified.score
+                                            };
+                                            answer.verified = true;
+                                        } else {
+                                            console.warn(`⚠️ Ответ не найден для проверенного playerId=${verified.playerId}. Доступные playerId:`, answers.map(a => ({ playerId: a.playerId || a.id, id: a.id })));
+                                        }
+                                    });
+                                    
+                                    updateAnswersList();
+                                    
+                                    // Проверяем, все ли ответы проверены
+                                    const allVerified = answers.every(answer => answer.verified);
+                                    const totalAnswers = answers.length;
+                                    
+                                    if (allVerified && data.verifiedAnswers.length === totalAnswers && totalAnswers > 0) {
+                                        console.log(`✅ Все ответы проверены, показываем кнопку "Таблица результатов"`);
+                                        if (showLeaderboardBtn) {
+                                            showLeaderboardBtn.style.display = 'block';
+                                            showLeaderboardBtn.disabled = false;
+                                        }
+                                        
+                                        window.verifiedPlayers = data.verifiedAnswers.map(v => {
+                                            const answer = answers.find(a => a.playerId === v.playerId);
+                                            return {
+                                                id: v.playerId,
+                                                name: answer ? answer.playerName : 'Неизвестный',
+                                                score: v.score
+                                            };
+                                        });
+                                    }
+                                }
+                            }, 200);
+                        } else {
+                            console.log(`⚠️ Нет ответов в состоянии waiting-next-question`);
+                        }
+                        
+                        // Скрываем кнопку "Следующий вопрос" (она появится после показа таблицы)
+                        if (nextQuestionBtn) {
+                            nextQuestionBtn.style.display = 'none';
+                        }
+                    }
+                } else if (data.gameState === 'lobby' || !data.gameState) {
+                    // Обычное подключение и игра еще не началась - показываем экран ожидания
+                    const waitingScreen = document.getElementById('waiting-screen');
+                    const waitingStatus = document.getElementById('waiting-status');
+                    if (waitingScreen) {
+                        waitingScreen.style.display = 'block';
+                    }
+                    if (waitingStatus) {
+                        waitingStatus.textContent = `Подключено к комнате ${roomCode}. Ожидание начала проверки...`;
+                    }
+                } else if (data.gameState === 'finished') {
+                    // Игра завершена
+                    const waitingScreen = document.getElementById('waiting-screen');
+                    const verificationScreen = document.getElementById('verification-screen');
+                    if (waitingScreen) {
+                        waitingScreen.style.display = 'block';
+                    }
+                    if (verificationScreen) {
+                        verificationScreen.style.display = 'none';
+                    }
+                    const waitingStatus = document.getElementById('waiting-status');
+                    if (waitingStatus) {
+                        waitingStatus.textContent = `Игра завершена`;
+                    }
                 }
             });
 
@@ -606,9 +903,34 @@
 
         // Проверка ответа (глобальная функция для onclick)
         window.verifyAnswer = async function(playerId, isCorrect) {
-            const answer = answers.find(a => a.playerId === playerId);
-            if (!answer) return;
+            console.log(`🔍 Проверка ответа: playerId=${playerId}, isCorrect=${isCorrect}`);
+            console.log(`🔍 Доступные ответы:`, answers.map(a => ({ 
+                playerId: a.playerId || a.id, 
+                id: a.id,
+                playerName: a.playerName,
+                verified: a.verified 
+            })));
+            
+            // Ищем ответ по playerId, учитывая разные форматы
+            const answer = answers.find(a => {
+                const aPlayerId = a.playerId || a.id || '';
+                return aPlayerId === playerId || a.id === playerId;
+            });
+            
+            if (!answer) {
+                console.error(`❌ Ответ не найден для playerId=${playerId}`);
+                console.error(`❌ Все доступные playerId:`, answers.map(a => ({ playerId: a.playerId || a.id, id: a.id })));
+                alert(`Ошибка: ответ не найден для playerId=${playerId}`);
+                return;
+            }
+            
+            // Проверяем, не проверен ли уже ответ
+            if (answer.verified) {
+                console.warn(`⚠️ Ответ уже проверен для playerId=${playerId}`);
+                // Не блокируем, позволяем изменить проверку
+            }
 
+            console.log(`✅ Найден ответ для проверки:`, answer);
             const score = isCorrect ? calculateScore(answer.time) : 0;
 
             try {
@@ -695,14 +1017,19 @@
                 const verified = !!verification;
                 const isCorrect = verification?.isCorrect;
                 const score = verification?.score || 0;
-                const answerText = answer.answer || '(Нет ответа)';
+                // Поддерживаем оба формата: answer.answer и answer.text
+                const answerText = answer.answer || answer.text || '(Нет ответа)';
                 const answerDisplay = answerText.length > 100 ? answerText.substring(0, 100) + '...' : answerText;
+                // Поддерживаем оба формата для имени игрока
+                const playerName = answer.playerName || 'Неизвестный';
+                // Поддерживаем оба формата для playerId
+                const playerId = answer.playerId || answer.id || '';
 
                 return `
-                    <div class="answer-item ${verified ? (isCorrect ? 'verified' : 'verified incorrect') : ''}">
+                    <div class="answer-item ${verified ? (isCorrect ? 'verified' : 'verified incorrect') : ''}" data-player-id="${playerId}">
                         <div class="answer-header">
-                            <span class="player-name">${answer.playerName}</span>
-                            <span class="answer-time">${Math.round(answer.time / 1000)}с</span>
+                            <span class="player-name">${playerName}</span>
+                            <span class="answer-time">${answer.time ? Math.round(answer.time / 1000) : 0}с</span>
                         </div>
                         <div class="answer-text" title="${answerText}">${answerDisplay}</div>
                         ${verified ? `
@@ -710,16 +1037,16 @@
                                 ${isCorrect ? `✓ Правильно (${score})` : '✗ Неправильно'}
                             </div>
                             <div class="verification-controls">
-                                <button class="verification-btn revoke" onclick="revokeVerification('${answer.playerId}')">
+                                <button class="verification-btn revoke" onclick="revokeVerification('${playerId}')">
                                     Отменить
                                 </button>
                             </div>
                         ` : `
                             <div class="verification-controls">
-                                <button class="verification-btn correct" onclick="verifyAnswer('${answer.playerId}', true)">
+                                <button class="verification-btn correct" onclick="verifyAnswer('${playerId}', true)">
                                     ✓
                                 </button>
-                                <button class="verification-btn incorrect" onclick="verifyAnswer('${answer.playerId}', false)">
+                                <button class="verification-btn incorrect" onclick="verifyAnswer('${playerId}', false)">
                                     ✗
                                 </button>
                             </div>

@@ -57,6 +57,8 @@ app.use('/docs', express.static(path.join(__dirname, 'docs')));
 // Хранилище комнат и игроков
 const rooms = new Map();
 const players = new Map();
+// Хранилище игроков интеллектуальных комнат (для отслеживания подключений)
+const intellectualPlayers = new Map();
 
 // Инициализация DMX системы сценариев
 try {
@@ -1986,7 +1988,13 @@ io.on('connection', (socket) => {
 
   // Игрок подключается к интеллектуальной игре
   socket.on('intellectual-player-join', ({ roomCode, playerName }) => {
-    console.log(`🔵 Попытка подключения игрока: roomCode=${roomCode}, playerName=${playerName}`);
+    console.log(`📥 Получено событие intellectual-player-join: roomCode=${roomCode}, playerName=${playerName}`);
+    
+    // Нормализуем входные данные
+    const normalizedRoomCode = roomCode ? roomCode.trim().toUpperCase() : '';
+    const normalizedPlayerName = playerName ? playerName.trim() : '';
+    
+    console.log(`🔵 Попытка подключения игрока: roomCode=${normalizedRoomCode}, playerName=${normalizedPlayerName}`);
     
     const intellectualRooms = global.intellectualRooms;
     if (!intellectualRooms) {
@@ -1995,64 +2003,424 @@ io.on('connection', (socket) => {
       return;
     }
     
-    if (!roomCode || !playerName) {
+    if (!normalizedRoomCode || !normalizedPlayerName) {
       console.error('❌ Не указаны roomCode или playerName');
       socket.emit('error', { message: 'Не указаны код комнаты или имя игрока' });
       return;
     }
     
-    const room = intellectualRooms.get(roomCode);
+    const room = intellectualRooms.get(normalizedRoomCode);
     if (!room) {
-      console.error(`❌ Комната ${roomCode} не найдена. Доступные комнаты:`, Array.from(intellectualRooms.keys()));
+      console.error(`❌ Комната ${normalizedRoomCode} не найдена. Доступные комнаты:`, Array.from(intellectualRooms.keys()));
       socket.emit('error', { message: 'Комната не найдена' });
       return;
     }
 
-    if (room.gameState !== 'lobby') {
-      console.error(`❌ Игра в комнате ${roomCode} уже началась. Состояние: ${room.gameState}`);
-      socket.emit('error', { message: 'Игра уже началась' });
-      return;
+    // ВАЖНО: Проверяем переподключение ДО любых проверок на gameState
+    // Проверяем, есть ли уже игрок с таким именем в комнате (переподключение)
+    const inputNameNormalized = normalizedPlayerName.trim().toLowerCase();
+    console.log(`🔍 Поиск игрока для переподключения: имя="${normalizedPlayerName}", нормализованное="${inputNameNormalized}", игроки в комнате:`, room.players.map(p => ({ 
+      name: p.name, 
+      normalizedName: (p.name || '').trim().toLowerCase(),
+      disconnected: p.disconnected || false, 
+      id: p.id 
+    })));
+    
+    const existingPlayer = room.players.find(p => {
+      const playerNameNormalized = (p.name || '').trim().toLowerCase();
+      const matches = playerNameNormalized === inputNameNormalized;
+      if (matches) {
+        console.log(`✅ Найден существующий игрок: "${p.name}" (нормализованное: "${playerNameNormalized}", disconnected: ${p.disconnected || false}, id: ${p.id})`);
+      }
+      return matches;
+    });
+    
+    if (!existingPlayer) {
+      console.log(`❌ Игрок "${normalizedPlayerName}" не найден в комнате. Все игроки:`, room.players.map(p => ({ name: p.name, normalizedName: (p.name || '').trim().toLowerCase() })));
+    }
+    
+    let player;
+    let isReconnection = false;
+
+    if (existingPlayer) {
+      // Найден игрок с таким именем
+      console.log(`🔍 Найден существующий игрок: name="${existingPlayer.name}", disconnected=${existingPlayer.disconnected}, id=${existingPlayer.id}, score=${existingPlayer.score}`);
+      
+      // Проверяем disconnected (может быть undefined в старых записях, считаем undefined как false = подключен)
+      const isDisconnected = existingPlayer.disconnected === true;
+      if (!isDisconnected) {
+        // Игрок уже подключен - это ошибка
+        console.warn(`⚠️ Игрок ${normalizedPlayerName} уже подключен к интеллектуальной комнате ${normalizedRoomCode} (disconnected: ${existingPlayer.disconnected})`);
+        socket.emit('error', { message: 'Игрок с таким именем уже подключен к этой комнате' });
+        return;
+      }
+      
+      // Переподключение отключенного игрока - РАЗРЕШАЕМ в любом состоянии игры
+      isReconnection = true;
+      console.log(`🔄 Переподключение игрока ${normalizedPlayerName} (был отключен: ${existingPlayer.disconnected}), состояние игры: ${room.gameState}, текущий счет: ${existingPlayer.score}`);
+      
+      // Сохраняем старый socket.id перед обновлением
+      const oldSocketId = existingPlayer.id;
+      
+      // Удаляем старую запись из intellectualPlayers Map, если старый socket еще существует
+      if (intellectualPlayers.has(existingPlayer.id)) {
+        intellectualPlayers.delete(existingPlayer.id);
+      }
+      
+      // Обновляем данные игрока
+      existingPlayer.id = socket.id;
+      existingPlayer.disconnected = false;
+      player = existingPlayer;
+      
+      // Обновляем Map для отслеживания подключений
+      intellectualPlayers.set(socket.id, {
+        name: player.name,
+        roomCode: normalizedRoomCode
+      });
+      
+      // Обновляем ответы: переносим ответы со старого socket.id на новый
+      if (room.answers.has(oldSocketId)) {
+        const oldAnswer = room.answers.get(oldSocketId);
+        room.answers.delete(oldSocketId);
+        room.answers.set(socket.id, oldAnswer);
+      } else {
+        // Также проверяем по имени игрока (на случай, если socket.id уже изменился)
+        for (const [answerSocketId, answer] of room.answers.entries()) {
+          if (answer.playerName === normalizedPlayerName) {
+            // Переносим ответ на новый socket.id
+            room.answers.delete(answerSocketId);
+            room.answers.set(socket.id, answer);
+            break; // Нашли ответ, выходим
+          }
+        }
+      }
+      
+      if (room.verifiedAnswers.has(oldSocketId)) {
+        const oldVerified = room.verifiedAnswers.get(oldSocketId);
+        room.verifiedAnswers.delete(oldSocketId);
+        room.verifiedAnswers.set(socket.id, oldVerified);
+      } else {
+        // Также проверяем по имени игрока для проверенных ответов
+        for (const [verifiedSocketId, verified] of room.verifiedAnswers.entries()) {
+          // Проверяем по имени через ответы или напрямую
+          const answer = Array.from(room.answers.values()).find(a => a.playerName === normalizedPlayerName);
+          if (answer && answer.playerId === verified.playerId) {
+            room.verifiedAnswers.delete(verifiedSocketId);
+            room.verifiedAnswers.set(socket.id, verified);
+            break;
+          }
+        }
+      }
+    } else {
+      // Новое подключение - игрока с таким именем нет в комнате
+      console.log(`🆕 Новое подключение игрока ${normalizedPlayerName} (не найден в комнате), состояние игры: ${room.gameState}`);
+      console.log(`🔍 Детали поиска: нормализованное имя="${normalizedPlayerName.toLowerCase()}", игроки в комнате:`, room.players.map(p => ({ 
+        name: p.name, 
+        normalizedName: (p.name || '').trim().toLowerCase(),
+        disconnected: p.disconnected || false, 
+        id: p.id 
+      })));
+      
+      // Для новых игроков проверяем, можно ли подключаться во время игры
+      if (room.gameState !== 'lobby') {
+        // FALLBACK: Если игра уже началась, но игрок не найден, проверяем, может быть он был удален или не помечен как disconnected
+        // Ищем всех игроков с таким именем (независимо от статуса disconnected)
+        const disconnectedPlayers = room.players.filter(p => {
+          const pNameNormalized = (p.name || '').trim().toLowerCase();
+          const nameMatches = pNameNormalized === inputNameNormalized;
+          // Проверяем, что игрок либо отключен, либо его socket.id не соответствует текущему (старое подключение)
+          const isDisconnectedOrOld = p.disconnected === true || p.disconnected === undefined || p.id !== socket.id;
+          return nameMatches && isDisconnectedOrOld;
+        });
+        
+        if (disconnectedPlayers.length > 0) {
+          // Нашли отключенного игрока - это переподключение!
+          const foundPlayer = disconnectedPlayers[0];
+          console.log(`🔄 FALLBACK: Найден отключенный игрок для переподключения: "${foundPlayer.name}" (disconnected: ${foundPlayer.disconnected}, id: ${foundPlayer.id})`);
+          
+          isReconnection = true;
+          const oldSocketId = foundPlayer.id;
+          
+          // Удаляем старую запись из intellectualPlayers Map, если старый socket еще существует
+          if (intellectualPlayers.has(foundPlayer.id)) {
+            intellectualPlayers.delete(foundPlayer.id);
+          }
+          
+          // Обновляем данные игрока
+          foundPlayer.id = socket.id;
+          foundPlayer.disconnected = false;
+          player = foundPlayer;
+          
+          // Обновляем Map для отслеживания подключений
+          intellectualPlayers.set(socket.id, {
+            name: player.name,
+            roomCode: normalizedRoomCode
+          });
+          
+          // Обновляем ответы: переносим ответы со старого socket.id на новый
+          if (room.answers.has(oldSocketId)) {
+            const oldAnswer = room.answers.get(oldSocketId);
+            room.answers.delete(oldSocketId);
+            room.answers.set(socket.id, oldAnswer);
+          } else {
+            // Также проверяем по имени игрока (на случай, если socket.id уже изменился)
+            for (const [answerSocketId, answer] of room.answers.entries()) {
+              if (answer.playerName === normalizedPlayerName) {
+                // Переносим ответ на новый socket.id
+                room.answers.delete(answerSocketId);
+                room.answers.set(socket.id, answer);
+                break; // Нашли ответ, выходим
+              }
+            }
+          }
+          
+          if (room.verifiedAnswers.has(oldSocketId)) {
+            const oldVerified = room.verifiedAnswers.get(oldSocketId);
+            room.verifiedAnswers.delete(oldSocketId);
+            room.verifiedAnswers.set(socket.id, oldVerified);
+          } else {
+            // Также проверяем по имени игрока для проверенных ответов
+            for (const [verifiedSocketId, verified] of room.verifiedAnswers.entries()) {
+              // Проверяем по имени через ответы или напрямую
+              const answer = Array.from(room.answers.values()).find(a => a.playerName === normalizedPlayerName);
+              if (answer && answer.playerId === verified.playerId) {
+                room.verifiedAnswers.delete(verifiedSocketId);
+                room.verifiedAnswers.set(socket.id, verified);
+                break;
+              }
+            }
+          }
+        } else {
+          // Действительно новое подключение во время активной игры - блокируем
+          console.log(`❌ Блокировка нового подключения: игра уже началась (gameState: ${room.gameState})`);
+          console.log(`⚠️ ВНИМАНИЕ: Игрок "${normalizedPlayerName}" не найден в комнате, но игра уже началась. Возможно, игрок был удален или не был помечен как disconnected при отключении.`);
+          socket.emit('error', { message: 'Игра уже началась. Нельзя подключиться к активной игре.' });
+          return;
+        }
+      } else {
+        // Игра еще не началась - можно создать нового игрока
+        // Создаем нового игрока
+        player = {
+          id: socket.id,
+          name: normalizedPlayerName,
+          score: 0,
+          disconnected: false
+        };
+        room.players.push(player);
+        console.log(`✅ Создан новый игрок: name="${player.name}", id=${player.id}, disconnected=${player.disconnected}`);
+      }
     }
 
-    const player = {
-      id: socket.id,
-      name: playerName.trim(),
-      score: 0
+    // Сохраняем игрока в Map для отслеживания подключений (и для нового, и для переподключенного)
+    intellectualPlayers.set(socket.id, {
+      name: player.name,
+      roomCode: normalizedRoomCode
+    });
+    console.log(`✅ Игрок добавлен в intellectualPlayers Map: socket.id=${socket.id}, name="${player.name}", roomCode=${normalizedRoomCode}`);
+
+    socket.join(normalizedRoomCode);
+    room.lastActivity = Date.now();
+    
+    // Подготавливаем данные для отправки клиенту
+    const connectionData = {
+      roomCode: normalizedRoomCode,
+      playerName: player.name,
+      isReconnection: isReconnection,
+      playerScore: player.score
     };
 
-    room.players.push(player);
-    room.lastActivity = Date.now();
-    socket.join(roomCode);
+    // Если это переподключение и игра уже началась, отправляем текущее состояние
+    if (isReconnection && room.gameState !== 'lobby') {
+      connectionData.gameState = room.gameState;
+      
+      if (room.gameState === 'question' || room.gameState === 'waiting-verification') {
+        // Игра идет, отправляем текущий вопрос
+        const question = room.questions[room.currentQuestion];
+        if (question) {
+          const questionData = {
+            question: question.question,
+            options: question.options,
+            questionNumber: room.currentQuestion + 1,
+            totalQuestions: room.questions.length,
+            time: question.time,
+            timeElapsed: room.startTime ? Math.floor((Date.now() - room.startTime) / 1000) : 0
+          };
+          connectionData.currentQuestion = questionData;
+          
+          // Проверяем, ответил ли игрок на текущий вопрос (по socket.id или по имени)
+          let hasAnswered = room.answers.has(socket.id);
+          if (!hasAnswered) {
+            // Проверяем по имени игрока (на случай, если socket.id изменился)
+            hasAnswered = Array.from(room.answers.values()).some(a => 
+              a.playerName === normalizedPlayerName
+            );
+          }
+          connectionData.hasAnswered = hasAnswered;
+        }
+      } else if (room.gameState === 'waiting-next-question') {
+        // Ожидание следующего вопроса
+        connectionData.gameState = 'waiting-next-question';
+      } else if (room.gameState === 'finished') {
+        // Игра завершена
+        connectionData.gameState = 'finished';
+        const finalResults = room.players.sort((a, b) => b.score - a.score);
+        connectionData.finalResults = {
+          results: finalResults
+        };
+      }
+    }
     
-    console.log(`✅ Игрок ${playerName} (${socket.id}) подключен к интеллектуальной комнате ${roomCode}. Всего игроков: ${room.players.length}`);
-    
-    socket.emit('intellectual-player-connected', { roomCode, playerName });
+    console.log(`📤 Отправка intellectual-player-connected: isReconnection=${isReconnection}, gameState=${connectionData.gameState || 'lobby'}, playerScore=${player.score}`);
+    socket.emit('intellectual-player-connected', connectionData);
     
     // Уведомляем всех (включая хост) об обновлении списка игроков
-    io.to(roomCode).emit('intellectual-player-list-updated', { players: room.players });
+    io.to(normalizedRoomCode).emit('intellectual-player-list-updated', { players: room.players });
     
-    console.log(`📢 Отправлено обновление списка игроков в комнату ${roomCode}`);
+    if (isReconnection) {
+      console.log(`✅ Игрок ${normalizedPlayerName} переподключен к интеллектуальной комнате ${normalizedRoomCode}, очки: ${player.score}, состояние игры: ${room.gameState}`);
+    } else {
+      console.log(`✅ Игрок ${normalizedPlayerName} подключен к интеллектуальной комнате ${normalizedRoomCode} (новое подключение). Всего игроков: ${room.players.length}`);
+    }
+    console.log(`📢 Отправлено обновление списка игроков в комнату ${normalizedRoomCode}`);
   });
 
   // Счетная комиссия подключается
   socket.on('intellectual-commission-join', ({ roomCode }) => {
+    console.log(`📥 Получено событие intellectual-commission-join: roomCode=${roomCode}`);
+    
     const intellectualRooms = global.intellectualRooms;
     if (!intellectualRooms) {
+      console.error('❌ Система интеллектуальной игры недоступна');
       socket.emit('error', { message: 'Система интеллектуальной игры недоступна' });
       return;
     }
     
-    const room = intellectualRooms.get(roomCode);
+    const normalizedRoomCode = roomCode ? roomCode.trim().toUpperCase() : '';
+    const room = intellectualRooms.get(normalizedRoomCode);
     if (!room) {
+      console.error(`❌ Комната ${normalizedRoomCode} не найдена. Доступные комнаты:`, Array.from(intellectualRooms.keys()));
       socket.emit('error', { message: 'Комната не найдена' });
       return;
     }
     
+    // Сохраняем старый socket.id если комиссия уже была подключена
+    const oldCommissionId = room.commission;
+    const isReconnection = oldCommissionId && oldCommissionId !== socket.id;
+    
     room.commission = socket.id;
     room.lastActivity = Date.now();
-    socket.join(roomCode);
-    socket.emit('intellectual-commission-connected', { roomCode });
-    console.log(`📊 Счетная комиссия подключена к комнате ${roomCode}`);
+    socket.join(normalizedRoomCode);
+    
+    // Подготавливаем данные для отправки клиенту
+    const connectionData = {
+      roomCode: normalizedRoomCode,
+      isReconnection: isReconnection,
+      gameState: room.gameState
+    };
+    
+    // Если игра уже началась, отправляем текущее состояние
+    if (room.gameState !== 'lobby' && room.gameState !== 'finished') {
+      if (room.gameState === 'question' || room.gameState === 'waiting-verification') {
+        // Игра идет, отправляем текущий вопрос и ответы
+        const question = room.questions[room.currentQuestion];
+        if (question) {
+          connectionData.currentQuestion = {
+            question: question.question,
+            options: question.options,
+            questionNumber: room.currentQuestion + 1,
+            totalQuestions: room.questions.length,
+            time: question.time,
+            timeElapsed: room.startTime ? Math.floor((Date.now() - room.startTime) / 1000) : 0
+          };
+          
+          // Отправляем текущие ответы
+          const currentAnswers = Array.from(room.answers.entries());
+          connectionData.answers = currentAnswers.map(([socketId, answer]) => {
+            // Находим игрока по socket.id, если playerName не указан
+            let playerName = answer.playerName;
+            if (!playerName) {
+              const player = room.players.find(p => p.id === socketId);
+              playerName = player ? player.name : 'Неизвестный';
+            }
+            
+            return {
+              playerId: answer.playerId || socketId,
+              playerName: playerName,
+              answer: answer.answer || answer.text || '',
+              time: answer.time || 0
+            };
+          });
+          console.log(`📤 Отправка ${currentAnswers.length} ответов комиссии для вопроса ${room.currentQuestion + 1}`);
+          
+          // Отправляем проверенные ответы
+          // Важно: verifiedAnswers хранится по ключу (socket.id), но содержит playerId
+          const verifiedAnswers = Array.from(room.verifiedAnswers.entries());
+          connectionData.verifiedAnswers = verifiedAnswers.map(([storageKey, verified]) => {
+            // Находим правильный playerId из answers, используя storageKey (socket.id)
+            const answerEntry = Array.from(room.answers.entries()).find(([ansSocketId, ans]) => {
+              return ansSocketId === storageKey;
+            });
+            
+            // Используем playerId из ответа, если он есть, иначе используем storageKey или verified.playerId
+            const playerId = answerEntry ? (answerEntry[1].playerId || answerEntry[0]) : (verified.playerId || storageKey);
+            
+            return {
+              playerId: playerId,
+              isCorrect: verified.isCorrect,
+              score: verified.score
+            };
+          });
+          console.log(`📤 Отправка ${verifiedAnswers.length} проверенных ответов комиссии`, connectionData.verifiedAnswers.map(v => ({ playerId: v.playerId })));
+        }
+      } else if (room.gameState === 'waiting-next-question') {
+        // Ожидание следующего вопроса - отправляем последний вопрос и все проверенные ответы
+        connectionData.gameState = 'waiting-next-question';
+        const question = room.questions[room.currentQuestion];
+        if (question) {
+          connectionData.currentQuestion = {
+            question: question.question,
+            questionNumber: room.currentQuestion + 1,
+            options: question.options
+          };
+        }
+        
+        // Отправляем все ответы на последний вопрос
+        const currentAnswers = Array.from(room.answers.entries())
+          .filter(([playerId, answer]) => {
+            // Проверяем, что ответ относится к текущему вопросу
+            return answer && (answer.questionIndex === room.currentQuestion || answer.questionIndex === undefined);
+          })
+          .map(([playerId, answer]) => {
+            const player = room.players.find(p => p.id === playerId);
+            return {
+              playerId: playerId,
+              playerName: answer.playerName || (player ? player.name : 'Неизвестный'),
+              answer: answer.answer || answer.text || '',
+              text: answer.text || answer.answer || '',
+              time: answer.time || 0
+            };
+          });
+        connectionData.answers = currentAnswers;
+        
+        // Отправляем все проверенные ответы
+        const verifiedAnswers = Array.from(room.verifiedAnswers.values());
+        connectionData.verifiedAnswers = verifiedAnswers.map(verified => ({
+          playerId: verified.playerId,
+          isCorrect: verified.isCorrect,
+          score: verified.score
+        }));
+        console.log(`📤 Отправка состояния waiting-next-question комиссии: ${currentAnswers.length} ответов, ${verifiedAnswers.length} проверенных`);
+      }
+    }
+
+    console.log(`📤 Отправка intellectual-commission-connected: isReconnection=${isReconnection}, gameState=${connectionData.gameState || 'lobby'}`);
+    socket.emit('intellectual-commission-connected', connectionData);
+    
+    if (isReconnection) {
+      console.log(`✅ Комиссия переподключена к комнате ${normalizedRoomCode}, состояние игры: ${room.gameState}`);
+    } else {
+      console.log(`✅ Комиссия подключена к комнате ${normalizedRoomCode}, состояние игры: ${room.gameState}`);
+    }
   });
 
   // Игрок отправляет ответ
@@ -2068,7 +2436,10 @@ io.on('connection', (socket) => {
     if (!player) return;
 
     room.answers.set(socket.id, {
+      playerId: socket.id,
+      playerName: player.name,
       text: answer || '', // Пустой ответ, если не указан
+      answer: answer || '', // Дублируем для совместимости
       time: time,
       submittedAt: Date.now()
     });
@@ -2139,7 +2510,10 @@ io.on('connection', (socket) => {
     room.players.forEach(player => {
       if (!room.answers.has(player.id)) {
         room.answers.set(player.id, {
+          playerId: player.id,
+          playerName: player.name,
           text: '',
+          answer: '', // Дублируем для совместимости
           time: room.questionStartTime ? Date.now() - room.questionStartTime : 0,
           submittedAt: Date.now()
         });
@@ -2309,17 +2683,74 @@ io.on('connection', (socket) => {
     }
     
     // Обработка отключения для интеллектуальной игры
+    const intellectualPlayer = intellectualPlayers.get(socket.id);
+    if (intellectualPlayer) {
+      const intellectualRooms = global.intellectualRooms;
+      if (intellectualRooms) {
+        const room = intellectualRooms.get(intellectualPlayer.roomCode);
+        if (room) {
+          // Помечаем игрока как отключенного вместо удаления
+          // Ищем игрока по socket.id или по имени (на случай если socket.id изменился)
+          let roomPlayer = room.players.find(p => p.id === socket.id);
+          if (!roomPlayer) {
+            // Если не нашли по id, ищем по имени
+            const playerNameNormalized = (intellectualPlayer.name || '').trim().toLowerCase();
+            roomPlayer = room.players.find(p => {
+              const pNameNormalized = (p.name || '').trim().toLowerCase();
+              return pNameNormalized === playerNameNormalized;
+            });
+            if (roomPlayer) {
+              console.log(`🔍 Найден игрок по имени при отключении: "${roomPlayer.name}" (id: ${roomPlayer.id}, socket.id: ${socket.id})`);
+            }
+          }
+          
+          if (roomPlayer) {
+            roomPlayer.disconnected = true;
+            // Сохраняем время отключения для возможной очистки позже
+            roomPlayer.disconnectedAt = Date.now();
+            console.log(`🔌 Игрок ${intellectualPlayer.name} отключился от интеллектуальной комнаты ${intellectualPlayer.roomCode} (состояние сохранено, disconnected=true, id: ${roomPlayer.id})`);
+          } else {
+            console.warn(`⚠️ Игрок ${intellectualPlayer.name} не найден в интеллектуальной комнате ${intellectualPlayer.roomCode} при отключении. Игроки в комнате:`, room.players.map(p => ({ name: p.name, id: p.id, disconnected: p.disconnected })));
+          }
+          room.lastActivity = Date.now(); // Обновляем активность при отключении игрока
+          
+          // Отправляем обновленный список игроков (с информацией об отключенных)
+          io.to(intellectualPlayer.roomCode).emit('intellectual-player-list-updated', { players: room.players });
+        }
+      }
+      intellectualPlayers.delete(socket.id);
+    } else {
+      // Если игрок не найден в Map, но может быть в комнате, ищем его по socket.id во всех комнатах
+      const intellectualRooms = global.intellectualRooms;
+      if (intellectualRooms) {
+        for (const [code, room] of intellectualRooms.entries()) {
+          const roomPlayer = room.players.find(p => p.id === socket.id);
+          if (roomPlayer) {
+            console.log(`🔍 Найден игрок по socket.id при отключении (не был в Map): "${roomPlayer.name}" (id: ${roomPlayer.id}, socket.id: ${socket.id})`);
+            roomPlayer.disconnected = true;
+            roomPlayer.disconnectedAt = Date.now();
+            room.lastActivity = Date.now();
+            console.log(`🔌 Игрок ${roomPlayer.name} отключился от интеллектуальной комнаты ${code} (состояние сохранено, disconnected=true, id: ${roomPlayer.id})`);
+            io.to(code).emit('intellectual-player-list-updated', { players: room.players });
+            break;
+          }
+        }
+      }
+    }
+    
+    // Обработка отключения хоста или комиссии интеллектуальной игры
     const intellectualRooms = global.intellectualRooms;
     if (intellectualRooms) {
       for (const [code, room] of intellectualRooms.entries()) {
-        if (room.host === socket.id || room.commission === socket.id) {
+        // Обработка отключения хоста или комиссии
+        if (room.host === socket.id) {
           room.lastActivity = Date.now();
-        }
-        if (room.players.some(p => p.id === socket.id)) {
-          room.players = room.players.filter(p => p.id !== socket.id);
-          room.answers.delete(socket.id);
-          room.verifiedAnswers.delete(socket.id);
-          io.to(code).emit('intellectual-player-list-updated', { players: room.players });
+          console.log(`🔌 Хост отключился от интеллектуальной комнаты ${code}`);
+        } else if (room.commission === socket.id) {
+          // Комиссия отключилась - не удаляем, просто обновляем активность
+          // При переподключении комиссия получит текущее состояние игры
+          room.lastActivity = Date.now();
+          console.log(`🔌 Комиссия отключилась от интеллектуальной комнаты ${code} (можно переподключиться)`);
         }
       }
     }
@@ -2390,8 +2821,8 @@ function logPerformanceStats() {
 
 // Запуск сервера только если файл запущен напрямую (не импортирован)
 if (require.main === module) {
-  server.listen(PORT, async () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
+  server.listen(PORT, '0.0.0.0', async () => {
+  console.log(`Сервер запущен на порту ${PORT} (доступен на всех интерфейсах)`);
     console.log(`Откройте http://localhost:${PORT}/index.html для выбора квиза`);
     console.log(`Или http://localhost:${PORT}/player.html для игроков`);
     console.log(`📊 Лимиты: ${MAX_ROOMS} комнат, ${MAX_TOTAL_PLAYERS} игроков, ${MAX_LEADERBOARD_ENTRIES} записей рейтинга`);

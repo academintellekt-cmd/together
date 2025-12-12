@@ -762,12 +762,155 @@
             });
 
             socket.on('intellectual-player-connected', (data) => {
-                console.log('✅ Игрок подключен:', data);
-                document.getElementById('connect-screen').style.display = 'none';
-                document.getElementById('waiting-screen').style.display = 'block';
+                console.log('✅ Игрок подключен, данные:', data);
+                console.log('✅ isReconnection:', data.isReconnection, 'gameState:', data.gameState);
                 
-                // Скрываем элементы Frame1 при ожидании
-                hideFrame1Elements();
+                // Если это переподключение и игра уже началась, восстанавливаем состояние
+                if (data.isReconnection && data.gameState) {
+                    console.log('🔄 Переподключение: восстанавливаем состояние игры', data);
+                    
+                    // Восстанавливаем счет игрока
+                    if (data.playerScore !== undefined) {
+                        // Можно отобразить счет, если есть элемент для этого
+                        console.log('📊 Восстановлен счет игрока:', data.playerScore);
+                    }
+                    
+                    // Восстанавливаем состояние игры в зависимости от gameState
+                    if (data.gameState === 'question' || data.gameState === 'waiting-verification') {
+                        // Игра идет, показываем текущий вопрос
+                        if (data.currentQuestion) {
+                            const question = data.currentQuestion;
+                            document.getElementById('connect-screen').style.display = 'none';
+                            document.getElementById('waiting-screen').style.display = 'none';
+                            document.getElementById('game-screen').style.display = 'block';
+                            document.getElementById('question-screen').style.display = 'block';
+                            document.getElementById('waiting-next-question-screen').style.display = 'none';
+                            document.getElementById('question-result-screen').style.display = 'none';
+                            
+                            // Инициализируем элементы Frame1
+                            initFrame1Elements();
+                            
+                            document.getElementById('question-text').textContent = question.question;
+                            updateQuestionNumber(question.questionNumber, question.totalQuestions);
+                            
+                            // Если игрок уже ответил, блокируем ввод
+                            if (data.hasAnswered) {
+                                answerSubmitted = true;
+                                const answerInput = document.getElementById('answer-input');
+                                answerInput.disabled = true;
+                                document.getElementById('submit-btn').disabled = true;
+                                document.getElementById('status').textContent = 'Ответ отправлен';
+                                document.getElementById('status').classList.add('submitted');
+                                
+                                // Показываем экран ожидания
+                                document.getElementById('question-screen').style.display = 'none';
+                                document.getElementById('waiting-next-question-screen').style.display = 'block';
+                                hideFrame1Elements();
+                            } else {
+                                // Игрок еще не ответил, разрешаем ввод
+                                answerSubmitted = false;
+                                const answerInput = document.getElementById('answer-input');
+                                answerInput.value = '';
+                                answerInput.disabled = false;
+                                document.getElementById('submit-btn').disabled = false;
+                                document.getElementById('status').textContent = '';
+                                document.getElementById('status').classList.remove('submitted');
+                                
+                                // Обновляем таймер, если он еще идет
+                                if (question.timeElapsed !== undefined && question.time) {
+                                    const timeLeft = Math.max(0, question.time - question.timeElapsed);
+                                    updateTimer(timeLeft);
+                                    
+                                    if (timeLeft > 0) {
+                                        questionStartTime = Date.now() - (question.timeElapsed * 1000);
+                                        
+                                        if (currentTimer) {
+                                            clearInterval(currentTimer);
+                                        }
+                                        
+                                        currentTimer = setInterval(() => {
+                                            const elapsed = Math.floor((Date.now() - questionStartTime) / 1000);
+                                            const remaining = Math.max(0, question.time - elapsed);
+                                            updateTimer(remaining);
+                                            
+                                            if (remaining <= 0) {
+                                                clearInterval(currentTimer);
+                                                answerInput.disabled = true;
+                                                document.getElementById('submit-btn').disabled = true;
+                                                
+                                                if (!answerSubmitted) {
+                                                    const answerTime = Date.now() - questionStartTime;
+                                                    socket.emit('intellectual-answer', {
+                                                        roomCode: roomCode,
+                                                        answer: '',
+                                                        time: answerTime
+                                                    });
+                                                    answerSubmitted = true;
+                                                    document.getElementById('question-screen').style.display = 'none';
+                                                    document.getElementById('waiting-next-question-screen').style.display = 'block';
+                                                    hideFrame1Elements();
+                                                }
+                                                updateFrame1Timer(0, false);
+                                            }
+                                        }, 1000);
+                                    } else {
+                                        // Время истекло
+                                        answerInput.disabled = true;
+                                        document.getElementById('submit-btn').disabled = true;
+                                        answerSubmitted = true;
+                                        document.getElementById('question-screen').style.display = 'none';
+                                        document.getElementById('waiting-next-question-screen').style.display = 'block';
+                                        hideFrame1Elements();
+                                        updateFrame1Timer(0, false);
+                                    }
+                                }
+                            }
+                        }
+                    } else if (data.gameState === 'waiting-next-question') {
+                        // Ожидание следующего вопроса
+                        document.getElementById('connect-screen').style.display = 'none';
+                        document.getElementById('waiting-screen').style.display = 'none';
+                        document.getElementById('game-screen').style.display = 'block';
+                        document.getElementById('question-screen').style.display = 'none';
+                        document.getElementById('waiting-next-question-screen').style.display = 'block';
+                        document.getElementById('question-result-screen').style.display = 'none';
+                        hideFrame1Elements();
+                    } else if (data.gameState === 'finished') {
+                        // Игра завершена
+                        if (data.finalResults) {
+                            document.getElementById('connect-screen').style.display = 'none';
+                            document.getElementById('waiting-screen').style.display = 'none';
+                            document.getElementById('game-screen').style.display = 'block';
+                            document.getElementById('question-screen').style.display = 'none';
+                            document.getElementById('waiting-next-question-screen').style.display = 'none';
+                            document.getElementById('question-result-screen').style.display = 'block';
+                            
+                            // Показываем финальные результаты
+                            const resultsList = document.getElementById('final-results-list');
+                            if (resultsList && data.finalResults.results) {
+                                resultsList.innerHTML = '';
+                                data.finalResults.results.forEach((player, index) => {
+                                    const item = document.createElement('div');
+                                    item.className = 'result-item';
+                                    item.innerHTML = `
+                                        <span class="rank">${index + 1}</span>
+                                        <span class="name">${player.name}</span>
+                                        <span class="score">${player.score}</span>
+                                    `;
+                                    resultsList.appendChild(item);
+                                });
+                            }
+                            hideFrame1Elements();
+                        }
+                    }
+                } else {
+                    // Обычное подключение - показываем экран ожидания
+                    document.getElementById('connect-screen').style.display = 'none';
+                    document.getElementById('waiting-screen').style.display = 'block';
+                    
+                    // Скрываем элементы Frame1 при ожидании
+                    hideFrame1Elements();
+                }
                 
                 // Восстанавливаем кнопку
                 const connectBtn = document.getElementById('connect-btn');
@@ -778,7 +921,7 @@
             });
 
             socket.on('error', (data) => {
-                console.error('❌ Ошибка получена:', data);
+                console.error('❌ Ошибка от сервера:', data);
                 console.error('Тип данных:', typeof data);
                 console.error('Содержимое:', JSON.stringify(data, null, 2));
                 
