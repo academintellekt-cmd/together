@@ -36,16 +36,28 @@ try {
   console.warn('⚠️ DMX API routes недоступны:', error.message);
 }
 
-// Quiz-Questions API routes
+// ЧГК API routes
 try {
-  const { router: quizQuestionsApiRouter, intellectualRooms: quizQuestionsRooms } = require('./server/routes/quiz-questions-api');
-  app.use('/api/quiz-questions', quizQuestionsApiRouter);
+  const { router: chgkApiRouter, intellectualRooms: chgkRooms } = require('./server/routes/chgk-api');
+  app.use('/api/chgk', chgkApiRouter);
   // Экспортируем хранилище комнат для использования в WebSocket обработчиках
-  global.intellectualRooms = quizQuestionsRooms;
-  console.log('✅ Quiz-Questions API routes зарегистрированы');
+  global.intellectualRooms = chgkRooms;
+  console.log('✅ ЧГК API routes зарегистрированы');
+  console.log('✅ global.intellectualRooms установлен, тип:', typeof global.intellectualRooms, 'размер:', global.intellectualRooms ? global.intellectualRooms.size : 'N/A');
 } catch (error) {
-  console.warn('⚠️ Quiz-Questions API routes недоступны:', error.message);
+  console.warn('⚠️ ЧГК API routes недоступны:', error.message);
 }
+
+// Редиректы для обратной совместимости (старые имена файлов)
+app.get('/quiz-questions-host.html', (req, res) => {
+  res.redirect(301, '/chgk-host.html');
+});
+app.get('/quiz-questions-player.html', (req, res) => {
+  res.redirect(301, '/chgk-player.html');
+});
+app.get('/quiz-questions-commission.html', (req, res) => {
+  res.redirect(301, '/chgk-commission.html');
+});
 
 // Статический middleware - после API роутов
 app.use(express.static(path.join(__dirname, 'public')));
@@ -1963,7 +1975,7 @@ io.on('connection', (socket) => {
     }
   }
 
-  // ========== ОБРАБОТЧИКИ ДЛЯ QUIZ-QUESTIONS (ИНТЕЛЛЕКТУАЛЬНАЯ ИГРА) ==========
+  // ========== ОБРАБОТЧИКИ ДЛЯ ЧГК (ИНТЕЛЛЕКТУАЛЬНАЯ ИГРА) ==========
   
   // Хост подключается к интеллектуальной игре
   socket.on('intellectual-host-join', (roomCode) => {
@@ -1999,6 +2011,7 @@ io.on('connection', (socket) => {
     const intellectualRooms = global.intellectualRooms;
     if (!intellectualRooms) {
       console.error('❌ Система интеллектуальной игры недоступна');
+      console.error('❌ global.intellectualRooms:', global.intellectualRooms);
       socket.emit('error', { message: 'Система интеллектуальной игры недоступна' });
       return;
     }
@@ -2009,9 +2022,14 @@ io.on('connection', (socket) => {
       return;
     }
     
+    console.log(`🔍 Поиск комнаты ${normalizedRoomCode} в ${intellectualRooms.size} комнатах`);
+    console.log(`🔍 Доступные комнаты:`, Array.from(intellectualRooms.keys()));
+    
     const room = intellectualRooms.get(normalizedRoomCode);
     if (!room) {
-      console.error(`❌ Комната ${normalizedRoomCode} не найдена. Доступные комнаты:`, Array.from(intellectualRooms.keys()));
+      console.error(`❌ Комната ${normalizedRoomCode} не найдена.`);
+      console.error(`📋 Доступные комнаты:`, Array.from(intellectualRooms.keys()));
+      console.error(`📋 Всего комнат: ${intellectualRooms.size}`);
       socket.emit('error', { message: 'Комната не найдена' });
       return;
     }
@@ -2330,7 +2348,9 @@ io.on('connection', (socket) => {
             questionNumber: room.currentQuestion + 1,
             totalQuestions: room.questions.length,
             time: question.time,
-            timeElapsed: room.startTime ? Math.floor((Date.now() - room.startTime) / 1000) : 0
+            timeElapsed: room.startTime ? Math.floor((Date.now() - room.startTime) / 1000) : 0,
+            // Для первого вопроса показываем правильный ответ, для остальных - нет
+            answer: room.currentQuestion === 0 ? question.answer : undefined
           };
           
           // Отправляем текущие ответы
@@ -2380,7 +2400,9 @@ io.on('connection', (socket) => {
           connectionData.currentQuestion = {
             question: question.question,
             questionNumber: room.currentQuestion + 1,
-            options: question.options
+            options: question.options,
+            // Для первого вопроса показываем правильный ответ, для остальных - нет
+            answer: room.currentQuestion === 0 ? question.answer : undefined
           };
         }
         
@@ -2489,7 +2511,8 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('intellectual-question-started', {
       question: question,
       questionIndex: room.currentQuestion,
-      totalQuestions: room.questions.length
+      totalQuestions: room.questions.length,
+      time: question.time || 60 // Время в секундах из вопроса или 60 по умолчанию
     });
 
     console.log(`❓ Начат вопрос ${room.currentQuestion + 1} в комнате ${roomCode}`);
