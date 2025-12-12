@@ -192,10 +192,17 @@
             font-weight: 700;
             border: 2px solid #393639;
             border-radius: 8px;
-            cursor: pointer;
+            cursor: pointer !important;
             transition: all 0.2s;
             text-transform: uppercase;
             letter-spacing: 0.3px;
+            pointer-events: auto !important;
+            opacity: 1 !important;
+        }
+        
+        .verification-btn:disabled {
+            opacity: 0.5 !important;
+            cursor: not-allowed !important;
         }
 
         .verification-btn.correct {
@@ -339,6 +346,42 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+
+        .start-timer-btn {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 15px 30px;
+            font-family: 'Days One', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            background: #ff7664;
+            border: 3px solid #393639;
+            border-radius: 12px;
+            color: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 
+                0 4px 0px rgba(57, 54, 57, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block !important; /* Принудительно показываем при необходимости */
+            visibility: visible !important;
+        }
+
+        .start-timer-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(57, 54, 57, 0.4),
+                0 10px 20px rgba(0, 0, 0, 0.2);
+            background: #ff6347;
+        }
+
+        .start-timer-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -372,6 +415,11 @@
                 <div class="status-bar">
                     Проверено: <span id="verified-count">0</span> из <span id="total-answers">0</span>
                 </div>
+
+                <!-- Кнопка "Время пошло" -->
+                <button id="start-timer-btn" class="start-timer-btn" onclick="startTimer()" style="display: none;">
+                    Время пошло
+                </button>
 
                 <!-- Список ответов -->
                 <div class="answers-list" id="answers-list"></div>
@@ -444,6 +492,118 @@
         let currentQuestion = null;
         let answers = [];
 
+        // Расчет баллов на основе времени ответа
+        function calculateScore(answerTime) {
+            const maxScore = 1000;
+            const questionTime = 60000; // 1 минута
+            const score = Math.max(0, Math.floor(maxScore * (1 - answerTime / questionTime)));
+            return score;
+        }
+
+        // Проверка ответа (глобальная функция) - должна быть определена ДО initApp
+        window.verifyAnswer = async function(playerId, isCorrect) {
+            console.log('🔍 verifyAnswer вызвана:', { playerId, isCorrect, roomCode, currentQuestionIndex });
+            console.log(`🔍 Проверка ответа: playerId=${playerId}, isCorrect=${isCorrect}`);
+            console.log(`🔍 Доступные ответы:`, answers.map(a => ({ 
+                playerId: a.playerId || a.id, 
+                id: a.id,
+                playerName: a.playerName,
+                verified: a.verified 
+            })));
+            
+            // Ищем ответ по playerId, учитывая разные форматы
+            const answer = answers.find(a => {
+                const aPlayerId = a.playerId || a.id || '';
+                return aPlayerId === playerId || a.id === playerId;
+            });
+            
+            if (!answer) {
+                console.error(`❌ Ответ не найден для playerId=${playerId}`);
+                console.error(`❌ Все доступные playerId:`, answers.map(a => ({ playerId: a.playerId || a.id, id: a.id })));
+                alert(`Ошибка: ответ не найден для playerId=${playerId}`);
+                return;
+            }
+            
+            // Проверяем, не проверен ли уже ответ
+            if (answer.verified) {
+                console.warn(`⚠️ Ответ уже проверен для playerId=${playerId}`);
+                // Не блокируем, позволяем изменить проверку
+            }
+
+            console.log(`✅ Найден ответ для проверки:`, answer);
+            const score = isCorrect ? calculateScore(answer.time) : 0;
+
+            try {
+                const response = await fetch('/api/chgk/verify-answer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        roomCode: roomCode,
+                        questionIndex: currentQuestionIndex,
+                        playerId: playerId,
+                        isCorrect: isCorrect,
+                        score: score
+                    })
+                });
+
+                if (response.ok) {
+                    answer.verified = true;
+                    answer.verification = {
+                        isCorrect: isCorrect,
+                        score: score,
+                        verifiedAt: Date.now()
+                    };
+                    updateAnswersList();
+                    socket.emit('intellectual-verification-updated', {
+                        roomCode: roomCode,
+                        questionIndex: currentQuestionIndex
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка проверки ответа:', error);
+                alert('Ошибка при проверке ответа');
+            }
+        };
+
+        // Отмена проверки (глобальная функция) - должна быть определена ДО initApp
+        window.revokeVerification = async function(playerId) {
+            console.log('🔍 revokeVerification вызвана:', { playerId, roomCode, currentQuestionIndex });
+            try {
+                const response = await fetch('/api/chgk/revoke-verification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        roomCode: roomCode,
+                        questionIndex: currentQuestionIndex,
+                        playerId: playerId
+                    })
+                });
+
+                if (response.ok) {
+                    const answer = answers.find(a => {
+                        const aPlayerId = a.playerId || a.id || '';
+                        return aPlayerId === playerId || a.id === playerId;
+                    });
+                    if (answer) {
+                        answer.verified = false;
+                        answer.verification = null;
+                        updateAnswersList();
+                        socket.emit('intellectual-verification-updated', {
+                            roomCode: roomCode,
+                            questionIndex: currentQuestionIndex
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка отмены проверки:', error);
+                alert('Ошибка при отмене проверки');
+            }
+        };
+
         function initApp() {
             // Инициализация Frame1
             Frame1.init({
@@ -464,6 +624,9 @@
 
             socket = io();
 
+            // Настраиваем делегирование событий для кнопок проверки
+            setupVerificationButtonsDelegation();
+
             // Регистрируем обработчики событий ПЕРЕД подключением
             setupSocketHandlers();
 
@@ -471,6 +634,101 @@
             socket.emit('intellectual-commission-join', {
                 roomCode: roomCode
             });
+        }
+        
+        // Настройка делегирования событий для кнопок проверки
+        function setupVerificationButtonsDelegation() {
+            const answersListEl = document.getElementById('answers-list');
+            if (!answersListEl) {
+                // Если элемент еще не существует, попробуем позже
+                setTimeout(setupVerificationButtonsDelegation, 100);
+                return;
+            }
+            
+            // Удаляем старый обработчик, если он был
+            const oldHandler = answersListEl._verificationClickHandler;
+            if (oldHandler) {
+                answersListEl.removeEventListener('click', oldHandler);
+            }
+            
+            // Создаем новый обработчик
+            const clickHandler = function(e) {
+                console.log('🔍 Событие клика получено:', e.target, e.currentTarget);
+                
+                const btn = e.target.closest('.verification-btn');
+                if (!btn) {
+                    console.log('🔍 Клик не по кнопке проверки, игнорируем');
+                    return;
+                }
+                
+                console.log('🔍 Найдена кнопка проверки:', btn);
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const action = btn.getAttribute('data-action');
+                const playerId = btn.getAttribute('data-player-id');
+                const isCorrectAttr = btn.getAttribute('data-is-correct');
+                
+                console.log(`🔍 Атрибуты кнопки: action=${action}, playerId=${playerId}, data-is-correct=${isCorrectAttr}`);
+                console.log('🔍 Все атрибуты кнопки:', Array.from(btn.attributes).map(a => `${a.name}="${a.value}"`).join(', '));
+                
+                if (!playerId) {
+                    console.error('❌ playerId не найден в data-атрибуте');
+                    console.error('Кнопка HTML:', btn.outerHTML);
+                    return;
+                }
+                
+                if (action === 'verify') {
+                    const isCorrect = isCorrectAttr === 'true';
+                    console.log(`✅ Вызов verifyAnswer: playerId=${playerId}, isCorrect=${isCorrect}`);
+                    console.log('🔍 Проверка доступности функции verifyAnswer:', typeof window.verifyAnswer);
+                    if (typeof window.verifyAnswer === 'function') {
+                        try {
+                            window.verifyAnswer(playerId, isCorrect);
+                        } catch (error) {
+                            console.error('❌ Ошибка при вызове verifyAnswer:', error);
+                        }
+                    } else {
+                        console.error('❌ Функция verifyAnswer не найдена или не является функцией');
+                        console.error('window.verifyAnswer:', typeof window.verifyAnswer, window.verifyAnswer);
+                        console.error('window объект:', Object.keys(window).filter(k => k.includes('verify')));
+                    }
+                } else if (action === 'revoke') {
+                    console.log(`✅ Вызов revokeVerification: playerId=${playerId}`);
+                    console.log('🔍 Проверка доступности функции revokeVerification:', typeof window.revokeVerification);
+                    if (typeof window.revokeVerification === 'function') {
+                        try {
+                            window.revokeVerification(playerId);
+                        } catch (error) {
+                            console.error('❌ Ошибка при вызове revokeVerification:', error);
+                        }
+                    } else {
+                        console.error('❌ Функция revokeVerification не найдена или не является функцией');
+                        console.error('window.revokeVerification:', typeof window.revokeVerification, window.revokeVerification);
+                        console.error('window объект:', Object.keys(window).filter(k => k.includes('revoke')));
+                    }
+                } else {
+                    console.error('❌ Неизвестное действие:', action);
+                }
+            };
+            
+            // Сохраняем ссылку на обработчик для возможности удаления
+            answersListEl._verificationClickHandler = clickHandler;
+            answersListEl.addEventListener('click', clickHandler);
+            
+            // Проверяем доступность функций
+            console.log('✅ Делегирование событий настроено для кнопок проверки');
+            console.log('🔍 Проверка доступности функций:');
+            console.log('  window.verifyAnswer:', typeof window.verifyAnswer);
+            console.log('  window.revokeVerification:', typeof window.revokeVerification);
+            
+            if (typeof window.verifyAnswer !== 'function') {
+                console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: window.verifyAnswer не определена!');
+            }
+            if (typeof window.revokeVerification !== 'function') {
+                console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: window.revokeVerification не определена!');
+            }
         }
 
         // Настройка обработчиков WebSocket событий
@@ -499,6 +757,9 @@
                             const verificationScreen = document.getElementById('verification-screen');
                             const nextQuestionBtn = document.getElementById('next-question-btn');
                             const showLeaderboardBtn = document.getElementById('show-leaderboard-btn');
+                            const startTimerBtn = document.getElementById('start-timer-btn');
+                            
+                            console.log('🔍 Восстановление состояния: gameState=', data.gameState, 'startTimerBtn=', !!startTimerBtn);
                             
                             if (waitingScreen) {
                                 waitingScreen.style.display = 'none';
@@ -515,6 +776,28 @@
                                 showLeaderboardBtn.disabled = false;
                                 showLeaderboardBtn.textContent = 'Таблица результатов';
                             }
+                            // Показываем кнопку "Время пошло" только если игра в состоянии 'question' и таймер еще не запущен
+                            if (startTimerBtn) {
+                                if (data.gameState === 'question') {
+                                    // Проверяем, запущен ли таймер (если timeElapsed не определен или равен 0, таймер не запущен)
+                                    const timeElapsed = question.timeElapsed;
+                                    console.log('🔍 Проверка кнопки "Время пошло": gameState=question, timeElapsed=', timeElapsed, 'type:', typeof timeElapsed);
+                                    if (timeElapsed === undefined || timeElapsed === null || timeElapsed === 0) {
+                                        console.log('✅ Показываем кнопку "Время пошло"');
+                                        startTimerBtn.style.display = 'block';
+                                        startTimerBtn.disabled = false;
+                                        startTimerBtn.textContent = 'Время пошло';
+                                    } else {
+                                        console.log('❌ Таймер уже запущен (timeElapsed=' + timeElapsed + '), скрываем кнопку');
+                                        startTimerBtn.style.display = 'none';
+                                    }
+                                } else {
+                                    console.log('❌ gameState не "question" (gameState=' + data.gameState + '), скрываем кнопку');
+                                    startTimerBtn.style.display = 'none';
+                                }
+                            } else {
+                                console.error('⚠️ Кнопка startTimerBtn не найдена в DOM!');
+                            }
                             
                             // Обновляем вопрос в UI
                             const questionNumberEl = document.getElementById('question-number');
@@ -528,11 +811,11 @@
                                 questionTextEl.textContent = question.question;
                             }
                             if (correctAnswerEl) {
-                                // Для первого вопроса показываем правильный ответ, для остальных - скрываем
-                                if (question.questionNumber === 1 && question.answer) {
+                                // Показываем правильный ответ для всех вопросов
+                                if (question.answer) {
                                     correctAnswerEl.textContent = question.answer;
                                 } else {
-                                    correctAnswerEl.textContent = 'Правильный ответ не показывается комиссии';
+                                    correctAnswerEl.textContent = 'Правильный ответ не найден';
                                 }
                             }
                             
@@ -644,6 +927,7 @@
                         const verificationScreen = document.getElementById('verification-screen');
                         const nextQuestionBtn = document.getElementById('next-question-btn');
                         const showLeaderboardBtn = document.getElementById('show-leaderboard-btn');
+                        const startTimerBtn = document.getElementById('start-timer-btn');
                         
                         // Показываем экран проверки, а не ожидания
                         if (waitingScreen) {
@@ -651,6 +935,10 @@
                         }
                         if (verificationScreen) {
                             verificationScreen.style.display = 'block';
+                        }
+                        // Скрываем кнопку "Время пошло" в состоянии waiting-next-question
+                        if (startTimerBtn) {
+                            startTimerBtn.style.display = 'none';
                         }
                         
                         // Восстанавливаем вопрос, если он есть
@@ -674,11 +962,11 @@
                                 questionTextEl.textContent = question.question;
                             }
                             if (correctAnswerEl) {
-                                // Для первого вопроса показываем правильный ответ, для остальных - скрываем
-                                if (question.questionNumber === 1 && question.answer) {
+                                // Показываем правильный ответ для всех вопросов
+                                if (question.answer) {
                                     correctAnswerEl.textContent = question.answer;
                                 } else {
-                                    correctAnswerEl.textContent = 'Правильный ответ не показывается комиссии';
+                                    correctAnswerEl.textContent = 'Правильный ответ не найден';
                                 }
                             }
                         }
@@ -805,6 +1093,7 @@
                 const verificationScreen = document.getElementById('verification-screen');
                 const nextQuestionBtn = document.getElementById('next-question-btn');
                 const showLeaderboardBtn = document.getElementById('show-leaderboard-btn');
+                const startTimerBtn = document.getElementById('start-timer-btn');
                 
                 if (waitingScreen) {
                     waitingScreen.style.display = 'none';
@@ -820,6 +1109,16 @@
                     showLeaderboardBtn.style.display = 'none';
                     showLeaderboardBtn.disabled = false;
                     showLeaderboardBtn.textContent = 'Таблица результатов';
+                }
+                // Показываем кнопку "Время пошло" при начале нового вопроса
+                console.log('🔍 intellectual-question-started: показываем кнопку "Время пошло"');
+                if (startTimerBtn) {
+                    console.log('✅ Кнопка найдена, показываем её');
+                    startTimerBtn.style.display = 'block';
+                    startTimerBtn.disabled = false;
+                    startTimerBtn.textContent = 'Время пошло';
+                } else {
+                    console.error('❌ Кнопка startTimerBtn не найдена!');
                 }
                 
                 // Загружаем ответы с небольшой задержкой, чтобы дать время игрокам отправить ответы
@@ -852,6 +1151,18 @@
             socket.on('error', (data) => {
                 console.error('❌ Ошибка:', data.message || data);
                 alert(data.message || 'Произошла ошибка');
+            });
+            
+            // Обработчик события запуска таймера (для синхронизации)
+            socket.on('intellectual-timer-started', () => {
+                const startTimerBtn = document.getElementById('start-timer-btn');
+                if (startTimerBtn) {
+                    startTimerBtn.disabled = true;
+                    startTimerBtn.textContent = 'Таймер запущен...';
+                    setTimeout(() => {
+                        startTimerBtn.style.display = 'none';
+                    }, 1000);
+                }
             });
         }
 
@@ -895,120 +1206,83 @@
             }
             
             const nextQuestionBtn = document.getElementById('next-question-btn');
+            const startTimerBtn = document.getElementById('start-timer-btn');
             if (nextQuestionBtn) {
                 nextQuestionBtn.disabled = true;
                 nextQuestionBtn.textContent = 'Переход к следующему вопросу...';
+            }
+            // Скрываем кнопку "Время пошло" при переходе к следующему вопросу
+            if (startTimerBtn) {
+                startTimerBtn.style.display = 'none';
             }
             
             socket.emit('intellectual-next-question', roomCode);
         }
 
-        // Расчет баллов на основе времени ответа
-        function calculateScore(answerTime) {
-            const maxScore = 1000;
-            const questionTime = 60000; // 1 минута
-            const score = Math.max(0, Math.floor(maxScore * (1 - answerTime / questionTime)));
-            return score;
-        }
-
-        // Проверка ответа (глобальная функция для onclick)
-        window.verifyAnswer = async function(playerId, isCorrect) {
-            console.log(`🔍 Проверка ответа: playerId=${playerId}, isCorrect=${isCorrect}`);
-            console.log(`🔍 Доступные ответы:`, answers.map(a => ({ 
-                playerId: a.playerId || a.id, 
-                id: a.id,
-                playerName: a.playerName,
-                verified: a.verified 
-            })));
-            
-            // Ищем ответ по playerId, учитывая разные форматы
-            const answer = answers.find(a => {
-                const aPlayerId = a.playerId || a.id || '';
-                return aPlayerId === playerId || a.id === playerId;
-            });
-            
-            if (!answer) {
-                console.error(`❌ Ответ не найден для playerId=${playerId}`);
-                console.error(`❌ Все доступные playerId:`, answers.map(a => ({ playerId: a.playerId || a.id, id: a.id })));
-                alert(`Ошибка: ответ не найден для playerId=${playerId}`);
+        // Функция для запуска таймера
+        window.startTimer = function() {
+            if (!roomCode) {
+                alert('Код комнаты не указан');
                 return;
             }
             
-            // Проверяем, не проверен ли уже ответ
-            if (answer.verified) {
-                console.warn(`⚠️ Ответ уже проверен для playerId=${playerId}`);
-                // Не блокируем, позволяем изменить проверку
+            const startTimerBtn = document.getElementById('start-timer-btn');
+            if (startTimerBtn) {
+                startTimerBtn.disabled = true;
+                startTimerBtn.textContent = 'Таймер запущен...';
+                // Скрываем кнопку после запуска
+                setTimeout(() => {
+                    startTimerBtn.style.display = 'none';
+                }, 1000);
             }
-
-            console.log(`✅ Найден ответ для проверки:`, answer);
-            const score = isCorrect ? calculateScore(answer.time) : 0;
-
-            try {
-                const response = await fetch('/api/chgk/verify-answer', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        roomCode: roomCode,
-                        questionIndex: currentQuestionIndex,
-                        playerId: playerId,
-                        isCorrect: isCorrect,
-                        score: score
-                    })
-                });
-
-                if (response.ok) {
-                    answer.verified = true;
-                    answer.verification = {
-                        isCorrect: isCorrect,
-                        score: score,
-                        verifiedAt: Date.now()
-                    };
-                    updateAnswersList();
-                    socket.emit('intellectual-verification-updated', {
-                        roomCode: roomCode,
-                        questionIndex: currentQuestionIndex
+            
+            // Отправляем событие на сервер для запуска таймера
+            socket.emit('intellectual-start-timer', roomCode);
+        }
+        
+        // Обработчик события запуска таймера (для синхронизации)
+        socket.on('intellectual-timer-started', () => {
+            console.log('⏱️ Событие intellectual-timer-started получено на странице комиссии');
+            const startTimerBtn = document.getElementById('start-timer-btn');
+            if (startTimerBtn) {
+                startTimerBtn.disabled = true;
+                startTimerBtn.textContent = 'Таймер запущен...';
+                setTimeout(() => {
+                    startTimerBtn.style.display = 'none';
+                }, 1000);
+            }
+            
+            // Убеждаемся, что ответы загружены и кнопки проверки активны
+            console.log('🔍 Проверка состояния после запуска таймера: answers.length=', answers.length);
+            
+            // Проверяем кнопки проверки перед обновлением
+            const verificationButtonsBefore = document.querySelectorAll('.verification-btn');
+            console.log(`🔍 Кнопок проверки до обновления: ${verificationButtonsBefore.length}`);
+            
+            if (answers.length > 0) {
+                console.log('✅ Ответы есть, обновляем список для проверки кнопок');
+                updateAnswersList();
+                
+                // Проверяем кнопки проверки после обновления
+                setTimeout(() => {
+                    const verificationButtonsAfter = document.querySelectorAll('.verification-btn');
+                    console.log(`🔍 Кнопок проверки после обновления: ${verificationButtonsAfter.length}`);
+                    verificationButtonsAfter.forEach((btn, index) => {
+                        console.log(`  Кнопка ${index + 1}: disabled=${btn.disabled}, onclick=${btn.onclick ? 'есть' : 'нет'}, style.pointerEvents=${btn.style.pointerEvents || 'default'}`);
+                        // Убеждаемся, что кнопки не заблокированы
+                        btn.disabled = false;
+                        btn.style.pointerEvents = 'auto';
+                        btn.style.opacity = '1';
                     });
-                }
-            } catch (error) {
-                console.error('Ошибка проверки ответа:', error);
-                alert('Ошибка при проверке ответа');
+                }, 100);
+            } else {
+                console.log('⚠️ Ответов еще нет, загружаем их...');
+                setTimeout(() => {
+                    loadAnswers();
+                }, 500);
             }
-        }
+        });
 
-        // Отмена проверки (глобальная функция для onclick)
-        window.revokeVerification = async function(playerId) {
-            try {
-                const response = await fetch('/api/chgk/revoke-verification', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        roomCode: roomCode,
-                        questionIndex: currentQuestionIndex,
-                        playerId: playerId
-                    })
-                });
-
-                if (response.ok) {
-                    const answer = answers.find(a => a.playerId === playerId);
-                    if (answer) {
-                        answer.verified = false;
-                        answer.verification = null;
-                        updateAnswersList();
-                        socket.emit('intellectual-verification-updated', {
-                            roomCode: roomCode,
-                            questionIndex: currentQuestionIndex
-                        });
-                    }
-                }
-            } catch (error) {
-                console.error('Ошибка отмены проверки:', error);
-                alert('Ошибка при отмене проверки');
-            }
-        }
 
         // Обновление списка ответов
         function updateAnswersList() {
@@ -1034,29 +1308,32 @@
                 const playerName = answer.playerName || 'Неизвестный';
                 // Поддерживаем оба формата для playerId
                 const playerId = answer.playerId || answer.id || '';
+                // Экранируем для HTML атрибутов
+                const escapedPlayerId = String(playerId).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                const escapedPlayerName = String(playerName).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
                 return `
-                    <div class="answer-item ${verified ? (isCorrect ? 'verified' : 'verified incorrect') : ''}" data-player-id="${playerId}">
+                    <div class="answer-item ${verified ? (isCorrect ? 'verified' : 'verified incorrect') : ''}" data-player-id="${escapedPlayerId}">
                         <div class="answer-header">
-                            <span class="player-name">${playerName}</span>
+                            <span class="player-name">${escapedPlayerName}</span>
                             <span class="answer-time">${answer.time ? Math.round(answer.time / 1000) : 0}с</span>
                         </div>
-                        <div class="answer-text" title="${answerText}">${answerDisplay}</div>
+                        <div class="answer-text" title="${String(answerText).replace(/"/g, '&quot;')}">${String(answerDisplay).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
                         ${verified ? `
                             <div class="verification-status ${!isCorrect ? 'revoked' : ''}">
                                 ${isCorrect ? `✓ Правильно (${score})` : '✗ Неправильно'}
                             </div>
                             <div class="verification-controls">
-                                <button class="verification-btn revoke" onclick="revokeVerification('${playerId}')">
+                                <button class="verification-btn revoke" data-action="revoke" data-player-id="${escapedPlayerId}" type="button">
                                     Отменить
                                 </button>
                             </div>
                         ` : `
                             <div class="verification-controls">
-                                <button class="verification-btn correct" onclick="verifyAnswer('${playerId}', true)">
+                                <button class="verification-btn correct" data-action="verify" data-is-correct="true" data-player-id="${escapedPlayerId}" type="button">
                                     ✓
                                 </button>
-                                <button class="verification-btn incorrect" onclick="verifyAnswer('${playerId}', false)">
+                                <button class="verification-btn incorrect" data-action="verify" data-is-correct="false" data-player-id="${escapedPlayerId}" type="button">
                                     ✗
                                 </button>
                             </div>
@@ -1064,6 +1341,27 @@
                     </div>
                 `;
             }).join('');
+            
+            // Убеждаемся, что делегирование событий настроено
+            setupVerificationButtonsDelegation();
+            
+            // Убеждаемся, что все кнопки проверки активны и не заблокированы
+            setTimeout(() => {
+                const verificationButtons = document.querySelectorAll('.verification-btn');
+                console.log(`🔍 Найдено ${verificationButtons.length} кнопок проверки`);
+                verificationButtons.forEach((btn, index) => {
+                    btn.disabled = false;
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                    
+                    // Проверяем наличие data-атрибутов
+                    const action = btn.getAttribute('data-action');
+                    const playerId = btn.getAttribute('data-player-id');
+                    console.log(`  Кнопка ${index + 1}: action=${action}, playerId=${playerId}, disabled=${btn.disabled}`);
+                });
+                console.log(`✅ Обновлено ${verificationButtons.length} кнопок проверки, все активны`);
+            }, 50);
         }
 
         // Загрузка ответов для текущего вопроса
@@ -1095,12 +1393,11 @@
                     questionTextEl.textContent = currentQuestion.question;
                 }
                 if (correctAnswerEl && currentQuestion) {
-                    // Для первого вопроса показываем правильный ответ, для остальных - скрываем
-                    const questionNumber = currentQuestionIndex + 1;
-                    if (questionNumber === 1 && currentQuestion.answer) {
+                    // Показываем правильный ответ для всех вопросов
+                    if (currentQuestion.answer) {
                         correctAnswerEl.textContent = currentQuestion.answer;
                     } else {
-                        correctAnswerEl.textContent = 'Правильный ответ не показывается комиссии';
+                        correctAnswerEl.textContent = 'Правильный ответ не найден';
                     }
                 }
                 if (totalAnswersEl) {
@@ -1108,6 +1405,15 @@
                 }
 
                 updateAnswersList();
+                
+                // Проверяем, что кнопки проверки созданы и активны
+                setTimeout(() => {
+                    const verificationButtons = document.querySelectorAll('.verification-btn');
+                    console.log(`🔍 Проверка кнопок проверки: найдено ${verificationButtons.length} кнопок`);
+                    verificationButtons.forEach((btn, index) => {
+                        console.log(`  Кнопка ${index + 1}: disabled=${btn.disabled}, onclick=${btn.onclick ? 'есть' : 'нет'}, style.display=${btn.style.display}`);
+                    });
+                }, 100);
             } catch (error) {
                 console.error('❌ Ошибка загрузки ответов:', error);
                 const answersListEl = document.getElementById('answers-list');

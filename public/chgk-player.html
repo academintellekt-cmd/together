@@ -816,13 +816,19 @@
                                 document.getElementById('status').textContent = '';
                                 document.getElementById('status').classList.remove('submitted');
                                 
-                                // Обновляем таймер, если он еще идет
-                                if (question.timeElapsed !== undefined && question.time) {
+                                // Обновляем таймер, если он уже запущен
+                                if (question.timeElapsed !== undefined && question.timeElapsed >= 0 && question.time) {
+                                    // Таймер уже запущен, восстанавливаем его
                                     const timeLeft = Math.max(0, question.time - question.timeElapsed);
                                     updateTimer(timeLeft);
                                     
                                     if (timeLeft > 0) {
                                         questionStartTime = Date.now() - (question.timeElapsed * 1000);
+                                        
+                                        // Разрешаем ввод, так как таймер уже запущен
+                                        answerInput.disabled = false;
+                                        document.getElementById('submit-btn').disabled = false;
+                                        document.getElementById('status').textContent = '';
                                         
                                         if (currentTimer) {
                                             clearInterval(currentTimer);
@@ -863,6 +869,12 @@
                                         hideFrame1Elements();
                                         updateFrame1Timer(0, false);
                                     }
+                                } else {
+                                    // Таймер еще не запущен, блокируем ввод
+                                    answerInput.disabled = true;
+                                    document.getElementById('submit-btn').disabled = true;
+                                    document.getElementById('status').textContent = 'Ожидание запуска таймера...';
+                                    updateTimer(question.time || 60);
                                 }
                             }
                         }
@@ -967,7 +979,7 @@
             });
 
             socket.on('intellectual-question-started', (data) => {
-                const { question, questionIndex, totalQuestions } = data;
+                const { question, questionIndex, totalQuestions, time } = data;
                 document.getElementById('waiting-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'block';
                 document.getElementById('question-screen').style.display = 'block';
@@ -982,16 +994,44 @@
                 
                 // Сбрасываем состояние
                 answerSubmitted = false;
-                questionStartTime = Date.now();
+                questionStartTime = null; // Время начала будет установлено при запуске таймера
                 const answerInput = document.getElementById('answer-input');
                 answerInput.value = '';
+                answerInput.disabled = true; // Блокируем ввод до запуска таймера
+                document.getElementById('submit-btn').disabled = true;
+                document.getElementById('status').textContent = 'Ожидание запуска таймера...';
+                document.getElementById('status').classList.remove('submitted');
+                
+                // Сохраняем время вопроса для использования при запуске таймера
+                const questionTime = time || question.time || 60;
+                console.log(`⏱️ Время вопроса: ${questionTime} секунд (из data.time=${time}, question.time=${question.time})`);
+                
+                // Показываем начальное время, но НЕ запускаем отсчет
+                updateTimer(questionTime);
+                
+                // Останавливаем предыдущий таймер, если он был
+                if (currentTimer) {
+                    clearInterval(currentTimer);
+                    currentTimer = null;
+                }
+            });
+            
+            // Событие запуска таймера (после нажатия кнопки "Время пошло" на комиссии)
+            socket.on('intellectual-timer-started', (data) => {
+                const { time } = data;
+                console.log('⏱️ Таймер запущен для игрока, время:', time);
+                
+                // Устанавливаем время начала вопроса
+                questionStartTime = Date.now();
+                
+                // Разрешаем ввод ответа
+                const answerInput = document.getElementById('answer-input');
                 answerInput.disabled = false;
                 document.getElementById('submit-btn').disabled = false;
                 document.getElementById('status').textContent = '';
-                document.getElementById('status').classList.remove('submitted');
                 
-                // Запускаем таймер на 10 секунд
-                let secondsLeft = 10;
+                // Запускаем таймер обратного отсчета
+                let secondsLeft = time || 60;
                 updateTimer(secondsLeft);
                 
                 if (currentTimer) {

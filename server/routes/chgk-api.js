@@ -44,6 +44,12 @@ function loadIntellectualQuestions(quizId) {
       // Если у текущего вопроса уже есть ответ, значит это новый вопрос
       // Сохраняем предыдущий вопрос
       if (currentQuestion && currentQuestion.answer) {
+        // Если время не было установлено из файла, используем значение по умолчанию
+        // Первые 4 вопроса - 30 секунд, остальные - 60 секунд
+        if (currentQuestion.time === null || currentQuestion.time === undefined) {
+          currentQuestion.time = currentQuestion.id <= 4 ? 30 : 60;
+          console.log(`⏱️ Время для вопроса ${currentQuestion.id} установлено по умолчанию: ${currentQuestion.time} секунд`);
+        }
         questions.push(currentQuestion);
         currentQuestion = null;
         lastQuestionNumber = null;
@@ -79,11 +85,12 @@ function loadIntellectualQuestions(quizId) {
       }
       
       // Создаем новый вопрос
+      // Время будет установлено из файла (T:) или по умолчанию при сохранении вопроса
       currentQuestion = {
         id: questionId++,
         question: questionText,
         answer: null,
-        time: 60 // Значение по умолчанию - 60 секунд
+        time: null // Время будет установлено из файла или по умолчанию
       };
       lastQuestionNumber = qNumber;
       previousLineWasEmpty = false;
@@ -100,12 +107,18 @@ function loadIntellectualQuestions(quizId) {
       const timeMatch = line.match(/^T\s*:\s*(\d+)/);
       if (timeMatch) {
         currentQuestion.time = parseInt(timeMatch[1], 10);
+        console.log(`⏱️ Время для вопроса ${currentQuestion.id} установлено из файла: ${currentQuestion.time} секунд`);
       }
     }
   }
   
   // Сохраняем последний вопрос
   if (currentQuestion && currentQuestion.answer) {
+    // Если время не было установлено из файла, используем значение по умолчанию
+    // Первые 4 вопроса - 30 секунд, остальные - 60 секунд
+    if (currentQuestion.time === null || currentQuestion.time === undefined) {
+      currentQuestion.time = currentQuestion.id <= 4 ? 30 : 60;
+    }
     questions.push(currentQuestion);
   }
   

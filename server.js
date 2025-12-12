@@ -1540,7 +1540,7 @@ io.on('connection', (socket) => {
           totalQuestions: room.questions.length,
           time: question.time,
           quizId: room.quizId,
-          timeElapsed: room.startTime ? Math.floor((Date.now() - room.startTime) / 1000) : 0
+          timeElapsed: room.questionStartTime ? Math.floor((Date.now() - room.questionStartTime) / 1000) : undefined
         };
         connectionData.currentQuestion = questionData;
         connectionData.gameState = 'question';
@@ -2261,7 +2261,7 @@ io.on('connection', (socket) => {
             questionNumber: room.currentQuestion + 1,
             totalQuestions: room.questions.length,
             time: question.time,
-            timeElapsed: room.startTime ? Math.floor((Date.now() - room.startTime) / 1000) : 0
+            timeElapsed: room.questionStartTime ? Math.floor((Date.now() - room.questionStartTime) / 1000) : undefined
           };
           connectionData.currentQuestion = questionData;
           
@@ -2348,9 +2348,9 @@ io.on('connection', (socket) => {
             questionNumber: room.currentQuestion + 1,
             totalQuestions: room.questions.length,
             time: question.time,
-            timeElapsed: room.startTime ? Math.floor((Date.now() - room.startTime) / 1000) : 0,
-            // Для первого вопроса показываем правильный ответ, для остальных - нет
-            answer: room.currentQuestion === 0 ? question.answer : undefined
+            timeElapsed: room.questionStartTime ? Math.floor((Date.now() - room.questionStartTime) / 1000) : undefined,
+            // Показываем правильный ответ для всех вопросов
+            answer: question.answer
           };
           
           // Отправляем текущие ответы
@@ -2401,8 +2401,8 @@ io.on('connection', (socket) => {
             question: question.question,
             questionNumber: room.currentQuestion + 1,
             options: question.options,
-            // Для первого вопроса показываем правильный ответ, для остальных - нет
-            answer: room.currentQuestion === 0 ? question.answer : undefined
+            // Показываем правильный ответ для всех вопросов
+            answer: question.answer
           };
         }
         
@@ -2503,7 +2503,7 @@ io.on('connection', (socket) => {
 
     const question = room.questions[room.currentQuestion];
     room.gameState = 'question';
-    room.questionStartTime = Date.now();
+    room.questionStartTime = null; // Время начала будет установлено при запуске таймера
     room.answers.clear();
     room.verifiedAnswers.clear();
     room.lastActivity = Date.now();
@@ -2516,6 +2516,65 @@ io.on('connection', (socket) => {
     });
 
     console.log(`❓ Начат вопрос ${room.currentQuestion + 1} в комнате ${roomCode}`);
+  });
+
+  // Запуск таймера (кнопка "Время пошло" на комиссии)
+  socket.on('intellectual-start-timer', (roomCode) => {
+    const intellectualRooms = global.intellectualRooms;
+    if (!intellectualRooms) return;
+    
+    const room = intellectualRooms.get(roomCode);
+    // Разрешаем как хосту, так и комиссии запускать таймер
+    if (!room || (room.host !== socket.id && room.commission !== socket.id)) return;
+    if (room.gameState !== 'question') return; // Таймер можно запустить только во время вопроса
+    
+    const question = room.questions[room.currentQuestion];
+    if (!question) return;
+    
+    // Устанавливаем время начала вопроса
+    room.questionStartTime = Date.now();
+    
+    // Отправляем событие всем в комнате о запуске таймера
+    io.to(roomCode).emit('intellectual-timer-started', {
+      questionIndex: room.currentQuestion,
+      time: question.time || 60 // Время в секундах из вопроса или 60 по умолчанию
+    });
+    
+    console.log(`⏱️ Таймер запущен для вопроса ${room.currentQuestion + 1} в комнате ${roomCode}`);
+    
+    // Устанавливаем таймер на сервере для автоматического завершения вопроса
+    const timer = setTimeout(() => {
+      room.gameState = 'waiting-verification';
+      room.lastActivity = Date.now();
+
+      // Отправляем пустые ответы для игроков, которые не ответили
+      room.players.forEach(player => {
+        if (!room.answers.has(player.id)) {
+          room.answers.set(player.id, {
+            playerId: player.id,
+            playerName: player.name,
+            text: '',
+            answer: '', // Дублируем для совместимости
+            time: room.questionStartTime ? Date.now() - room.questionStartTime : 0,
+            submittedAt: Date.now()
+          });
+          
+          // Уведомляем комиссию о новом ответе
+          if (room.commission) {
+            io.to(room.commission).emit('intellectual-new-answer');
+          }
+          
+          console.log(`📝 Автоматически добавлен пустой ответ для игрока ${player.name} (время истекло)`);
+        }
+      });
+
+      io.to(roomCode).emit('intellectual-question-ended');
+      console.log(`⏰ Время вопроса истекло в комнате ${roomCode}. Добавлены пустые ответы для неответивших игроков.`);
+    }, (question.time || 60) * 1000);
+    
+    // Сохраняем таймер в комнате для возможности отмены
+    if (!room.timers) room.timers = new Map();
+    room.timers.set('question', timer);
   });
 
   // Таймер вопроса истек

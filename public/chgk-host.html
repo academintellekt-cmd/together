@@ -473,6 +473,10 @@
                 <div id="results-screen" class="results-screen" style="display: none;">
                     <h2>Ожидание проверки комиссией</h2>
                     <div class="status" id="verification-status">Комиссия проверяет ответы...</div>
+                    <div id="correct-answer-display" style="display: none; margin: 20px 0; padding: 20px; background: rgba(0, 193, 89, 0.1); border: 3px solid #00C159; border-radius: 16px; box-shadow: 0 4px 0px rgba(0, 193, 89, 0.3), 0 8px 16px rgba(0, 0, 0, 0.1);">
+                        <div style="font-family: 'Days One', sans-serif; font-size: 18px; color: #393639; margin-bottom: 10px; text-transform: uppercase; font-weight: 700;">Правильный ответ:</div>
+                        <div id="correct-answer-text" style="font-family: 'Montserrat', sans-serif; font-size: 20px; color: #00C159; font-weight: 700;"></div>
+                    </div>
                     <div class="leaderboard" id="leaderboard-container" style="display: none;">
                         <h3>Таблица лидеров</h3>
                         <div id="leaderboard"></div>
@@ -547,6 +551,8 @@
         let serverUrl = null;
         let questionTime = 60000; // 1 минута в миллисекундах
         let quizId = null;
+        let currentQuestion = null; // Храним текущий вопрос с правильным ответом
+        let questionEnded = false; // Флаг, что вопрос уже завершен
 
         // Хранилище данных игроков
         let playersData = new Map(); // playerId -> {name, ready}
@@ -675,6 +681,22 @@
                 document.getElementById('question-screen').style.display = 'block';
                 document.getElementById('results-screen').style.display = 'none';
                 
+                // Сбрасываем флаг завершения вопроса
+                questionEnded = false;
+                
+                // Сохраняем текущий вопрос с правильным ответом
+                currentQuestion = question;
+                
+                // Сохраняем время вопроса для использования при запуске таймера
+                const questionTimeSeconds = time || question.time || 60;
+                questionTime = questionTimeSeconds * 1000; // Конвертируем в миллисекунды
+                
+                // Останавливаем предыдущий таймер, если он был
+                if (currentTimer) {
+                    clearInterval(currentTimer);
+                    currentTimer = null;
+                }
+                
                 // Скрываем кнопку "Начать игру" в Frame1
                 const startBtn = document.querySelector('.start-game-btn');
                 if (startBtn) {
@@ -687,6 +709,12 @@
                     leaderboardContainer.style.display = 'none';
                 }
                 
+                // Скрываем правильный ответ при новом вопросе
+                const correctAnswerDisplay = document.getElementById('correct-answer-display');
+                if (correctAnswerDisplay) {
+                    correctAnswerDisplay.style.display = 'none';
+                }
+                
                 // Сбрасываем статус всех игроков - они еще не ответили
                 playersData.forEach((data, playerId) => {
                     data.ready = false; // Красный - не ответил
@@ -696,12 +724,18 @@
                 document.getElementById('question-text').textContent = question.question;
                 updateQuestionNumber(questionIndex + 1, totalQuestions);
                 
-                // Используем время из вопроса (в секундах), если указано, иначе используем значение по умолчанию
-                const questionTimeSeconds = time || question.time || 60;
-                questionTime = questionTimeSeconds * 1000; // Конвертируем в миллисекунды
+                // НЕ запускаем таймер автоматически - ждем события intellectual-timer-started
+                // Таймер будет запущен после нажатия кнопки "Время пошло" на комиссии
+                updateTimer(questionTimeSeconds); // Показываем начальное время, но не запускаем отсчет
+            });
+            
+            // Событие запуска таймера (после нажатия кнопки "Время пошло")
+            socket.on('intellectual-timer-started', (data) => {
+                const { time } = data;
+                console.log('⏱️ Таймер запущен, время:', time);
                 
-                // Запускаем таймер на указанное время
-                let secondsLeft = questionTimeSeconds;
+                // Запускаем таймер обратного отсчета
+                let secondsLeft = time || 60;
                 updateTimer(secondsLeft);
                 
                 if (currentTimer) {
@@ -759,9 +793,47 @@
                         }
                     }
                 }
+                
+                // Если все игроки ответили, сразу завершаем вопрос и показываем экран проверки
+                if (answersCount === totalPlayers && totalPlayers > 0 && !questionEnded) {
+                    console.log('✅ Все игроки ответили, завершаем вопрос');
+                    questionEnded = true;
+                    
+                    // Останавливаем таймер
+                    if (currentTimer) {
+                        clearInterval(currentTimer);
+                        currentTimer = null;
+                    }
+                    
+                    // Отправляем событие на сервер о завершении вопроса
+                    socket.emit('intellectual-question-timeout', roomCode);
+                    
+                    // Сразу показываем экран проверки
+                    document.getElementById('question-screen').style.display = 'none';
+                    document.getElementById('results-screen').style.display = 'block';
+                    document.getElementById('verification-status').textContent = 
+                        'Комиссия проверяет ответы...';
+                    
+                    // Показываем правильный ответ
+                    if (currentQuestion && currentQuestion.answer) {
+                        const correctAnswerDisplay = document.getElementById('correct-answer-display');
+                        const correctAnswerText = document.getElementById('correct-answer-text');
+                        if (correctAnswerDisplay && correctAnswerText) {
+                            correctAnswerText.textContent = currentQuestion.answer;
+                            correctAnswerDisplay.style.display = 'block';
+                        }
+                    }
+                }
             });
 
             socket.on('intellectual-question-ended', () => {
+                // Если вопрос уже был завершен (все ответили), не делаем ничего
+                if (questionEnded) {
+                    return;
+                }
+                
+                questionEnded = true;
+                
                 if (currentTimer) {
                     clearInterval(currentTimer);
                 }
@@ -769,6 +841,16 @@
                 document.getElementById('results-screen').style.display = 'block';
                 document.getElementById('verification-status').textContent = 
                     'Комиссия проверяет ответы...';
+                
+                // Показываем правильный ответ
+                if (currentQuestion && currentQuestion.answer) {
+                    const correctAnswerDisplay = document.getElementById('correct-answer-display');
+                    const correctAnswerText = document.getElementById('correct-answer-text');
+                    if (correctAnswerDisplay && correctAnswerText) {
+                        correctAnswerText.textContent = currentQuestion.answer;
+                        correctAnswerDisplay.style.display = 'block';
+                    }
+                }
             });
 
             socket.on('intellectual-verification-update', (data) => {
