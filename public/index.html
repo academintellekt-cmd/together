@@ -138,13 +138,13 @@
             transform: none !important;
         }
 
-        /* Первый доступный квиз - специальный стиль (зеленая карточка) */
+        /* Первый доступный квиз - стиль Академа (голубая карточка) */
         .quiz-card:nth-child(1) {
-            background: #abf67c; /* Новый зеленый фон */
+            /* Цвет фона устанавливается через JavaScript из конфигурации квиза */
             border: none;
             box-shadow: 
-                0 6px 0px rgba(47, 185, 93, 0.3),
-                0 8px 16px rgba(47, 185, 93, 0.1);
+                0 6px 0px rgba(43, 122, 138, 0.3),
+                0 8px 16px rgba(43, 122, 138, 0.1);
         }
 
         .quiz-card:nth-child(1):hover {
@@ -152,7 +152,7 @@
             box-shadow: 
                 0 8px 0px rgba(0, 0, 0, 0.2),
                 0 12px 24px rgba(0, 0, 0, 0.15);
-            background: rgba(171, 246, 124, 0.9);
+            opacity: 0.9;
         }
 
         .quiz-card:nth-child(1):hover .quiz-title,
@@ -188,7 +188,7 @@
 
         /* Вторая карточка - зеленый стиль Газпрома */
         .quiz-card:nth-child(2) {
-            background: #00A651; /* Зеленый фон Газпрома */
+            /* Цвет фона устанавливается через JavaScript из конфигурации квиза */
             border: none;
             box-shadow: 
                 0 6px 0px rgba(0, 107, 60, 0.3),
@@ -200,7 +200,7 @@
             box-shadow: 
                 0 8px 0px rgba(0, 0, 0, 0.2),
                 0 12px 24px rgba(0, 0, 0, 0.15);
-            background: rgba(0, 166, 81, 0.9);
+            opacity: 0.9;
         }
 
         .quiz-card:nth-child(2):hover .quiz-title,
@@ -222,6 +222,45 @@
         }
 
         .quiz-card:nth-child(2) .quiz-icon {
+            display: none;
+        }
+
+        /* Третья карточка - фиолетовый стиль Квиз-Questions */
+        .quiz-card:nth-child(3) {
+            /* Цвет фона устанавливается через JavaScript из конфигурации квиза */
+            border: none;
+            box-shadow: 
+                0 6px 0px rgba(199, 124, 246, 0.3),
+                0 8px 16px rgba(199, 124, 246, 0.1);
+        }
+
+        .quiz-card:nth-child(3):hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 8px 0px rgba(0, 0, 0, 0.2),
+                0 12px 24px rgba(0, 0, 0, 0.15);
+            opacity: 0.9;
+        }
+
+        .quiz-card:nth-child(3):hover .quiz-title,
+        .quiz-card:nth-child(3):hover .quiz-subtitle,
+        .quiz-card:nth-child(3):hover .quiz-info-item,
+        .quiz-card:nth-child(3):hover .quiz-info-item span {
+            color: #373639;
+            filter: brightness(1.1);
+        }
+
+        .quiz-card:nth-child(3):hover div[style*="Caveat"] {
+            filter: brightness(1.1) !important;
+        }
+
+        /* Стили для третьей карточки (цвет текста) */
+        .quiz-card:nth-child(3) .quiz-title,
+        .quiz-card:nth-child(3) .quiz-subtitle {
+            color: #373639;
+        }
+
+        .quiz-card:nth-child(3) .quiz-icon {
             display: none;
         }
 
@@ -1022,12 +1061,33 @@
                 console.error('Квиз ГНУ не найден в списке квизов:', existingQuizzes);
             }
 
+            // Создаем виртуальный квиз для ЧГК
+            const quizQuestionsQuiz = {
+                id: 'chgk',
+                name: 'ЧГК',
+                display: {
+                    title: 'ЧГК',
+                    subtitle: 'интеллектуальная игра',
+                    phrase: 'Игра с ведущим',
+                    questionsDisplay: '30 из 30',
+                    timeDisplay: 'по {time} сек'
+                },
+                colors: {
+                    background: '#c77cf6', // Фиолетовый цвет
+                    text: '#373639',
+                    shadow: 'rgba(199, 124, 246, 0.3)'
+                },
+                questionCount: 30,
+                avgTime: 60
+            };
+
             // Список реальных квизов для отображения
             // Академгородок должен быть первым
             // Квиз ГНУ скрыт с главной страницы
             const realQuizzes = [
                 akademQuiz, // Академгородок (первый)
-                gazpromQuiz // Газпром (второй)
+                gazpromQuiz, // Газпром (второй)
+                quizQuestionsQuiz // Квиз-Questions (третий)
                 // gnuQuiz скрыт с главной страницы
             ].filter(q => q !== null && q !== undefined);
             
@@ -1100,6 +1160,11 @@
                         // Чемпионат ГНУ - открывает отдельную страницу
                         card.addEventListener('click', () => {
                             window.location.href = `/gnu-quiz.html`;
+                        });
+                    } else if (quiz.id === 'chgk') {
+                        // ЧГК - открывает страницу chgk-host
+                        card.addEventListener('click', () => {
+                            window.location.href = `/chgk-host.html`;
                         });
                     } else {
                         // Для других квизов - открываем универсальную страницу выбора режима
@@ -1245,6 +1310,57 @@
                         const questionsText = quiz.display.questionsDisplay 
                             ? quiz.display.questionsDisplay.replace('{total}', questionCount)
                             : `15 из ${questionCount}`;
+
+                        cardHTML = `
+                            <div class="quiz-card-content">
+                                <div class="quiz-title">${quiz.display.title || quiz.name.toUpperCase()}</div>
+                                <div class="quiz-subtitle">${quiz.display.subtitle || ''}</div>
+                                <div class="quiz-phrase">${quiz.display.phrase || ''}</div>
+                            </div>
+                            <div class="quiz-info">
+                                <div class="quiz-info-item">
+                                    ${questionIcon}
+                                    <span>${questionsText}</span>
+                                </div>
+                                <div class="quiz-info-item">
+                                    ${clockIcon}
+                                    <span>по ${timeSeconds} сек</span>
+                                </div>
+                            </div>
+                        `;
+                        // Добавляем класс для карточки с фразой
+                        card.classList.add('has-phrase');
+                    } else if (quiz.id === 'chgk' && quiz.display) {
+                        // ЧГК - стиль с фразой
+                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                            <text x="20" y="32" 
+                                  font-family="Kalam, cursive" 
+                                  font-size="36" 
+                                  font-weight="700"
+                                  fill="#000" 
+                                  text-anchor="middle">?</text>
+                        </svg>`;
+                        
+                        // Извлекаем время из квиза (60 секунд для ЧГК)
+                        const timeSeconds = avgTime || 60;
+                        
+                        // SVG иконка часов "от руки маркером" - черный цвет
+                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
+                                  stroke="#000" stroke-width="4" fill="none" 
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+                            <!-- Часовая стрелка (вверх) -->
+                            <line x1="16" y1="16" x2="16" y2="10" 
+                                  stroke="#000" stroke-width="3.5" 
+                                  stroke-linecap="round"/>
+                            <!-- Минутная стрелка (вправо) -->
+                            <line x1="16" y1="16" x2="21" y2="21" 
+                                  stroke="#000" stroke-width="3.5" 
+                                  stroke-linecap="round"/>
+                        </svg>`;
+
+                        // Формируем текст с количеством вопросов
+                        const questionsText = quiz.display.questionsDisplay || '30 из 30';
 
                         cardHTML = `
                             <div class="quiz-card-content">
@@ -1457,15 +1573,7 @@
                     // Инициализация Frame1 с кнопкой "Войти" и "Настройки"
                     Frame1.init({
                         showLogin: true,
-                        showSettings: true,
-                        customButtons: [
-                            {
-                                text: '📝 Квиз-Questions',
-                                url: '/quiz-questions-host.html',
-                                position: 'right',
-                                className: ''
-                            }
-                        ]
+                        showSettings: true
                     });
                     
                     // Инициализация Frame2 с логотипом и фразой
@@ -1545,15 +1653,7 @@
                 // Инициализация Frame1 (Frame 1)
                 Frame1.init({
                     showLogin: true,
-                    showSettings: true,
-                    customButtons: [
-                        {
-                            text: '📝 Квиз-Questions',
-                            url: '/quiz-questions-host.html',
-                            position: 'right',
-                            className: ''
-                        }
-                    ]
+                    showSettings: true
                 });
                 
                 // Инициализация Frame2 (Frame 2) - будет скрыт через pageLayoutConfig

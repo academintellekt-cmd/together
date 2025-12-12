@@ -3,7 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 
-// Хранилище комнат для quiz-questions (отдельно от обычных квизов)
+// Хранилище комнат для ЧГК (отдельно от обычных квизов)
 // Это будет экспортироваться для использования в server.js
 const intellectualRooms = new Map();
 
@@ -22,31 +22,85 @@ function loadIntellectualQuestions(quizId) {
   
   let currentQuestion = null;
   let questionId = 1;
+  let previousLineWasEmpty = false;
+  let lastQuestionNumber = null;
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     
     // Пропускаем пустые строки и комментарии
     if (!line || line.startsWith('//') || line.startsWith('#')) {
+      previousLineWasEmpty = true;
       continue;
     }
     
-    // Вопрос начинается с Q:
-    if (line.startsWith('Q:')) {
-      // Сохраняем предыдущий вопрос, если есть
+    // Вопрос начинается с Q: или Q1:, Q2: и т.д.
+    if (line.match(/^Q\d*:/)) {
+      // Извлекаем номер вопроса и текст
+      const qMatch = line.match(/^Q(\d*):\s*(.*)/);
+      const qNumber = qMatch ? (qMatch[1] || null) : null;
+      const questionText = qMatch ? qMatch[2].trim() : line.replace(/^Q\d*:\s*/, '').trim();
+      
+      // Если у текущего вопроса уже есть ответ, значит это новый вопрос
+      // Сохраняем предыдущий вопрос
       if (currentQuestion && currentQuestion.answer) {
         questions.push(currentQuestion);
+        currentQuestion = null;
+        lastQuestionNumber = null;
+      }
+      // Если у текущего вопроса нет ответа И это тот же номер вопроса (или оба без номера),
+      // значит это продолжение вопроса - добавляем к тексту
+      // НО только если предыдущая строка НЕ была пустой (иначе это может быть категория)
+      else if (currentQuestion && !currentQuestion.answer && qNumber === lastQuestionNumber && !previousLineWasEmpty) {
+        currentQuestion.question += (currentQuestion.question ? ' ' : '') + questionText;
+        previousLineWasEmpty = false;
+        continue;
+      }
+      // Если у текущего вопроса нет ответа И это тот же номер, но предыдущая строка была пустой,
+      // проверяем: если текст короткий (менее 20 символов), это категория - сбрасываем
+      // Если длинный - это продолжение вопроса
+      else if (currentQuestion && !currentQuestion.answer && qNumber === lastQuestionNumber && previousLineWasEmpty) {
+        if (currentQuestion.question.length < 20) {
+          // Короткий текст - это категория, сбрасываем
+          currentQuestion = null;
+          lastQuestionNumber = null;
+        } else {
+          // Длинный текст - это продолжение вопроса
+          currentQuestion.question += (currentQuestion.question ? ' ' : '') + questionText;
+          previousLineWasEmpty = false;
+          continue;
+        }
+      }
+      // Если у текущего вопроса нет ответа И это другой номер вопроса (или предыдущая строка была пустой),
+      // значит предыдущий был категорией/заголовком - сбрасываем его
+      else if (currentQuestion && !currentQuestion.answer) {
+        currentQuestion = null;
+        lastQuestionNumber = null;
       }
       
+      // Создаем новый вопрос
       currentQuestion = {
         id: questionId++,
-        question: line.substring(2).trim(),
-        answer: null
+        question: questionText,
+        answer: null,
+        time: 60 // Значение по умолчанию - 60 секунд
       };
+      lastQuestionNumber = qNumber;
+      previousLineWasEmpty = false;
     }
-    // Ответ начинается с A:
-    else if (line.startsWith('A:') && currentQuestion) {
-      currentQuestion.answer = line.substring(2).trim();
+    // Ответ начинается с A: или A1:, A2: и т.д.
+    else if (line.match(/^A\d*:/) && currentQuestion) {
+      // Извлекаем текст ответа (убираем A: или A1: и т.д.)
+      const answerText = line.replace(/^A\d*:\s*/, '').trim();
+      currentQuestion.answer = answerText;
+    }
+    // Время начинается с T:
+    else if (line.match(/^T\s*:/) && currentQuestion) {
+      // Извлекаем время (убираем T: и берем число)
+      const timeMatch = line.match(/^T\s*:\s*(\d+)/);
+      if (timeMatch) {
+        currentQuestion.time = parseInt(timeMatch[1], 10);
+      }
     }
   }
   
@@ -56,6 +110,16 @@ function loadIntellectualQuestions(quizId) {
   }
   
   console.log(`📚 Загружено ${questions.length} вопросов для интеллектуальной игры`);
+  
+  // Отладочная информация - показываем первые 3 вопроса
+  if (questions.length > 0) {
+    console.log('📋 Первые 3 вопроса:');
+    questions.slice(0, 3).forEach((q, i) => {
+      const preview = q.question.length > 60 ? q.question.substring(0, 60) + '...' : q.question;
+      console.log(`  ${i + 1}. [${q.time}с] ${preview}`);
+    });
+  }
+  
   return questions;
 }
 
@@ -67,7 +131,7 @@ router.post('/create-room', (req, res) => {
   const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
   
   // Загружаем вопросы (30 вопросов)
-  const questions = loadIntellectualQuestions(quizId || 'quiz-questions');
+  const questions = loadIntellectualQuestions(quizId || 'chgk');
   
   if (questions.length === 0) {
     return res.status(400).json({ error: 'Вопросы не найдены' });
@@ -81,8 +145,8 @@ router.post('/create-room', (req, res) => {
     gameState: 'lobby',
     currentQuestion: 0,
     questions: questions,
-    quizId: quizId || 'quiz-questions',
-    quizName: 'Квиз-Questions',
+    quizId: quizId || 'chgk',
+    quizName: 'ЧГК',
     startTime: null,
     questionStartTime: null,
     answers: new Map(),
@@ -95,7 +159,19 @@ router.post('/create-room', (req, res) => {
   
   intellectualRooms.set(roomCode, room);
   
+  // Убеждаемся, что global.intellectualRooms тоже обновлен (если он установлен)
+  if (global.intellectualRooms && global.intellectualRooms !== intellectualRooms) {
+    global.intellectualRooms.set(roomCode, room);
+    console.log(`⚠️ global.intellectualRooms был другим объектом, синхронизировано`);
+  }
+  
   console.log(`📋 Комната ${roomCode} создана для интеллектуальной игры: ${questions.length} вопросов`);
+  console.log(`📋 Всего комнат в intellectualRooms: ${intellectualRooms.size}`);
+  console.log(`📋 Коды комнат:`, Array.from(intellectualRooms.keys()));
+  if (global.intellectualRooms) {
+    console.log(`📋 Всего комнат в global.intellectualRooms: ${global.intellectualRooms.size}`);
+    console.log(`📋 Коды комнат в global:`, Array.from(global.intellectualRooms.keys()));
+  }
   
   res.json({ roomCode });
 });

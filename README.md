@@ -143,7 +143,7 @@ together/
 │   │   └── dmx-config.json
 │   └── routes/
 │       ├── dmx-api.js     # HTTP API для DMX
-│       └── quiz-questions-api.js
+│       └── chgk-api.js
 ├── data/                  # Данные квизов
 │   ├── quizzes/          # Конфигурации квизов (JSON)
 │   └── questions/        # Вопросы для квизов (TXT)

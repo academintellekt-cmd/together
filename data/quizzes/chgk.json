@@ -1,6 +1,6 @@
 {
-  "id": "quiz-questions",
-  "name": "Квиз-Questions",
+  "id": "chgk",
+  "name": "ЧГК",
   "description": "Интеллектуальная игра с проверкой ответов комиссией",
   "icon": "📝",
   "soloMode": false,
@@ -8,14 +8,14 @@
   "password": "",
   "passwordRequired": false,
   "colors": {
-    "background": "#abf67c",
-    "text": "#2fb95d",
-    "shadow": "rgba(47, 185, 93, 0.3)"
+    "background": "#c77cf6",
+    "text": "#373639",
+    "shadow": "rgba(199, 124, 246, 0.3)"
   },
   "display": {
-    "title": "КВИЗ-QUESTIONS",
+    "title": "ЧГК",
     "subtitle": "интеллектуальная игра",
-    "phrase": "30 вопросов с проверкой комиссии"
+    "phrase": "Игра с ведущим"
   },
   "gameSettings": {
     "questionsPerGame": 30,
@@ -23,6 +23,6 @@
     "defaultTime": 60,
     "maxPlayers": 50
   },
-  "questionsFile": "quiz-questions.txt"
+  "questionsFile": "chgk.txt"
 }
 

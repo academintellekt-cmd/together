@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Квиз-Questions - Главный экран</title>
+    <title>ЧГК - Главный экран</title>
     <!-- Новая система фреймов -->
     <link rel="stylesheet" href="/styles/base.css">
     <link rel="stylesheet" href="/styles/layout.css">
@@ -515,7 +515,7 @@
                         Страница открыта неправильно!
                     </p>
                     <p style="font-size: 18px; margin-bottom: 30px;">
-                        Откройте страницу через сервер: http://localhost:3000/quiz-questions-host.html
+                        Откройте страницу через сервер: http://localhost:3000/chgk-host.html
                     </p>
                 </div>
             `;
@@ -557,7 +557,7 @@
                 'gnu': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' },
                 'gazprom': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' },
                 'akadem': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' },
-                'quiz-questions': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' },
+                'chgk': { bg: '#c77cf6', text: '#373639', shadow: 'rgba(199, 124, 246, 0.3)' },
                 'friends-quiz': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' }, // Обратная совместимость
                 'gnu-multiplayer': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' } // Обратная совместимость
             };
@@ -589,7 +589,7 @@
         function initApp() {
             // Получаем quizId из URL
             const urlParams = new URLSearchParams(window.location.search);
-            quizId = urlParams.get('quiz') || 'quiz-questions';
+            quizId = urlParams.get('quiz') || 'chgk';
             
             // Применяем цвета квиза к кнопкам
             if (quizId) {
@@ -669,7 +669,7 @@
             });
 
             socket.on('intellectual-question-started', (data) => {
-                const { question, questionIndex, totalQuestions } = data;
+                const { question, questionIndex, totalQuestions, time } = data;
                 document.getElementById('lobby-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'block';
                 document.getElementById('question-screen').style.display = 'block';
@@ -696,8 +696,12 @@
                 document.getElementById('question-text').textContent = question.question;
                 updateQuestionNumber(questionIndex + 1, totalQuestions);
                 
-                // Запускаем таймер на 10 секунд
-                let secondsLeft = 10;
+                // Используем время из вопроса (в секундах), если указано, иначе используем значение по умолчанию
+                const questionTimeSeconds = time || question.time || 60;
+                questionTime = questionTimeSeconds * 1000; // Конвертируем в миллисекунды
+                
+                // Запускаем таймер на указанное время
+                let secondsLeft = questionTimeSeconds;
                 updateTimer(secondsLeft);
                 
                 if (currentTimer) {
@@ -984,8 +988,8 @@
             
             // Формируем URL для игрока
             const baseUrl = serverUrl || window.location.origin;
-            const playerUrl = `${baseUrl}/quiz-questions-player.html?room=${roomCode}`;
-            const commissionUrl = `${baseUrl}/quiz-questions-commission.html?room=${roomCode}`;
+            const playerUrl = `${baseUrl}/chgk-player.html?room=${roomCode}`;
+            const commissionUrl = `${baseUrl}/chgk-commission.html?room=${roomCode}`;
             console.log('Генерация QR-кода для URL:', playerUrl);
             
             const qrContainer = document.getElementById('qr-container');
@@ -1086,7 +1090,7 @@
                     'gnu': '1234',
                     'gazprom': '1234',
                     'akadem': '1234',
-                    'quiz-questions': null, // По умолчанию без пароля
+                    'chgk': null, // По умолчанию без пароля
                     'friends-quiz': '1234', // Обратная совместимость
                     'gnu-multiplayer': '1234' // Обратная совместимость
                 };
@@ -1096,7 +1100,7 @@
                     'gnu': 'gnuPasswordVerified',
                     'gazprom': 'gazpromPasswordVerified',
                     'akadem': 'akademPasswordVerified',
-                    'quiz-questions': null,
+                    'chgk': null,
                     'friends-quiz': 'gnuPasswordVerified', // Обратная совместимость
                     'gnu-multiplayer': 'gnuPasswordVerified' // Обратная совместимость
                 };
@@ -1113,12 +1117,12 @@
                     password = requiredPassword;
                 }
                 
-                const requestBody = { quizId: quizId || 'quiz-questions' };
+                const requestBody = { quizId: quizId || 'chgk' };
                 if (password) {
                     requestBody.password = password;
                 }
                 
-                const response = await fetch('/api/quiz-questions/create-room', {
+                const response = await fetch('/api/chgk/create-room', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1142,7 +1146,7 @@
                             'gnu': 'gnuPasswordVerified',
                             'gazprom': 'gazpromPasswordVerified',
                             'akadem': 'akademPasswordVerified',
-                            'quiz-questions': null,
+                            'chgk': null,
                             'friends-quiz': 'gnuPasswordVerified',
                             'gnu-multiplayer': 'gnuPasswordVerified'
                         };
@@ -1150,7 +1154,7 @@
                             'gnu': '1234',
                             'gazprom': '1234',
                             'akadem': '1234',
-                            'quiz-questions': null,
+                            'chgk': null,
                             'friends-quiz': '1234',
                             'gnu-multiplayer': '1234'
                         };
@@ -1203,7 +1207,7 @@
                         ${error.message}<br><br>
                         <strong>Убедитесь, что:</strong><br>
                         1. Сервер запущен (npm start)<br>
-                        2. Вы открыли страницу через http://localhost:3000/quiz-questions-host.html<br>
+                        2. Вы открыли страницу через http://localhost:3000/chgk-host.html<br>
                         3. Нет проблем с сетью
                     `;
                 }
@@ -1447,7 +1451,7 @@
                 await getServerUrl();
             }
             const baseUrl = serverUrl || window.location.origin;
-            const commissionUrl = `${baseUrl}/quiz-questions-commission.html?room=${roomCode}`;
+            const commissionUrl = `${baseUrl}/chgk-commission.html?room=${roomCode}`;
             window.open(commissionUrl, '_blank');
         }
 
@@ -1481,7 +1485,7 @@
                 await getServerUrl();
             }
             const baseUrl = serverUrl || window.location.origin;
-            const playerUrl = `${baseUrl}/quiz-questions-player.html?room=${roomCode}`;
+            const playerUrl = `${baseUrl}/chgk-player.html?room=${roomCode}`;
             if (linkEl) {
                 linkEl.innerHTML = `<a href="${playerUrl}" target="_blank">${playerUrl}</a>`;
             }
