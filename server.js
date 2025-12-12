@@ -1383,6 +1383,8 @@ io.on('connection', (socket) => {
 
   // Игрок подключается к комнате
   socket.on('player-join', ({ roomCode, playerName, password }) => {
+    console.log(`📥 Получено событие player-join: roomCode=${roomCode}, playerName=${playerName}`);
+    
     // Нормализуем входные данные
     const normalizedRoomCode = roomCode ? roomCode.trim().toUpperCase() : '';
     const normalizedPlayerName = playerName ? playerName.trim() : '';
@@ -1390,52 +1392,191 @@ io.on('connection', (socket) => {
     console.log(`🔵 Игрок пытается подключиться: комната=${normalizedRoomCode}, имя=${normalizedPlayerName}`);
     
     if (!normalizedRoomCode || !normalizedPlayerName) {
+      console.log(`❌ Неверные данные: roomCode=${normalizedRoomCode}, playerName=${normalizedPlayerName}`);
       socket.emit('error', { message: 'Неверные данные: заполните все поля' });
       return;
     }
     
     const room = rooms.get(normalizedRoomCode);
     if (!room) {
-      console.log(`❌ Комната ${normalizedRoomCode} не найдена`);
+      console.log(`❌ Комната ${normalizedRoomCode} не найдена. Доступные комнаты:`, Array.from(rooms.keys()));
       socket.emit('error', { message: 'Комната не найдена' });
       return;
     }
 
     // Пароль проверяется только при создании комнаты хостом
     // Игроки подключаются без проверки пароля
-    console.log(`✅ Игрок ${normalizedPlayerName} подключается к комнате ${normalizedRoomCode} (пароль не требуется)`);
+    console.log(`✅ Игрок ${normalizedPlayerName} подключается к комнате ${normalizedRoomCode} (пароль не требуется), состояние игры: ${room.gameState}`);
 
-    // Если игра уже началась, запрещаем подключение
-    if (room.gameState !== 'lobby') {
-      socket.emit('error', { message: 'Игра уже началась. Нельзя подключиться к активной игре.' });
-      return;
+    // ВАЖНО: Проверяем переподключение ДО любых проверок на gameState
+    // Проверяем, есть ли уже игрок с таким именем в комнате (переподключение)
+    // Ищем игрока по имени (без учета регистра и пробелов)
+    console.log(`🔍 Поиск игрока для переподключения: имя="${normalizedPlayerName}", игроки в комнате:`, room.players.map(p => ({ name: p.name, disconnected: p.disconnected, id: p.id })));
+    const existingPlayer = room.players.find(p => {
+      const playerNameNormalized = (p.name || '').trim().toLowerCase();
+      const inputNameNormalized = normalizedPlayerName.toLowerCase();
+      const matches = playerNameNormalized === inputNameNormalized;
+      if (matches) {
+        console.log(`✅ Найден существующий игрок: "${p.name}" (нормализованное: "${playerNameNormalized}", disconnected: ${p.disconnected || false})`);
+      }
+      return matches;
+    });
+    let player;
+    let isReconnection = false;
+
+    if (existingPlayer) {
+      // Найден игрок с таким именем
+      console.log(`🔍 Найден существующий игрок: name="${existingPlayer.name}", disconnected=${existingPlayer.disconnected}, id=${existingPlayer.id}, score=${existingPlayer.score}`);
+      
+      // Проверяем disconnected (может быть undefined в старых записях, считаем undefined как false = подключен)
+      const isDisconnected = existingPlayer.disconnected === true;
+      if (!isDisconnected) {
+        // Игрок уже подключен - это ошибка
+        console.warn(`⚠️ Игрок ${normalizedPlayerName} уже подключен к комнате ${normalizedRoomCode} (disconnected: ${existingPlayer.disconnected})`);
+        socket.emit('error', { message: 'Игрок с таким именем уже подключен к этой комнате' });
+        return;
+      }
+      
+      // Переподключение отключенного игрока - РАЗРЕШАЕМ в любом состоянии игры
+      isReconnection = true;
+      console.log(`🔄 Переподключение игрока ${normalizedPlayerName} (был отключен: ${existingPlayer.disconnected}), состояние игры: ${room.gameState}, текущий счет: ${existingPlayer.score}`);
+      
+      // Удаляем старую запись из players Map, если старый socket еще существует
+      if (players.has(existingPlayer.id)) {
+        players.delete(existingPlayer.id);
+      }
+      
+      // Сохраняем старый socket.id перед обновления
+      const oldSocketId = existingPlayer.id;
+      
+      // Обновляем данные игрока
+      existingPlayer.id = socket.id;
+      existingPlayer.disconnected = false;
+      player = existingPlayer;
+      
+      // Обновляем ответы: переносим ответы со старого socket.id на новый
+      // Ищем ответы по старому socket.id или по имени игрока
+      if (room.answers.has(oldSocketId)) {
+        // Переносим ответ со старого socket.id на новый
+        const oldAnswer = room.answers.get(oldSocketId);
+        room.answers.delete(oldSocketId);
+        room.answers.set(socket.id, oldAnswer);
+      } else {
+        // Также проверяем по имени игрока (на случай, если socket.id уже изменился)
+        for (const [answerSocketId, answer] of room.answers.entries()) {
+          if (answer.playerName === normalizedPlayerName) {
+            // Переносим ответ на новый socket.id
+            room.answers.delete(answerSocketId);
+            room.answers.set(socket.id, answer);
+            break; // Нашли ответ, выходим
+          }
+        }
+      }
+    } else {
+      // Новое подключение
+      // Проверка на переполнение (считаем только активных игроков)
+      const activePlayers = room.players.filter(p => !p.disconnected);
+      if (activePlayers.length >= 14) {
+        socket.emit('error', { message: 'Комната переполнена (максимум 14 игроков)' });
+        return;
+      }
+
+      // Новое подключение - игрока с таким именем нет в комнате
+      // Для новых игроков проверяем, можно ли подключаться во время игры
+      if (room.gameState !== 'lobby') {
+        console.log(`❌ Блокировка нового подключения: игра уже началась (gameState: ${room.gameState})`);
+        socket.emit('error', { message: 'Игра уже началась. Нельзя подключиться к активной игре.' });
+        return;
+      }
+      
+      // Создаем нового игрока
+      player = {
+        id: socket.id,
+        name: normalizedPlayerName,
+        score: 0,
+        roomCode: normalizedRoomCode,
+        disconnected: false
+      };
+      room.players.push(player);
     }
 
-    // Проверка на переполнение
-    if (room.players.length >= 14) {
-      socket.emit('error', { message: 'Комната переполнена (максимум 14 игроков)' });
-      return;
-    }
-
-    // Создаем нового игрока
-    const player = {
-      id: socket.id,
-      name: normalizedPlayerName,
-      score: 0,
-      roomCode: normalizedRoomCode
-    };
-    room.players.push(player);
+    // Обновляем players Map
     players.set(socket.id, player);
     socket.join(normalizedRoomCode);
     room.lastActivity = Date.now(); // Обновляем активность при подключении игрока
     
-    socket.emit('player-connected', { 
-      playerId: socket.id, 
+    // Подготавливаем данные для отправки клиенту
+    const connectionData = {
+      playerId: socket.id,
       roomCode: normalizedRoomCode,
-      quizId: room.quizId // Добавляем quizId для применения стилей
-    });
+      quizId: room.quizId,
+      isReconnection: isReconnection,
+      playerScore: player.score
+    };
+
+    // Если это переподключение и игра уже началась, отправляем текущее состояние
+    if (isReconnection && room.gameState !== 'lobby') {
+      if (room.gameState === 'question') {
+        // Игра идет, отправляем текущий вопрос
+        const question = room.questions[room.currentQuestion];
+        const questionData = {
+          question: question.question,
+          options: question.options,
+          questionNumber: room.currentQuestion + 1,
+          totalQuestions: room.questions.length,
+          time: question.time,
+          quizId: room.quizId,
+          timeElapsed: room.startTime ? Math.floor((Date.now() - room.startTime) / 1000) : 0
+        };
+        connectionData.currentQuestion = questionData;
+        connectionData.gameState = 'question';
+        
+        // Проверяем, ответил ли игрок на текущий вопрос (по имени, так как socket.id мог измениться)
+        const hasAnswered = Array.from(room.answers.values()).some(a => 
+          a.playerName === normalizedPlayerName
+        );
+        
+        // Проверяем, не истекло ли время вопроса
+        const timeElapsed = room.startTime ? Math.floor((Date.now() - room.startTime) / 1000) : 0;
+        const timeExpired = timeElapsed >= question.time;
+        
+        // Если время истекло, считаем, что игрок не может ответить (hasAnswered = true)
+        connectionData.hasAnswered = hasAnswered || timeExpired;
+        connectionData.timeExpired = timeExpired;
+      } else if (room.gameState === 'results') {
+        // Показываются результаты, отправляем их
+        const question = room.questions[room.currentQuestion];
+        const results = Array.from(room.answers.values());
+        const sortedPlayers = room.players.sort((a, b) => b.score - a.score);
+        connectionData.currentResults = {
+          correctAnswer: question.correct,
+          correctAnswerText: question.options[question.correct],
+          results: results,
+          players: sortedPlayers
+        };
+        connectionData.gameState = 'results';
+      } else if (room.gameState === 'playing') {
+        // Игра началась, но вопрос еще не показан
+        connectionData.gameState = 'playing';
+      } else if (room.gameState === 'finished') {
+        // Игра завершена
+        const finalResults = room.players.sort((a, b) => b.score - a.score);
+        connectionData.finalResults = {
+          results: finalResults
+        };
+        connectionData.gameState = 'finished';
+      }
+    }
+    
+    console.log(`📤 Отправка player-connected: isReconnection=${isReconnection}, gameState=${connectionData.gameState || 'lobby'}, playerScore=${player.score}`);
+    socket.emit('player-connected', connectionData);
     io.to(normalizedRoomCode).emit('player-list-updated', { players: room.players });
-    console.log(`Игрок ${normalizedPlayerName} подключен к комнате ${normalizedRoomCode}`);
+    
+    if (isReconnection) {
+      console.log(`✅ Игрок ${normalizedPlayerName} переподключен к комнате ${normalizedRoomCode}, очки: ${player.score}, состояние игры: ${room.gameState}`);
+    } else {
+      console.log(`✅ Игрок ${normalizedPlayerName} подключен к комнате ${normalizedRoomCode} (новое подключение)`);
+    }
     
     // DMX: игрок подключился
     const playerIndex = getPlayerIndex(normalizedRoomCode, socket.id);
@@ -1535,19 +1676,28 @@ io.on('connection', (socket) => {
     const room = rooms.get(roomCode);
     if (!room) return;
 
-    const answeredPlayers = Array.from(room.answers.keys());
-    const playerStatuses = room.players.map(player => ({
-      id: player.id,
-      name: player.name,
-      answered: answeredPlayers.includes(player.id)
-    }));
+    // Получаем активных игроков (не отключенных)
+    const activePlayers = room.players.filter(p => !p.disconnected);
+    const answeredPlayerNames = Array.from(room.answers.values()).map(a => a.playerName);
+    const answeredSocketIds = Array.from(room.answers.keys());
+    
+    const playerStatuses = activePlayers.map(player => {
+      // Проверяем ответ по socket.id или по имени (для переподключения)
+      const answered = answeredSocketIds.includes(player.id) || 
+                      answeredPlayerNames.includes(player.name);
+      return {
+        id: player.id,
+        name: player.name,
+        answered: answered
+      };
+    });
 
     // Отправляем статус хосту
     io.to(roomCode).emit('answer-status', {
       players: playerStatuses,
-      answeredCount: answeredPlayers.length,
-      totalPlayers: room.players.length,
-      allAnswered: answeredPlayers.length === room.players.length && room.players.length > 0
+      answeredCount: answeredPlayerNames.length,
+      totalPlayers: activePlayers.length,
+      allAnswered: answeredPlayerNames.length === activePlayers.length && activePlayers.length > 0
     });
   }
 
@@ -1557,7 +1707,14 @@ io.on('connection', (socket) => {
     const player = players.get(socket.id);
     
     if (!room || !player || room.gameState !== 'question') return;
-    if (room.answers.has(socket.id)) return; // Уже ответил
+    
+    // Проверяем, не ответил ли уже этот игрок (по socket.id или по имени)
+    const alreadyAnswered = room.answers.has(socket.id) || 
+      Array.from(room.answers.values()).some(a => a.playerName === player.name);
+    if (alreadyAnswered) {
+      console.log(`⚠️ Игрок ${player.name} уже ответил на вопрос`);
+      return;
+    }
 
     const question = room.questions[room.currentQuestion];
     const isCorrect = answerIndex === question.correct;
@@ -1603,8 +1760,10 @@ io.on('connection', (socket) => {
     // Обновляем статус ответов
     updateAnswerStatus(roomCode);
     
-    // Проверяем, все ли ответили
-    if (room.answers.size === room.players.length && room.players.length > 0) {
+    // Проверяем, все ли активные игроки ответили
+    const activePlayers = room.players.filter(p => !p.disconnected);
+    const answeredCount = new Set(Array.from(room.answers.values()).map(a => a.playerName)).size;
+    if (answeredCount === activePlayers.length && activePlayers.length > 0) {
       // Останавливаем таймер
       if (questionTimers.has(roomCode)) {
         clearTimeout(questionTimers.get(roomCode));
@@ -2119,11 +2278,32 @@ io.on('connection', (socket) => {
     if (player) {
       const room = rooms.get(player.roomCode);
       if (room) {
-        // Удаляем игрока из списка
-        room.players = room.players.filter(p => p.id !== socket.id);
+        // Помечаем игрока как отключенного вместо удаления
+        // Ищем игрока по socket.id или по имени (на случай если socket.id изменился)
+        let roomPlayer = room.players.find(p => p.id === socket.id);
+        if (!roomPlayer) {
+          // Если не нашли по id, ищем по имени
+          const playerNameNormalized = (player.name || '').trim().toLowerCase();
+          roomPlayer = room.players.find(p => {
+            const pNameNormalized = (p.name || '').trim().toLowerCase();
+            return pNameNormalized === playerNameNormalized;
+          });
+          if (roomPlayer) {
+            console.log(`🔍 Найден игрок по имени при отключении: "${roomPlayer.name}" (id: ${roomPlayer.id}, socket.id: ${socket.id})`);
+          }
+        }
+        if (roomPlayer) {
+          roomPlayer.disconnected = true;
+          // Сохраняем время отключения для возможной очистки позже
+          roomPlayer.disconnectedAt = Date.now();
+          console.log(`🔌 Игрок ${player.name} отключился от комнаты ${player.roomCode} (состояние сохранено, disconnected=true, id: ${roomPlayer.id})`);
+        } else {
+          console.warn(`⚠️ Игрок ${player.name} не найден в комнате ${player.roomCode} при отключении. Игроки в комнате:`, room.players.map(p => ({ name: p.name, id: p.id, disconnected: p.disconnected })));
+        }
         room.lastActivity = Date.now(); // Обновляем активность при отключении игрока
+        
+        // Отправляем обновленный список игроков (с информацией об отключенных)
         io.to(player.roomCode).emit('player-list-updated', { players: room.players });
-        console.log(`Игрок ${player.name} отключился и удален из комнаты ${player.roomCode}`);
       }
       players.delete(socket.id);
     }

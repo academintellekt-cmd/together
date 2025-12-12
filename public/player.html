@@ -927,6 +927,7 @@
 
             console.log('Подключение к комнате:', roomCode, 'Игрок:', playerName);
             // Подключаемся без пароля - пароль не требуется для игроков
+            console.log('📤 Отправка события player-join:', { roomCode, playerName });
             socket.emit('player-join', { roomCode, playerName });
         }
 
@@ -952,13 +953,170 @@
             }
         });
 
-        socket.on('player-connected', (data) => {
-            console.log('✅ Игрок подключен, ID:', data.playerId);
-            document.getElementById('connect-screen').style.display = 'none';
-            document.getElementById('waiting-screen').style.display = 'block';
+        // Функция для отображения вопроса (используется при обычном получении и при переподключении)
+        function displayQuestion(questionData, alreadyAnswered = false) {
+            // Если мы еще на экране подключения, переключаемся
+            if (document.getElementById('connect-screen').style.display !== 'none') {
+                document.getElementById('connect-screen').style.display = 'none';
+                document.getElementById('waiting-screen').style.display = 'none';
+                document.getElementById('game-screen').style.display = 'block';
+            }
             
-            // Скрываем элементы Frame1 при ожидании
-            hideFrame1Elements();
+            // Применяем класс квиза, если он передан в данных вопроса
+            if (questionData.quizId) {
+                applyQuizClass(questionData.quizId);
+            }
+            
+            // Инициализируем элементы Frame1
+            initFrame1Elements();
+            
+            // Скрываем кнопку готовности при новом вопросе
+            isReady = false;
+            const readyBtn = document.getElementById('ready-btn');
+            const readyStatus = document.getElementById('ready-status');
+            if (readyBtn) readyBtn.style.display = 'none';
+            if (readyStatus) readyStatus.textContent = '';
+            
+            // Устанавливаем флаг ответа
+            hasAnswered = alreadyAnswered;
+            
+            document.getElementById('question-screen').style.display = 'block';
+            document.getElementById('results-screen').style.display = 'none';
+            document.getElementById('final-results').style.display = 'none';
+            document.getElementById('answer-feedback').textContent = '';
+            document.getElementById('answer-feedback').style.display = 'none';
+            
+            // Сохраняем текущий счет перед новым вопросом
+            const currentScoreElement = document.getElementById('player-score');
+            if (currentScoreElement && !alreadyAnswered) {
+                window.previousPlayerScore = parseInt(currentScoreElement.textContent) || 0;
+            }
+            
+            const questionNum = questionData.questionNumber;
+            const totalQuestions = questionData.totalQuestions;
+            
+            // Обновляем номер вопроса в Frame1
+            updateFrame1QuestionNumber(questionNum, totalQuestions);
+            
+            // Обновляем номер вопроса в основном контенте
+            document.getElementById('question-num').textContent = questionNum;
+            document.getElementById('total-questions').textContent = totalQuestions;
+            document.getElementById('question-text').textContent = questionData.question;
+            
+            // Обновляем прогресс-бар
+            const progress = (questionNum / totalQuestions) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+            
+            // Отображение изображения вопроса (не показываем для квиза gazprom)
+            let imageContainer = document.getElementById('question-image-container');
+            if (questionData.image && questionData.quizId !== 'gazprom') {
+                if (!imageContainer) {
+                    imageContainer = document.createElement('div');
+                    imageContainer.className = 'question-image-container';
+                    imageContainer.id = 'question-image-container';
+                    const questionText = document.getElementById('question-text');
+                    questionText.parentNode.insertBefore(imageContainer, questionText.nextSibling);
+                }
+                const img = document.createElement('img');
+                img.className = 'question-image';
+                const questionsDir = questionData.questionsDir || 'gnu';
+                img.src = `/data/media/questions/${questionsDir}/${questionData.image}`;
+                img.alt = 'Question image';
+                imageContainer.innerHTML = '';
+                imageContainer.appendChild(img);
+            } else if (imageContainer) {
+                imageContainer.innerHTML = '';
+            }
+
+            // Варианты ответов
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            const optionLabels = ['А', 'Б', 'В', 'Г'];
+            const optionClasses = ['option-a', 'option-b', 'option-c', 'option-d'];
+            
+            questionData.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = `option-btn ${optionClasses[index]}`;
+                btn.innerHTML = `
+                    <span class="option-label">${optionLabels[index]}</span>
+                    <span class="option-text">${option}</span>
+                `;
+                btn.dataset.optionIndex = index;
+                btn.disabled = alreadyAnswered; // Блокируем, если уже ответили
+                if (!alreadyAnswered) {
+                    btn.onclick = () => selectAnswer(index);
+                }
+                optionsDiv.appendChild(btn);
+            });
+            
+            // Запускаем проверку джойстика для нового вопроса (только если не ответили)
+            if (!alreadyAnswered) {
+                startGamepadCheck();
+            }
+
+            // Таймер
+            let timeLeft = questionData.timeLeft !== undefined ? questionData.timeLeft : 
+                          (questionData.timeElapsed !== undefined ? 
+                           Math.max(0, questionData.time - questionData.timeElapsed) : 
+                           questionData.time);
+            const timerElement = document.getElementById('timer');
+            timerElement.textContent = timeLeft;
+            timerElement.classList.remove('urgent');
+            
+            // Обновляем таймер в Frame1
+            updateFrame1Timer(timeLeft, false);
+            
+            if (currentTimer) clearInterval(currentTimer);
+            let timerStopped = false;
+            
+            // Если уже ответили, не запускаем таймер
+            if (!alreadyAnswered && timeLeft > 0) {
+                currentTimer = setInterval(() => {
+                    if (timerStopped) {
+                        clearInterval(currentTimer);
+                        return;
+                    }
+                    
+                    timeLeft--;
+                    timerElement.textContent = timeLeft;
+                    
+                    // Обновляем таймер в Frame1
+                    const isUrgent = timeLeft <= 5;
+                    updateFrame1Timer(timeLeft, isUrgent);
+                    
+                    // Визуальные эффекты при малом времени
+                    if (timeLeft <= 5) {
+                        timerElement.classList.add('urgent');
+                    }
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(currentTimer);
+                        disableOptions();
+                        timerElement.textContent = '0';
+                        updateFrame1Timer(0, false);
+                    }
+                }, 1000);
+            } else if (alreadyAnswered) {
+                // Если уже ответили, просто показываем текущее время
+                timerElement.textContent = timeLeft;
+                updateFrame1Timer(timeLeft, false);
+            }
+            
+            // Сохраняем функцию остановки таймера
+            window.stopTimer = function() {
+                timerStopped = true;
+                if (currentTimer) {
+                    clearInterval(currentTimer);
+                    currentTimer = null;
+                }
+                // Обновляем таймер в Frame1 при остановке
+                updateFrame1Timer(timeLeft, false);
+            };
+        }
+
+        socket.on('player-connected', (data) => {
+            console.log('✅ Игрок подключен, данные:', data);
+            console.log('✅ Игрок подключен, ID:', data.playerId, 'isReconnection:', data.isReconnection);
             
             // Применяем класс квиза, если он передан
             if (data.quizId) {
@@ -970,9 +1128,154 @@
             if (backButton) {
                 backButton.style.display = 'none';
             }
+            
+            
+            // Если это переподключение и игра уже началась, восстанавливаем состояние
+            if (data.isReconnection && data.gameState) {
+                console.log('🔄 Переподключение: восстанавливаем состояние игры', data);
+                
+                // Восстанавливаем счет игрока
+                if (data.playerScore !== undefined) {
+                    window.previousPlayerScore = data.playerScore;
+                    const scoreElement = document.getElementById('player-score');
+                    if (scoreElement) {
+                        scoreElement.textContent = data.playerScore.toString();
+                    }
+                }
+                
+                // Переключаемся на игровой экран
+                document.getElementById('connect-screen').style.display = 'none';
+                document.getElementById('waiting-screen').style.display = 'none';
+                document.getElementById('game-screen').style.display = 'block';
+                
+                // Восстанавливаем состояние в зависимости от текущей фазы игры
+                if (data.gameState === 'question' && data.currentQuestion) {
+                    // Игра идет, показываем текущий вопрос
+                    displayQuestion(data.currentQuestion, data.hasAnswered || false);
+                } else if (data.gameState === 'results' && data.currentResults) {
+                    // Показываются результаты - вызываем обработчик напрямую
+                    // Используем setTimeout, чтобы обработчик был зарегистрирован
+                    setTimeout(() => {
+                        // Вызываем обработчик results напрямую, передавая данные
+                        const resultsData = data.currentResults;
+                        clearInterval(currentTimer);
+                        isReady = false;
+                        
+                        hideFrame1Elements();
+                        
+                        document.getElementById('question-screen').style.display = 'none';
+                        document.getElementById('results-screen').style.display = 'block';
+                        
+                        // Показываем правильный ответ
+                        const correctAnswerDisplay = document.getElementById('correct-answer-display');
+                        if (resultsData.correctAnswerText) {
+                            correctAnswerDisplay.textContent = `Правильный ответ: ${resultsData.correctAnswerText}`;
+                            correctAnswerDisplay.style.display = 'block';
+                        } else {
+                            correctAnswerDisplay.style.display = 'none';
+                        }
+                        
+                        // Обновить счет
+                        const player = resultsData.players.find(p => p.name === playerName);
+                        if (player) {
+                            const previousScore = window.previousPlayerScore || 0;
+                            const newScore = player.score;
+                            const pointsEarned = newScore - previousScore;
+                            
+                            document.getElementById('player-score').textContent = newScore;
+                            
+                            const pointsAdded = document.getElementById('points-added');
+                            if (pointsEarned > 0) {
+                                pointsAdded.textContent = `(+${pointsEarned})`;
+                                pointsAdded.style.color = '#00C159';
+                                pointsAdded.style.fontWeight = '600';
+                            } else {
+                                pointsAdded.textContent = `(+0)`;
+                                pointsAdded.style.color = '#666';
+                            }
+                            
+                            window.previousPlayerScore = newScore;
+                        }
+                        
+                        // Показываем кнопку готовности
+                        const readyBtn = document.getElementById('ready-btn');
+                        const readyStatus = document.getElementById('ready-status');
+                        if (readyBtn) {
+                            readyBtn.style.display = 'block';
+                            readyBtn.disabled = false;
+                            readyBtn.classList.remove('ready');
+                            readyBtn.textContent = 'Готов к следующему вопросу';
+                        }
+                        if (readyStatus) {
+                            readyStatus.style.display = 'none';
+                            readyStatus.textContent = '';
+                        }
+                        
+                        isReady = false;
+                        startGamepadCheck();
+                    }, 50);
+                } else if (data.gameState === 'playing') {
+                    // Игра началась, но вопрос еще не показан
+                    document.getElementById('waiting-screen').style.display = 'block';
+                    document.getElementById('game-screen').style.display = 'none';
+                } else if (data.gameState === 'finished' && data.finalResults) {
+                    // Игра завершена - показываем финальные результаты
+                    setTimeout(() => {
+                        const finalData = data.finalResults;
+                        hideFrame1Elements();
+                        
+                        document.getElementById('question-screen').style.display = 'none';
+                        document.getElementById('results-screen').style.display = 'none';
+                        document.getElementById('final-results').style.display = 'block';
+                        
+                        const player = finalData.results.find(p => p.name === playerName);
+                        if (player) {
+                            document.getElementById('final-score').textContent = player.score;
+                        }
+
+                        const leaderboard = document.getElementById('final-leaderboard');
+                        leaderboard.innerHTML = '';
+                        const finalMessages = {
+                            0: '· Чемпион',
+                            1: '· Второе место',
+                            2: '· Третье место'
+                        };
+                        
+                        finalData.results.forEach((player, index) => {
+                            const item = document.createElement('div');
+                            item.className = 'leaderboard-item';
+                            item.style.animationDelay = (index * 0.1) + 's';
+                            
+                            const message = finalMessages[index] || '';
+                            const playerNameSpan = document.createElement('span');
+                            playerNameSpan.className = 'player-name';
+                            playerNameSpan.textContent = `${index + 1}. ${player.name} ${message}`;
+                            
+                            const playerScoreSpan = document.createElement('span');
+                            playerScoreSpan.className = 'player-score';
+                            playerScoreSpan.textContent = `${player.score} очков`;
+                            
+                            item.appendChild(playerNameSpan);
+                            item.appendChild(playerScoreSpan);
+                            leaderboard.appendChild(item);
+                        });
+                    }, 50);
+                } else {
+                    // Игра еще не началась
+                    document.getElementById('connect-screen').style.display = 'none';
+                    document.getElementById('waiting-screen').style.display = 'block';
+                    hideFrame1Elements();
+                }
+            } else {
+                // Обычное подключение - показываем экран ожидания
+                document.getElementById('connect-screen').style.display = 'none';
+                document.getElementById('waiting-screen').style.display = 'block';
+                hideFrame1Elements();
+            }
         });
 
         socket.on('error', (data) => {
+            console.error('❌ Ошибка от сервера:', data);
             // Не показываем модальное окно для пароля - подключаемся без пароля
             showError(data.message);
         });
@@ -1037,8 +1340,10 @@
                     // Добавляем таймер в конец правой группы (чтобы он был самым правым)
                     actionsRight.appendChild(timerEl);
                 }
+                
             }
         }
+        
         
         // Функция для обновления номера вопроса в Frame1
         function updateFrame1QuestionNumber(questionNum, totalQuestions) {
@@ -1084,149 +1389,8 @@
 
         // Вопрос
         socket.on('question', (data) => {
-            // Если мы еще на экране подключения, переключаемся
-            if (document.getElementById('connect-screen').style.display !== 'none') {
-                document.getElementById('connect-screen').style.display = 'none';
-                document.getElementById('waiting-screen').style.display = 'none';
-                document.getElementById('game-screen').style.display = 'block';
-            }
-            
-            // Применяем класс квиза, если он передан в данных вопроса
-            if (data.quizId) {
-                applyQuizClass(data.quizId);
-            }
-            
-            // Инициализируем элементы Frame1
-            initFrame1Elements();
-            
-            // Скрываем кнопку готовности при новом вопросе
-            isReady = false;
-            const readyBtn = document.getElementById('ready-btn');
-            const readyStatus = document.getElementById('ready-status');
-            readyBtn.style.display = 'none';
-            readyStatus.textContent = '';
-            
-            // ВАЖНО: ВСЕГДА сбрасываем флаг ответа при получении нового вопроса
-            hasAnswered = false;
-            
-            document.getElementById('question-screen').style.display = 'block';
-            document.getElementById('results-screen').style.display = 'none';
-            document.getElementById('final-results').style.display = 'none';
-            document.getElementById('answer-feedback').textContent = '';
-            document.getElementById('answer-feedback').style.display = 'none';
-            
-            // Сохраняем текущий счет перед новым вопросом
-            const currentScoreElement = document.getElementById('player-score');
-            if (currentScoreElement) {
-                window.previousPlayerScore = parseInt(currentScoreElement.textContent) || 0;
-            }
-            
-            const questionNum = data.questionNumber;
-            const totalQuestions = data.totalQuestions;
-            
-            // Обновляем номер вопроса в Frame1
-            updateFrame1QuestionNumber(questionNum, totalQuestions);
-            
-            // Обновляем номер вопроса в основном контенте (скрыт, но оставляем для совместимости)
-            document.getElementById('question-num').textContent = questionNum;
-            document.getElementById('total-questions').textContent = totalQuestions;
-            document.getElementById('question-text').textContent = data.question;
-            
-            // Обновляем прогресс-бар
-            const progress = (questionNum / totalQuestions) * 100;
-            document.getElementById('progress-bar').style.width = progress + '%';
-            
-            // Отображение изображения вопроса (не показываем для квиза gazprom)
-            let imageContainer = document.getElementById('question-image-container');
-            if (data.image && data.quizId !== 'gazprom') {
-                if (!imageContainer) {
-                    imageContainer = document.createElement('div');
-                    imageContainer.className = 'question-image-container';
-                    imageContainer.id = 'question-image-container';
-                    const questionText = document.getElementById('question-text');
-                    questionText.parentNode.insertBefore(imageContainer, questionText.nextSibling);
-                }
-                const img = document.createElement('img');
-                img.className = 'question-image';
-                const questionsDir = data.questionsDir || 'gnu';
-                img.src = `/data/media/questions/${questionsDir}/${data.image}`;
-                img.alt = 'Question image';
-                imageContainer.innerHTML = '';
-                imageContainer.appendChild(img);
-            } else if (imageContainer) {
-                imageContainer.innerHTML = '';
-            }
-
-            // Варианты ответов - ВСЕГДА создаем активные кнопки с метками А/Б/В/Г
-            const optionsDiv = document.getElementById('options');
-            optionsDiv.innerHTML = '';
-            const optionLabels = ['А', 'Б', 'В', 'Г'];
-            const optionClasses = ['option-a', 'option-b', 'option-c', 'option-d'];
-            
-            data.options.forEach((option, index) => {
-                const btn = document.createElement('button');
-                btn.className = `option-btn ${optionClasses[index]}`;
-                btn.innerHTML = `
-                    <span class="option-label">${optionLabels[index]}</span>
-                    <span class="option-text">${option}</span>
-                `;
-                btn.dataset.optionIndex = index;
-                btn.disabled = false;
-                btn.onclick = () => selectAnswer(index);
-                optionsDiv.appendChild(btn);
-            });
-            
-            // Запускаем проверку джойстика для нового вопроса
-            startGamepadCheck();
-
-            // Таймер
-            let timeLeft = data.timeLeft !== undefined ? data.timeLeft : data.time;
-            const timerElement = document.getElementById('timer');
-            timerElement.textContent = timeLeft;
-            timerElement.classList.remove('urgent');
-            
-            // Обновляем таймер в Frame1
-            updateFrame1Timer(timeLeft, false);
-            
-            if (currentTimer) clearInterval(currentTimer);
-            let timerStopped = false;
-            
-            currentTimer = setInterval(() => {
-                if (timerStopped) {
-                    clearInterval(currentTimer);
-                    return;
-                }
-                
-                timeLeft--;
-                timerElement.textContent = timeLeft;
-                
-                // Обновляем таймер в Frame1
-                const isUrgent = timeLeft <= 5;
-                updateFrame1Timer(timeLeft, isUrgent);
-                
-                // Визуальные эффекты при малом времени
-                if (timeLeft <= 5) {
-                    timerElement.classList.add('urgent');
-                }
-                
-                if (timeLeft <= 0) {
-                    clearInterval(currentTimer);
-                    disableOptions();
-                    timerElement.textContent = '0';
-                    updateFrame1Timer(0, false);
-                }
-            }, 1000);
-            
-            // Сохраняем функцию остановки таймера
-            window.stopTimer = function() {
-                timerStopped = true;
-                if (currentTimer) {
-                    clearInterval(currentTimer);
-                    currentTimer = null;
-                }
-                // Обновляем таймер в Frame1 при остановке
-                updateFrame1Timer(timeLeft, false);
-            };
+            // Используем общую функцию для отображения вопроса
+            displayQuestion(data, false);
         });
 
         // Статус ответов (для остановки таймера когда все ответили)
@@ -1484,10 +1648,13 @@
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                         // Hub2 скрыт, не обновляем его позицию
-                        FrameCommon.updateHub4Position();
-                        FrameCommon.updateContentPadding('.hub3 > .container');
-                        FrameCommon.updateFloatingElementsPosition();
-                        FrameCommon.updateBodyPaddingBottom();
+                        if (typeof FrameCommon !== 'undefined') {
+                            FrameCommon.updateFrame2Position();
+                            FrameCommon.adaptLogoSize();
+                            setTimeout(() => {
+                                FrameCommon.adaptSubtitleToLogo();
+                            }, 50);
+                        }
                     });
                 });
             });
@@ -1509,18 +1676,15 @@
             resizeTimeout = setTimeout(() => {
                 if (typeof FrameCommon !== 'undefined') {
                     // Hub2 скрыт, не обновляем его позицию
-                    FrameCommon.updateHub4Position();
-                    FrameCommon.updateContentPadding('.hub3 > .container');
-                    FrameCommon.updateFloatingElementsPosition();
-                    FrameCommon.updateBodyPaddingBottom();
+                    FrameCommon.updateFrame2Position();
+                    FrameCommon.adaptLogoSize();
+                    setTimeout(() => {
+                        FrameCommon.adaptSubtitleToLogo();
+                    }, 50);
                 }
             }, 100);
         });
     </script>
-    
-    <!-- Frame1 скрипты -->
-    <script src="/scripts/frame-common.js"></script>
-    <script src="/scripts/frame1.js"></script>
 </body>
 </html>
 

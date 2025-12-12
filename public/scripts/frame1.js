@@ -117,9 +117,32 @@ const Frame1 = {
      */
     createButton(text, url, className = '') {
         const button = document.createElement('a');
-        button.href = url;
-        button.className = `frame1-button ${className}`;
-        button.textContent = text;
+        
+        // Если url === 'back' или 'history.back', используем history.back()
+        if (url === 'back' || url === 'history.back') {
+            button.href = '#';
+            button.className = `frame1-button ${className}`;
+            button.textContent = text;
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    // Если истории нет, используем referrer или переходим на главную
+                    const referrer = document.referrer;
+                    if (referrer && referrer !== window.location.href) {
+                        window.location.href = referrer;
+                    } else {
+                        window.location.href = '/index.html';
+                    }
+                }
+            });
+        } else {
+            button.href = url;
+            button.className = `frame1-button ${className}`;
+            button.textContent = text;
+        }
+        
         return button;
     },
     
