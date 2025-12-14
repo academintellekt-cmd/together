@@ -15,7 +15,7 @@
   "display": {
     "title": "НАЗВАНИЕ КВИЗА",
     "subtitle": "подзаголовок",
-    "phrase": "забавная фраза",
+    "phrase": "Забавная фраза",
     "questionsDisplay": "{count} вопросов",
     "timeDisplay": "по {time} сек"
   },

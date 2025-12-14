@@ -420,7 +420,7 @@
         .character-menu {
             position: relative;
             display: inline-block;
-            z-index: 1001;
+            z-index: 10001 !important; /* Выше Frame 1 (10000) */
             overflow: visible;
         }
 
@@ -441,7 +441,7 @@
             filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.3)) 
                     drop-shadow(-1px 1px 0 rgba(0,0,0,0.3));
             cursor: pointer;
-            z-index: 1001;
+            z-index: 10001 !important; /* Выше Frame 1 (10000) */
         }
 
         @keyframes bounceDown {
@@ -472,6 +472,7 @@
             transition: opacity 0.2s ease, visibility 0.2s ease;
             max-height: 0;
             overflow: hidden;
+            z-index: 10001 !important; /* Выше Frame 1 (10000) */
         }
 
         .character-menu-dropdown.active {
@@ -482,6 +483,7 @@
             transition: opacity 0.2s ease, visibility 0.2s ease;
             overflow: visible;
             display: flex;
+            z-index: 10001 !important; /* Выше Frame 1 (10000) */
         }
 
         .character-option {
@@ -498,6 +500,7 @@
             flex-shrink: 0;
             opacity: 0;
             transform: translateY(-20px);
+            z-index: 10001 !important; /* Выше Frame 1 (10000) */
         }
 
         .character-menu-dropdown.active .character-option {
@@ -926,7 +929,7 @@
 
                 <!-- Frame 5: Информация о создателе -->
                 <section class="frame frame-5" data-frame="about" id="hub5">
-                    <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+                    <p id="copyright-year">© 2024 ВМЕСТЕ. Все права защищены.</p>
                 </section>
             </footer>
         </main>
@@ -1129,7 +1132,7 @@
                         cardColor = '#abf67c';
                     } else if (i === 1) {
                         // Вторая карточка (Газпром) - используем цвет из конфигурации или зеленый Газпрома
-                        cardColor = '#00A651';
+                        cardColor = '#7cf6c7';
                     } else {
                         // Остальные карточки - случайный цвет из персонажей
                         // Исключаем уже использованные цвета
@@ -1209,7 +1212,7 @@
                             <div class="quiz-card-content">
                                 <div class="quiz-title">ЧЕМПИОНАТ ГНУ</div>
                                 <div class="quiz-subtitle">цели братишек</div>
-                                <div class="quiz-phrase">девушки тоже братишки</div>
+                                <div class="quiz-phrase">Девушки тоже братишки</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
@@ -1262,7 +1265,7 @@
                             <div class="quiz-card-content">
                                 <div class="quiz-title">${quiz.display.title || quiz.name.toUpperCase()}</div>
                                 <div class="quiz-subtitle">${quiz.display.subtitle || ''}</div>
-                                <div class="quiz-phrase">${quiz.display.phrase || ''}</div>
+                                <div class="quiz-phrase">${quiz.display.phrase ? quiz.display.phrase.charAt(0).toUpperCase() + quiz.display.phrase.slice(1) : ''}</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
@@ -1315,7 +1318,7 @@
                             <div class="quiz-card-content">
                                 <div class="quiz-title">${quiz.display.title || quiz.name.toUpperCase()}</div>
                                 <div class="quiz-subtitle">${quiz.display.subtitle || ''}</div>
-                                <div class="quiz-phrase">${quiz.display.phrase || ''}</div>
+                                <div class="quiz-phrase">${quiz.display.phrase ? quiz.display.phrase.charAt(0).toUpperCase() + quiz.display.phrase.slice(1) : ''}</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
@@ -1366,7 +1369,7 @@
                             <div class="quiz-card-content">
                                 <div class="quiz-title">${quiz.display.title || quiz.name.toUpperCase()}</div>
                                 <div class="quiz-subtitle">${quiz.display.subtitle || ''}</div>
-                                <div class="quiz-phrase">${quiz.display.phrase || ''}</div>
+                                <div class="quiz-phrase">${quiz.display.phrase ? quiz.display.phrase.charAt(0).toUpperCase() + quiz.display.phrase.slice(1) : ''}</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
@@ -1676,5 +1679,8 @@
             setTimeout(initHubs, 200);
         });
     </script>
+    
+    <!-- Общий скрипт для обновления года в Frame 5 -->
+    <script src="/scripts/frame5-copyright.js"></script>
 </body>
 </html>

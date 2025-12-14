@@ -387,10 +387,15 @@
             padding-top: 0 !important;
         }
         
-        /* Убираем лишние отступы у контейнера hub3 */
+        /* Добавляем отступ сверху для контента, чтобы он не перекрывался Frame 1 */
         .hub3 > .container {
             margin-top: 0 !important;
-            padding-top: clamp(16px, 5vw, 40px) !important; /* Оставляем только верхний отступ для контента */
+            padding-top: clamp(60px, 8vh, 100px) !important; /* Отступ под Frame 1 */
+        }
+        
+        /* Дополнительный отступ для экрана подключения */
+        #connect-screen {
+            padding-top: clamp(20px, 3vh, 40px);
         }
         
         /* Парящие элементы перемещены в Hub3 через hub-layout.css */
@@ -1685,6 +1690,9 @@
             }, 100);
         });
     </script>
+    
+    <!-- Общий скрипт для обновления года в Frame 5 -->
+    <script src="/scripts/frame5-copyright.js"></script>
 </body>
 </html>
 

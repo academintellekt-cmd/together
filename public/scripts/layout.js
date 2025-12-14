@@ -4,6 +4,17 @@
  * Интегрирован с Frame1 и Frame2
  */
 
+// Автоматически загружаем общий скрипт для обновления года в Frame 5
+(function() {
+    if (!document.getElementById('frame5-copyright-script')) {
+        const script = document.createElement('script');
+        script.id = 'frame5-copyright-script';
+        script.src = '/scripts/frame5-copyright.js';
+        script.async = true;
+        document.head.appendChild(script);
+    }
+})();
+
 // Предотвращаем повторное объявление при двойной загрузке скрипта
 if (typeof LayoutManager === 'undefined') {
     var LayoutManager = {
@@ -152,14 +163,13 @@ if (typeof LayoutManager === 'undefined') {
                 while (frame5Old.firstChild) {
                     frame5.appendChild(frame5Old.firstChild);
                 }
-                // Если frame5 пуст, добавляем стандартный текст
-                if (!frame5.textContent.trim()) {
-                    frame5.innerHTML = '<p>© 2024 ВМЕСТЕ. Все права защищены.</p>';
-                }
                 frame5Old.remove();
-            } else {
-                frame5.innerHTML = '<p>© 2024 ВМЕСТЕ. Все права защищены.</p>';
             }
+            
+            // Всегда обновляем год в Frame 5 (динамический год: текущий год)
+            const currentYear = new Date().getFullYear();
+            const copyrightText = `© ${currentYear} ВМЕСТЕ. Все права защищены.`;
+            frame5.innerHTML = `<p>${copyrightText}</p>`;
             
             footer.appendChild(frame4);
             footer.appendChild(frame5);

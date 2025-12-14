@@ -460,7 +460,7 @@
 
         <!-- Frame 5: Информация о создателе -->
         <section class="frame frame-5" data-frame="about" id="hub5">
-            <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+            <p id="copyright-year">© 2024 ВМЕСТЕ. Все права защищены.</p>
         </section>
     </footer>
 
@@ -1568,6 +1568,7 @@
     <!-- Frame1 скрипты -->
     <script src="/scripts/frame-common.js"></script>
     <script src="/scripts/frame1.js"></script>
+    
     <script>
         // Инициализация Frame1 после загрузки
         if (document.readyState === 'loading') {
@@ -1578,6 +1579,9 @@
             setTimeout(initHubs, 100);
         }
     </script>
+    
+    <!-- Общий скрипт для обновления года в Frame 5 -->
+    <script src="/scripts/frame5-copyright.js"></script>
 </body>
 </html>
 

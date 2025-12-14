@@ -1488,6 +1488,7 @@
             const playerUrl = `${baseUrl}/chgk-player.html?room=${roomCode}`;
             if (linkEl) {
                 linkEl.innerHTML = `<a href="${playerUrl}" target="_blank">${playerUrl}</a>`;
+                linkEl.style.display = 'block';
             }
             
             // Показываем индикатор загрузки
