@@ -129,7 +129,7 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            font-size: 28px;
+            font-size: 22px;
             font-weight: bold;
             color: #393639;
             cursor: pointer;
@@ -150,7 +150,7 @@
         
         .qr-modal h2 {
             font-family: 'Days One', sans-serif;
-            font-size: 24px;
+            font-size: 18px;
             color: #393639;
             margin-bottom: 20px;
             text-transform: uppercase;
@@ -180,10 +180,10 @@
         .qr-modal-qr-container img {
             max-width: 100%;
             height: auto;
-            border: 3px solid #393639;
+            border: none;
             border-radius: 12px;
-            padding: 10px;
-            background: #FFFFFF;
+            padding: 0;
+            background: transparent;
         }
         
         .qr-modal-link {
@@ -601,7 +601,6 @@
     <footer class="site-footer">
         <!-- Frame 4: Правила безопасности -->
         <section class="frame frame-4" data-frame="rules" id="hub4">
-            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
         </section>
 
         <!-- Frame 5: Информация о создателе -->
@@ -931,10 +930,10 @@
                 img.alt = 'QR Code';
                 img.style.maxWidth = '100%';
                 img.style.height = 'auto';
-                img.style.border = '3px solid #393639';
+                img.style.border = 'none';
                 img.style.borderRadius = '12px';
-                img.style.padding = '10px';
-                img.style.background = '#FFFFFF';
+                img.style.padding = '0';
+                img.style.background = 'transparent';
                 
                 img.onload = function() {
                     qrPlaceholder.style.display = 'none';

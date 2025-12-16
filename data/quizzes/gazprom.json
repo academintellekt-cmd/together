@@ -8,9 +8,9 @@
   "password": "",
   "passwordRequired": false,
   "colors": {
-    "background": "#7cf6c7",
-    "text": "#006B3C",
-    "shadow": "rgba(0, 107, 60, 0.3)"
+    "background": "#7cabf6",
+    "text": "#7cf6c7",
+    "shadow": "rgba(124, 171, 246, 0.3)"
   },
   "display": {
     "title": "ГАЗПРОМ",

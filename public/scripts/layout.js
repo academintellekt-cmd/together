@@ -4,20 +4,7 @@
  * Интегрирован с Frame1 и Frame2
  */
 
-// Автоматически загружаем общий скрипт для обновления года в Frame 5
-(function() {
-    if (!document.getElementById('frame5-copyright-script')) {
-        const script = document.createElement('script');
-        script.id = 'frame5-copyright-script';
-        script.src = '/scripts/frame5-copyright.js';
-        script.async = true;
-        document.head.appendChild(script);
-    }
-})();
-
-// Предотвращаем повторное объявление при двойной загрузке скрипта
-if (typeof LayoutManager === 'undefined') {
-    var LayoutManager = {
+const LayoutManager = {
     /**
      * Инициализация системы layout
      * Применяет конфигурацию видимости фреймов из window.pageLayoutConfig
@@ -163,13 +150,14 @@ if (typeof LayoutManager === 'undefined') {
                 while (frame5Old.firstChild) {
                     frame5.appendChild(frame5Old.firstChild);
                 }
+                // Если frame5 пуст, добавляем стандартный текст
+                if (!frame5.textContent.trim()) {
+                    frame5.innerHTML = '<p>© 2024 ВМЕСТЕ. Все права защищены.</p>';
+                }
                 frame5Old.remove();
+            } else {
+                frame5.innerHTML = '<p>© 2024 ВМЕСТЕ. Все права защищены.</p>';
             }
-            
-            // Всегда обновляем год в Frame 5 (динамический год: текущий год)
-            const currentYear = new Date().getFullYear();
-            const copyrightText = `© ${currentYear} ВМЕСТЕ. Все права защищены.`;
-            frame5.innerHTML = `<p>${copyrightText}</p>`;
             
             footer.appendChild(frame4);
             footer.appendChild(frame5);
@@ -334,13 +322,58 @@ if (typeof LayoutManager === 'undefined') {
     
     /**
      * Управление видимостью footer при прокрутке
-     * ОТКЛЮЧЕНО: Footer теперь часть потока документа, не нужно скрывать при прокрутке
      */
     initScrollHideFooter() {
-        // Footer больше не фиксированный, поэтому не нужно управлять его видимостью
-        // Просто убеждаемся, что класс hidden-on-scroll удален
+        let lastScrollTop = 0;
+        let scrollTimeout = null;
         const footer = document.querySelector('.site-footer');
-        if (footer) {
+        
+        if (!footer) return;
+        
+        const handleScroll = () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollDelta = scrollTop - lastScrollTop;
+            
+            // Если прокручиваем вниз более чем на 10px, скрываем footer
+            if (scrollDelta > 10) {
+                footer.classList.add('hidden-on-scroll');
+            } 
+            // Если прокручиваем вверх или в самом верху, показываем footer
+            else if (scrollDelta < -10 || scrollTop < 50) {
+                footer.classList.remove('hidden-on-scroll');
+            }
+            
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+            
+            // Очищаем таймер
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            
+            // Если прокрутка остановилась, показываем footer через небольшую задержку
+            scrollTimeout = setTimeout(() => {
+                if (scrollTop < 50) {
+                    footer.classList.remove('hidden-on-scroll');
+                }
+            }, 500);
+        };
+        
+        // Обработчик прокрутки с throttling
+        let ticking = false;
+        const onScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    handleScroll();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        };
+        
+        window.addEventListener('scroll', onScroll, { passive: true });
+        
+        // Показываем footer при загрузке страницы, если мы вверху
+        if (window.pageYOffset < 50) {
             footer.classList.remove('hidden-on-scroll');
         }
     }
@@ -366,5 +399,4 @@ if (document.readyState === 'loading') {
 if (typeof window !== 'undefined') {
     window.LayoutManager = LayoutManager;
 }
-} // Закрываем блок проверки typeof LayoutManager === 'undefined'
 

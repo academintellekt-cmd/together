@@ -8,9 +8,9 @@
   "password": "",
   "passwordRequired": false,
   "colors": {
-    "background": "#7ce8f6",
-    "text": "#2b7a8a",
-    "shadow": "rgba(43, 122, 138, 0.3)"
+    "background": "#f67cab",
+    "text": "#f6c77c",
+    "shadow": "rgba(246, 124, 171, 0.3)"
   },
   "display": {
     "title": "АКАДЕМГОРОДОК",
