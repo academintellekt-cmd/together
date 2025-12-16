@@ -21,14 +21,15 @@
             top: 0;
             left: 0;
             right: 0;
-            background: var(--color-bg);
-            backdrop-filter: blur(10px);
+            background: #ffffff !important; /* Белый фон, как основной фон страницы */
+            /* backdrop-filter убран для полной непрозрачности */
             padding: 15px 20px;
             z-index: 1001;
             display: block;
             min-height: auto;
             transition: height 0.3s ease;
             will-change: height;
+            opacity: 1 !important; /* Гарантируем полную непрозрачность */
         }
 
         /* HUB стили */

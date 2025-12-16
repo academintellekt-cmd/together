@@ -115,6 +115,10 @@
             font-size: clamp(20px, 4vw, 28px);
             margin: 0 0 20px 0;
             font-weight: 400;
+            word-spacing: normal;
+            letter-spacing: normal;
+            white-space: normal;
+            line-height: 1.4;
         }
 
         .qr-placeholder {
@@ -465,7 +469,7 @@
                     Загрузка QR-кода...
                 </div>
                 <div id="qr-container" class="qr-container" style="display: none;">
-                    <p class="qr-instruction">наведи камеру или<br>нажми на QR для подключения</p>
+                    <p class="qr-instruction">наведи камеру<br> или нажми на QR для подключения</p>
                     <canvas id="qrcode"></canvas>
                     <a id="player-link" href="#" target="_blank" class="player-link" style="display: none;"></a>
                 </div>
@@ -1640,6 +1644,12 @@
     <!-- Layout Manager -->
     <script src="/scripts/layout.js"></script>
     <script src="/scripts/frame-common.js"></script>
+    
+    <!-- Общий скрипт для обновления года в Frame 5 -->
+    <script src="/scripts/frame5-copyright.js"></script>
+    
+    <!-- Общий скрипт для автоматической заглавной буквы в шрифте Caveat -->
+    <script src="/scripts/caveat-capitalize.js"></script>
 </body>
 </html>
 

@@ -137,3 +137,13 @@ img {
     border-width: 0;
 }
 
+/* === АВТОМАТИЧЕСКАЯ ЗАГЛАВНАЯ БУКВА ДЛЯ ШРИФТА CAVEAT === */
+/* Все элементы с шрифтом Caveat начинаются с заглавной буквы */
+/* Преобразование выполняется через JavaScript (caveat-capitalize.js) для надежности */
+/* CSS правило для поддержки, если элемент уже блочный */
+.quiz-phrase::first-letter,
+.quiz-info-highlight::first-letter,
+.frame2-logo-section .subtitle::first-letter {
+    text-transform: uppercase;
+}
+
