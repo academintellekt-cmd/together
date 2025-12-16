@@ -266,16 +266,15 @@ if (typeof FrameCommon === 'undefined') {
     
     /**
      * Применяет цвет выбранного персонажа к кнопкам
-     * Оптимизированная версия с кэшированием
+     * Отключено - кнопки теперь используют цвет фона
      */
     applyCharacterColor() {
-        const savedColor = localStorage.getItem('selectedCharacterColor');
-        if (!savedColor) return;
-        
-        const buttons = document.querySelectorAll('.frame1-button:not([data-no-color])');
+        // Кнопки больше не используют цвет персонажа - они прозрачные (цвета фона)
+        // Удаляем любые inline стили background, которые могли быть установлены ранее
+        const buttons = document.querySelectorAll('.frame1-button');
         buttons.forEach(button => {
-            if (!button.dataset.noColor) {
-                button.style.background = savedColor;
+            if (button.style.background) {
+                button.style.background = '';
             }
         });
     },

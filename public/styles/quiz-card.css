@@ -139,7 +139,7 @@
     font-family: 'Caveat', cursive;
     font-size: clamp(20px, 3.5vw, 28px);
     color: #354fba;
-    margin: clamp(20px, 4vw, 35px) 0 clamp(8px, 2vw, 10px) 0;
+    margin: clamp(8px, 2vw, 20px) 0 clamp(8px, 2vw, 10px) 0;
     text-align: center;
     transform: rotate(-2deg);
     flex-shrink: 0;

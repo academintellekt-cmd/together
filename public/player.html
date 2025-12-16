@@ -387,10 +387,15 @@
             padding-top: 0 !important;
         }
         
-        /* Убираем лишние отступы у контейнера hub3 */
+        /* Добавляем отступ сверху для контента, чтобы он не перекрывался Frame 1 */
         .hub3 > .container {
             margin-top: 0 !important;
-            padding-top: clamp(16px, 5vw, 40px) !important; /* Оставляем только верхний отступ для контента */
+            padding-top: clamp(60px, 8vh, 100px) !important; /* Отступ под Frame 1 */
+        }
+        
+        /* Дополнительный отступ для экрана подключения */
+        #connect-screen {
+            padding-top: clamp(20px, 3vh, 40px);
         }
         
         /* Парящие элементы перемещены в Hub3 через hub-layout.css */
@@ -535,7 +540,6 @@
     <footer class="site-footer">
         <!-- Frame 4: Правила безопасности -->
         <section class="frame frame-4" data-frame="rules" id="hub4">
-            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
         </section>
 
         <!-- Frame 5: Информация о создателе -->
@@ -1685,6 +1689,12 @@
             }, 100);
         });
     </script>
+    
+    <!-- Общий скрипт для обновления года в Frame 5 -->
+    <script src="/scripts/frame5-copyright.js"></script>
+    
+    <!-- Общий скрипт для автоматической заглавной буквы в шрифте Caveat -->
+    <script src="/scripts/caveat-capitalize.js"></script>
 </body>
 </html>
 

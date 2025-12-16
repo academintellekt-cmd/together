@@ -33,35 +33,16 @@
     flex-wrap: wrap;
     gap: var(--spacing-s);
     padding: var(--spacing-s) var(--spacing-m);
-    background: transparent !important; /* Прозрачный фон - не перекрывает содержимое */
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+    background: var(--color-bg) !important; /* Цвет фона сайта */
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
     z-index: 10000 !important; /* Выше всего контента - кнопки должны быть поверх всего */
     width: 100%;
     box-sizing: border-box;
     min-height: 48px;
-    transform: translateY(0);
-    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-    opacity: 1;
+    transform: translateY(0) !important;
+    opacity: 1 !important;
     pointer-events: auto; /* Гарантируем кликабельность */
-}
-
-/* Скрытие Frame 1 при прокрутке вниз */
-.frame-1.is-scrolling-down,
-#frame1.is-scrolling-down,
-.frame-1 > .frame1.is-scrolling-down {
-    transform: translateY(-100%);
-    opacity: 0;
-    pointer-events: none;
-}
-
-/* Показ Frame 1 при остановке прокрутки */
-.frame-1.is-visible,
-#frame1.is-visible,
-.frame-1 > .frame1.is-visible {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
 }
 
 /* Если Frame1 находится внутри Frame 1, убираем дублирование стилей */

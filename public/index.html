@@ -52,7 +52,77 @@
         /* HUB4 и HUB5 — нижние полосы, прокручиваются вместе с контентом */
         /* Стили управляются через layout.css */
 
-        /* Парящие элементы перемещены в Hub3 через layout.css */
+        /* Парящие декоративные элементы на фоне */
+        /* z-index: 999 - выше Frame 4 и 5, но ниже логотипа (Frame 2, z-index: 1000) */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 10vh;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: var(--color-floating-1); /* #d6fbbf - светло-зеленый */
+            border-radius: 45% 55% 60% 40% / 50% 45% 55% 50%; /* Неравномерный овал */
+            z-index: 999; /* Ниже логотипа (1000), но выше Frame 4 и 5 */
+            pointer-events: none;
+            opacity: 0.6;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 10vh;
+            right: -80px;
+            width: 300px;
+            height: 300px;
+            background: var(--color-floating-2); /* #fececd - светло-розовый */
+            border-radius: 50% 45% 55% 50% / 45% 50% 50% 55%; /* Неравномерный овал */
+            z-index: 999; /* Ниже логотипа (1000), но выше Frame 4 и 5 */
+            pointer-events: none;
+            opacity: 0.6;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(5deg);
+            }
+        }
+        
+        /* Адаптивность для парящих элементов */
+        @media (max-width: 768px) {
+            body::before {
+                top: clamp(10vh, 12vw, 12vh);
+                width: clamp(150px, 30vw, 200px);
+                height: clamp(150px, 30vw, 200px);
+                left: clamp(-40px, -8vw, -50px);
+            }
+            
+            body::after {
+                bottom: clamp(15vh, 20vw, 20vh);
+                width: clamp(180px, 35vw, 250px);
+                height: clamp(180px, 35vw, 250px);
+                right: clamp(-60px, -12vw, -80px);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body::before {
+                width: clamp(120px, 25vw, 180px);
+                height: clamp(120px, 25vw, 180px);
+                left: clamp(-40px, -8vw, -50px);
+            }
+            
+            body::after {
+                width: clamp(150px, 30vw, 220px);
+                height: clamp(150px, 30vw, 220px);
+                right: clamp(-60px, -12vw, -80px);
+            }
+        }
         
         /* Стили для контента внутри HUB3 */
         /* Padding уже установлен выше, не переопределяем */
@@ -138,20 +208,20 @@
             transform: none !important;
         }
 
-        /* Первый доступный квиз - стиль Академа (голубая карточка) */
+        /* Первый доступный квиз - стиль Академа (розово-фуксиевая карточка) */
         .quiz-card:nth-child(1) {
-            /* Цвет фона устанавливается через JavaScript из конфигурации квиза */
+            /* Цвет фона: #f67cab (розово-фуксия) устанавливается через JavaScript */
             border: none;
             box-shadow: 
-                0 6px 0px rgba(43, 122, 138, 0.3),
-                0 8px 16px rgba(43, 122, 138, 0.1);
+                0 6px 0px rgba(246, 124, 171, 0.3),
+                0 8px 16px rgba(246, 124, 171, 0.1);
         }
 
         .quiz-card:nth-child(1):hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
-                0 8px 0px rgba(0, 0, 0, 0.2),
-                0 12px 24px rgba(0, 0, 0, 0.15);
+                0 8px 0px rgba(246, 124, 171, 0.4),
+                0 12px 24px rgba(246, 124, 171, 0.2);
             opacity: 0.9;
         }
 
@@ -159,18 +229,28 @@
         .quiz-card:nth-child(1):hover .quiz-subtitle,
         .quiz-card:nth-child(1):hover .quiz-info-item,
         .quiz-card:nth-child(1):hover .quiz-info-item span {
-            color: #373639;
+            color: #f6c77c; /* Персиковый при hover */
             filter: brightness(1.1);
         }
 
-        .quiz-card:nth-child(1):hover div[style*="Caveat"] {
+        .quiz-card:nth-child(1):hover div[style*="Caveat"],
+        .quiz-card:nth-child(1):hover .quiz-phrase {
             filter: brightness(1.1) !important;
+            color: #354fba !important; /* Синий остается синим */
         }
 
-        /* Стили для первой карточки (цвет текста) */
+        /* Стили для первой карточки (Академгородок) - цвет текста */
         .quiz-card:nth-child(1) .quiz-title,
-        .quiz-card:nth-child(1) .quiz-subtitle {
-            color: #373639;
+        .quiz-card:nth-child(1) .quiz-subtitle,
+        .quiz-card:nth-child(1) .quiz-description,
+        .quiz-card:nth-child(1) .quiz-info-item,
+        .quiz-card:nth-child(1) .quiz-info-item span {
+            color: #f6c77c; /* Персиковый */
+        }
+        
+        /* Синий текст (quiz-phrase) остается синим */
+        .quiz-card:nth-child(1) .quiz-phrase {
+            color: #354fba !important; /* Синий акцентный текст */
         }
 
         .quiz-card:nth-child(1) .quiz-icon {
@@ -186,20 +266,20 @@
         }
 
 
-        /* Вторая карточка - зеленый стиль Газпрома */
+        /* Вторая карточка - стиль Газпрома */
         .quiz-card:nth-child(2) {
-            /* Цвет фона устанавливается через JavaScript из конфигурации квиза */
+            /* Цвет фона: #7cabf6 устанавливается через JavaScript */
             border: none;
             box-shadow: 
-                0 6px 0px rgba(0, 107, 60, 0.3),
-                0 8px 16px rgba(0, 107, 60, 0.1);
+                0 6px 0px rgba(124, 171, 246, 0.3),
+                0 8px 16px rgba(124, 171, 246, 0.1);
         }
 
         .quiz-card:nth-child(2):hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
-                0 8px 0px rgba(0, 0, 0, 0.2),
-                0 12px 24px rgba(0, 0, 0, 0.15);
+                0 8px 0px rgba(124, 171, 246, 0.4),
+                0 12px 24px rgba(124, 171, 246, 0.2);
             opacity: 0.9;
         }
 
@@ -207,38 +287,43 @@
         .quiz-card:nth-child(2):hover .quiz-subtitle,
         .quiz-card:nth-child(2):hover .quiz-info-item,
         .quiz-card:nth-child(2):hover .quiz-info-item span {
-            color: #373639;
+            color: #7cf6c7;
             filter: brightness(1.1);
         }
 
-        .quiz-card:nth-child(2):hover div[style*="Caveat"] {
+        .quiz-card:nth-child(2):hover div[style*="Caveat"],
+        .quiz-card:nth-child(2):hover .quiz-phrase {
             filter: brightness(1.1) !important;
+            color: #354fba !important; /* Синий остается синим */
         }
 
-        /* Стили для второй карточки (цвет текста) */
+        /* Стили для второй карточки (Газпром) - цвет текста */
         .quiz-card:nth-child(2) .quiz-title,
-        .quiz-card:nth-child(2) .quiz-subtitle {
-            color: #373639;
+        .quiz-card:nth-child(2) .quiz-subtitle,
+        .quiz-card:nth-child(2) .quiz-description,
+        .quiz-card:nth-child(2) .quiz-info-item,
+        .quiz-card:nth-child(2) .quiz-info-item span {
+            color: #7cf6c7;
         }
 
         .quiz-card:nth-child(2) .quiz-icon {
             display: none;
         }
 
-        /* Третья карточка - фиолетовый стиль Квиз-Questions */
+        /* Третья карточка - стиль ЧГК */
         .quiz-card:nth-child(3) {
-            /* Цвет фона устанавливается через JavaScript из конфигурации квиза */
+            /* Цвет фона: #7ce8f6 устанавливается через JavaScript */
             border: none;
             box-shadow: 
-                0 6px 0px rgba(199, 124, 246, 0.3),
-                0 8px 16px rgba(199, 124, 246, 0.1);
+                0 6px 0px rgba(124, 232, 246, 0.3),
+                0 8px 16px rgba(124, 232, 246, 0.1);
         }
 
         .quiz-card:nth-child(3):hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 
-                0 8px 0px rgba(0, 0, 0, 0.2),
-                0 12px 24px rgba(0, 0, 0, 0.15);
+                0 8px 0px rgba(124, 232, 246, 0.4),
+                0 12px 24px rgba(124, 232, 246, 0.2);
             opacity: 0.9;
         }
 
@@ -246,32 +331,38 @@
         .quiz-card:nth-child(3):hover .quiz-subtitle,
         .quiz-card:nth-child(3):hover .quiz-info-item,
         .quiz-card:nth-child(3):hover .quiz-info-item span {
-            color: #373639;
+            color: #c77cf6;
             filter: brightness(1.1);
         }
 
-        .quiz-card:nth-child(3):hover div[style*="Caveat"] {
+        .quiz-card:nth-child(3):hover div[style*="Caveat"],
+        .quiz-card:nth-child(3):hover .quiz-phrase {
             filter: brightness(1.1) !important;
+            color: #354fba !important; /* Синий остается синим */
         }
 
-        /* Стили для третьей карточки (цвет текста) */
+        /* Стили для третьей карточки (ЧГК) - цвет текста */
         .quiz-card:nth-child(3) .quiz-title,
-        .quiz-card:nth-child(3) .quiz-subtitle {
-            color: #373639;
+        .quiz-card:nth-child(3) .quiz-subtitle,
+        .quiz-card:nth-child(3) .quiz-description,
+        .quiz-card:nth-child(3) .quiz-info-item,
+        .quiz-card:nth-child(3) .quiz-info-item span {
+            color: #c77cf6 !important;
         }
 
         .quiz-card:nth-child(3) .quiz-icon {
             display: none;
         }
 
-        .quiz-card:nth-child(n+3) .quiz-title {
+        /* Стили для карточек начиная с четвертой (если будут) */
+        .quiz-card:nth-child(n+4) .quiz-title {
             color: #373639 !important;
             font-family: 'Days One', sans-serif !important;
             font-weight: 700 !important;
             font-size: 28px !important;
         }
 
-        .quiz-card:nth-child(n+3) .quiz-subtitle {
+        .quiz-card:nth-child(n+4) .quiz-subtitle {
             color: #373639 !important;
             font-family: 'Days One', sans-serif !important;
             font-weight: 400 !important;
@@ -279,17 +370,17 @@
             margin-top: 8px !important;
         }
 
-        .quiz-card:nth-child(n+3) .quiz-description {
+        .quiz-card:nth-child(n+4) .quiz-description {
             color: #373639 !important;
             font-family: 'Days One', sans-serif !important;
             font-size: 22px !important;
         }
 
-        .quiz-card:nth-child(n+3) .quiz-info-item {
+        .quiz-card:nth-child(n+4) .quiz-info-item {
             color: #373639 !important;
         }
 
-        .quiz-card:nth-child(n+3) .quiz-info-item span {
+        .quiz-card:nth-child(n+4) .quiz-info-item span {
             color: #373639 !important;
         }
 
@@ -420,7 +511,7 @@
         .character-menu {
             position: relative;
             display: inline-block;
-            z-index: 1001;
+            z-index: 10001 !important; /* Выше Frame 1 (10000) */
             overflow: visible;
         }
 
@@ -441,7 +532,7 @@
             filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.3)) 
                     drop-shadow(-1px 1px 0 rgba(0,0,0,0.3));
             cursor: pointer;
-            z-index: 1001;
+            z-index: 10001 !important; /* Выше Frame 1 (10000) */
         }
 
         @keyframes bounceDown {
@@ -472,6 +563,7 @@
             transition: opacity 0.2s ease, visibility 0.2s ease;
             max-height: 0;
             overflow: hidden;
+            z-index: 10001 !important; /* Выше Frame 1 (10000) */
         }
 
         .character-menu-dropdown.active {
@@ -482,6 +574,7 @@
             transition: opacity 0.2s ease, visibility 0.2s ease;
             overflow: visible;
             display: flex;
+            z-index: 10001 !important; /* Выше Frame 1 (10000) */
         }
 
         .character-option {
@@ -498,6 +591,7 @@
             flex-shrink: 0;
             opacity: 0;
             transform: translateY(-20px);
+            z-index: 10001 !important; /* Выше Frame 1 (10000) */
         }
 
         .character-menu-dropdown.active .character-option {
@@ -921,12 +1015,11 @@
             <footer class="site-footer">
                 <!-- Frame 4: Правила безопасности -->
                 <section class="frame frame-4" data-frame="rules" id="hub4">
-                    <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
                 </section>
 
                 <!-- Frame 5: Информация о создателе -->
                 <section class="frame frame-5" data-frame="about" id="hub5">
-                    <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+                    <p id="copyright-year">© 2024 ВМЕСТЕ. Все права защищены.</p>
                 </section>
             </footer>
         </main>
@@ -1073,9 +1166,9 @@
                     timeDisplay: 'по {time} сек'
                 },
                 colors: {
-                    background: '#c77cf6', // Фиолетовый цвет
-                    text: '#373639',
-                    shadow: 'rgba(199, 124, 246, 0.3)'
+                    background: '#7ce8f6', // Светло-голубой цвет
+                    text: '#c77cf6',
+                    shadow: 'rgba(124, 232, 246, 0.3)'
                 },
                 questionCount: 30,
                 avgTime: 60
@@ -1121,15 +1214,25 @@
                     
                     // Выбор цвета карточки
                     let cardColor;
-                    // Используем цвет из конфигурации квиза, если есть
-                    if (quiz.colors && quiz.colors.background) {
+                    // Квиз Академгородок всегда использует розово-фуксиевый цвет фона
+                    if (quiz.id === 'akadem') {
+                        // Квиз Академгородок - розово-фуксиевый цвет фона
+                        cardColor = '#f67cab';
+                    } else if (quiz.id === 'gazprom') {
+                        // Квиз Газпром - голубой цвет фона
+                        cardColor = '#7cabf6';
+                    } else if (quiz.id === 'chgk') {
+                        // Квиз ЧГК - светло-голубой цвет фона
+                        cardColor = '#7ce8f6';
+                    } else if (quiz.colors && quiz.colors.background) {
+                        // Используем цвет из конфигурации квиза, если есть
                         cardColor = quiz.colors.background;
                     } else if (i === 0) {
-                        // Первая карточка (академ) - используем цвет из конфигурации или зеленый
-                        cardColor = '#abf67c';
+                        // Первая карточка (академ) - используем розово-фуксиевый
+                        cardColor = '#f67cab';
                     } else if (i === 1) {
-                        // Вторая карточка (Газпром) - используем цвет из конфигурации или зеленый Газпрома
-                        cardColor = '#00A651';
+                        // Вторая карточка (Газпром) - используем голубой цвет
+                        cardColor = '#7cabf6';
                     } else {
                         // Остальные карточки - случайный цвет из персонажей
                         // Исключаем уже использованные цвета
@@ -1209,7 +1312,7 @@
                             <div class="quiz-card-content">
                                 <div class="quiz-title">ЧЕМПИОНАТ ГНУ</div>
                                 <div class="quiz-subtitle">цели братишек</div>
-                                <div class="quiz-phrase">девушки тоже братишки</div>
+                                <div class="quiz-phrase">Девушки тоже братишки</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
@@ -1231,25 +1334,25 @@
                                   font-family="Kalam, cursive" 
                                   font-size="36" 
                                   font-weight="700"
-                                  fill="#000" 
+                                  fill="#f6c77c" 
                                   text-anchor="middle">?</text>
                         </svg>`;
                         
                         // Извлекаем время из квиза
                         const timeSeconds = avgTime || quiz.gameSettings?.defaultTime || 20;
                         
-                        // SVG иконка часов "от руки маркером" - черный цвет
+                        // SVG иконка часов "от руки маркером" - персиковый цвет для академгородок
                         const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                             <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
-                                  stroke="#000" stroke-width="4" fill="none" 
+                                  stroke="#f6c77c" stroke-width="4" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
                             <!-- Часовая стрелка (вверх) -->
                             <line x1="16" y1="16" x2="16" y2="10" 
-                                  stroke="#000" stroke-width="3.5" 
+                                  stroke="#f6c77c" stroke-width="3.5" 
                                   stroke-linecap="round"/>
                             <!-- Минутная стрелка (вправо) -->
                             <line x1="16" y1="16" x2="21" y2="21" 
-                                  stroke="#000" stroke-width="3.5" 
+                                  stroke="#f6c77c" stroke-width="3.5" 
                                   stroke-linecap="round"/>
                         </svg>`;
 
@@ -1262,7 +1365,7 @@
                             <div class="quiz-card-content">
                                 <div class="quiz-title">${quiz.display.title || quiz.name.toUpperCase()}</div>
                                 <div class="quiz-subtitle">${quiz.display.subtitle || ''}</div>
-                                <div class="quiz-phrase">${quiz.display.phrase || ''}</div>
+                                <div class="quiz-phrase">${quiz.display.phrase ? quiz.display.phrase.charAt(0).toUpperCase() + quiz.display.phrase.slice(1) : ''}</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
@@ -1284,25 +1387,25 @@
                                   font-family="Kalam, cursive" 
                                   font-size="36" 
                                   font-weight="700"
-                                  fill="#000" 
+                                  fill="#7cf6c7" 
                                   text-anchor="middle">?</text>
                         </svg>`;
                         
                         // Извлекаем время из квиза
                         const timeSeconds = avgTime || quiz.gameSettings?.defaultTime || 20;
                         
-                        // SVG иконка часов "от руки маркером" - черный цвет
+                        // SVG иконка часов "от руки маркером" - цвет #7cf6c7 для Газпрома
                         const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                             <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
-                                  stroke="#000" stroke-width="4" fill="none" 
+                                  stroke="#7cf6c7" stroke-width="4" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
                             <!-- Часовая стрелка (вверх) -->
                             <line x1="16" y1="16" x2="16" y2="10" 
-                                  stroke="#000" stroke-width="3.5" 
+                                  stroke="#7cf6c7" stroke-width="3.5" 
                                   stroke-linecap="round"/>
                             <!-- Минутная стрелка (вправо) -->
                             <line x1="16" y1="16" x2="21" y2="21" 
-                                  stroke="#000" stroke-width="3.5" 
+                                  stroke="#7cf6c7" stroke-width="3.5" 
                                   stroke-linecap="round"/>
                         </svg>`;
 
@@ -1315,7 +1418,7 @@
                             <div class="quiz-card-content">
                                 <div class="quiz-title">${quiz.display.title || quiz.name.toUpperCase()}</div>
                                 <div class="quiz-subtitle">${quiz.display.subtitle || ''}</div>
-                                <div class="quiz-phrase">${quiz.display.phrase || ''}</div>
+                                <div class="quiz-phrase">${quiz.display.phrase ? quiz.display.phrase.charAt(0).toUpperCase() + quiz.display.phrase.slice(1) : ''}</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
@@ -1337,25 +1440,25 @@
                                   font-family="Kalam, cursive" 
                                   font-size="36" 
                                   font-weight="700"
-                                  fill="#000" 
+                                  fill="#c77cf6" 
                                   text-anchor="middle">?</text>
                         </svg>`;
                         
                         // Извлекаем время из квиза (60 секунд для ЧГК)
                         const timeSeconds = avgTime || 60;
                         
-                        // SVG иконка часов "от руки маркером" - черный цвет
+                        // SVG иконка часов "от руки маркером" - цвет #c77cf6 для ЧГК
                         const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                             <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
-                                  stroke="#000" stroke-width="4" fill="none" 
+                                  stroke="#c77cf6" stroke-width="4" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
                             <!-- Часовая стрелка (вверх) -->
                             <line x1="16" y1="16" x2="16" y2="10" 
-                                  stroke="#000" stroke-width="3.5" 
+                                  stroke="#c77cf6" stroke-width="3.5" 
                                   stroke-linecap="round"/>
                             <!-- Минутная стрелка (вправо) -->
                             <line x1="16" y1="16" x2="21" y2="21" 
-                                  stroke="#000" stroke-width="3.5" 
+                                  stroke="#c77cf6" stroke-width="3.5" 
                                   stroke-linecap="round"/>
                         </svg>`;
 
@@ -1366,7 +1469,7 @@
                             <div class="quiz-card-content">
                                 <div class="quiz-title">${quiz.display.title || quiz.name.toUpperCase()}</div>
                                 <div class="quiz-subtitle">${quiz.display.subtitle || ''}</div>
-                                <div class="quiz-phrase">${quiz.display.phrase || ''}</div>
+                                <div class="quiz-phrase">${quiz.display.phrase ? quiz.display.phrase.charAt(0).toUpperCase() + quiz.display.phrase.slice(1) : ''}</div>
                             </div>
                             <div class="quiz-info">
                                 <div class="quiz-info-item">
@@ -1676,5 +1779,11 @@
             setTimeout(initHubs, 200);
         });
     </script>
+    
+    <!-- Общий скрипт для обновления года в Frame 5 -->
+    <script src="/scripts/frame5-copyright.js"></script>
+    
+    <!-- Общий скрипт для автоматической заглавной буквы в шрифте Caveat -->
+    <script src="/scripts/caveat-capitalize.js"></script>
 </body>
 </html>

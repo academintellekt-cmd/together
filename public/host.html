@@ -83,6 +83,10 @@
             font-size: clamp(20px, 4vw, 28px);
             margin: 0 0 20px 0;
             font-weight: 400;
+            word-spacing: normal;
+            letter-spacing: normal;
+            white-space: normal;
+            line-height: 1.4;
         }
 
         .qr-placeholder {
@@ -129,7 +133,7 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            font-size: 28px;
+            font-size: 22px;
             font-weight: bold;
             color: #393639;
             cursor: pointer;
@@ -150,7 +154,7 @@
         
         .qr-modal h2 {
             font-family: 'Days One', sans-serif;
-            font-size: 24px;
+            font-size: 18px;
             color: #393639;
             margin-bottom: 20px;
             text-transform: uppercase;
@@ -180,10 +184,10 @@
         .qr-modal-qr-container img {
             max-width: 100%;
             height: auto;
-            border: 3px solid #393639;
+            border: none;
             border-radius: 12px;
-            padding: 10px;
-            background: #FFFFFF;
+            padding: 0;
+            background: transparent;
         }
         
         .qr-modal-link {
@@ -549,7 +553,7 @@
                     Загрузка QR-кода...
                 </div>
                 <div id="qr-container" class="qr-container" style="display: none;">
-                    <p class="qr-instruction">наведи камеру или<br>нажми на QR для подключения</p>
+                    <p class="qr-instruction">наведи камеру<br> или нажми на QR для подключения</p>
                     <canvas id="qrcode"></canvas>
                     <a id="player-link" href="#" target="_blank" class="player-link" style="display: none;"></a>
                 </div>
@@ -601,7 +605,6 @@
     <footer class="site-footer">
         <!-- Frame 4: Правила безопасности -->
         <section class="frame frame-4" data-frame="rules" id="hub4">
-            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
         </section>
 
         <!-- Frame 5: Информация о создателе -->
@@ -915,6 +918,7 @@
                 const playerUrl = `${baseUrl}/player.html?room=${roomCode}`;
                 if (linkEl) {
                     linkEl.innerHTML = `<a href="${playerUrl}" target="_blank">${playerUrl}</a>`;
+                    linkEl.style.display = 'block';
                 }
                 
                 // Показываем индикатор загрузки
@@ -930,10 +934,10 @@
                 img.alt = 'QR Code';
                 img.style.maxWidth = '100%';
                 img.style.height = 'auto';
-                img.style.border = '3px solid #393639';
+                img.style.border = 'none';
                 img.style.borderRadius = '12px';
-                img.style.padding = '10px';
-                img.style.background = '#FFFFFF';
+                img.style.padding = '0';
+                img.style.background = 'transparent';
                 
                 img.onload = function() {
                     qrPlaceholder.style.display = 'none';
@@ -1927,6 +1931,12 @@
             <div class="qr-modal-link" id="qr-modal-link"></div>
         </div>
     </div>
+    
+    <!-- Общий скрипт для обновления года в Frame 5 -->
+    <script src="/scripts/frame5-copyright.js"></script>
+    
+    <!-- Общий скрипт для автоматической заглавной буквы в шрифте Caveat -->
+    <script src="/scripts/caveat-capitalize.js"></script>
 </body>
 </html>
 

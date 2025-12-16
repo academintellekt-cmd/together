@@ -406,12 +406,11 @@
     <footer class="site-footer">
         <!-- Frame 4: Правила безопасности -->
         <section class="frame frame-4" data-frame="rules" id="frame4">
-            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
         </section>
 
         <!-- Frame 5: Информация о создателе -->
         <section class="frame frame-5" data-frame="about" id="frame5">
-            <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
+            <p id="copyright-year">© 2024 ВМЕСТЕ. Все права защищены.</p>
         </section>
     </footer>
 
@@ -473,6 +472,14 @@
 
             if (quizConfig.display && quizConfig.display.subtitle) {
                 document.getElementById('quizSubtitle').textContent = quizConfig.display.subtitle;
+            }
+            
+            // Устанавливаем фразу квиза в Frame 2 (если есть)
+            if (quizConfig.display && quizConfig.display.phrase) {
+                const frame2Subtitle = document.querySelector('.frame2-logo-section .subtitle, .frame2 .subtitle, #frame2 .subtitle, .frame-2 .subtitle');
+                if (frame2Subtitle) {
+                    frame2Subtitle.textContent = quizConfig.display.phrase;
+                }
             }
 
             // Создаем карточки режимов
@@ -624,26 +631,22 @@
                     ensureFrame2SubtitleUsesCSS();
                 }, 1000);
                 
-                // Убеждаемся, что фраза в Frame2 имеет правильный текст и размер (как на index.html)
+                // Устанавливаем фразу квиза в Frame 2 (если есть)
                 setTimeout(() => {
                     const frame2Subtitle = document.querySelector('.frame2-logo-section .subtitle, .frame2 .subtitle, #frame2 .subtitle, .frame-2 .subtitle');
-                    if (frame2Subtitle) {
-                        // Устанавливаем правильный текст фразы
-                        frame2Subtitle.textContent = 'хорошие люди объединяются играми';
+                    if (frame2Subtitle && quizConfig && quizConfig.display && quizConfig.display.phrase) {
+                        // Устанавливаем фразу квиза с большой буквы
+                        frame2Subtitle.textContent = quizConfig.display.phrase;
                         // УБИРАЕМ inline стили, чтобы применялись CSS стили из frame2.css
-                        // НЕ вызываем adaptSubtitleToLogo(), чтобы использовались CSS стили, а не inline
                         frame2Subtitle.style.fontSize = '';
                         frame2Subtitle.style.width = '';
                         frame2Subtitle.style.maxWidth = '';
-                    } else {
-                        // Если фраза не найдена, создаем её
-                        const logoSection = document.querySelector('.frame2-logo-section, .frame2, #frame2');
-                        if (logoSection) {
-                            const subtitle = document.createElement('p');
-                            subtitle.className = 'subtitle';
-                            subtitle.textContent = 'хорошие люди объединяются играми';
-                            logoSection.appendChild(subtitle);
-                        }
+                    } else if (frame2Subtitle) {
+                        // Если фразы квиза нет, используем стандартную фразу
+                        frame2Subtitle.textContent = 'Хорошие люди объединяются играми';
+                        frame2Subtitle.style.fontSize = '';
+                        frame2Subtitle.style.width = '';
+                        frame2Subtitle.style.maxWidth = '';
                     }
                 }, 300);
                 
@@ -756,6 +759,12 @@
     <script src="/scripts/frame-common.js"></script>
     <script src="/scripts/frame1.js"></script>
     <script src="/scripts/frame2.js"></script>
+    
+    <!-- Общий скрипт для обновления года в Frame 5 -->
+    <script src="/scripts/frame5-copyright.js"></script>
+    
+    <!-- Общий скрипт для автоматической заглавной буквы в шрифте Caveat -->
+    <script src="/scripts/caveat-capitalize.js"></script>
 </body>
 </html>
 

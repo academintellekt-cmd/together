@@ -15,34 +15,24 @@
 /* Основной контейнер Frame1 */
 .frame1 {
     /* Позиционирование управляется через layout.css (fixed) */
-    background: transparent !important; /* Прозрачный фон - не перекрывает содержимое */
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+    background: var(--color-bg) !important; /* Цвет фона сайта */
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
     padding: 15px 40px;
     z-index: 10000 !important; /* Выше всего контента - кнопки должны быть поверх всего */
     /* Динамическая высота в зависимости от контента */
     height: auto;
     min-height: auto;
-    transition: height 0.3s ease, transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-    will-change: height, transform, opacity;
+    transition: height 0.3s ease;
+    will-change: height;
     box-sizing: border-box;
     width: 100%;
     pointer-events: auto; /* Гарантируем кликабельность */
+    transform: translateY(0) !important;
+    opacity: 1 !important;
 }
 
-/* Скрытие при прокрутке */
-.frame1.is-scrolling-down {
-    transform: translateY(-100%);
-    opacity: 0;
-    pointer-events: none;
-}
-
-/* Показ при остановке */
-.frame1.is-visible {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
-}
+/* Анимация скрытия/показа отключена - фрейм всегда виден */
 
 /* Контент Frame1 */
 .frame1-content {
@@ -110,7 +100,7 @@
 button.frame1-button {
     display: inline-block;
     padding: var(--frame1-button-padding);
-    background: rgba(245, 245, 245, 0.85);
+    background: var(--color-bg);
     border: 2px solid #393639;
     border-radius: 12px;
     color: #393639;
@@ -140,7 +130,8 @@ button.frame1-button {
     box-shadow: 
         0 6px 0px rgba(0, 0, 0, 0.3),
         0 8px 16px rgba(0, 0, 0, 0.15);
-    background: rgba(245, 245, 245, 0.6);
+    background: var(--color-bg);
+    color: #393639 !important; /* Сохраняем цвет текста при hover */
 }
 
 .frame1-button:active {
@@ -153,7 +144,7 @@ button.frame1-button {
     font-size: var(--frame1-button-font-size);
     font-weight: 600;
     color: #393639;
-    background: rgba(245, 245, 245, 0.85);
+    background: var(--color-bg);
     padding: var(--frame1-button-padding);
     border-radius: 12px;
     border: 2px solid #000;
@@ -243,7 +234,7 @@ button.frame1-button {
     color: #393639;
     text-align: center;
     padding: var(--frame1-button-padding); /* Такой же padding как у кнопки */
-    background: rgba(245, 245, 245, 0.85);
+    background: var(--color-bg);
     border: 2px solid #393639;
     border-radius: 12px; /* Такой же border-radius как у кнопки */
     box-shadow: 
@@ -286,7 +277,7 @@ button.frame1-button {
 .frame1-character-menu {
     position: relative;
     display: inline-block;
-    z-index: var(--z-index-character-menu, 9999); /* Очень высокий z-index, чтобы быть поверх всего */
+    z-index: var(--z-index-character-menu, 10001) !important; /* Выше Frame 1 (10000) */
     overflow: visible;
 }
 
@@ -296,7 +287,7 @@ button.frame1-button {
     left: auto;
     background: transparent;
     padding: 0;
-    display: flex;
+    display: none !important; /* Меню скрыто */
     flex-direction: column;
     gap: 10px;
     align-items: flex-start;
@@ -309,19 +300,19 @@ button.frame1-button {
     transition: opacity 0.2s ease, visibility 0.2s ease;
     max-height: 0;
     overflow: hidden;
-    z-index: 9999 !important; /* Очень высокий z-index, чтобы быть поверх всего (Frame2: 1000, Frame3: 1002) */
+    z-index: 10001 !important; /* Выше Frame 1 (10000), чтобы меню было на переднем плане */
     isolation: isolate; /* Создаем свой stacking context */
 }
 
 .frame1-character-menu-dropdown.active {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    max-height: none;
+    display: none !important; /* Меню скрыто даже при активном состоянии */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    max-height: 0;
     transition: opacity 0.2s ease, visibility 0.2s ease;
-    overflow: visible;
-    display: flex;
-    z-index: 9999 !important; /* Гарантируем высокий z-index при активном состоянии */
+    overflow: hidden;
+    z-index: 10001 !important; /* Выше Frame 1 (10000) при активном состоянии */
 }
 
 .frame1-character-option {
@@ -338,7 +329,7 @@ button.frame1-button {
     flex-shrink: 0;
     opacity: 0;
     transform: translateY(-20px);
-    z-index: inherit; /* Наследуем z-index от родителя */
+    z-index: 10001 !important; /* Выше Frame 1 (10000) */
 }
 
 .frame1-character-menu-dropdown.active .frame1-character-option {

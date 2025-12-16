@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/frame1.css">
-    <link rel="stylesheet" href="/styles/frame2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -17,7 +16,7 @@
     <script>
         window.pageLayoutConfig = {
             showFrame1: true,
-            showFrame2: true,  // Показываем Frame2 для отображения игроков
+            showFrame2: false,  // Скрываем Frame2 (логотип с фразой)
             showFrame4: true,
             showFrame5: true
         };
@@ -28,7 +27,6 @@
     <script src="/scripts/layout.js"></script>
     <script src="/scripts/frame-common.js"></script>
     <script src="/scripts/frame1.js"></script>
-    <script src="/scripts/frame2.js"></script>
     
     <!-- Модальное окно для ввода пароля -->
     <div id="password-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(56, 54, 56, 0.85); z-index: 10000; justify-content: center; align-items: center;">
@@ -60,6 +58,20 @@
         </div>
     </div>
     <style>
+        /* Скрываем Frame2 (логотип) на этой странице */
+        .frame-2,
+        #frame2,
+        #frame2-container,
+        .frame.frame-2,
+        header .frame-2 {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
         /* Специфичные стили для страницы хоста */
         .lobby-screen {
             text-align: center;
@@ -103,6 +115,10 @@
             font-size: clamp(20px, 4vw, 28px);
             margin: 0 0 20px 0;
             font-weight: 400;
+            word-spacing: normal;
+            letter-spacing: normal;
+            white-space: normal;
+            line-height: 1.4;
         }
 
         .qr-placeholder {
@@ -187,7 +203,7 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            font-size: 28px;
+            font-size: 22px;
             font-weight: bold;
             color: #393639;
             cursor: pointer;
@@ -208,7 +224,7 @@
         
         .qr-modal h2 {
             font-family: 'Days One', sans-serif;
-            font-size: 24px;
+            font-size: 18px;
             color: #393639;
             margin-bottom: 20px;
             text-transform: uppercase;
@@ -225,10 +241,10 @@
         .qr-modal-qr-container img {
             max-width: 100%;
             height: auto;
-            border: 3px solid #393639;
+            border: none;
             border-radius: 12px;
-            padding: 10px;
-            background: #FFFFFF;
+            padding: 0;
+            background: transparent;
         }
         
         .qr-modal-link {
@@ -453,7 +469,7 @@
                     Загрузка QR-кода...
                 </div>
                 <div id="qr-container" class="qr-container" style="display: none;">
-                    <p class="qr-instruction">наведи камеру или<br>нажми на QR для подключения</p>
+                    <p class="qr-instruction">наведи камеру<br> или нажми на QR для подключения</p>
                     <canvas id="qrcode"></canvas>
                     <a id="player-link" href="#" target="_blank" class="player-link" style="display: none;"></a>
                 </div>
@@ -500,7 +516,6 @@
     <footer class="site-footer">
         <!-- Frame 4: Правила безопасности -->
         <section class="frame frame-4" data-frame="rules" id="hub4">
-            <p>Правила безопасности: Будьте внимательны и соблюдайте правила игры.</p>
         </section>
 
         <!-- Frame 5: Информация о создателе -->
@@ -612,8 +627,25 @@
                 showSettings: false
             });
 
-            // Инициализация Frame2
-            Frame2.init();
+            // Инициализация Frame2 - отключена, логотип не нужен
+            // Frame2.init();
+            
+            // Удаляем Frame2 (логотип) со страницы после создания layout.js
+            setTimeout(() => {
+                const frame2 = document.getElementById('frame2') || document.getElementById('frame2-container') || document.querySelector('.frame-2');
+                if (frame2) {
+                    frame2.remove();
+                    console.log('✅ Frame2 (логотип) удален со страницы');
+                }
+                // Также удаляем из header, если там есть
+                const header = document.querySelector('.site-header');
+                if (header) {
+                    const frame2InHeader = header.querySelector('.frame-2, #frame2, #frame2-container');
+                    if (frame2InHeader) {
+                        frame2InHeader.remove();
+                    }
+                }
+            }, 100);
 
             // Инициализация модального окна для подтверждения начала игры
             initStartGameModal();
@@ -945,35 +977,36 @@
             }
         }
 
-        // Обновление игроков в Frame2
+        // Обновление игроков в Frame2 - отключено, Frame2 не используется
         function updateHub() {
             console.log('🔄 Обновление игроков. Всего игроков:', playersData.size);
             
+            // Frame2 отключен, логотип убран со страницы
             // Проверяем, что Frame2 инициализирован
-            if (typeof Frame2 === 'undefined') {
-                console.warn('⚠️ Frame2 не инициализирован');
-                return;
-            }
+            // if (typeof Frame2 === 'undefined') {
+            //     console.warn('⚠️ Frame2 не инициализирован');
+            //     return;
+            // }
             
             // Очищаем всех игроков из Frame2
-            Frame2.clearPlayers();
+            // Frame2.clearPlayers();
             
             if (playersData.size === 0) {
                 console.log('ℹ️ Нет игроков для отображения');
                 return;
             }
             
-            // Добавляем игроков в Frame2
-            playersData.forEach((data, playerId) => {
-                console.log('➕ Добавление игрока в Frame2:', playerId, data.name);
-                const status = data.ready ? 'ready' : 'waiting';
-                try {
-                    Frame2.addPlayerIcon(playerId, data.name || 'Player', status);
-                } catch (error) {
-                    console.error('❌ Ошибка при добавлении игрока в Frame2:', error);
-                }
-            });
-            console.log('✅ Игроки обновлены в Frame2');
+            // Добавляем игроков в Frame2 - отключено
+            // playersData.forEach((data, playerId) => {
+            //     console.log('➕ Добавление игрока в Frame2:', playerId, data.name);
+            //     const status = data.ready ? 'ready' : 'waiting';
+            //     try {
+            //         Frame2.addPlayerIcon(playerId, data.name || 'Player', status);
+            //     } catch (error) {
+            //         console.error('❌ Ошибка при добавлении игрока в Frame2:', error);
+            //     }
+            // });
+            // console.log('✅ Игроки обновлены в Frame2');
         }
 
         // Функция показа модального окна для подтверждения начала игры
@@ -1570,6 +1603,7 @@
             const playerUrl = `${baseUrl}/chgk-player.html?room=${roomCode}`;
             if (linkEl) {
                 linkEl.innerHTML = `<a href="${playerUrl}" target="_blank">${playerUrl}</a>`;
+                linkEl.style.display = 'block';
             }
             
             // Показываем индикатор загрузки
@@ -1585,10 +1619,10 @@
             img.alt = 'QR Code';
             img.style.maxWidth = '100%';
             img.style.height = 'auto';
-            img.style.border = '3px solid #393639';
+            img.style.border = 'none';
             img.style.borderRadius = '12px';
-            img.style.padding = '10px';
-            img.style.background = '#FFFFFF';
+            img.style.padding = '0';
+            img.style.background = 'transparent';
             
             img.onload = function() {
                 qrPlaceholder.style.display = 'none';
@@ -1692,7 +1726,12 @@
     <!-- Layout Manager -->
     <script src="/scripts/layout.js"></script>
     <script src="/scripts/frame-common.js"></script>
-    <script src="/scripts/frame2.js"></script>
+    
+    <!-- Общий скрипт для обновления года в Frame 5 -->
+    <script src="/scripts/frame5-copyright.js"></script>
+    
+    <!-- Общий скрипт для автоматической заглавной буквы в шрифте Caveat -->
+    <script src="/scripts/caveat-capitalize.js"></script>
 </body>
 </html>
 

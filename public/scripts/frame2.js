@@ -153,7 +153,8 @@ const Frame2 = {
         if (this.config.showSubtitle) {
             const subtitle = document.createElement('p');
             subtitle.className = 'subtitle';
-            subtitle.textContent = 'хорошие люди объединяются играми';
+            // Стандартная фраза с большой буквы (может быть переопределена позже)
+            subtitle.textContent = 'Хорошие люди объединяются играми';
             logoSection.appendChild(subtitle);
         }
         

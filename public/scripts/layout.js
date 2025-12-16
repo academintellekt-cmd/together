@@ -4,9 +4,7 @@
  * Интегрирован с Frame1 и Frame2
  */
 
-// Предотвращаем повторное объявление при двойной загрузке скрипта
-if (typeof LayoutManager === 'undefined') {
-    var LayoutManager = {
+const LayoutManager = {
     /**
      * Инициализация системы layout
      * Применяет конфигурацию видимости фреймов из window.pageLayoutConfig
@@ -324,13 +322,58 @@ if (typeof LayoutManager === 'undefined') {
     
     /**
      * Управление видимостью footer при прокрутке
-     * ОТКЛЮЧЕНО: Footer теперь часть потока документа, не нужно скрывать при прокрутке
      */
     initScrollHideFooter() {
-        // Footer больше не фиксированный, поэтому не нужно управлять его видимостью
-        // Просто убеждаемся, что класс hidden-on-scroll удален
+        let lastScrollTop = 0;
+        let scrollTimeout = null;
         const footer = document.querySelector('.site-footer');
-        if (footer) {
+        
+        if (!footer) return;
+        
+        const handleScroll = () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollDelta = scrollTop - lastScrollTop;
+            
+            // Если прокручиваем вниз более чем на 10px, скрываем footer
+            if (scrollDelta > 10) {
+                footer.classList.add('hidden-on-scroll');
+            } 
+            // Если прокручиваем вверх или в самом верху, показываем footer
+            else if (scrollDelta < -10 || scrollTop < 50) {
+                footer.classList.remove('hidden-on-scroll');
+            }
+            
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+            
+            // Очищаем таймер
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            
+            // Если прокрутка остановилась, показываем footer через небольшую задержку
+            scrollTimeout = setTimeout(() => {
+                if (scrollTop < 50) {
+                    footer.classList.remove('hidden-on-scroll');
+                }
+            }, 500);
+        };
+        
+        // Обработчик прокрутки с throttling
+        let ticking = false;
+        const onScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    handleScroll();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        };
+        
+        window.addEventListener('scroll', onScroll, { passive: true });
+        
+        // Показываем footer при загрузке страницы, если мы вверху
+        if (window.pageYOffset < 50) {
             footer.classList.remove('hidden-on-scroll');
         }
     }
@@ -356,5 +399,4 @@ if (document.readyState === 'loading') {
 if (typeof window !== 'undefined') {
     window.LayoutManager = LayoutManager;
 }
-} // Закрываем блок проверки typeof LayoutManager === 'undefined'
 

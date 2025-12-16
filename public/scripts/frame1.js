@@ -206,7 +206,8 @@ const Frame1 = {
             
             option.addEventListener('click', () => {
                 selectedCharacterId = char.id;
-                loginButton.style.background = char.color;
+                // Кнопка больше не меняет цвет - использует цвет фона
+                // loginButton.style.background = char.color;
                 localStorage.setItem('selectedCharacterColor', char.color);
                 localStorage.setItem('selectedCharacter', char.id);
                 
@@ -227,11 +228,11 @@ const Frame1 = {
         // Это гарантирует, что dropdown будет поверх всех элементов
         document.body.appendChild(dropdown);
         
-        // Устанавливаем цвет по умолчанию
-        const defaultChar = characters.find(c => c.id === selectedCharacterId);
-        if (defaultChar) {
-            loginButton.style.background = defaultChar.color;
-        }
+        // Кнопка больше не меняет цвет - использует цвет фона
+        // const defaultChar = characters.find(c => c.id === selectedCharacterId);
+        // if (defaultChar) {
+        //     loginButton.style.background = defaultChar.color;
+        // }
         
         // Сохраняем ссылку на menu для обработчика
         const menu = loginButton.closest('.frame1-character-menu');
@@ -250,30 +251,29 @@ const Frame1 = {
             }
         };
         
-        // Обработчик клика на кнопку
-        loginButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const wasActive = dropdown.classList.contains('active');
-            dropdown.classList.toggle('active');
-            if (dropdown.classList.contains('active') && !wasActive) {
-                // Обновляем позицию сразу и после небольшой задержки для надежности
-                updateDropdownPosition();
-                setTimeout(updateDropdownPosition, 10);
-            }
-        });
+        // Обработчик клика на кнопку - отключен, меню скрыто
+        // loginButton.addEventListener('click', (e) => {
+        //     e.preventDefault();
+        //     e.stopPropagation();
+        //     const wasActive = dropdown.classList.contains('active');
+        //     dropdown.classList.toggle('active');
+        //     if (dropdown.classList.contains('active') && !wasActive) {
+        //         // Обновляем позицию сразу и после небольшой задержки для надежности
+        //         updateDropdownPosition();
+        //         setTimeout(updateDropdownPosition, 10);
+        //     }
+        // });
         
-        // Обновляем позицию при прокрутке и изменении размера окна
-        window.addEventListener('scroll', updateDropdownPosition, true);
-        window.addEventListener('resize', updateDropdownPosition);
+        // Обработчики прокрутки и изменения размера окна - отключены, меню скрыто
+        // window.addEventListener('scroll', updateDropdownPosition, true);
+        // window.addEventListener('resize', updateDropdownPosition);
         
-        // Закрытие при клике вне меню
-        // Теперь проверяем и кнопку, и dropdown, так как dropdown в body
-        document.addEventListener('click', (e) => {
-            if (menu && !menu.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.remove('active');
-            }
-        });
+        // Закрытие при клике вне меню - отключено, меню скрыто
+        // document.addEventListener('click', (e) => {
+        //     if (menu && !menu.contains(e.target) && !dropdown.contains(e.target)) {
+        //         dropdown.classList.remove('active');
+        //     }
+        // });
     },
     
     /**
@@ -399,88 +399,7 @@ const Frame1 = {
         // Обработчики resize теперь управляются через FrameCommon.initResizeHandlers()
         // Дополнительные обработчики можно добавить здесь при необходимости
         
-        // Инициализируем отслеживание прокрутки для всплывающих кнопок
-        this.initScrollHandler();
-    },
-    
-    /**
-     * Инициализирует обработчик прокрутки для скрытия/показа Frame 1
-     */
-    initScrollHandler() {
-        let lastScrollTop = 0;
-        let scrollTimeout = null;
-        let isScrolling = false;
-        const frame1Elements = [
-            document.querySelector('.frame-1'),
-            document.getElementById('frame1'),
-            document.querySelector('.frame1'),
-            document.querySelector('.frame-1 > .frame1')
-        ].filter(el => el !== null);
-        
-        if (frame1Elements.length === 0) return;
-        
-        const handleScroll = () => {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollDelta = scrollTop - lastScrollTop;
-            
-            // Убираем классы при начале прокрутки
-            if (!isScrolling) {
-                isScrolling = true;
-                frame1Elements.forEach(el => {
-                    el.classList.remove('is-visible');
-                });
-            }
-            
-            // Очищаем предыдущий таймер
-            if (scrollTimeout) {
-                clearTimeout(scrollTimeout);
-            }
-            
-            // Если прокрутка вниз - скрываем
-            if (scrollDelta > 5) {
-                frame1Elements.forEach(el => {
-                    el.classList.add('is-scrolling-down');
-                    el.classList.remove('is-visible');
-                });
-            }
-            // Если прокрутка вверх или в самом верху - показываем
-            else if (scrollDelta < -5 || scrollTop < 10) {
-                frame1Elements.forEach(el => {
-                    el.classList.remove('is-scrolling-down');
-                    el.classList.add('is-visible');
-                });
-            }
-            
-            lastScrollTop = scrollTop;
-            
-            // При остановке прокрутки показываем кнопки
-            scrollTimeout = setTimeout(() => {
-                frame1Elements.forEach(el => {
-                    el.classList.remove('is-scrolling-down');
-                    el.classList.add('is-visible');
-                });
-                isScrolling = false;
-            }, 150); // Показываем через 150ms после остановки прокрутки
-        };
-        
-        // Обработчик прокрутки с throttling
-        let ticking = false;
-        const onScroll = () => {
-            if (!ticking) {
-                window.requestAnimationFrame(() => {
-                    handleScroll();
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        };
-        
-        window.addEventListener('scroll', onScroll, { passive: true });
-        
-        // Показываем кнопки при загрузке страницы
-        frame1Elements.forEach(el => {
-            el.classList.add('is-visible');
-        });
+        // Обработчик прокрутки отключен - фрейм всегда виден и непрозрачен
     }
 };
 
