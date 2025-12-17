@@ -29,6 +29,7 @@
     width: 100%;
     text-decoration: none; /* Убираем подчеркивание для ссылок */
     color: inherit; /* Наследуем цвет текста */
+    z-index: 10; /* Выше парящих элементов (z-index: 1) */
 }
 
 /* Убираем подчеркивание у всех элементов внутри карточки */
@@ -42,32 +43,16 @@
     color: inherit;
 }
 
-/* Эффект при наведении */
-.quiz-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
-    opacity: 0;
-    transition: opacity 0.4s;
-}
-
-.quiz-card:hover::before {
-    opacity: 1;
-}
-
+/* Эффект при наведении - только поднятие без высветления */
 .quiz-card:hover {
-    transform: translateY(-6px) scale(1.02);
+    transform: translateY(-2px);
     box-shadow: 
-        0 8px 0px rgba(0, 0, 0, 0.2),
-        0 12px 24px rgba(0, 0, 0, 0.15);
+        0 6px 0px rgba(0, 0, 0, 0.15),
+        0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .quiz-card:active {
-    transform: translateY(-4px) scale(1.01);
+    transform: translateY(0px);
 }
 
 /* === КОНТЕЙНЕР КОНТЕНТА === */
@@ -139,7 +124,7 @@
     font-family: 'Caveat', cursive;
     font-size: clamp(20px, 3.5vw, 28px);
     color: #354fba;
-    margin: clamp(8px, 2vw, 20px) 0 clamp(8px, 2vw, 10px) 0;
+    margin: clamp(4px, 1vw, 12px) 0 clamp(8px, 2vw, 10px) 0;
     text-align: center;
     transform: rotate(-2deg);
     flex-shrink: 0;
@@ -198,11 +183,52 @@
 
 .quiz-info-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 6px;
     color: #000;
     font-family: 'Days One', sans-serif;
+    position: relative;
+}
+
+/* Убеждаемся, что первый дочерний элемент (SVG) виден */
+.quiz-info-item > *:first-child {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Стили для SVG иконок внутри quiz-info-item */
+.quiz-info-item .hand-drawn-icon,
+.quiz-info-item svg.hand-drawn-icon,
+.quiz-info-item svg,
+.quiz-info-item > svg {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+    display: block !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    position: relative !important;
+    z-index: 1 !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+}
+
+/* Убеждаемся, что SVG элементы внутри видны */
+.quiz-info-item svg path,
+.quiz-info-item svg line,
+.quiz-info-item svg circle {
+    stroke-width: 4 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
 }
 
 .quiz-info-icon {
@@ -211,9 +237,16 @@
 }
 
 .quiz-info-item span:last-child {
-    font-weight: 500;
+    font-weight: 600;
     font-size: clamp(16px, 3vw, 20px);
     font-family: 'Days One', sans-serif;
+    text-transform: none !important;
+}
+
+/* Убеждаемся, что все span в quiz-info-item имеют одинаковую жирность */
+.quiz-info-item span {
+    font-weight: 600;
+    text-transform: none !important;
 }
 
 /* === СПЕЦИАЛЬНЫЙ СТИЛЬ ДЛЯ КАРТОЧЕК С ФРАЗОЙ В CAVEAT === */
@@ -227,12 +260,31 @@
 .quiz-card.has-phrase .quiz-info-item {
     font-family: 'Caveat', cursive;
     color: #393639;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Убеждаемся, что SVG иконки видны в карточках с фразой */
+.quiz-card.has-phrase .quiz-info-item svg,
+.quiz-card.has-phrase .quiz-info-item .hand-drawn-icon {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: clamp(24px, 5vw, 32px) !important;
+    height: clamp(24px, 5vw, 32px) !important;
+    flex-shrink: 0 !important;
 }
 
 .quiz-card.has-phrase .quiz-info-item span:last-child {
     font-family: 'Caveat', cursive;
     font-weight: 400;
     font-size: clamp(24px, 4vw, 30px);
+}
+
+/* Убеждаемся, что все span в карточках с фразой имеют одинаковую жирность */
+.quiz-card.has-phrase .quiz-info-item span {
+    font-weight: 400;
 }
 
 /* === АДАПТИВНОСТЬ === */
@@ -264,40 +316,47 @@
         height: 100%; /* Занимают всю доступную высоту в grid-ячейке для одинакового размера */
         aspect-ratio: none;
         border-radius: clamp(16px, 3.5vw, 20px);
+        z-index: 10; /* Выше парящих элементов */
     }
 
     .quiz-title {
-        font-size: clamp(20px, 4.5vw, 26px);
+        font-size: clamp(22px, 5vw, 28px); /* Увеличен минимальный размер */
         margin-bottom: clamp(5px, 1.2vw, 8px);
     }
 
     .quiz-subtitle {
-        font-size: clamp(18px, 4vw, 22px);
+        font-size: clamp(20px, 4.5vw, 24px); /* Увеличен минимальный размер */
         margin-top: clamp(6px, 1.5vw, 8px);
         margin-bottom: clamp(5px, 1.2vw, 8px);
     }
 
     .quiz-description {
-        font-size: clamp(18px, 4vw, 22px);
+        font-size: clamp(20px, 4.5vw, 24px); /* Увеличен минимальный размер */
         margin-bottom: clamp(8px, 2vw, 10px);
     }
 
     .quiz-info {
-        font-size: clamp(16px, 3.5vw, 20px);
+        font-size: clamp(18px, 4vw, 22px); /* Увеличен минимальный размер */
         padding-top: clamp(5px, 1.2vw, 8px);
     }
 
     .quiz-info-item span:last-child {
-        font-size: clamp(16px, 3.5vw, 20px);
+        font-size: clamp(18px, 4vw, 22px); /* Увеличен минимальный размер */
+    }
+    
+    .quiz-info-item .hand-drawn-icon,
+    .quiz-info-item svg.hand-drawn-icon {
+        width: clamp(24px, 5vw, 32px) !important; /* Увеличен минимальный размер */
+        height: clamp(24px, 5vw, 32px) !important; /* Увеличен минимальный размер */
     }
 
     .quiz-phrase {
-        font-size: clamp(16px, 3.5vw, 22px);
-        margin: clamp(16px, 3.5vw, 25px) 0 clamp(6px, 1.5vw, 8px) 0;
+        font-size: clamp(20px, 4.5vw, 26px); /* Увеличен минимальный размер */
+        margin: clamp(4px, 1vw, 12px) 0 clamp(6px, 1.5vw, 8px) 0;
     }
     
     .quiz-icon {
-        font-size: clamp(32px, 7vw, 48px);
+        font-size: clamp(36px, 8vw, 52px); /* Увеличен минимальный размер */
         margin-bottom: clamp(8px, 2vw, 12px);
     }
 }
@@ -307,34 +366,41 @@
     .quiz-card {
         padding: clamp(12px, 3vw, 16px) clamp(10px, 2.5vw, 14px);
         border-radius: clamp(14px, 3vw, 18px);
+        z-index: 10; /* Выше парящих элементов */
     }
 
     .quiz-title {
-        font-size: clamp(18px, 4vw, 24px);
+        font-size: clamp(20px, 4.5vw, 26px); /* Увеличен минимальный размер */
     }
 
     .quiz-subtitle {
-        font-size: clamp(16px, 3.5vw, 20px);
+        font-size: clamp(18px, 4vw, 22px); /* Увеличен минимальный размер */
     }
 
     .quiz-description {
-        font-size: clamp(16px, 3.5vw, 20px);
+        font-size: clamp(18px, 4vw, 22px); /* Увеличен минимальный размер */
     }
 
     .quiz-info {
-        font-size: clamp(14px, 3vw, 18px);
+        font-size: clamp(16px, 3.5vw, 20px); /* Увеличен минимальный размер */
     }
 
     .quiz-info-item span:last-child {
-        font-size: clamp(14px, 3vw, 18px);
+        font-size: clamp(16px, 3.5vw, 20px); /* Увеличен минимальный размер */
+    }
+    
+    .quiz-info-item .hand-drawn-icon,
+    .quiz-info-item svg.hand-drawn-icon {
+        width: clamp(22px, 4.5vw, 30px) !important; /* Увеличен минимальный размер */
+        height: clamp(22px, 4.5vw, 30px) !important; /* Увеличен минимальный размер */
     }
 
     .quiz-phrase {
-        font-size: clamp(14px, 3vw, 20px);
+        font-size: clamp(18px, 4vw, 24px); /* Увеличен минимальный размер */
     }
     
     .quiz-icon {
-        font-size: clamp(28px, 6vw, 40px);
+        font-size: clamp(32px, 7vw, 48px); /* Увеличен минимальный размер */
     }
 }
 

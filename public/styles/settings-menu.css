@@ -1,0 +1,376 @@
+/* Стили для кнопки меню - используем те же стили, что и у frame1-button */
+.menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--color-bg);
+    border: 2px solid #393639;
+    border-radius: 12px;
+    color: #393639;
+    text-decoration: none;
+    font-family: 'Days One', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.3s;
+    box-shadow: 
+        0 2px 0px rgba(0, 0, 0, 0.2),
+        0 4px 8px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    line-height: 1.2;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.menu-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 0px rgba(0, 0, 0, 0.3),
+        0 8px 16px rgba(0, 0, 0, 0.15);
+    background: var(--color-bg);
+    color: #393639;
+}
+
+.menu-button:active {
+    transform: translateY(0px);
+}
+
+.menu-button span {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Выравнивание иконки меню так, чтобы средняя линия была по центру текста */
+.menu-button span:first-child {
+    font-size: 1em;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+    transform: translateY(-0.1em);
+}
+
+/* Адаптивность для мобильных - как у frame1-button */
+@media (max-width: 767px) {
+    .menu-button {
+        flex-shrink: 1 !important;
+        min-width: 0 !important;
+        padding: 10px 14px !important;
+        font-size: 13px !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .menu-button {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        letter-spacing: 0.3px !important;
+    }
+}
+
+/* Выпадающее меню настроек */
+.settings-menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: clamp(300px, 90vw, 500px);
+    max-width: 90vw;
+    height: 100vh;
+    background: #F2F2F2;
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    overflow-y: auto;
+    padding: clamp(12px, 2.5vw, 24px) clamp(16px, 3vw, 24px);
+    box-sizing: border-box;
+}
+
+.settings-menu.open {
+    transform: translateX(0);
+}
+
+.settings-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: clamp(8px, 1.5vw, 12px);
+    margin-top: clamp(-10px, -2vw, -5px);
+    padding-bottom: clamp(8px, 1.5vw, 12px);
+    border-bottom: none;
+}
+
+.settings-menu-title {
+    font-family: 'Days One', sans-serif;
+    font-size: clamp(18px, 4vw, 24px);
+    color: #373639;
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+.settings-menu-close {
+    background: #ff7664;
+    border: 2px solid #383638;
+    border-radius: 8px;
+    padding: clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 10px);
+    font-family: 'Days One', sans-serif;
+    font-size: clamp(12px, 2vw, 16px);
+    font-weight: 700;
+    color: #FFFFFF;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 
+        0 2px 0px rgba(0, 0, 0, 0.15),
+        0 4px 8px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    min-width: auto;
+    width: auto;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    margin-top: -20px;
+}
+
+.settings-menu-close:hover {
+    background: #ff5a45;
+    transform: translateY(-1px);
+    box-shadow: 
+        0 3px 0px rgba(0, 0, 0, 0.2),
+        0 5px 10px rgba(0, 0, 0, 0.15);
+}
+
+.settings-menu-close:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 1px 0px rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.settings-menu-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(16px, 3vw, 24px);
+    margin-top: clamp(-15px, -3vw, -10px);
+}
+
+.settings-menu-card {
+    background: #FFFFFF;
+    border: 3px solid #383638;
+    border-radius: clamp(12px, 2.5vw, 20px);
+    padding: clamp(16px, 3vw, 24px);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+    box-shadow: 
+        0 4px 0px rgba(0, 0, 0, 0.15),
+        0 6px 12px rgba(0, 0, 0, 0.1);
+    display: block;
+}
+
+.settings-menu-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 0px rgba(0, 0, 0, 0.2),
+        0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.settings-menu-card:first-child {
+    background: #f2f2f2;
+    box-shadow: 
+        0 6px 0px rgba(0, 0, 0, 0.15),
+        0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.settings-menu-card:first-child:hover {
+    background: rgba(242, 242, 242, 0.9);
+}
+
+.settings-menu-card:nth-child(2) {
+    background: #d6fbbf;
+    box-shadow: 
+        0 6px 0px rgba(214, 251, 191, 0.4),
+        0 8px 16px rgba(214, 251, 191, 0.3);
+}
+
+.settings-menu-card:nth-child(2):hover {
+    background: rgba(214, 251, 191, 0.9);
+}
+
+.settings-menu-card:nth-child(3) {
+    background: #abf67c;
+    box-shadow: 
+        0 6px 0px rgba(171, 246, 124, 0.4),
+        0 8px 16px rgba(171, 246, 124, 0.3);
+}
+
+.settings-menu-card:nth-child(3):hover {
+    background: rgba(171, 246, 124, 0.9);
+}
+
+.settings-menu-card-icon {
+    font-size: clamp(32px, 6vw, 48px);
+    margin-bottom: clamp(12px, 2vw, 16px);
+    display: block;
+    text-align: center;
+}
+
+.settings-menu-card-title {
+    font-family: 'Days One', sans-serif;
+    font-size: clamp(18px, 3.5vw, 24px);
+    color: #373639;
+    font-weight: 700;
+    margin-bottom: clamp(8px, 1.5vw, 12px);
+    text-align: center;
+}
+
+.settings-menu-card-description {
+    font-family: 'Days One', sans-serif;
+    font-size: clamp(14px, 2.5vw, 18px);
+    color: #373639;
+    font-weight: 400;
+    opacity: 0.85;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* Оверлей для закрытия меню */
+.settings-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(56, 54, 56, 0.5);
+    z-index: 9999;
+    display: none;
+    backdrop-filter: blur(2px);
+}
+
+.settings-menu-overlay.active {
+    display: block;
+}
+
+/* Модальное окно для пароля настроек */
+.settings-password-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(56, 54, 56, 0.85);
+    z-index: 10001;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.settings-password-modal.active {
+    display: flex;
+}
+
+.settings-password-content {
+    background: #F2F2F2;
+    border-radius: 24px;
+    padding: clamp(24px, 4vw, 36px) clamp(20px, 4vw, 32px);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 
+        0 8px 0px rgba(0, 0, 0, 0.2),
+        0 16px 32px rgba(0, 0, 0, 0.3);
+    box-sizing: border-box;
+}
+
+.settings-password-title {
+    font-family: 'Days One', sans-serif;
+    font-size: clamp(24px, 5vw, 32px);
+    color: #393639;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+}
+
+.settings-password-input {
+    width: 100%;
+    padding: clamp(14px, 3vw, 18px);
+    border: 3px solid #393639;
+    border-radius: 12px;
+    font-family: 'Days One', sans-serif;
+    font-size: clamp(20px, 4vw, 24px);
+    text-align: center;
+    margin-bottom: clamp(16px, 3vw, 20px);
+    box-sizing: border-box;
+}
+
+.settings-password-input:focus {
+    outline: none;
+    border-color: #abf67c;
+    box-shadow: 0 0 0 4px rgba(168, 224, 99, 0.2);
+}
+
+.settings-password-buttons {
+    display: flex;
+    gap: clamp(8px, 2vw, 12px);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.settings-password-button {
+    background: #abf67c;
+    color: #2fb95d;
+    border: none;
+    padding: clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 24px);
+    border-radius: 12px;
+    font-family: 'Days One', sans-serif;
+    font-size: clamp(16px, 3vw, 20px);
+    cursor: pointer;
+    box-shadow: 0 4px 0px rgba(47, 185, 93, 0.3), 0 6px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+    flex: 1;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.settings-password-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0px rgba(47, 185, 93, 0.4), 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.settings-password-button:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
+}
+
+.settings-password-button.back {
+    background: #f2f2f2;
+    color: #393639;
+}
+
+.settings-password-button.back:hover {
+    background: #E0E0E0;
+}
+
+.settings-password-error {
+    color: #ff7664;
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(14px, 2.5vw, 16px);
+    margin-top: 12px;
+    min-height: 20px;
+    display: none;
+}
+
+.settings-password-error.show {
+    display: block;
+}
+

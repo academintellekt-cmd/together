@@ -1,0 +1,715 @@
+/* ============================================
+   ASPECT-RATIO.CSS - Адаптация под соотношения сторон
+   16:9 для десктопных версий
+   9:16 для мобильных версий
+   ============================================ */
+
+/* === ОПРЕДЕЛЕНИЕ СООТНОШЕНИЙ СТОРОН === */
+/* Десктоп: широкий экран (16:9 и шире) */
+/* Используем более точные условия для определения десктопных устройств */
+@media (min-aspect-ratio: 16/9) and (min-width: 1024px),
+       (min-width: 1024px) and (min-aspect-ratio: 3/2) {
+    /* === БАЗОВЫЕ РАЗМЕРЫ === */
+    :root {
+        --font-size-xs: clamp(14px, 1.2vw, 16px);
+        --font-size-s: clamp(16px, 1.4vw, 18px);
+        --font-size-m: clamp(18px, 1.6vw, 20px);
+        --font-size-l: clamp(24px, 2vw, 28px);
+        --font-size-xl: clamp(32px, 2.8vw, 40px);
+    }
+    
+    /* === ОПТИМИЗАЦИЯ ДЛЯ 16:9 === */
+    html, body {
+        width: 100%;
+        height: 100%;
+        overflow-x: hidden;
+    }
+    
+    .site-wrapper {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* === ЗАГОЛОВКИ === */
+    h1 {
+        font-size: clamp(42px, 4vw, 56px);
+        margin-bottom: var(--spacing-l);
+    }
+    
+    h2 {
+        font-size: clamp(32px, 3vw, 42px);
+        margin-bottom: var(--spacing-l);
+    }
+    
+    h3 {
+        font-size: clamp(28px, 2.5vw, 32px);
+        margin-bottom: var(--spacing-m);
+    }
+    
+    /* === FRAME 1 - Панель кнопок === */
+    .frame-1 {
+        padding: var(--spacing-m) var(--spacing-xl);
+        gap: var(--spacing-m);
+    }
+    
+    .btn,
+    .frame-1-button {
+        padding: clamp(14px, 1.5vw, 18px) clamp(28px, 3vw, 36px);
+        font-size: clamp(16px, 1.5vw, 18px);
+        border-radius: clamp(12px, 1.2vw, 14px);
+        margin: var(--spacing-s);
+        min-height: 48px;
+    }
+    
+    /* === FRAME 2 - Логотип и фраза === */
+    .frame-2 {
+        padding: var(--spacing-m) var(--spacing-xl);
+        max-height: 25vh;
+    }
+    
+    .frame-2-logo {
+        max-width: 25vw;
+        max-height: 70%;
+    }
+    
+    .frame-2-text {
+        font-size: clamp(18px, 1.8vw, 24px);
+    }
+    
+    /* === FRAME 3 - Основной контент === */
+    .frame-3 {
+        padding-top: clamp(80px, 8vh, 120px);
+        padding-left: var(--spacing-xl);
+        padding-right: var(--spacing-xl);
+        /* Оптимизация для 16:9 */
+        min-height: calc(100vh - 200px);
+    }
+    
+    .frame-3-content,
+    .frame3 > .container {
+        padding: clamp(40px, 4vh, 50px) clamp(40px, 4vw, 60px) !important;
+        max-width: 1400px;
+        /* Используем доступную высоту для 16:9 */
+        min-height: calc(100vh - 250px);
+    }
+    
+    /* === КАРТОЧКИ === */
+    .quiz-card,
+    .card {
+        padding: clamp(28px, 3vw, 32px) clamp(24px, 2.5vw, 28px);
+        border-radius: clamp(24px, 2.5vw, 28px);
+        margin-bottom: var(--spacing-l);
+    }
+    
+    .quiz-title {
+        font-size: clamp(28px, 2.8vw, 40px);
+        margin-bottom: var(--spacing-m);
+    }
+    
+    .quiz-description {
+        font-size: clamp(16px, 1.4vw, 18px);
+        line-height: 1.6;
+        margin-bottom: var(--spacing-m);
+    }
+    
+    .quiz-info {
+        font-size: clamp(14px, 1.2vw, 16px);
+    }
+    
+    /* === ИКОНКИ В КАРТОЧКАХ === */
+    .quiz-info-item .hand-drawn-icon,
+    .quiz-info-item svg.hand-drawn-icon {
+        width: clamp(28px, 2.5vw, 32px) !important;
+        height: clamp(28px, 2.5vw, 32px) !important;
+        display: inline-block !important;
+        vertical-align: middle !important;
+        flex-shrink: 0 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    
+    /* === СЕТКА КВИЗОВ === */
+    .quizzes-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: var(--spacing-xl);
+        padding: var(--spacing-l) 0;
+        /* Оптимизация для широких экранов 16:9 */
+        max-width: 100%;
+        justify-items: center;
+    }
+    
+    /* === FOOTER === */
+    .frame-4,
+    .frame-5 {
+        padding: clamp(20px, 2vw, 28px) var(--spacing-xl);
+        font-size: clamp(13px, 1.1vw, 15px);
+        max-width: 1400px;
+    }
+    
+    /* === QR-КОДЫ === */
+    #qrcode,
+    .qr-container {
+        width: clamp(300px, 25vw, 400px) !important;
+        height: clamp(300px, 25vw, 400px) !important;
+        max-width: 100%;
+        /* Сохраняем квадратную форму для QR-кодов на десктопе */
+        aspect-ratio: 1 / 1;
+    }
+    
+    .qr-instruction {
+        font-size: clamp(20px, 1.8vw, 28px) !important;
+        margin-bottom: clamp(20px, 2vh, 30px) !important;
+    }
+    
+    /* === ВОПРОСЫ И ВАРИАНТЫ ОТВЕТОВ === */
+    .question-text {
+        font-size: clamp(32px, 3vw, 42px) !important;
+        margin: clamp(30px, 4vh, 40px) 0 !important;
+        line-height: 1.4;
+    }
+    
+    .question-number {
+        font-size: clamp(18px, 1.6vw, 22px) !important;
+        margin-bottom: clamp(15px, 2vh, 20px) !important;
+    }
+    
+    .options {
+        margin: clamp(30px, 4vh, 40px) 0 !important;
+    }
+    
+    .option-button,
+    .option {
+        padding: clamp(16px, 2vh, 20px) clamp(24px, 2.5vw, 32px) !important;
+        font-size: clamp(18px, 1.8vw, 24px) !important;
+        margin: clamp(10px, 1.5vh, 15px) 0 !important;
+        border-radius: clamp(12px, 1.2vw, 16px) !important;
+    }
+    
+    /* === ТАБЛИЦЫ ЛИДЕРОВ === */
+    .leaderboard {
+        padding: clamp(25px, 3vh, 35px) clamp(30px, 3vw, 40px) !important;
+        margin: clamp(30px, 4vh, 40px) auto !important;
+        max-width: clamp(600px, 50vw, 800px) !important;
+        border-radius: clamp(16px, 1.5vw, 20px) !important;
+    }
+    
+    .leaderboard h3 {
+        font-size: clamp(24px, 2.5vw, 32px) !important;
+        margin-bottom: clamp(20px, 2.5vh, 25px) !important;
+    }
+    
+    .leaderboard-item {
+        padding: clamp(15px, 2vh, 20px) clamp(20px, 2.5vw, 25px) !important;
+        margin: clamp(10px, 1.5vh, 15px) 0 !important;
+        font-size: clamp(16px, 1.6vw, 20px) !important;
+    }
+    
+    /* === МОДАЛЬНЫЕ ОКНА === */
+    .qr-modal-content,
+    .modal-content {
+        padding: clamp(30px, 3vh, 40px) clamp(30px, 3vw, 40px) !important;
+        max-width: clamp(500px, 40vw, 600px) !important;
+        border-radius: clamp(16px, 1.5vw, 20px) !important;
+    }
+    
+    .qr-modal h2,
+    .modal h2 {
+        font-size: clamp(20px, 2vw, 28px) !important;
+        margin-bottom: clamp(20px, 2.5vh, 25px) !important;
+    }
+    
+    .qr-modal-room-code {
+        font-size: clamp(28px, 2.8vw, 36px) !important;
+        padding: clamp(15px, 2vh, 20px) !important;
+        margin: clamp(20px, 2.5vh, 25px) 0 !important;
+    }
+    
+    /* === ФОРМЫ ВВОДА === */
+    input[type="text"],
+    input[type="number"],
+    input[type="password"] {
+        padding: clamp(14px, 1.8vh, 18px) clamp(20px, 2vw, 24px) !important;
+        font-size: clamp(16px, 1.6vw, 20px) !important;
+        border-radius: clamp(10px, 1vw, 12px) !important;
+        margin: clamp(10px, 1.5vh, 15px) 0 !important;
+    }
+    
+    /* === ИГРОВЫЕ ЭКРАНЫ === */
+    .lobby-screen,
+    .waiting-screen,
+    .game-screen {
+        padding: clamp(30px, 4vh, 50px) clamp(30px, 3vw, 40px) !important;
+    }
+    
+    .correct-answer {
+        padding: clamp(25px, 3vh, 35px) clamp(30px, 3vw, 40px) !important;
+        font-size: clamp(20px, 2vw, 26px) !important;
+        margin: clamp(25px, 3vh, 35px) auto !important;
+        max-width: clamp(600px, 50vw, 800px) !important;
+        border-radius: clamp(16px, 1.5vw, 20px) !important;
+    }
+    
+    .results-screen h2 {
+        font-size: clamp(28px, 3vw, 38px) !important;
+        margin-bottom: clamp(25px, 3vh, 35px) !important;
+    }
+    
+    /* === СПЕЦИФИЧНЫЕ ЭЛЕМЕНТЫ ЧГК === */
+    .commission-link {
+        padding: clamp(15px, 2vh, 20px) clamp(25px, 2.5vw, 35px) !important;
+        font-size: clamp(16px, 1.6vw, 20px) !important;
+        margin-top: clamp(25px, 3vh, 35px) !important;
+        border-radius: clamp(14px, 1.4vw, 18px) !important;
+    }
+}
+
+/* Мобильные: вертикальный экран (9:16 и уже) */
+/* Используем более точные условия для определения мобильных устройств */
+@media (max-aspect-ratio: 9/16) and (max-width: 1023px),
+       (max-width: 1023px) and (max-aspect-ratio: 1/1) {
+    /* === ПАРЯЩИЕ ЭЛЕМЕНТЫ - Правильный z-index для мобильной версии === */
+    /* Парящие элементы должны быть за карточками */
+    body::before,
+    body::after {
+        z-index: 1 !important; /* Ниже карточек (z-index: 10) */
+    }
+    
+    /* === ОПТИМИЗАЦИЯ ДЛЯ 9:16 === */
+    html, body {
+        width: 100%;
+        min-height: 100vh;
+        overflow-x: hidden;
+        /* Оптимизация для вертикальных экранов */
+        -webkit-text-size-adjust: 100%;
+        -moz-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+    
+    .site-wrapper {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    /* === БАЗОВЫЕ РАЗМЕРЫ === */
+    :root {
+        --font-size-xs: clamp(11px, 2.5vw, 13px);
+        --font-size-s: clamp(13px, 3vw, 15px);
+        --font-size-m: clamp(15px, 3.5vw, 17px);
+        --font-size-l: clamp(18px, 4vw, 22px);
+        --font-size-xl: clamp(22px, 5vw, 28px);
+    }
+    
+    /* === ЗАГОЛОВКИ === */
+    h1 {
+        font-size: clamp(28px, 6vw, 36px);
+        margin-bottom: var(--spacing-m);
+        line-height: 1.2;
+    }
+    
+    h2 {
+        font-size: clamp(22px, 5vw, 28px);
+        margin-bottom: var(--spacing-m);
+        line-height: 1.2;
+    }
+    
+    h3 {
+        font-size: clamp(18px, 4vw, 24px);
+        margin-bottom: var(--spacing-s);
+        line-height: 1.3;
+    }
+    
+    /* === FRAME 1 - Панель кнопок === */
+    .frame-1 {
+        padding: var(--spacing-s) clamp(12px, 3vw, 16px);
+        gap: var(--spacing-xs);
+        min-height: 44px;
+    }
+    
+    .btn,
+    .frame-1-button {
+        padding: clamp(10px, 2.2vw, 12px) clamp(16px, 3.5vw, 20px);
+        font-size: clamp(13px, 3vw, 15px);
+        border-radius: clamp(8px, 1.8vw, 10px);
+        margin: clamp(4px, 1vw, 6px);
+        min-height: 40px;
+        min-width: 40px;
+    }
+    
+    /* === FRAME 2 - Логотип и фраза === */
+    .frame-2 {
+        padding: var(--spacing-s) clamp(12px, 3vw, 16px);
+        max-height: none;
+        margin-top: 44px !important;
+    }
+    
+    .frame-2-logo {
+        max-width: 50vw;
+        max-height: 60px;
+    }
+    
+    .frame-2-text {
+        font-size: clamp(14px, 3.5vw, 18px);
+        line-height: 1.4;
+    }
+    
+    /* === FRAME 3 - Основной контент === */
+    .frame-3 {
+        padding-top: clamp(30px, 5vh, 50px) !important;
+        padding-left: clamp(12px, 3vw, 16px) !important;
+        padding-right: clamp(12px, 3vw, 16px) !important;
+        padding-bottom: var(--spacing-m);
+        /* Оптимизация для вертикальных экранов 9:16 */
+        min-height: auto;
+    }
+    
+    .frame-3-content,
+    .frame3 > .container {
+        padding: clamp(20px, 4vh, 30px) 0 !important;
+        max-width: 100%;
+        /* Убираем фиксированную высоту для мобильных */
+        min-height: auto;
+    }
+    
+    /* === КАРТОЧКИ === */
+    .quiz-card,
+    .card {
+        padding: clamp(16px, 3.5vw, 20px) clamp(14px, 3vw, 18px);
+        border-radius: clamp(16px, 3.5vw, 20px);
+        margin-bottom: var(--spacing-m);
+        /* Оптимизация для вертикальных экранов 9:16 */
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .quiz-title {
+        font-size: clamp(24px, 5vw, 30px) !important; /* Увеличен минимальный размер для iPhone */
+        margin-bottom: var(--spacing-s);
+        line-height: 1.2;
+    }
+    
+    .quiz-description {
+        font-size: clamp(18px, 4vw, 22px) !important; /* Увеличен минимальный размер для iPhone */
+        line-height: 1.5;
+        margin-bottom: var(--spacing-s);
+    }
+    
+    .quiz-info {
+        font-size: clamp(18px, 4vw, 22px) !important; /* Увеличен минимальный размер для iPhone */
+        line-height: 1.4;
+    }
+    
+    .quiz-info-item span:last-child {
+        font-size: clamp(18px, 4vw, 22px) !important; /* Увеличен минимальный размер для iPhone */
+    }
+    
+    .quiz-phrase {
+        font-size: clamp(20px, 4.5vw, 26px) !important; /* Увеличен минимальный размер для iPhone */
+    }
+    
+    /* === ИКОНКИ В КАРТОЧКАХ === */
+    .quiz-info-item .hand-drawn-icon,
+    .quiz-info-item svg.hand-drawn-icon {
+        width: clamp(20px, 4.5vw, 28px) !important;
+        height: clamp(20px, 4.5vw, 28px) !important;
+        display: inline-block !important;
+        vertical-align: middle !important;
+        flex-shrink: 0 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    
+    /* === СЕТКА КВИЗОВ === */
+    .quizzes-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-m);
+        padding: var(--spacing-s) 0;
+        /* Оптимизация для вертикальных экранов 9:16 */
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    /* === FOOTER === */
+    .frame-4,
+    .frame-5 {
+        padding: clamp(12px, 2.5vw, 16px) clamp(12px, 3vw, 16px);
+        font-size: clamp(10px, 2.2vw, 12px);
+        line-height: 1.5;
+        max-width: 100%;
+    }
+    
+    /* === QR-КОДЫ === */
+    #qrcode,
+    .qr-container {
+        width: clamp(200px, 50vw, 300px) !important;
+        height: clamp(200px, 50vw, 300px) !important;
+        max-width: 100%;
+        /* Сохраняем квадратную форму для QR-кодов на мобильных */
+        aspect-ratio: 1 / 1;
+    }
+    
+    .qr-instruction {
+        font-size: clamp(16px, 4vw, 22px) !important;
+        margin-bottom: clamp(15px, 2vh, 20px) !important;
+    }
+    
+    /* === ВОПРОСЫ И ВАРИАНТЫ ОТВЕТОВ === */
+    .question-text {
+        font-size: clamp(20px, 5vw, 28px) !important;
+        margin: clamp(20px, 3vh, 30px) 0 !important;
+        line-height: 1.4;
+    }
+    
+    .question-number {
+        font-size: clamp(14px, 3.5vw, 18px) !important;
+        margin-bottom: clamp(10px, 1.5vh, 15px) !important;
+    }
+    
+    .options {
+        margin: clamp(20px, 3vh, 30px) 0 !important;
+    }
+    
+    .option-button,
+    .option {
+        padding: clamp(12px, 2.5vh, 16px) clamp(16px, 4vw, 24px) !important;
+        font-size: clamp(14px, 3.5vw, 18px) !important;
+        margin: clamp(8px, 1.2vh, 12px) 0 !important;
+        border-radius: clamp(10px, 2vw, 12px) !important;
+    }
+    
+    /* === ТАБЛИЦЫ ЛИДЕРОВ === */
+    .leaderboard {
+        padding: clamp(16px, 2.5vh, 24px) clamp(16px, 4vw, 24px) !important;
+        margin: clamp(20px, 3vh, 30px) auto !important;
+        max-width: 100% !important;
+        border-radius: clamp(12px, 2.5vw, 16px) !important;
+    }
+    
+    .leaderboard h3 {
+        font-size: clamp(18px, 4.5vw, 24px) !important;
+        margin-bottom: clamp(15px, 2vh, 20px) !important;
+    }
+    
+    .leaderboard-item {
+        padding: clamp(12px, 2vh, 16px) clamp(14px, 3.5vw, 20px) !important;
+        margin: clamp(8px, 1.2vh, 12px) 0 !important;
+        font-size: clamp(13px, 3vw, 16px) !important;
+    }
+    
+    /* === МОДАЛЬНЫЕ ОКНА === */
+    .qr-modal-content,
+    .modal-content {
+        padding: clamp(20px, 2.5vh, 30px) clamp(20px, 4vw, 30px) !important;
+        max-width: 90% !important;
+        border-radius: clamp(12px, 2.5vw, 16px) !important;
+    }
+    
+    .qr-modal h2,
+    .modal h2 {
+        font-size: clamp(16px, 4vw, 22px) !important;
+        margin-bottom: clamp(15px, 2vh, 20px) !important;
+    }
+    
+    .qr-modal-room-code {
+        font-size: clamp(22px, 5vw, 28px) !important;
+        padding: clamp(12px, 2vh, 16px) !important;
+        margin: clamp(15px, 2vh, 20px) 0 !important;
+    }
+    
+    /* === ФОРМЫ ВВОДА === */
+    input[type="text"],
+    input[type="number"],
+    input[type="password"] {
+        padding: clamp(12px, 2.5vh, 14px) clamp(16px, 4vw, 20px) !important;
+        font-size: clamp(14px, 3.5vw, 16px) !important;
+        border-radius: clamp(8px, 1.8vw, 10px) !important;
+        margin: clamp(8px, 1.2vh, 12px) 0 !important;
+    }
+    
+    /* === ИГРОВЫЕ ЭКРАНЫ === */
+    .lobby-screen,
+    .waiting-screen,
+    .game-screen {
+        padding: clamp(20px, 3vh, 30px) clamp(16px, 4vw, 24px) !important;
+    }
+    
+    .correct-answer {
+        padding: clamp(16px, 2.5vh, 24px) clamp(20px, 4vw, 28px) !important;
+        font-size: clamp(16px, 4vw, 20px) !important;
+        margin: clamp(20px, 3vh, 30px) auto !important;
+        max-width: 100% !important;
+        border-radius: clamp(12px, 2.5vw, 16px) !important;
+    }
+    
+    .results-screen h2 {
+        font-size: clamp(22px, 5vw, 28px) !important;
+        margin-bottom: clamp(20px, 3vh, 30px) !important;
+    }
+    
+    /* === СПЕЦИФИЧНЫЕ ЭЛЕМЕНТЫ ЧГК === */
+    .commission-link {
+        padding: clamp(12px, 2.5vh, 16px) clamp(20px, 4vw, 28px) !important;
+        font-size: clamp(14px, 3.5vw, 18px) !important;
+        margin-top: clamp(20px, 3vh, 30px) !important;
+        border-radius: clamp(12px, 2.5vw, 16px) !important;
+    }
+}
+
+/* Промежуточные соотношения (между 9:16 и 16:9) */
+@media (min-aspect-ratio: 9/16) and (max-aspect-ratio: 16/9) {
+    /* Планшеты и небольшие ноутбуки */
+    /* Используем средние значения */
+    :root {
+        --font-size-xs: clamp(12px, 2vw, 14px);
+        --font-size-s: clamp(14px, 2.5vw, 16px);
+        --font-size-m: clamp(16px, 3vw, 18px);
+        --font-size-l: clamp(20px, 3.5vw, 24px);
+        --font-size-xl: clamp(24px, 4vw, 32px);
+    }
+    
+    .quizzes-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--spacing-l);
+    }
+    
+    /* === QR-КОДЫ === */
+    #qrcode,
+    .qr-container {
+        width: clamp(250px, 35vw, 350px) !important;
+        height: clamp(250px, 35vw, 350px) !important;
+    }
+    
+    .qr-instruction {
+        font-size: clamp(18px, 3vw, 24px) !important;
+    }
+    
+    /* === ВОПРОСЫ И ВАРИАНТЫ ОТВЕТОВ === */
+    .question-text {
+        font-size: clamp(26px, 4vw, 34px) !important;
+    }
+    
+    .option-button,
+    .option {
+        font-size: clamp(16px, 2.5vw, 20px) !important;
+        padding: clamp(14px, 2vh, 18px) clamp(20px, 3vw, 28px) !important;
+    }
+    
+    /* === ТАБЛИЦЫ ЛИДЕРОВ === */
+    .leaderboard {
+        max-width: clamp(500px, 60vw, 700px) !important;
+        padding: clamp(20px, 2.5vh, 30px) clamp(25px, 3vw, 35px) !important;
+    }
+    
+    .leaderboard h3 {
+        font-size: clamp(20px, 3vw, 26px) !important;
+    }
+    
+    /* === МОДАЛЬНЫЕ ОКНА === */
+    .qr-modal-content,
+    .modal-content {
+        max-width: clamp(450px, 50vw, 550px) !important;
+        padding: clamp(25px, 3vh, 35px) clamp(25px, 3vw, 35px) !important;
+    }
+}
+
+/* === ДОПОЛНИТЕЛЬНАЯ ОПТИМИЗАЦИЯ ДЛЯ УЗКИХ ВЕРТИКАЛЬНЫХ ЭКРАНОВ === */
+@media (max-aspect-ratio: 2/3) and (max-width: 767px) {
+    /* Очень узкие вертикальные экраны (например, старые смартфоны) */
+    /* Парящие элементы за карточками */
+    body::before,
+    body::after {
+        z-index: 1 !important; /* Ниже карточек (z-index: 10) */
+    }
+    
+    .frame-3 {
+        padding-top: clamp(25px, 4vh, 40px) !important;
+    }
+    
+    .frame-3-content,
+    .frame3 > .container {
+        padding: clamp(16px, 3vh, 24px) 0 !important;
+    }
+    
+    .quiz-card,
+    .card {
+        padding: clamp(14px, 3vw, 18px) clamp(12px, 2.8vw, 16px);
+    }
+    
+    .quizzes-grid {
+        gap: var(--spacing-s);
+    }
+}
+
+/* === ДОПОЛНИТЕЛЬНАЯ ПРАВКА Z-INDEX ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ === */
+/* Применяется для всех мобильных устройств независимо от соотношения сторон */
+@media (max-width: 1023px) {
+    /* Парящие элементы должны быть за карточками */
+    body::before,
+    body::after {
+        z-index: 1 !important; /* Ниже карточек (z-index: 10) */
+    }
+}
+
+/* === ДОПОЛНИТЕЛЬНАЯ ОПТИМИЗАЦИЯ ДЛЯ ОЧЕНЬ ШИРОКИХ ЭКРАНОВ === */
+@media (min-aspect-ratio: 21/9) and (min-width: 1920px) {
+    /* Ультраширокие мониторы */
+    .frame-3-content,
+    .frame3 > .container {
+        max-width: 1600px;
+        padding: clamp(60px, 6vh, 80px) clamp(60px, 5vw, 80px) !important;
+    }
+    
+    .quizzes-grid {
+        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+        gap: clamp(32px, 3vw, 40px);
+    }
+    
+    .quiz-card,
+    .card {
+        padding: clamp(32px, 3vw, 36px) clamp(28px, 2.8vw, 32px);
+    }
+    
+    /* === QR-КОДЫ === */
+    #qrcode,
+    .qr-container {
+        width: clamp(350px, 20vw, 450px) !important;
+        height: clamp(350px, 20vw, 450px) !important;
+    }
+    
+    .qr-instruction {
+        font-size: clamp(22px, 1.5vw, 30px) !important;
+    }
+    
+    /* === ВОПРОСЫ И ВАРИАНТЫ ОТВЕТОВ === */
+    .question-text {
+        font-size: clamp(36px, 2.5vw, 48px) !important;
+    }
+    
+    .option-button,
+    .option {
+        font-size: clamp(20px, 1.5vw, 26px) !important;
+        padding: clamp(18px, 2vh, 24px) clamp(28px, 2.5vw, 36px) !important;
+    }
+    
+    /* === ТАБЛИЦЫ ЛИДЕРОВ === */
+    .leaderboard {
+        max-width: clamp(700px, 45vw, 900px) !important;
+        padding: clamp(30px, 3vh, 40px) clamp(35px, 3vw, 45px) !important;
+    }
+    
+    .leaderboard h3 {
+        font-size: clamp(26px, 2vw, 34px) !important;
+    }
+    
+    /* === МОДАЛЬНЫЕ ОКНА === */
+    .qr-modal-content,
+    .modal-content {
+        max-width: clamp(550px, 35vw, 700px) !important;
+        padding: clamp(35px, 3vh, 45px) clamp(35px, 3vw, 45px) !important;
+    }
+}
+

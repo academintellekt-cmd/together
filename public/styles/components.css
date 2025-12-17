@@ -81,16 +81,12 @@
 
 .quiz-card:hover,
 .card:hover {
-    transform: translateY(-6px) scale(1.02);
-    box-shadow: 
-        0 8px 0px rgba(0, 0, 0, 0.4),
-        0 12px 24px rgba(0, 0, 0, 0.15);
-    background: rgba(245, 245, 245, 0.6);
+    transform: translateY(-2px);
 }
 
 .quiz-card:active,
 .card:active {
-    transform: translateY(-4px) scale(0.98);
+    transform: translateY(0px);
 }
 
 .quiz-title {
@@ -306,14 +302,16 @@ select:focus {
 /* === ВАРИАНТЫ ОТВЕТОВ === */
 .option-btn {
     width: 100%;
-    padding: clamp(16px, 3vw, 20px) clamp(20px, 4vw, 24px);
-    margin: clamp(10px, 2vw, 12px) 0;
-    border: clamp(3px, 0.6vw, 4px) solid var(--color-black);
-    border-radius: clamp(12px, 2.5vw, 16px);
+    /* Адаптивные отступы для разных соотношений сторон */
+    padding: clamp(10px, 1.5vh + 0.5vw, 16px) clamp(12px, 2vw, 20px);
+    margin: clamp(6px, 0.8vh, 10px) 0;
+    border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
+    border-radius: clamp(10px, 1.5vw, 14px);
     background: rgba(245, 245, 245, 0.9);
     color: var(--color-dark);
     font-family: 'Days One', sans-serif;
-    font-size: clamp(18px, 3.5vw, 22px);
+    /* Адаптивный размер шрифта для разных соотношений сторон */
+    font-size: clamp(14px, 1.8vw + 1.2vh, 20px);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -324,12 +322,13 @@ select:focus {
     text-align: left;
     display: flex;
     align-items: center;
-    gap: clamp(12px, 2.5vw, 16px);
-    min-height: clamp(60px, 10vw, 80px);
+    gap: clamp(8px, 1.5vw, 12px);
+    /* Адаптивная минимальная высота для разных соотношений сторон */
+    min-height: clamp(50px, 6vh + 2vw, 70px);
     word-wrap: break-word;
     overflow-wrap: break-word;
     white-space: normal;
-    line-height: 1.4;
+    line-height: 1.3;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
     touch-action: manipulation;
 }
@@ -354,15 +353,16 @@ select:focus {
 
 .option-label {
     flex-shrink: 0;
-    width: clamp(40px, 8vw, 50px);
-    height: clamp(40px, 8vw, 50px);
+    /* Адаптивные размеры для разных соотношений сторон */
+    width: clamp(32px, 5vw + 2vh, 45px);
+    height: clamp(32px, 5vw + 2vh, 45px);
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: clamp(8px, 1.5vw, 10px);
-    font-size: clamp(20px, 4vw, 24px);
+    border-radius: clamp(6px, 1vw, 8px);
+    font-size: clamp(16px, 2.5vw + 1vh, 22px);
     font-weight: 700;
-    border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
+    border: clamp(2px, 0.3vw, 3px) solid var(--color-black);
     background: rgba(255, 255, 255, 0.9);
     box-shadow: 
         0 2px 0px rgba(0, 0, 0, 0.15),
@@ -377,7 +377,8 @@ select:focus {
     hyphens: auto;
     -webkit-hyphens: auto;
     -ms-hyphens: auto;
-    line-height: 1.5;
+    /* Адаптивная высота строки для компактности */
+    line-height: 1.3;
 }
 
 /* Цвета для квиза ГНУ */
@@ -536,6 +537,45 @@ select:focus {
         box-shadow: 
             0 8px 0px rgba(0, 0, 0, 0.4),
             0 12px 24px rgba(0, 0, 0, 0.2);
+    }
+}
+
+/* Медиа-запросы для адаптации вариантов ответов под разные соотношения сторон */
+/* Для вертикальных экранов (9:16) - уменьшаем размеры */
+@media (max-aspect-ratio: 10/16) {
+    .option-btn {
+        padding: clamp(6px, 1vh + 0.3vw, 10px) clamp(8px, 1.2vw, 14px);
+        margin: clamp(3px, 0.5vh, 6px) 0;
+        font-size: clamp(11px, 1.3vw + 0.9vh, 15px);
+        min-height: clamp(40px, 4.5vh + 1.2vw, 55px);
+        gap: clamp(5px, 0.8vw, 8px);
+        line-height: 1.25;
+    }
+    
+    .option-label {
+        width: clamp(26px, 3.5vw + 1.2vh, 34px);
+        height: clamp(26px, 3.5vw + 1.2vh, 34px);
+        font-size: clamp(12px, 1.8vw + 0.7vh, 16px);
+    }
+    
+    .option-text {
+        line-height: 1.25;
+    }
+}
+
+/* Для горизонтальных экранов (16:9) - можно использовать больше места */
+@media (min-aspect-ratio: 15/9) {
+    .option-btn {
+        padding: clamp(14px, 2vh + 0.6vw, 18px) clamp(16px, 2.5vw, 22px);
+        margin: clamp(8px, 1vh, 12px) 0;
+        font-size: clamp(16px, 2vw + 1.4vh, 22px);
+        min-height: clamp(55px, 7vh + 2.5vw, 75px);
+    }
+    
+    .option-label {
+        width: clamp(38px, 6vw + 2.5vh, 48px);
+        height: clamp(38px, 6vw + 2.5vh, 48px);
+        font-size: clamp(18px, 3vw + 1.2vh, 24px);
     }
 }
 

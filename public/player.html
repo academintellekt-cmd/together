@@ -7,8 +7,10 @@
     <!-- Новая система фреймов -->
     <link rel="stylesheet" href="/styles/base.css">
     <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/aspect-ratio.css">
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/settings-menu.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Days+One&display=swap" rel="stylesheet">
@@ -1647,6 +1649,11 @@
                 backUrl: '/index.html'
             });
             
+            // Добавляем кнопку меню в правый верхний угол
+            if (typeof addMenuButton === 'function') {
+                setTimeout(addMenuButton, 200);
+            }
+            
             // Обновление позиций (hub2 скрыт, не обновляем его позицию)
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
@@ -1695,6 +1702,58 @@
     
     <!-- Общий скрипт для автоматической заглавной буквы в шрифте Caveat -->
     <script src="/scripts/caveat-capitalize.js"></script>
+    
+    <!-- Оверлей для меню настроек -->
+    <div class="settings-menu-overlay" id="settingsMenuOverlay"></div>
+    
+    <!-- Выпадающее меню настроек -->
+    <div class="settings-menu" id="settingsMenu">
+        <div class="settings-menu-header">
+            <h2 class="settings-menu-title">⚙️ Настройки</h2>
+            <button class="settings-menu-close" id="settingsMenuClose">✕</button>
+        </div>
+        <div class="settings-menu-grid">
+            <a href="/joystick-test/joystick.html" class="settings-menu-card">
+                <span class="settings-menu-card-icon">🎮</span>
+                <div class="settings-menu-card-title">Джойстик</div>
+                <div class="settings-menu-card-description">Настройка джойстика и геймпада для управления игрой</div>
+            </a>
+            <a href="/dmx-showmaker.html" class="settings-menu-card">
+                <span class="settings-menu-card-icon">💡</span>
+                <div class="settings-menu-card-title">DMX Освещение</div>
+                <div class="settings-menu-card-description">Управление DMX фонарями и сценическим освещением</div>
+            </a>
+            <a href="/docs/design/BRAND_BOOK.md" target="_blank" class="settings-menu-card">
+                <span class="settings-menu-card-icon">🎨</span>
+                <div class="settings-menu-card-title">Брендбук</div>
+                <div class="settings-menu-card-description">Руководство по дизайну, цветам и типографике проекта</div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для пароля настроек -->
+    <div class="settings-password-modal" id="settingsPasswordModal">
+        <div class="settings-password-content">
+            <h2 class="settings-password-title">Введите пароль</h2>
+            <p style="font-family: 'Montserrat', sans-serif; font-size: clamp(14px, 2.5vw, 16px); color: #393639; margin-bottom: 16px;">Эта страница защищена паролем</p>
+            <input 
+                type="password" 
+                class="settings-password-input" 
+                id="settingsPasswordInput" 
+                placeholder="Пароль"
+                autocomplete="off"
+                autofocus
+            >
+            <div class="settings-password-buttons">
+                <button class="settings-password-button back" id="settingsPasswordBack">Назад</button>
+                <button class="settings-password-button" id="settingsPasswordSubmit">Войти</button>
+            </div>
+            <div class="settings-password-error" id="settingsPasswordError">Неверный пароль. Попробуйте снова.</div>
+        </div>
+    </div>
+    
+    <!-- Скрипт для меню настроек -->
+    <script src="/scripts/settings-menu.js"></script>
 </body>
 </html>
 

@@ -7,10 +7,12 @@
     <!-- Новая система фреймов -->
     <link rel="stylesheet" href="/styles/base.css">
     <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/aspect-ratio.css">
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/quiz-card.css">
     <link rel="stylesheet" href="/styles/frame1.css">
     <link rel="stylesheet" href="/styles/frame2.css">
+    <link rel="stylesheet" href="/styles/settings-menu.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -132,7 +134,7 @@
 
         .title {
             font-family: 'Days One', sans-serif;
-            font-size: clamp(32px, 6vw, 48px);
+            font-size: clamp(24px, 4vw, 32px); /* Уменьшен размер заголовка */
             color: #393639;
             /* Увеличенный отступ сверху для расстояния от Frame2 (фраза) - соответствует отступам Frame2/Frame3 */
             margin-top: clamp(20px, 3vh, 40px); /* Отступ внутри контейнера, основной отступ у контейнера */
@@ -153,7 +155,7 @@
                 -ms-hyphens: none !important;
                 white-space: normal !important; /* Разрешаем перенос строк */
                 /* Если слово не вмещается, уменьшаем размер текста */
-                font-size: clamp(24px, 5vw, 36px) !important; /* Уменьшенный размер для мобильных */
+                font-size: clamp(18px, 3.5vw, 28px) !important; /* Уменьшенный размер для мобильных */
             }
         }
         
@@ -161,7 +163,7 @@
         @media (max-width: 480px) {
             .title,
             #quizTitle {
-                font-size: clamp(20px, 4.5vw, 28px) !important; /* Еще меньше размер для очень маленьких экранов */
+                font-size: clamp(16px, 3vw, 22px) !important; /* Еще меньше размер для очень маленьких экранов */
             }
         }
 
@@ -169,7 +171,7 @@
         #content .subtitle,
         .container .subtitle {
             font-family: 'Caveat', cursive;
-            font-size: clamp(24px, 4.5vw, 36px);
+            font-size: clamp(20px, 3.5vw, 28px); /* Уменьшен размер шрифта */
             color: #354fba;
             margin-bottom: 40px;
             transform: rotate(-1deg);
@@ -206,19 +208,66 @@
         .mode-cards {
             display: grid;
             grid-template-columns: 1fr;
-            gap: clamp(20px, 4vw, 28px);
-            margin: 0 auto;
+            gap: clamp(20px, 4vw, 28px); /* Те же отступы, что и у карточек квизов */
+            margin: clamp(20px, 6vw, 40px) auto 0 auto; /* Те же отступы, что и у карточек квизов */
             margin-top: clamp(20px, 6vw, 40px);
-            max-width: 800px;
+            max-width: 1200px; /* Та же максимальная ширина, что и у сетки квизов */
             width: 100%;
-            padding: 0 clamp(16px, 4vw, 24px);
+            padding: 0; /* Отступы уже есть у родительского контейнера */
+            align-items: stretch; /* Растягиваем карточки на всю высоту ячейки */
+            align-content: center; /* Выравнивание содержимого по центру вертикально */
+            justify-items: stretch; /* Растягиваем карточки по ширине */
+            box-sizing: border-box;
+        }
+        
+        /* Убеждаемся, что карточки в сетке имеют одинаковую высоту */
+        .mode-cards .quiz-card {
+            align-self: stretch; /* Растягиваем карточку на всю высоту ячейки */
+            height: 100%; /* Занимают всю доступную высоту в grid-ячейке */
         }
 
+        /* Убеждаемся, что карточки режимов используют те же базовые стили, что и карточки квизов */
+        .mode-card {
+            /* Наследуем все стили из quiz-card.css через класс quiz-card */
+            /* Все базовые стили уже применены через класс quiz-card */
+            /* Здесь только специфичные стили для режимов */
+        }
+        
+        /* Убеждаемся, что карточки режимов имеют те же размеры, что и карточки квизов */
+        .quiz-card.mode-card {
+            /* Все базовые стили наследуются из quiz-card.css */
+            /* Здесь только принудительное применение размеров для гарантии */
+            min-height: 280px !important; /* Фиксированная минимальная высота как у карточек квизов */
+            height: 100% !important; /* Занимают всю доступную высоту */
+            padding: clamp(18px, 4vw, 28px) clamp(16px, 3.5vw, 24px) !important; /* Те же отступы */
+            border-radius: clamp(12px, 2.5vw, 25px) !important; /* Те же скругления */
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+        }
+        
+        /* Убеждаемся, что контент карточки имеет правильные размеры */
+        .quiz-card.mode-card .quiz-card-content {
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex: 1 !important;
+            min-height: 0 !important;
+        }
+
+        /* Стили для карточек режимов - используем те же размеры, что и на главной странице */
         .mode-card.solo {
             background: #ABF67C;
             box-shadow: 
-                0 6px 0px rgba(47, 185, 93, 0.3),
-                0 8px 16px rgba(47, 185, 93, 0.1);
+                0 6px 0px rgba(171, 246, 124, 0.4),
+                0 8px 16px rgba(171, 246, 124, 0.3),
+                0 12px 24px rgba(171, 246, 124, 0.2);
         }
 
         .mode-card.solo:hover {
@@ -228,17 +277,39 @@
         .mode-card.multiplayer {
             background: #F68A7C;
             box-shadow: 
-                0 6px 0px rgba(250, 87, 52, 0.3),
-                0 8px 16px rgba(250, 87, 52, 0.1);
+                0 6px 0px rgba(246, 138, 124, 0.4),
+                0 8px 16px rgba(246, 138, 124, 0.3),
+                0 12px 24px rgba(246, 138, 124, 0.2);
         }
 
         .mode-card.multiplayer:hover {
             background: rgba(246, 138, 124, 0.9);
         }
 
-        .mode-card .quiz-title,
-        .mode-card .quiz-description,
+        /* Адаптированные размеры шрифтов для соответствия высоте карточек квизов */
+        .mode-card .quiz-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(18px, 3.5vw, 26px); /* Немного уменьшено для компактности */
+            font-weight: 700;
+            color: #373639;
+            margin-bottom: clamp(4px, 1vw, 8px); /* Уменьшен отступ */
+            line-height: 1.2;
+        }
+
+        .mode-card .quiz-description {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 3vw, 20px); /* Немного уменьшено для компактности */
+            color: #373639;
+            margin-bottom: -4px; /* Отрицательный отступ для уменьшения расстояния до синего текста */
+            line-height: 1.2; /* Уменьшен line-height для компактности */
+            font-weight: 400;
+            opacity: 0.85;
+        }
+
         .mode-card .quiz-subtitle {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 3vw, 20px); /* Немного уменьшено для компактности */
+            font-weight: 400;
             color: #373639;
         }
 
@@ -246,26 +317,494 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: clamp(40px, 8vw, 64px); /* Увеличен размер иконок */
+            margin-bottom: clamp(8px, 2vw, 12px);
+            width: clamp(40px, 8vw, 64px); /* Увеличен размер иконок */
+            height: clamp(60px, 10vw, 80px); /* Фиксированная высота для всех иконок */
+            min-height: clamp(60px, 10vw, 80px); /* Минимальная высота для одинакового размера */
+            max-height: clamp(60px, 10vw, 80px); /* Максимальная высота для одинакового размера */
         }
 
         .mode-card .quiz-icon svg {
             width: 100%;
             height: 100%;
+            max-height: 100%; /* Ограничиваем максимальную высоту SVG */
+            object-fit: contain; /* Сохраняем пропорции */
         }
 
-        .mode-card .quiz-description {
-            margin-bottom: clamp(8px, 2vw, 12px);
-        }
-
-        .quiz-info-highlight {
+        /* Используем тот же стиль для highlight, что и quiz-info-highlight на главной */
+        .mode-card .quiz-info-highlight {
             font-family: 'Caveat', cursive;
-            font-size: clamp(20px, 3.5vw, 28px);
+            font-size: clamp(18px, 3vw, 24px); /* Немного уменьшено для компактности */
             color: #354fba;
-            margin-top: clamp(12px, 2.5vw, 16px);
+            margin-top: -4px; /* Отрицательный отступ для уменьшения расстояния от черного текста */
+            margin-bottom: 0; /* Убран отступ снизу */
             font-weight: 400;
-            line-height: 1.2;
+            line-height: 1.1; /* Уменьшен line-height для компактности */
             text-align: center;
             flex-shrink: 0;
+        }
+
+        /* Планшеты (769px - 1023px) - применяем те же стили для карточек режимов */
+        @media (max-width: 1023px) and (min-width: 769px) {
+            .quiz-card.mode-card {
+                padding: 20px 15px !important;
+                min-height: 280px !important;
+                height: 100% !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+        }
+
+        /* Мобильные устройства (≤768px) - применяем те же стили для карточек режимов */
+        @media (max-width: 768px) {
+            .quiz-card.mode-card {
+                padding: clamp(16px, 4vw, 24px) clamp(14px, 3.5vw, 20px) !important;
+                min-height: 280px !important;
+                height: 100% !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+        }
+
+        /* Адаптивность для мобильных - как на главной странице */
+        @media (max-width: 480px) {
+            .quiz-card.mode-card {
+                min-height: 260px !important; /* Как на главной странице */
+                height: 100% !important;
+                padding: clamp(14px, 3.5vw, 20px) clamp(12px, 3vw, 16px) !important; /* Те же отступы */
+                border-radius: clamp(16px, 3.5vw, 20px) !important; /* Те же скругления */
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            .mode-card .quiz-title {
+                font-size: clamp(20px, 4.5vw, 26px); /* Адаптировано для компактности */
+            }
+
+            .mode-card .quiz-description {
+                font-size: clamp(18px, 4vw, 22px); /* Адаптировано для компактности */
+            }
+
+            .mode-card .quiz-info-highlight {
+                font-size: clamp(20px, 4.5vw, 28px); /* Увеличен размер для узких экранов */
+            }
+
+            .mode-card .quiz-icon {
+                font-size: clamp(36px, 7.5vw, 56px); /* Увеличен размер иконок */
+                width: clamp(36px, 7.5vw, 56px);
+                height: clamp(54px, 9.5vw, 72px); /* Фиксированная высота */
+                min-height: clamp(54px, 9.5vw, 72px);
+                max-height: clamp(54px, 9.5vw, 72px);
+            }
+            
+            .mode-card .quiz-icon svg {
+                max-height: 100%;
+                object-fit: contain;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .mode-card .quiz-title {
+                font-size: clamp(18px, 4vw, 24px); /* Адаптировано для компактности */
+            }
+
+            .mode-card .quiz-description {
+                font-size: clamp(16px, 3.5vw, 20px); /* Адаптировано для компактности */
+            }
+
+            .mode-card .quiz-info-highlight {
+                font-size: clamp(18px, 4vw, 26px); /* Увеличен размер для очень узких экранов */
+            }
+
+            .mode-card .quiz-icon {
+                font-size: clamp(32px, 6.5vw, 52px); /* Увеличен размер иконок */
+                width: clamp(32px, 6.5vw, 52px);
+                height: clamp(48px, 8.5vw, 68px); /* Фиксированная высота */
+                min-height: clamp(48px, 8.5vw, 68px);
+                max-height: clamp(48px, 8.5vw, 68px);
+            }
+            
+            .mode-card .quiz-icon svg {
+                max-height: 100%;
+                object-fit: contain;
+            }
+        }
+        
+        /* Стили для кнопки меню - используем те же стили, что и у frame1-button */
+        .menu-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--color-bg);
+            border: 2px solid #393639;
+            border-radius: 12px;
+            color: #393639;
+            text-decoration: none;
+            font-family: 'Days One', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            line-height: 1.2;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        
+        .menu-button span {
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        /* Выравнивание иконки меню так, чтобы средняя линия была по центру текста */
+        .menu-button span:first-child {
+            font-size: 1em;
+            line-height: 1;
+            display: inline-block;
+            vertical-align: middle;
+            transform: translateY(-0.1em);
+        }
+        
+        .menu-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            background: var(--color-bg);
+            color: #393639;
+        }
+        
+        .menu-button:active {
+            transform: translateY(0px);
+        }
+        
+        /* Адаптивность для мобильных - как у frame1-button */
+        @media (max-width: 767px) {
+            .menu-button {
+                flex-shrink: 1 !important;
+                min-width: 0 !important;
+                padding: 10px 14px !important;
+                font-size: 13px !important;
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .menu-button {
+                padding: 8px 12px !important;
+                font-size: 12px !important;
+                letter-spacing: 0.3px !important;
+            }
+        }
+        
+        /* Выпадающее меню настроек */
+        .settings-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: clamp(300px, 90vw, 500px);
+            max-width: 90vw;
+            height: 100vh;
+            background: #F2F2F2;
+            box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            overflow-y: auto;
+            padding: clamp(12px, 2.5vw, 24px) clamp(16px, 3vw, 24px);
+            box-sizing: border-box;
+        }
+        
+        .settings-menu.open {
+            transform: translateX(0);
+        }
+        
+        .settings-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: clamp(8px, 1.5vw, 12px);
+            margin-top: clamp(-10px, -2vw, -5px);
+            padding-bottom: clamp(8px, 1.5vw, 12px);
+            border-bottom: none;
+        }
+        
+        .settings-menu-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(18px, 4vw, 24px);
+            color: #373639;
+            font-weight: 700;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+        
+        .settings-menu-close {
+            background: #ff7664;
+            border: 2px solid #383638;
+            border-radius: 8px;
+            padding: clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 10px);
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(12px, 2vw, 16px);
+            font-weight: 700;
+            color: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            min-width: auto;
+            width: auto;
+            height: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            margin-top: -20px;
+        }
+        
+        .settings-menu-close:hover {
+            background: #ff5a45;
+            transform: translateY(-1px);
+            box-shadow: 
+                0 3px 0px rgba(0, 0, 0, 0.2),
+                0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .settings-menu-close:active {
+            transform: translateY(1px);
+            box-shadow: 
+                0 1px 0px rgba(0, 0, 0, 0.2),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .settings-menu-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: clamp(16px, 3vw, 24px);
+            margin-top: clamp(-15px, -3vw, -10px);
+        }
+        
+        .settings-menu-card {
+            background: #FFFFFF;
+            border: 3px solid #383638;
+            border-radius: clamp(12px, 2.5vw, 20px);
+            padding: clamp(16px, 3vw, 24px);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.15),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            display: block;
+        }
+        
+        .settings-menu-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.2),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .settings-menu-card:first-child {
+            background: #f2f2f2;
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.15),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .settings-menu-card:first-child:hover {
+            background: rgba(242, 242, 242, 0.9);
+        }
+        
+        .settings-menu-card:nth-child(2) {
+            background: #d6fbbf;
+            box-shadow: 
+                0 6px 0px rgba(214, 251, 191, 0.4),
+                0 8px 16px rgba(214, 251, 191, 0.3);
+        }
+        
+        .settings-menu-card:nth-child(2):hover {
+            background: rgba(214, 251, 191, 0.9);
+        }
+        
+        .settings-menu-card:nth-child(3) {
+            background: #abf67c;
+            box-shadow: 
+                0 6px 0px rgba(171, 246, 124, 0.4),
+                0 8px 16px rgba(171, 246, 124, 0.3);
+        }
+        
+        .settings-menu-card:nth-child(3):hover {
+            background: rgba(171, 246, 124, 0.9);
+        }
+        
+        .settings-menu-card-icon {
+            font-size: clamp(32px, 6vw, 48px);
+            margin-bottom: clamp(12px, 2vw, 16px);
+            display: block;
+            text-align: center;
+        }
+        
+        .settings-menu-card-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(18px, 3.5vw, 24px);
+            color: #373639;
+            font-weight: 700;
+            margin-bottom: clamp(8px, 1.5vw, 12px);
+            text-align: center;
+        }
+        
+        .settings-menu-card-description {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(14px, 2.5vw, 18px);
+            color: #373639;
+            font-weight: 400;
+            opacity: 0.85;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        /* Оверлей для закрытия меню */
+        .settings-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(56, 54, 56, 0.5);
+            z-index: 9999;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+        
+        .settings-menu-overlay.active {
+            display: block;
+        }
+        
+        /* Модальное окно для пароля настроек */
+        .settings-password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(56, 54, 56, 0.85);
+            z-index: 10001;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .settings-password-modal.active {
+            display: flex;
+        }
+        
+        .settings-password-content {
+            background: #F2F2F2;
+            border-radius: 24px;
+            padding: clamp(24px, 4vw, 36px) clamp(20px, 4vw, 32px);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 
+                0 8px 0px rgba(0, 0, 0, 0.2),
+                0 16px 32px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+        }
+        
+        .settings-password-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(24px, 5vw, 32px);
+            color: #393639;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+        
+        .settings-password-input {
+            width: 100%;
+            padding: clamp(14px, 3vw, 18px);
+            border: 3px solid #393639;
+            border-radius: 12px;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(20px, 4vw, 24px);
+            text-align: center;
+            margin-bottom: clamp(16px, 3vw, 20px);
+            box-sizing: border-box;
+        }
+        
+        .settings-password-input:focus {
+            outline: none;
+            border-color: #abf67c;
+            box-shadow: 0 0 0 4px rgba(168, 224, 99, 0.2);
+        }
+        
+        .settings-password-buttons {
+            display: flex;
+            gap: clamp(8px, 2vw, 12px);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .settings-password-button {
+            background: #abf67c;
+            color: #2fb95d;
+            border: none;
+            padding: clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 24px);
+            border-radius: 12px;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 3vw, 20px);
+            cursor: pointer;
+            box-shadow: 0 4px 0px rgba(47, 185, 93, 0.3), 0 6px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+            flex: 1;
+            box-sizing: border-box;
+            min-width: 0;
+        }
+        
+        .settings-password-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(47, 185, 93, 0.4), 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .settings-password-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
+        }
+        
+        .settings-password-button.back {
+            background: #f2f2f2;
+            color: #393639;
+        }
+        
+        .settings-password-button.back:hover {
+            background: #E0E0E0;
+        }
+        
+        .settings-password-error {
+            color: #ff7664;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(14px, 2.5vw, 16px);
+            margin-top: 12px;
+            min-height: 20px;
+            display: none;
+        }
+        
+        .settings-password-error.show {
+            display: block;
         }
 
         .loading {
@@ -286,7 +825,15 @@
 
         @media (min-width: 768px) {
             .mode-cards {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, 1fr); /* 2 колонки на планшетах и десктопах */
+                gap: clamp(24px, 4vw, 32px); /* Те же отступы, что и у карточек квизов */
+                align-items: stretch; /* Растягиваем карточки на всю высоту ячейки */
+            }
+            
+            /* Убеждаемся, что карточки в сетке имеют одинаковую высоту */
+            .mode-cards .quiz-card {
+                align-self: stretch; /* Растягиваем карточку на всю высоту ячейки */
+                height: 100%; /* Занимают всю доступную высоту в grid-ячейке */
             }
         }
         
@@ -383,6 +930,55 @@
                 <button class="password-button" onclick="checkPassword()">Войти</button>
             </div>
             <div class="password-error" id="passwordError">Неверный пароль. Попробуйте снова.</div>
+        </div>
+    </div>
+    
+    <!-- Оверлей для меню настроек -->
+    <div class="settings-menu-overlay" id="settingsMenuOverlay"></div>
+    
+    <!-- Выпадающее меню настроек -->
+    <div class="settings-menu" id="settingsMenu">
+        <div class="settings-menu-header">
+            <h2 class="settings-menu-title">⚙️ Настройки</h2>
+            <button class="settings-menu-close" id="settingsMenuClose">✕</button>
+        </div>
+        <div class="settings-menu-grid">
+            <a href="/joystick-test/joystick.html" class="settings-menu-card">
+                <span class="settings-menu-card-icon">🎮</span>
+                <div class="settings-menu-card-title">Джойстик</div>
+                <div class="settings-menu-card-description">Настройка джойстика и геймпада для управления игрой</div>
+            </a>
+            <a href="/dmx-showmaker.html" class="settings-menu-card">
+                <span class="settings-menu-card-icon">💡</span>
+                <div class="settings-menu-card-title">DMX Освещение</div>
+                <div class="settings-menu-card-description">Управление DMX фонарями и сценическим освещением</div>
+            </a>
+            <a href="/docs/design/BRAND_BOOK.md" target="_blank" class="settings-menu-card">
+                <span class="settings-menu-card-icon">🎨</span>
+                <div class="settings-menu-card-title">Брендбук</div>
+                <div class="settings-menu-card-description">Руководство по дизайну, цветам и типографике проекта</div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для пароля настроек -->
+    <div class="settings-password-modal" id="settingsPasswordModal">
+        <div class="settings-password-content">
+            <h2 class="settings-password-title">Введите пароль</h2>
+            <p style="font-family: 'Montserrat', sans-serif; font-size: clamp(14px, 2.5vw, 16px); color: #393639; margin-bottom: 16px;">Эта страница защищена паролем</p>
+            <input 
+                type="password" 
+                class="settings-password-input" 
+                id="settingsPasswordInput" 
+                placeholder="Пароль"
+                autocomplete="off"
+                autofocus
+            >
+            <div class="settings-password-buttons">
+                <button class="settings-password-button back" id="settingsPasswordBack">Назад</button>
+                <button class="settings-password-button" id="settingsPasswordSubmit">Войти</button>
+            </div>
+            <div class="settings-password-error" id="settingsPasswordError">Неверный пароль. Попробуйте снова.</div>
         </div>
     </div>
 
@@ -489,7 +1085,7 @@
             // Карточка одиночной игры
             if (quizConfig.soloMode !== false) {
                 const soloCard = createModeCard('solo', 'Одиночная игра', 
-                    'Играй один и соревнуйся с другими в рейтинге',
+                    'Играй один и соревнуйся в рейтинге',
                     getSoloIcon(),
                     getSoloInfo(quizConfig));
                 modeCards.appendChild(soloCard);
@@ -528,36 +1124,36 @@
         }
 
         function getSoloIcon() {
-            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="transform: scale(0.7); transform-origin: center;">
-                <circle cx="50" cy="35" r="15" fill="#000" stroke="#000" stroke-width="2"/>
-                <path d="M 50 50 Q 50 70 50 85" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
-                <path d="M 50 60 L 30 75" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
-                <path d="M 50 60 L 70 75" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
-                <path d="M 50 85 L 35 100" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
-                <path d="M 50 85 L 65 100" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="transform: scale(1); transform-origin: center;">
+                <circle cx="50" cy="35" r="15" fill="#373639" stroke="#373639" stroke-width="2"/>
+                <path d="M 50 50 Q 50 70 50 85" stroke="#373639" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M 50 60 L 30 75" stroke="#373639" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M 50 60 L 70 75" stroke="#373639" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M 50 85 L 35 100" stroke="#373639" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M 50 85 L 65 100" stroke="#373639" stroke-width="4" fill="none" stroke-linecap="round"/>
             </svg>`;
         }
 
         function getMultiplayerIcon() {
-            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="transform: scale(0.9); transform-origin: center;">
-                <circle cx="25" cy="30" r="10" fill="#000" stroke="#000" stroke-width="2"/>
-                <path d="M 25 40 Q 25 55 25 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <path d="M 25 50 L 12 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <path d="M 25 50 L 38 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <path d="M 25 70 L 15 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <path d="M 25 70 L 35 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <circle cx="50" cy="35" r="12" fill="#000" stroke="#000" stroke-width="2"/>
-                <path d="M 50 47 Q 50 62 50 77" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                <path d="M 50 57 L 35 70" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                <path d="M 50 57 L 65 70" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                <path d="M 50 77 L 37 92" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                <path d="M 50 77 L 63 92" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                <circle cx="75" cy="30" r="10" fill="#000" stroke="#000" stroke-width="2"/>
-                <path d="M 75 40 Q 75 55 75 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <path d="M 75 50 L 62 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <path d="M 75 50 L 88 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <path d="M 75 70 L 65 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <path d="M 75 70 L 85 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="transform: scale(1); transform-origin: center;">
+                <circle cx="25" cy="30" r="10" fill="#373639" stroke="#373639" stroke-width="2"/>
+                <path d="M 25 40 Q 25 55 25 70" stroke="#373639" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 25 50 L 12 62" stroke="#373639" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 25 50 L 38 62" stroke="#373639" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 25 70 L 15 85" stroke="#373639" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 25 70 L 35 85" stroke="#373639" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <circle cx="50" cy="35" r="12" fill="#373639" stroke="#373639" stroke-width="2"/>
+                <path d="M 50 47 Q 50 62 50 77" stroke="#373639" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M 50 57 L 35 70" stroke="#373639" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M 50 57 L 65 70" stroke="#373639" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M 50 77 L 37 92" stroke="#373639" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M 50 77 L 63 92" stroke="#373639" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <circle cx="75" cy="30" r="10" fill="#373639" stroke="#373639" stroke-width="2"/>
+                <path d="M 75 40 Q 75 55 75 70" stroke="#373639" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 75 50 L 62 62" stroke="#373639" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 75 50 L 88 62" stroke="#373639" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 75 70 L 65 85" stroke="#373639" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 75 70 L 85 85" stroke="#373639" stroke-width="3" fill="none" stroke-linecap="round"/>
             </svg>`;
         }
 
@@ -605,12 +1201,28 @@
             }
         }
 
+        
         function initHubs() {
             if (typeof Frame1 !== 'undefined' && typeof Frame2 !== 'undefined') {
                 Frame1.init({
                     showBack: true,
                     backUrl: '/index.html'
                 });
+                
+                // Добавляем кнопку меню в правый верхний угол
+                const hub1ActionsRight = document.getElementById('frame1-actions-right');
+                if (hub1ActionsRight) {
+                    // Проверяем, не добавлена ли уже кнопка
+                    let menuButton = document.getElementById('settings-menu-button');
+                    if (!menuButton) {
+                        menuButton = document.createElement('button');
+                        menuButton.id = 'settings-menu-button';
+                        menuButton.className = 'menu-button frame1-button';
+                        menuButton.innerHTML = '<span style="display: inline-block; vertical-align: middle; line-height: 1;">☰</span> <span>Меню</span>';
+                        menuButton.addEventListener('click', openSettingsMenu);
+                        hub1ActionsRight.appendChild(menuButton);
+                    }
+                }
                 
                 // Инициализируем Frame2
                 Frame2.init({
@@ -765,6 +1377,9 @@
     
     <!-- Общий скрипт для автоматической заглавной буквы в шрифте Caveat -->
     <script src="/scripts/caveat-capitalize.js"></script>
+    
+    <!-- Скрипт для меню настроек -->
+    <script src="/scripts/settings-menu.js"></script>
 </body>
 </html>
 

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Покер - Настройка механики</title>
+    <!-- Новая система фреймов -->
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/aspect-ratio.css">
+    <link rel="stylesheet" href="/styles/components.css">
+    <link rel="stylesheet" href="/styles/quiz-card.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
+    <link rel="stylesheet" href="/styles/settings-menu.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    
+    <!-- Конфигурация видимости фреймов -->
+    <script>
+        window.pageLayoutConfig = {
+            showFrame1: true,   // Панель кнопок
+            showFrame2: true,   // Логотип + фраза
+            showFrame4: true,   // Правила безопасности
+            showFrame5: true    // Информация о создателе
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(32px, 6vw, 48px);
+            color: #393639;
+            margin-top: clamp(20px, 3vh, 40px);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            text-align: center;
+            width: 100%;
+        }
+        
+        @media (max-width: 767px) {
+            .title {
+                word-break: normal !important;
+                overflow-wrap: break-word !important;
+                hyphens: none !important;
+                -webkit-hyphens: none !important;
+                -ms-hyphens: none !important;
+                white-space: normal !important;
+                font-size: clamp(24px, 5vw, 36px) !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .title {
+                font-size: clamp(20px, 4.5vw, 28px) !important;
+            }
+        }
+
+        /* Стили для subtitle внутри контента (НЕ для Frame2) */
+        #content .subtitle,
+        .container .subtitle {
+            font-family: 'Caveat', cursive;
+            font-size: clamp(24px, 4.5vw, 36px);
+            color: #354fba;
+            margin-bottom: 40px;
+            transform: rotate(-1deg);
+            text-align: center;
+            width: 100%;
+        }
+        
+        /* Исключаем фразу в Frame2 из локальных стилей */
+        .frame2-logo-section .subtitle,
+        .frame2 .subtitle,
+        .frame-2 .subtitle,
+        #frame2 .subtitle {
+            font-size: clamp(20px, 3vw, 40px) !important;
+            color: #393639 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            transform: none !important;
+            font-weight: 400 !important;
+            line-height: 1.2 !important;
+            white-space: nowrap !important;
+        }
+
+        #content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            text-align: center;
+        }
+
+        .mode-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: clamp(20px, 4vw, 28px);
+            margin: 0 auto;
+            margin-top: clamp(20px, 6vw, 40px);
+            max-width: 800px;
+            width: 100%;
+            padding: 0 clamp(16px, 4vw, 24px);
+        }
+
+        .mode-card {
+            background: rgba(245, 245, 245, 0.85);
+            border: none;
+            border-radius: clamp(12px, 2.5vw, 25px);
+            padding: clamp(18px, 4vw, 28px) clamp(16px, 3.5vw, 24px);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 8px 0px rgba(0, 0, 0, 0.4),
+                0 12px 24px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+
+        .mode-card.selected {
+            border: 3px solid #2fb95d;
+            box-shadow: 
+                0 6px 0px rgba(47, 185, 93, 0.4),
+                0 8px 16px rgba(47, 185, 93, 0.2);
+        }
+
+        .mode-card.multiplayer {
+            background: #ABF67C;
+            box-shadow: 
+                0 6px 0px rgba(47, 185, 93, 0.3),
+                0 8px 16px rgba(47, 185, 93, 0.1);
+        }
+
+        .mode-card.multiplayer:hover {
+            background: rgba(171, 246, 124, 0.9);
+        }
+
+        .mode-card.multiplayer.selected {
+            border: 3px solid #2fb95d;
+            box-shadow: 
+                0 6px 0px rgba(47, 185, 93, 0.4),
+                0 8px 16px rgba(47, 185, 93, 0.2);
+        }
+
+        .mode-card.multiplayer-mode {
+            background: #F68A7C;
+            box-shadow: 
+                0 6px 0px rgba(250, 87, 52, 0.3),
+                0 8px 16px rgba(250, 87, 52, 0.1);
+        }
+
+        .mode-card.multiplayer-mode:hover {
+            background: rgba(246, 138, 124, 0.9);
+        }
+
+        .mode-card.multiplayer-mode.selected {
+            border: 3px solid #fa5734;
+            box-shadow: 
+                0 6px 0px rgba(250, 87, 52, 0.4),
+                0 8px 16px rgba(250, 87, 52, 0.2);
+        }
+
+        .mode-card .quiz-title,
+        .mode-card .quiz-description,
+        .mode-card .quiz-subtitle {
+            color: #373639;
+        }
+
+        .mode-card .quiz-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: clamp(10px, 2vw, 16px);
+        }
+
+        .mode-card .quiz-icon svg {
+            width: clamp(48px, 8vw, 64px);
+            height: clamp(48px, 8vw, 64px);
+        }
+
+        .mode-card .quiz-description {
+            margin-bottom: clamp(8px, 2vw, 12px);
+        }
+
+        .quiz-info-highlight {
+            font-family: 'Caveat', cursive;
+            font-size: clamp(20px, 3.5vw, 28px);
+            color: #354fba;
+            margin-top: clamp(12px, 2.5vw, 16px);
+            font-weight: 400;
+            line-height: 1.2;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        /* Секция настроек механики */
+        .mechanics-settings {
+            margin-top: clamp(30px, 6vw, 50px);
+            max-width: 800px;
+            width: 100%;
+            padding: 0 clamp(16px, 4vw, 24px);
+        }
+
+        .settings-card {
+            background: rgba(245, 245, 245, 0.85);
+            border: none;
+            border-radius: clamp(12px, 2.5vw, 25px);
+            padding: clamp(20px, 4vw, 32px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: clamp(20px, 4vw, 28px);
+        }
+
+        .settings-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(20px, 4vw, 28px);
+            color: #393639;
+            margin-bottom: clamp(16px, 3vw, 24px);
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .settings-group {
+            margin-bottom: clamp(20px, 4vw, 28px);
+        }
+
+        .settings-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(14px, 2.5vw, 18px);
+            font-weight: 600;
+            color: #393639;
+            margin-bottom: clamp(8px, 1.5vw, 12px);
+            display: block;
+        }
+
+        .settings-input,
+        .settings-textarea,
+        .settings-select {
+            width: 100%;
+            padding: clamp(12px, 2.5vw, 14px) clamp(14px, 3vw, 16px);
+            border: clamp(2px, 0.5vw, 3px) solid #000;
+            border-radius: clamp(10px, 2vw, 12px);
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(14px, 2.5vw, 16px);
+            background: #FFFFFF;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            min-height: 44px;
+        }
+
+        .settings-input:focus,
+        .settings-textarea:focus,
+        .settings-select:focus {
+            outline: none;
+            border-color: #2fb95d;
+            box-shadow: 
+                0 4px 0px rgba(47, 185, 93, 0.3),
+                0 8px 16px rgba(47, 185, 93, 0.15);
+        }
+
+        .settings-textarea {
+            min-height: clamp(100px, 15vw, 150px);
+            resize: vertical;
+        }
+
+        .start-button {
+            width: 100%;
+            max-width: 400px;
+            margin: clamp(30px, 6vw, 50px) auto 0;
+            padding: clamp(14px, 3vw, 18px) clamp(24px, 4vw, 32px);
+            background: #2fb95d;
+            color: #FFFFFF;
+            border: none;
+            border-radius: clamp(12px, 2.5vw, 16px);
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(18px, 3.5vw, 24px);
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 
+                0 6px 0px rgba(47, 185, 93, 0.4),
+                0 8px 16px rgba(47, 185, 93, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .start-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 
+                0 8px 0px rgba(47, 185, 93, 0.5),
+                0 12px 24px rgba(47, 185, 93, 0.3);
+        }
+
+        .start-button:active {
+            transform: translateY(-2px);
+        }
+
+        .start-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            color: #393639;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            color: #ff7664;
+        }
+
+        @media (min-width: 768px) {
+            .mode-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body class="with-hub">
+    <!-- HUB3: основная зона контента -->
+    <div class="hub-zone hub3">
+        <div class="container" id="mainContainer">
+            <div id="loading" class="loading" style="display: none;">Загрузка...</div>
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="content">
+                <h1 class="title">ПОКЕР</h1>
+                <p class="subtitle">настройка механики игры</p>
+                
+                <div class="mode-cards" id="modeCards">
+                    <!-- Карточки режимов будут добавлены динамически -->
+                </div>
+
+                <div class="mechanics-settings" id="mechanicsSettings" style="display: none;">
+                    <div class="settings-card">
+                        <h2 class="settings-title">Настройки механики</h2>
+                        
+                        <div class="settings-group">
+                            <label class="settings-label" for="mechanicsDescription">Описание механики</label>
+                            <textarea 
+                                id="mechanicsDescription" 
+                                class="settings-textarea" 
+                                placeholder="Опишите правила и особенности механики игры..."
+                            ></textarea>
+                        </div>
+
+                        <div class="settings-group">
+                            <label class="settings-label" for="gameRules">Правила игры</label>
+                            <textarea 
+                                id="gameRules" 
+                                class="settings-textarea" 
+                                placeholder="Детальные правила проведения игры..."
+                            ></textarea>
+                        </div>
+
+                        <div class="settings-group">
+                            <label class="settings-label" for="scoringSystem">Система подсчета</label>
+                            <input 
+                                type="text" 
+                                id="scoringSystem" 
+                                class="settings-input" 
+                                placeholder="Опишите систему подсчета очков..."
+                            />
+                        </div>
+
+                        <div class="settings-group">
+                            <label class="settings-label" for="timeLimit">Лимит времени (секунды)</label>
+                            <input 
+                                type="number" 
+                                id="timeLimit" 
+                                class="settings-input" 
+                                placeholder="0"
+                                min="0"
+                            />
+                        </div>
+                    </div>
+
+                    <button class="start-button" id="startButton" onclick="startGame()">
+                        Начать игру
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER: Frame 4 и Frame 5 -->
+    <footer class="site-footer">
+        <!-- Frame 4: Правила безопасности -->
+        <section class="frame frame-4" data-frame="rules" id="frame4">
+        </section>
+
+        <!-- Frame 5: Информация о создателе -->
+        <section class="frame frame-5" data-frame="about" id="frame5">
+            <p id="copyright-year">© 2024 ВМЕСТЕ. Все права защищены.</p>
+        </section>
+    </footer>
+
+    <script>
+        let selectedMode = null;
+
+        // Инициализация страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            initHubs();
+            createModeCards();
+        });
+
+        function createModeCards() {
+            const modeCards = document.getElementById('modeCards');
+            modeCards.innerHTML = '';
+
+            // Карточка мультиплеера
+            const multiplayerCard = createModeCard('multiplayer', 'Мультиплеер', 
+                'Игра для нескольких игроков одновременно',
+                getMultiplayerIcon(),
+                'Соревнование в реальном времени');
+            modeCards.appendChild(multiplayerCard);
+
+            // Карточка многопользовательского режима
+            const multiplayerModeCard = createModeCard('multiplayer-mode', 'Многопользовательский', 
+                'Игра с большим количеством участников',
+                getMultiplayerModeIcon(),
+                'Командная игра');
+            modeCards.appendChild(multiplayerModeCard);
+        }
+
+        function createModeCard(mode, title, description, iconSvg, infoText) {
+            const card = document.createElement('div');
+            card.className = `quiz-card mode-card ${mode}`;
+            card.onclick = () => selectMode(mode, card);
+
+            card.innerHTML = `
+                <div class="quiz-card-content">
+                    <div class="quiz-icon">
+                        ${iconSvg}
+                    </div>
+                    <div class="quiz-title">${title}</div>
+                    <div class="quiz-description">${description}</div>
+                    <div class="quiz-info-highlight">${infoText}</div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function getMultiplayerIcon() {
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="25" cy="30" r="10" fill="#000" stroke="#000" stroke-width="2"/>
+                <path d="M 25 40 Q 25 55 25 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 25 50 L 12 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 25 50 L 38 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 25 70 L 15 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 25 70 L 35 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <circle cx="50" cy="35" r="12" fill="#000" stroke="#000" stroke-width="2"/>
+                <path d="M 50 47 Q 50 62 50 77" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M 50 57 L 35 70" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M 50 57 L 65 70" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M 50 77 L 37 92" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M 50 77 L 63 92" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <circle cx="75" cy="30" r="10" fill="#000" stroke="#000" stroke-width="2"/>
+                <path d="M 75 40 Q 75 55 75 70" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 75 50 L 62 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 75 50 L 88 62" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 75 70 L 65 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 75 70 L 85 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+            </svg>`;
+        }
+
+        function getMultiplayerModeIcon() {
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="25" r="8" fill="#000" stroke="#000" stroke-width="2"/>
+                <path d="M 20 33 Q 20 45 20 65" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M 20 40 L 10 50" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M 20 40 L 30 50" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M 20 65 L 12 78" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M 20 65 L 28 78" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <circle cx="40" cy="30" r="9" fill="#000" stroke="#000" stroke-width="2"/>
+                <path d="M 40 39 Q 40 52 40 72" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 40 48 L 28 60" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 40 48 L 52 60" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 40 72 L 30 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 40 72 L 50 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <circle cx="60" cy="30" r="9" fill="#000" stroke="#000" stroke-width="2"/>
+                <path d="M 60 39 Q 60 52 60 72" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 60 48 L 48 60" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 60 48 L 72 60" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 60 72 L 50 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 60 72 L 70 85" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <circle cx="80" cy="25" r="8" fill="#000" stroke="#000" stroke-width="2"/>
+                <path d="M 80 33 Q 80 45 80 65" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M 80 40 L 70 50" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M 80 40 L 90 50" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M 80 65 L 72 78" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M 80 65 L 88 78" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>`;
+        }
+
+        function selectMode(mode, cardElement) {
+            // Убираем выделение со всех карточек
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Выделяем выбранную карточку
+            cardElement.classList.add('selected');
+            selectedMode = mode;
+
+            // Показываем настройки механики
+            document.getElementById('mechanicsSettings').style.display = 'block';
+            
+            // Прокручиваем к настройкам
+            document.getElementById('mechanicsSettings').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+
+        function startGame() {
+            if (!selectedMode) {
+                alert('Пожалуйста, выберите режим игры');
+                return;
+            }
+
+            const mechanicsData = {
+                mode: selectedMode,
+                description: document.getElementById('mechanicsDescription').value,
+                rules: document.getElementById('gameRules').value,
+                scoringSystem: document.getElementById('scoringSystem').value,
+                timeLimit: parseInt(document.getElementById('timeLimit').value) || 0
+            };
+
+            console.log('Запуск игры с настройками:', mechanicsData);
+            
+            // Здесь будет логика запуска игры
+            // Пока просто показываем сообщение
+            alert(`Игра запущена в режиме: ${selectedMode === 'multiplayer' ? 'Мультиплеер' : 'Многопользовательский'}\n\nНастройки сохранены. Механика будет реализована позже.`);
+        }
+
+        function initHubs() {
+            if (typeof Frame1 !== 'undefined' && typeof Frame2 !== 'undefined') {
+                Frame1.init({
+                    showBack: true,
+                    backUrl: '/index.html'
+                });
+                
+                // Добавляем кнопку меню в правый верхний угол
+                if (typeof addMenuButton === 'function') {
+                    setTimeout(addMenuButton, 200);
+                }
+                
+                Frame2.init({
+                    showSubtitle: true
+                });
+                
+                // Устанавливаем фразу для покера
+                setTimeout(() => {
+                    const frame2Subtitle = document.querySelector('.frame2-logo-section .subtitle, .frame2 .subtitle, #frame2 .subtitle, .frame-2 .subtitle');
+                    if (frame2Subtitle) {
+                        frame2Subtitle.textContent = 'Стратегия и удача';
+                        frame2Subtitle.style.fontSize = '';
+                        frame2Subtitle.style.width = '';
+                        frame2Subtitle.style.maxWidth = '';
+                    }
+                }, 300);
+            }
+        }
+    </script>
+    
+    <!-- Layout Manager -->
+    <script src="/scripts/layout.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
+    <script src="/scripts/frame2.js"></script>
+    
+    <!-- Общий скрипт для обновления года в Frame 5 -->
+    <script src="/scripts/frame5-copyright.js"></script>
+    
+    <!-- Общий скрипт для автоматической заглавной буквы в шрифте Caveat -->
+    <script src="/scripts/caveat-capitalize.js"></script>
+    
+    <!-- Оверлей для меню настроек -->
+    <div class="settings-menu-overlay" id="settingsMenuOverlay"></div>
+    
+    <!-- Выпадающее меню настроек -->
+    <div class="settings-menu" id="settingsMenu">
+        <div class="settings-menu-header">
+            <h2 class="settings-menu-title">⚙️ Настройки</h2>
+            <button class="settings-menu-close" id="settingsMenuClose">✕</button>
+        </div>
+        <div class="settings-menu-grid">
+            <a href="/joystick-test/joystick.html" class="settings-menu-card">
+                <span class="settings-menu-card-icon">🎮</span>
+                <div class="settings-menu-card-title">Джойстик</div>
+                <div class="settings-menu-card-description">Настройка джойстика и геймпада для управления игрой</div>
+            </a>
+            <a href="/dmx-showmaker.html" class="settings-menu-card">
+                <span class="settings-menu-card-icon">💡</span>
+                <div class="settings-menu-card-title">DMX Освещение</div>
+                <div class="settings-menu-card-description">Управление DMX фонарями и сценическим освещением</div>
+            </a>
+            <a href="/docs/design/BRAND_BOOK.md" target="_blank" class="settings-menu-card">
+                <span class="settings-menu-card-icon">🎨</span>
+                <div class="settings-menu-card-title">Брендбук</div>
+                <div class="settings-menu-card-description">Руководство по дизайну, цветам и типографике проекта</div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для пароля настроек -->
+    <div class="settings-password-modal" id="settingsPasswordModal">
+        <div class="settings-password-content">
+            <h2 class="settings-password-title">Введите пароль</h2>
+            <p style="font-family: 'Montserrat', sans-serif; font-size: clamp(14px, 2.5vw, 16px); color: #393639; margin-bottom: 16px;">Эта страница защищена паролем</p>
+            <input 
+                type="password" 
+                class="settings-password-input" 
+                id="settingsPasswordInput" 
+                placeholder="Пароль"
+                autocomplete="off"
+                autofocus
+            >
+            <div class="settings-password-buttons">
+                <button class="settings-password-button back" id="settingsPasswordBack">Назад</button>
+                <button class="settings-password-button" id="settingsPasswordSubmit">Войти</button>
+            </div>
+            <div class="settings-password-error" id="settingsPasswordError">Неверный пароль. Попробуйте снова.</div>
+        </div>
+    </div>
+    
+    <!-- Скрипт для меню настроек -->
+    <script src="/scripts/settings-menu.js"></script>
+</body>
+</html>
+

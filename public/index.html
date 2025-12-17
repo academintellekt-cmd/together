@@ -7,10 +7,12 @@
     <!-- Новая система фреймов -->
     <link rel="stylesheet" href="/styles/base.css">
     <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/aspect-ratio.css">
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/quiz-card.css">
     <link rel="stylesheet" href="/styles/frame1.css">
     <link rel="stylesheet" href="/styles/frame2.css">
+    <link rel="stylesheet" href="/styles/settings-menu.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -100,6 +102,7 @@
                 width: clamp(150px, 30vw, 200px);
                 height: clamp(150px, 30vw, 200px);
                 left: clamp(-40px, -8vw, -50px);
+                z-index: 1 !important; /* За карточками - ниже всех элементов контента */
             }
             
             body::after {
@@ -107,6 +110,7 @@
                 width: clamp(180px, 35vw, 250px);
                 height: clamp(180px, 35vw, 250px);
                 right: clamp(-60px, -12vw, -80px);
+                z-index: 1 !important; /* За карточками - ниже всех элементов контента */
             }
         }
         
@@ -115,12 +119,14 @@
                 width: clamp(120px, 25vw, 180px);
                 height: clamp(120px, 25vw, 180px);
                 left: clamp(-40px, -8vw, -50px);
+                z-index: 1 !important; /* За карточками - ниже всех элементов контента */
             }
             
             body::after {
                 width: clamp(150px, 30vw, 220px);
                 height: clamp(150px, 30vw, 220px);
                 right: clamp(-60px, -12vw, -80px);
+                z-index: 1 !important; /* За карточками - ниже всех элементов контента */
             }
         }
         
@@ -259,10 +265,55 @@
 
         /* SVG иконки в стиле "от руки маркером" */
         .hand-drawn-icon {
-            width: 32px;
-            height: 32px;
+            width: clamp(24px, 5vw, 32px);
+            height: clamp(24px, 5vw, 32px);
             display: inline-block;
             vertical-align: middle;
+            flex-shrink: 0;
+        }
+        
+        /* Убеждаемся, что SVG иконки видны в quiz-info-item */
+        .quiz-info-item .hand-drawn-icon,
+        .quiz-info-item svg.hand-drawn-icon,
+        .quiz-info-item svg {
+            width: clamp(24px, 5vw, 32px) !important;
+            height: clamp(24px, 5vw, 32px) !important;
+            min-width: clamp(24px, 5vw, 32px) !important;
+            min-height: clamp(24px, 5vw, 32px) !important;
+            max-width: clamp(24px, 5vw, 32px) !important;
+            max-height: clamp(24px, 5vw, 32px) !important;
+            display: block !important;
+            flex-shrink: 0 !important;
+            margin-bottom: 2px !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            position: relative !important;
+            z-index: 1 !important;
+            overflow: visible !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* Убеждаемся, что SVG элементы внутри видны */
+        .quiz-info-item svg path,
+        .quiz-info-item svg line,
+        .quiz-info-item svg circle {
+            stroke-width: 4 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: block !important;
+        }
+        
+        /* Специальные стили для карточек с фразой */
+        .quiz-card.has-phrase .quiz-info-item svg,
+        .quiz-card.has-phrase .quiz-info-item .hand-drawn-icon {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            width: clamp(24px, 5vw, 32px) !important;
+            height: clamp(24px, 5vw, 32px) !important;
+            min-width: clamp(24px, 5vw, 32px) !important;
+            min-height: clamp(24px, 5vw, 32px) !important;
+            flex-shrink: 0 !important;
         }
 
 
@@ -354,15 +405,440 @@
             display: none;
         }
 
-        /* Стили для карточек начиная с четвертой (если будут) */
-        .quiz-card:nth-child(n+4) .quiz-title {
+        /* Четвертая карточка - стиль Покера */
+        .quiz-card:nth-child(4) {
+            /* Цвет фона: #8a7cf6 (лавандовый) устанавливается через JavaScript */
+            border: none;
+            box-shadow: 
+                0 6px 0px rgba(138, 124, 246, 0.3),
+                0 8px 16px rgba(138, 124, 246, 0.1);
+        }
+
+        .quiz-card:nth-child(4):hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 8px 0px rgba(138, 124, 246, 0.4),
+                0 12px 24px rgba(138, 124, 246, 0.2);
+            opacity: 0.9;
+        }
+
+        .quiz-card:nth-child(4):hover .quiz-title,
+        .quiz-card:nth-child(4):hover .quiz-subtitle,
+        .quiz-card:nth-child(4):hover .quiz-info-item,
+        .quiz-card:nth-child(4):hover .quiz-info-item span {
+            color: #e8f67c;
+            filter: brightness(1.1);
+        }
+
+        .quiz-card:nth-child(4):hover div[style*="Caveat"],
+        .quiz-card:nth-child(4):hover .quiz-phrase {
+            filter: brightness(1.1) !important;
+            color: #354fba !important; /* Синий остается синим */
+        }
+
+        /* Стили для четвертой карточки (Покер) - цвет текста */
+        .quiz-card:nth-child(4) .quiz-title,
+        .quiz-card:nth-child(4) .quiz-subtitle,
+        .quiz-card:nth-child(4) .quiz-description,
+        .quiz-card:nth-child(4) .quiz-info-item,
+        .quiz-card:nth-child(4) .quiz-info-item span {
+            color: #e8f67c !important;
+        }
+        
+        /* Синий текст (quiz-phrase) остается синим */
+        .quiz-card:nth-child(4) .quiz-phrase {
+            color: #354fba !important; /* Синий акцентный текст */
+        }
+        
+        /* Стили для кнопки меню - используем те же стили, что и у frame1-button */
+        .menu-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--color-bg);
+            border: 2px solid #393639;
+            border-radius: 12px;
+            color: #393639;
+            text-decoration: none;
+            font-family: 'Days One', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            line-height: 1.2;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        
+        .menu-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            background: var(--color-bg);
+            color: #393639;
+        }
+        
+        .menu-button:active {
+            transform: translateY(0px);
+        }
+        
+        .menu-button span {
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        /* Выравнивание иконки меню так, чтобы средняя линия была по центру текста */
+        .menu-button span:first-child {
+            font-size: 1em;
+            line-height: 1;
+            display: inline-block;
+            vertical-align: middle;
+            transform: translateY(-0.1em);
+        }
+        
+        /* Адаптивность для мобильных - как у frame1-button */
+        @media (max-width: 767px) {
+            .menu-button {
+                flex-shrink: 1 !important;
+                min-width: 0 !important;
+                padding: 10px 14px !important;
+                font-size: 13px !important;
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .menu-button {
+                padding: 8px 12px !important;
+                font-size: 12px !important;
+                letter-spacing: 0.3px !important;
+            }
+        }
+        
+        /* Выпадающее меню настроек */
+        .settings-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: clamp(300px, 90vw, 500px);
+            max-width: 90vw;
+            height: 100vh;
+            background: #F2F2F2;
+            box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            overflow-y: auto;
+            padding: clamp(12px, 2.5vw, 24px) clamp(16px, 3vw, 24px);
+            box-sizing: border-box;
+        }
+        
+        .settings-menu.open {
+            transform: translateX(0);
+        }
+        
+        .settings-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: clamp(8px, 1.5vw, 12px);
+            margin-top: clamp(-10px, -2vw, -5px);
+            padding-bottom: clamp(8px, 1.5vw, 12px);
+            border-bottom: none;
+        }
+        
+        .settings-menu-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(18px, 4vw, 24px);
+            color: #373639;
+            font-weight: 700;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+        
+        .settings-menu-close {
+            background: #ff7664;
+            border: 2px solid #383638;
+            border-radius: 8px;
+            padding: clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 10px);
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(12px, 2vw, 16px);
+            font-weight: 700;
+            color: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.15),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            min-width: auto;
+            width: auto;
+            height: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            margin-top: -20px;
+        }
+        
+        .settings-menu-close:hover {
+            background: #ff5a45;
+            transform: translateY(-1px);
+            box-shadow: 
+                0 3px 0px rgba(0, 0, 0, 0.2),
+                0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .settings-menu-close:active {
+            transform: translateY(1px);
+            box-shadow: 
+                0 1px 0px rgba(0, 0, 0, 0.2),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .settings-menu-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: clamp(16px, 3vw, 24px);
+            margin-top: clamp(-15px, -3vw, -10px);
+        }
+        
+        .settings-menu-card {
+            background: #FFFFFF;
+            border: 3px solid #383638;
+            border-radius: clamp(12px, 2.5vw, 20px);
+            padding: clamp(16px, 3vw, 24px);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.15),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            display: block;
+        }
+        
+        .settings-menu-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.2),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .settings-menu-card:first-child {
+            background: #f2f2f2;
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.15),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .settings-menu-card:first-child:hover {
+            background: rgba(242, 242, 242, 0.9);
+        }
+        
+        .settings-menu-card:nth-child(2) {
+            background: #d6fbbf;
+            box-shadow: 
+                0 6px 0px rgba(214, 251, 191, 0.4),
+                0 8px 16px rgba(214, 251, 191, 0.3);
+        }
+        
+        .settings-menu-card:nth-child(2):hover {
+            background: rgba(214, 251, 191, 0.9);
+        }
+        
+        .settings-menu-card:nth-child(3) {
+            background: #abf67c;
+            box-shadow: 
+                0 6px 0px rgba(171, 246, 124, 0.4),
+                0 8px 16px rgba(171, 246, 124, 0.3);
+        }
+        
+        .settings-menu-card:nth-child(3):hover {
+            background: rgba(171, 246, 124, 0.9);
+        }
+        
+        .settings-menu-card-icon {
+            font-size: clamp(32px, 6vw, 48px);
+            margin-bottom: clamp(12px, 2vw, 16px);
+            display: block;
+            text-align: center;
+        }
+        
+        .settings-menu-card-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(18px, 3.5vw, 24px);
+            color: #373639;
+            font-weight: 700;
+            margin-bottom: clamp(8px, 1.5vw, 12px);
+            text-align: center;
+        }
+        
+        .settings-menu-card-description {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(14px, 2.5vw, 18px);
+            color: #373639;
+            font-weight: 400;
+            opacity: 0.85;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        /* Оверлей для закрытия меню */
+        .settings-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(56, 54, 56, 0.5);
+            z-index: 9999;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+        
+        .settings-menu-overlay.active {
+            display: block;
+        }
+        
+        /* Модальное окно для пароля настроек */
+        .settings-password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(56, 54, 56, 0.85);
+            z-index: 10001;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .settings-password-modal.active {
+            display: flex;
+        }
+        
+        .settings-password-content {
+            background: #F2F2F2;
+            border-radius: 24px;
+            padding: clamp(24px, 4vw, 36px) clamp(20px, 4vw, 32px);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 
+                0 8px 0px rgba(0, 0, 0, 0.2),
+                0 16px 32px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+        }
+        
+        .settings-password-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(24px, 5vw, 32px);
+            color: #393639;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+        
+        .settings-password-input {
+            width: 100%;
+            padding: clamp(14px, 3vw, 18px);
+            border: 3px solid #393639;
+            border-radius: 12px;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(20px, 4vw, 24px);
+            text-align: center;
+            margin-bottom: clamp(16px, 3vw, 20px);
+            box-sizing: border-box;
+        }
+        
+        .settings-password-input:focus {
+            outline: none;
+            border-color: #abf67c;
+            box-shadow: 0 0 0 4px rgba(168, 224, 99, 0.2);
+        }
+        
+        .settings-password-buttons {
+            display: flex;
+            gap: clamp(8px, 2vw, 12px);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .settings-password-button {
+            background: #abf67c;
+            color: #2fb95d;
+            border: none;
+            padding: clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 24px);
+            border-radius: 12px;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 3vw, 20px);
+            cursor: pointer;
+            box-shadow: 0 4px 0px rgba(47, 185, 93, 0.3), 0 6px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+            flex: 1;
+            box-sizing: border-box;
+            min-width: 0;
+        }
+        
+        .settings-password-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(47, 185, 93, 0.4), 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .settings-password-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
+        }
+        
+        .settings-password-button.back {
+            background: #f2f2f2;
+            color: #393639;
+        }
+        
+        .settings-password-button.back:hover {
+            background: #E0E0E0;
+        }
+        
+        .settings-password-error {
+            color: #ff7664;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(14px, 2.5vw, 16px);
+            margin-top: 12px;
+            min-height: 20px;
+            display: none;
+        }
+        
+        .settings-password-error.show {
+            display: block;
+        }
+
+        .quiz-card:nth-child(4) .quiz-icon {
+            display: none;
+        }
+
+        /* Стили для карточек начиная с пятой (если будут) */
+        .quiz-card:nth-child(n+5) .quiz-title {
             color: #373639 !important;
             font-family: 'Days One', sans-serif !important;
             font-weight: 700 !important;
             font-size: 28px !important;
         }
 
-        .quiz-card:nth-child(n+4) .quiz-subtitle {
+        .quiz-card:nth-child(n+5) .quiz-subtitle {
             color: #373639 !important;
             font-family: 'Days One', sans-serif !important;
             font-weight: 400 !important;
@@ -370,17 +846,17 @@
             margin-top: 8px !important;
         }
 
-        .quiz-card:nth-child(n+4) .quiz-description {
+        .quiz-card:nth-child(n+5) .quiz-description {
             color: #373639 !important;
             font-family: 'Days One', sans-serif !important;
             font-size: 22px !important;
         }
 
-        .quiz-card:nth-child(n+4) .quiz-info-item {
+        .quiz-card:nth-child(n+5) .quiz-info-item {
             color: #373639 !important;
         }
 
-        .quiz-card:nth-child(n+4) .quiz-info-item span {
+        .quiz-card:nth-child(n+5) .quiz-info-item span {
             color: #373639 !important;
         }
 
@@ -1160,7 +1636,7 @@
                 name: 'ЧГК',
                 display: {
                     title: 'ЧГК',
-                    subtitle: 'интеллектуальная игра',
+                    subtitle: 'интеллектуальная викторина',
                     phrase: 'Игра с ведущим',
                     questionsDisplay: '30 из 30',
                     timeDisplay: 'по {time} сек'
@@ -1174,13 +1650,34 @@
                 avgTime: 60
             };
 
+            // Создаем виртуальный квиз для Покера
+            const pokerQuiz = {
+                id: 'poker',
+                name: 'СТАВКА НА ЗНАНИЯ',
+                display: {
+                    title: 'СТАВКА НА ЗНАНИЯ',
+                    subtitle: 'соревнование участников',
+                    phrase: 'Стратегия и удача',
+                    questionsDisplay: 'n из n',
+                    timeDisplay: 'по 60 сек'
+                },
+                colors: {
+                    background: '#8a7cf6', // Лавандовый цвет
+                    text: '#e8f67c',
+                    shadow: 'rgba(138, 124, 246, 0.3)'
+                },
+                questionCount: 0,
+                avgTime: 60
+            };
+
             // Список реальных квизов для отображения
             // Академгородок должен быть первым
             // Квиз ГНУ скрыт с главной страницы
             const realQuizzes = [
                 akademQuiz, // Академгородок (первый)
                 gazpromQuiz, // Газпром (второй)
-                quizQuestionsQuiz // Квиз-Questions (третий)
+                quizQuestionsQuiz, // Квиз-Questions (третий)
+                pokerQuiz // Покер (четвертый)
                 // gnuQuiz скрыт с главной страницы
             ].filter(q => q !== null && q !== undefined);
             
@@ -1224,6 +1721,9 @@
                     } else if (quiz.id === 'chgk') {
                         // Квиз ЧГК - светло-голубой цвет фона
                         cardColor = '#7ce8f6';
+                    } else if (quiz.id === 'poker') {
+                        // Покер - лавандовый цвет фона
+                        cardColor = '#8a7cf6';
                     } else if (quiz.colors && quiz.colors.background) {
                         // Используем цвет из конфигурации квиза, если есть
                         cardColor = quiz.colors.background;
@@ -1269,6 +1769,11 @@
                         card.addEventListener('click', () => {
                             window.location.href = `/chgk-host.html`;
                         });
+                    } else if (quiz.id === 'poker') {
+                        // Покер - открывает страницу настройки механики
+                        card.addEventListener('click', () => {
+                            window.location.href = `/poker.html`;
+                        });
                     } else {
                         // Для других квизов - открываем универсальную страницу выбора режима
                         card.addEventListener('click', () => {
@@ -1281,7 +1786,7 @@
                     // Поддерживаем как новый ID 'gnu', так и старый 'friends-quiz'
                     if (quiz.id === 'gnu' || quiz.id === 'friends-quiz') {
                         // Иконка вопроса - черный цвет
-                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                        const questionIcon = `<svg class="hand-drawn-icon" width="32" height="32" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="display: block; flex-shrink: 0;">
                             <text x="20" y="32" 
                                   font-family="Kalam, cursive" 
                                   font-size="36" 
@@ -1294,7 +1799,7 @@
                         const timeSeconds = avgTime || 15;
                         
                         // SVG иконка часов "от руки маркером" - черный цвет
-                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        const clockIcon = `<svg class="hand-drawn-icon" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display: block; flex-shrink: 0;">
                             <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
                                   stroke="#000" stroke-width="4" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
@@ -1329,7 +1834,7 @@
                         card.classList.add('has-phrase');
                     } else if (quiz.id === 'akadem' && quiz.display) {
                         // Квиз про академгородок - стиль с фразой
-                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                        const questionIcon = `<svg class="hand-drawn-icon" width="32" height="32" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="display: block; flex-shrink: 0;">
                             <text x="20" y="32" 
                                   font-family="Kalam, cursive" 
                                   font-size="36" 
@@ -1342,7 +1847,7 @@
                         const timeSeconds = avgTime || quiz.gameSettings?.defaultTime || 20;
                         
                         // SVG иконка часов "от руки маркером" - персиковый цвет для академгородок
-                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        const clockIcon = `<svg class="hand-drawn-icon" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display: block; flex-shrink: 0;">
                             <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
                                   stroke="#f6c77c" stroke-width="4" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
@@ -1382,7 +1887,7 @@
                         card.classList.add('has-phrase');
                     } else if (quiz.id === 'gazprom' && quiz.display) {
                         // Квиз Газпром - стиль с фразой (как у Академгородка)
-                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                        const questionIcon = `<svg class="hand-drawn-icon" width="32" height="32" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="display: block; flex-shrink: 0;">
                             <text x="20" y="32" 
                                   font-family="Kalam, cursive" 
                                   font-size="36" 
@@ -1395,7 +1900,7 @@
                         const timeSeconds = avgTime || quiz.gameSettings?.defaultTime || 20;
                         
                         // SVG иконка часов "от руки маркером" - цвет #7cf6c7 для Газпрома
-                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        const clockIcon = `<svg class="hand-drawn-icon" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display: block; flex-shrink: 0;">
                             <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
                                   stroke="#7cf6c7" stroke-width="4" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
@@ -1435,7 +1940,7 @@
                         card.classList.add('has-phrase');
                     } else if (quiz.id === 'chgk' && quiz.display) {
                         // ЧГК - стиль с фразой
-                        const questionIcon = `<svg class="hand-drawn-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                        const questionIcon = `<svg class="hand-drawn-icon" width="32" height="32" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="display: block; flex-shrink: 0;">
                             <text x="20" y="32" 
                                   font-family="Kalam, cursive" 
                                   font-size="36" 
@@ -1448,7 +1953,7 @@
                         const timeSeconds = avgTime || 60;
                         
                         // SVG иконка часов "от руки маркером" - цвет #c77cf6 для ЧГК
-                        const clockIcon = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        const clockIcon = `<svg class="hand-drawn-icon" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display: block; flex-shrink: 0;">
                             <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
                                   stroke="#c77cf6" stroke-width="4" fill="none" 
                                   stroke-linecap="round" stroke-linejoin="round"/>
@@ -1484,6 +1989,57 @@
                         `;
                         // Добавляем класс для карточки с фразой
                         card.classList.add('has-phrase');
+                    } else if (quiz.id === 'poker' && quiz.display) {
+                        // Покер - стиль с фразой
+                        const questionIcon = `<svg class="hand-drawn-icon" width="32" height="32" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="display: block; flex-shrink: 0;">
+                            <text x="20" y="32" 
+                                  font-family="Kalam, cursive" 
+                                  font-size="36" 
+                                  font-weight="700"
+                                  fill="#e8f67c" 
+                                  text-anchor="middle">?</text>
+                        </svg>`;
+                        
+                        // Извлекаем время из квиза (60 секунд для покера)
+                        const timeSeconds = avgTime || 60;
+                        
+                        // SVG иконка часов "от руки маркером" - цвет #e8f67c для покера
+                        const clockIcon = `<svg class="hand-drawn-icon" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display: block; flex-shrink: 0;">
+                            <path d="M 16 6 Q 11 6, 7 10 Q 5.5 11.5, 5.5 16 Q 5.5 20.5, 9 24 Q 10.5 25.5, 16 25.5 Q 21.5 25.5, 25 22 Q 26.5 20.5, 26.5 16 Q 26.5 11.5, 23 8 Q 21.5 6.5, 16 6" 
+                                  stroke="#e8f67c" stroke-width="4" fill="none" 
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+                            <!-- Часовая стрелка (вверх) -->
+                            <line x1="16" y1="16" x2="16" y2="10" 
+                                  stroke="#e8f67c" stroke-width="3.5" 
+                                  stroke-linecap="round"/>
+                            <!-- Минутная стрелка (вправо) -->
+                            <line x1="16" y1="16" x2="21" y2="21" 
+                                  stroke="#e8f67c" stroke-width="3.5" 
+                                  stroke-linecap="round"/>
+                        </svg>`;
+
+                        // Формируем текст с информацией
+                        const questionsText = quiz.display.questionsDisplay || 'n из n';
+
+                        cardHTML = `
+                            <div class="quiz-card-content">
+                                <div class="quiz-title">${quiz.display.title || quiz.name.toUpperCase()}</div>
+                                <div class="quiz-subtitle">${quiz.display.subtitle || ''}</div>
+                                <div class="quiz-phrase">${quiz.display.phrase ? quiz.display.phrase.charAt(0).toUpperCase() + quiz.display.phrase.slice(1) : ''}</div>
+                            </div>
+                            <div class="quiz-info">
+                                <div class="quiz-info-item">
+                                    ${questionIcon}
+                                    <span>${questionsText}</span>
+                                </div>
+                                <div class="quiz-info-item">
+                                    ${clockIcon}
+                                    <span>${quiz.display.timeDisplay || 'по 60 сек'}</span>
+                                </div>
+                            </div>
+                        `;
+                        // Добавляем класс для карточки с фразой
+                        card.classList.add('has-phrase');
                     } else {
                         const descriptionHTML = description ? `<div class="quiz-description">${description}</div>` : '';
                         
@@ -1494,7 +2050,7 @@
                         const bottomSandTop = 24 - (9 * (sandLevel / 100)); // Верхняя граница песка внизу (чем больше времени, тем ниже граница)
                         
                         // SVG иконка песочных часов "от руки маркером" - черный цвет
-                        const clockIconSVG = `<svg class="hand-drawn-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        const clockIconSVG = `<svg class="hand-drawn-icon" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display: block; flex-shrink: 0;">
                             <!-- Верхняя часть песочных часов -->
                             <path d="M 8 4 Q 8 4, 8 8 Q 8 10, 10 12 Q 12 13, 16 13 Q 20 13, 22 12 Q 24 10, 24 8 Q 24 4, 24 4" 
                                   stroke="#000" stroke-width="3.5" fill="none" 
@@ -1534,7 +2090,54 @@
                         `;
                     }
                     
+                    // Вставляем HTML
                     card.innerHTML = cardHTML;
+                    
+                    // Принудительно показываем все SVG иконки после вставки
+                    // Используем несколько подходов для гарантии отображения
+                    const showSVGs = () => {
+                        const svgs = card.querySelectorAll('svg');
+                        console.log('Found SVGs:', svgs.length); // Отладка
+                        svgs.forEach((svg, index) => {
+                            console.log(`SVG ${index}:`, svg.offsetWidth, svg.offsetHeight, svg.style.display); // Отладка
+                            
+                            // Устанавливаем все необходимые стили через отдельные свойства
+                            svg.setAttribute('width', '32');
+                            svg.setAttribute('height', '32');
+                            svg.style.display = 'block';
+                            svg.style.visibility = 'visible';
+                            svg.style.opacity = '1';
+                            svg.style.width = '32px';
+                            svg.style.height = '32px';
+                            svg.style.minWidth = '32px';
+                            svg.style.minHeight = '32px';
+                            svg.style.maxWidth = '32px';
+                            svg.style.maxHeight = '32px';
+                            svg.style.flexShrink = '0';
+                            svg.style.marginBottom = '2px';
+                            
+                            // Убеждаемся, что все дочерние элементы видны
+                            const paths = svg.querySelectorAll('path, line, circle, text');
+                            paths.forEach(el => {
+                                el.style.opacity = '1';
+                                el.style.visibility = 'visible';
+                                el.style.display = 'block';
+                            });
+                        });
+                    };
+                    
+                    // Вызываем сразу
+                    showSVGs();
+                    
+                    // И через requestAnimationFrame
+                    requestAnimationFrame(() => {
+                        showSVGs();
+                        
+                        // Дополнительная проверка через небольшую задержку
+                        setTimeout(() => {
+                            showSVGs();
+                        }, 100);
+                    });
 
                     grid.appendChild(card);
                 }
@@ -1673,11 +2276,26 @@
                     
                     console.log('Инициализация Frame1 и Frame2...');
                     
-                    // Инициализация Frame1 с кнопкой "Войти" и "Настройки"
+                    // Инициализация Frame1 с кнопкой "Войти" (без настроек, добавим кнопку меню отдельно)
                     Frame1.init({
                         showLogin: true,
-                        showSettings: true
+                        showSettings: false
                     });
+                    
+                    // Добавляем кнопку меню в правый верхний угол
+                    const hub1ActionsRight = document.getElementById('frame1-actions-right');
+                    if (hub1ActionsRight) {
+                        // Проверяем, не добавлена ли уже кнопка
+                        let menuButton = document.getElementById('settings-menu-button');
+                        if (!menuButton) {
+                            menuButton = document.createElement('button');
+                            menuButton.id = 'settings-menu-button';
+                            menuButton.className = 'menu-button frame1-button';
+                            menuButton.innerHTML = '<span>☰</span> <span>Меню</span>';
+                            menuButton.addEventListener('click', openSettingsMenu);
+                            hub1ActionsRight.appendChild(menuButton);
+                        }
+                    }
                     
                     // Инициализация Frame2 с логотипом и фразой
                     Frame2.init();
@@ -1753,11 +2371,26 @@
                     return;
                 }
                 
-                // Инициализация Frame1 (Frame 1)
+                // Инициализация Frame1 (Frame 1) - без настроек, добавим кнопку меню отдельно
                 Frame1.init({
                     showLogin: true,
-                    showSettings: true
+                    showSettings: false
                 });
+                
+                // Добавляем кнопку меню в правый верхний угол
+                const hub1ActionsRight = document.getElementById('frame1-actions-right');
+                if (hub1ActionsRight) {
+                    // Проверяем, не добавлена ли уже кнопка
+                    let menuButton = document.getElementById('settings-menu-button');
+                    if (!menuButton) {
+                        menuButton = document.createElement('button');
+                        menuButton.id = 'settings-menu-button';
+                        menuButton.className = 'menu-button frame1-button';
+                        menuButton.textContent = '☰ Меню';
+                        menuButton.addEventListener('click', openSettingsMenu);
+                        hub1ActionsRight.appendChild(menuButton);
+                    }
+                }
                 
                 // Инициализация Frame2 (Frame 2) - будет скрыт через pageLayoutConfig
                 Frame2.init();
@@ -1785,5 +2418,57 @@
     
     <!-- Общий скрипт для автоматической заглавной буквы в шрифте Caveat -->
     <script src="/scripts/caveat-capitalize.js"></script>
+    
+    <!-- Оверлей для меню настроек -->
+    <div class="settings-menu-overlay" id="settingsMenuOverlay"></div>
+    
+    <!-- Выпадающее меню настроек -->
+    <div class="settings-menu" id="settingsMenu">
+        <div class="settings-menu-header">
+            <h2 class="settings-menu-title">⚙️ Настройки</h2>
+            <button class="settings-menu-close" id="settingsMenuClose">✕</button>
+        </div>
+        <div class="settings-menu-grid">
+            <a href="/joystick-test/joystick.html" class="settings-menu-card">
+                <span class="settings-menu-card-icon">🎮</span>
+                <div class="settings-menu-card-title">Джойстик</div>
+                <div class="settings-menu-card-description">Настройка джойстика и геймпада для управления игрой</div>
+            </a>
+            <a href="/dmx-showmaker.html" class="settings-menu-card">
+                <span class="settings-menu-card-icon">💡</span>
+                <div class="settings-menu-card-title">DMX Освещение</div>
+                <div class="settings-menu-card-description">Управление DMX фонарями и сценическим освещением</div>
+            </a>
+            <a href="/docs/design/BRAND_BOOK.md" target="_blank" class="settings-menu-card">
+                <span class="settings-menu-card-icon">🎨</span>
+                <div class="settings-menu-card-title">Брендбук</div>
+                <div class="settings-menu-card-description">Руководство по дизайну, цветам и типографике проекта</div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для пароля настроек -->
+    <div class="settings-password-modal" id="settingsPasswordModal">
+        <div class="settings-password-content">
+            <h2 class="settings-password-title">Введите пароль</h2>
+            <p style="font-family: 'Montserrat', sans-serif; font-size: clamp(14px, 2.5vw, 16px); color: #393639; margin-bottom: 16px;">Эта страница защищена паролем</p>
+            <input 
+                type="password" 
+                class="settings-password-input" 
+                id="settingsPasswordInput" 
+                placeholder="Пароль"
+                autocomplete="off"
+                autofocus
+            >
+            <div class="settings-password-buttons">
+                <button class="settings-password-button back" id="settingsPasswordBack">Назад</button>
+                <button class="settings-password-button" id="settingsPasswordSubmit">Войти</button>
+            </div>
+            <div class="settings-password-error" id="settingsPasswordError">Неверный пароль. Попробуйте снова.</div>
+        </div>
+    </div>
+    
+    <!-- Скрипт для меню настроек -->
+    <script src="/scripts/settings-menu.js"></script>
 </body>
 </html>

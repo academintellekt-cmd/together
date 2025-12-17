@@ -33,6 +33,12 @@
             '.quiz-card.has-phrase .quiz-info-item span:last-child'
         ];
         
+        // Исключаем элементы, которые содержат "по" (секунды) - они должны быть с маленькой буквы
+        const excludeSelectors = [
+            '.quiz-info-item span:contains("по")',
+            '.quiz-info-item span:contains("По")'
+        ];
+        
         // Также ищем элементы с inline стилями, содержащими Caveat
         const allElements = document.querySelectorAll('*');
         allElements.forEach(element => {
@@ -41,9 +47,14 @@
             
             // Проверяем, используется ли шрифт Caveat
             if (fontFamily && fontFamily.includes('Caveat')) {
+                // Пропускаем элементы, которые содержат "по" (секунды)
+                const text = element.textContent;
+                if (text && (text.includes('по ') || text.includes('По '))) {
+                    return; // Не обрабатываем элементы с "по"
+                }
+                
                 // Проверяем, не обрабатывали ли мы уже этот элемент
                 if (!element.dataset.caveatCapitalized) {
-                    const text = element.textContent;
                     if (text && text.trim().length > 0) {
                         // Проверяем, начинается ли текст уже с заглавной буквы
                         const firstChar = text.trim()[0];
@@ -62,8 +73,13 @@
         caveatSelectors.forEach(selector => {
             const elements = document.querySelectorAll(selector);
             elements.forEach(element => {
+                // Пропускаем элементы, которые содержат "по" (секунды)
+                const text = element.textContent;
+                if (text && (text.includes('по ') || text.includes('По '))) {
+                    return; // Не обрабатываем элементы с "по"
+                }
+                
                 if (!element.dataset.caveatCapitalized) {
-                    const text = element.textContent;
                     if (text && text.trim().length > 0) {
                         const firstChar = text.trim()[0];
                         if (firstChar && firstChar === firstChar.toLowerCase() && /[а-яёa-z]/.test(firstChar)) {

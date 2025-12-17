@@ -7,9 +7,11 @@
     <!-- Новая система фреймов -->
     <link rel="stylesheet" href="/styles/base.css">
     <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/aspect-ratio.css">
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/frame1.css">
     <link rel="stylesheet" href="/styles/frame2.css">
+    <link rel="stylesheet" href="/styles/settings-menu.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -68,14 +70,104 @@
 
         .name-input-screen h1 {
             display: inline-block;
-            margin: 0 auto;
+            margin: 0 auto clamp(16px, 3vw, 24px) auto; /* Увеличен отступ снизу для расстояния до синего текста */
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(32px, 5.5vw, 44px); /* Увеличен размер заголовка */
+            color: #393639;
+            text-transform: uppercase;
+        }
+        
+        /* Стили для иконки елочки - размер подстраивается под размер текста */
+        .name-input-screen h1 .tree-icon {
+            display: inline-block;
+            vertical-align: text-top; /* Выравнивание по верхней части текста */
+            margin-right: 0.25em; /* Отступ относительно размера шрифта */
+            flex-shrink: 0;
+            width: 1em; /* Размер равен размеру шрифта заголовка */
+            height: 1em; /* Размер равен размеру шрифта заголовка */
+            object-fit: contain;
+            /* Фильтр для изменения цвета на цвет текста (#393639) - черный */
+            filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(95%) contrast(90%);
+            opacity: 1;
         }
 
         .name-input-screen .subtitle {
             color: #354FBA;
             font-family: 'Caveat', cursive;
-            font-size: clamp(24px, 4.5vw, 36px);
+            font-size: clamp(26px, 4.5vw, 36px); /* Увеличен размер синего текста */
+            margin-top: clamp(8px, 1.5vw, 12px); /* Дополнительный отступ сверху */
             margin-bottom: 20px;
+        }
+        
+        /* Стили для кнопок под полем ввода */
+        .name-input-buttons {
+            display: flex;
+            gap: clamp(12px, 3vw, 20px);
+            justify-content: center;
+            margin-top: clamp(20px, 4vw, 30px);
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        
+        .name-input-btn {
+            padding: clamp(12px, 2.5vw, 16px) clamp(20px, 4vw, 32px);
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 3vw, 20px);
+            font-weight: 700;
+            border: 3px solid #383638;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.15),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            min-width: clamp(140px, 30vw, 180px);
+            box-sizing: border-box;
+        }
+        
+        .name-input-btn.start-btn {
+            background: #ABF67C;
+            color: #383638;
+        }
+        
+        .name-input-btn.start-btn:hover {
+            background: #ABF67C;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.2),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            filter: none;
+        }
+        
+        .name-input-btn.start-btn:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .name-input-btn.leaderboard-btn {
+            background: #2fb95d;
+            color: #FFFFFF;
+        }
+        
+        .name-input-btn.leaderboard-btn:hover {
+            background: #2fb95d;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.2),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            filter: none;
+        }
+        
+        .name-input-btn.leaderboard-btn:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .name-input-screen .input-group {
@@ -97,8 +189,16 @@
 
         .question-screen {
             text-align: center;
-            /* Увеличенный отступ сверху для расстояния от кнопок */
-            padding-top: clamp(80px, 12vh, 120px);
+            /* Адаптивный отступ сверху для разных соотношений сторон */
+            padding-top: clamp(40px, 6vh, 80px);
+            padding-bottom: clamp(20px, 3vh, 40px);
+            box-sizing: border-box;
+            overflow: hidden;
+            /* Ограничиваем максимальную высоту, чтобы все помещалось */
+            max-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
         }
 
         .question-number {
@@ -106,24 +206,64 @@
         }
 
         .question-text {
-            font-size: 28px;
-            margin: 32px 0;
-            line-height: 1.4;
+            /* Адаптивный размер шрифта для разных соотношений сторон */
+            font-size: clamp(18px, 2.5vw + 1.5vh, 28px);
+            margin: clamp(16px, 2vh, 32px) 0;
+            line-height: 1.3;
             font-family: 'Days One', sans-serif;
             color: var(--color-dark);
+            padding: 0 clamp(10px, 2vw, 20px);
+            box-sizing: border-box;
         }
 
         .options {
-            margin: 30px 0;
+            margin: clamp(12px, 1.5vh, 30px) 0;
+            padding: 0 clamp(10px, 2vw, 20px);
+            box-sizing: border-box;
         }
 
         .answer-feedback {
             text-align: center;
-            margin: 24px 0;
-            font-size: 28px;
+            margin: clamp(12px, 1.5vh, 24px) 0;
+            font-size: clamp(18px, 2.5vw + 1.5vh, 28px);
             font-weight: 600;
-            min-height: 40px;
+            min-height: clamp(30px, 4vh, 40px);
             font-family: 'Days One', sans-serif;
+        }
+        
+        /* Медиа-запросы для разных соотношений сторон */
+        /* Для вертикальных экранов (9:16) - уменьшаем размеры */
+        @media (max-aspect-ratio: 10/16) {
+            .question-screen {
+                padding-top: clamp(20px, 3vh, 50px);
+                padding-bottom: clamp(10px, 1.5vh, 25px);
+            }
+            
+            .question-text {
+                font-size: clamp(14px, 1.8vw + 1vh, 20px);
+                margin: clamp(8px, 1vh, 16px) 0;
+                line-height: 1.2;
+            }
+            
+            .options {
+                margin: clamp(6px, 0.8vh, 12px) 0;
+            }
+            
+            .answer-feedback {
+                font-size: clamp(14px, 1.8vw + 1vh, 20px);
+                margin: clamp(8px, 1vh, 16px) 0;
+            }
+        }
+        
+        /* Для горизонтальных экранов (16:9) - можно использовать больше места */
+        @media (min-aspect-ratio: 15/9) {
+            .question-screen {
+                padding-top: clamp(50px, 8vh, 100px);
+            }
+            
+            .question-text {
+                font-size: clamp(22px, 3vw + 1.8vh, 32px);
+            }
         }
 
         .answer-feedback.correct {
@@ -175,6 +315,14 @@
         .results-screen h1 {
             margin-top: 0;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .results-screen h1 svg {
+            flex-shrink: 0;
         }
 
         .score-display {
@@ -289,6 +437,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            text-transform: uppercase;
         }
 
         .link-to-leaderboard {
@@ -304,22 +453,36 @@
         }
 
         /* Стиль для неактивной кнопки в HUB1 */
+        .frame1-button {
+            text-transform: uppercase;
+        }
+        
         .frame1-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             pointer-events: none;
         }
+        
+        /* Стили для всех кнопок на странице */
+        .btn {
+            text-transform: uppercase;
+        }
+        
+        button.btn,
+        a.btn {
+            text-transform: uppercase;
+        }
 
         /* Стили для кнопок в модальном окне начала игры */
         #solo-start-game-confirm {
-            background: #00C159 !important;
-            color: #FFFFFF !important;
+            background: #abf67c !important;
+            color: #383638 !important;
             border-color: #383638 !important;
         }
 
         #solo-start-game-confirm:hover {
-            background: #00a049 !important;
-            color: #FFFFFF !important;
+            background: #2fb95d !important;
+            color: #383638 !important;
         }
 
         #solo-start-game-cancel {
@@ -382,8 +545,8 @@
             <input type="password" id="password-input" placeholder="Пароль" autofocus>
             <div id="password-error" class="password-error"></div>
             <div class="password-modal-buttons">
-                <button id="password-submit" class="btn" style="background: #00C159; border: 3px solid #383638; color: #FFFFFF; font-weight: 700; padding: 12px 24px; font-size: 16px;">Ввод</button>
-                <button id="password-cancel" class="btn secondary" style="background: #F2F2F2; border: 3px solid #383638; color: #383638; padding: 12px 24px; font-size: 16px;">Отмена</button>
+                <button id="password-submit" class="btn" style="background: #00C159; border: 3px solid #383638; color: #FFFFFF; font-weight: 700; padding: 12px 24px; font-size: 16px; text-transform: uppercase;">Ввод</button>
+                <button id="password-cancel" class="btn secondary" style="background: #F2F2F2; border: 3px solid #383638; color: #383638; padding: 12px 24px; font-size: 16px; text-transform: uppercase;">Отмена</button>
             </div>
         </div>
     </div>
@@ -391,13 +554,13 @@
     <!-- Модальное окно для подтверждения начала игры -->
     <div id="solo-start-game-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(56, 54, 56, 0.85); z-index: 10000; justify-content: center; align-items: center;">
         <div style="background: #F2F2F2; padding: 30px; border-radius: 25px; text-align: center; max-width: 400px; width: 90%; border: 3px solid #383638; box-shadow: 0 6px 0px rgba(0, 193, 89, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2); box-sizing: border-box; position: relative; z-index: 10001;">
-            <h2 style="margin-bottom: 15px; font-size: 24px; font-family: 'Days One', sans-serif; color: #00C159; font-weight: 700;">Готовы начать?</h2>
-            <p style="margin-bottom: 20px; font-size: 14px; color: #383638; font-family: 'Nunito', sans-serif;">
+            <h2 style="margin-bottom: 15px; font-size: 24px; font-family: 'Days One', sans-serif; color: #383638; font-weight: 700;">Готовы начать?</h2>
+            <p style="margin-bottom: 20px; font-size: 14px; color: #383638; font-family: 'Montserrat', sans-serif;">
                 Проверьте, что вы ввели правильное имя и готовы к игре
             </p>
             <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%;">
-                <button id="solo-start-game-confirm" class="frame1-button" style="background: #00C159 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Начать игру</button>
-                <button id="solo-start-game-cancel" class="frame1-button" style="background: #ff7664 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap;">Назад</button>
+                <button id="solo-start-game-confirm" class="frame1-button" style="background: #abf67c; color: #383638; border-color: #383638; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase;">Начать игру</button>
+                <button id="solo-start-game-cancel" class="frame1-button" style="background: #ff7664 !important; color: #FFFFFF !important; border-color: #383638 !important; flex: 1; min-width: 140px; max-width: 180px; box-sizing: border-box; white-space: nowrap; text-transform: uppercase;">Назад</button>
             </div>
         </div>
     </div>
@@ -408,10 +571,18 @@
         
         <!-- Экран ввода имени -->
         <div id="name-input-screen" class="name-input-screen">
-            <h1 id="quiz-title">🎮 Загрузка...</h1>
+            <h1 id="quiz-title">
+                <img class="tree-icon" src="https://cdn-icons-png.flaticon.com/512/25/25055.png" alt="Елка">
+                Загрузка...
+            </h1>
             <p class="subtitle">придумай псевдоним</p>
             <div class="input-group">
                 <input type="text" id="player-name" placeholder="называйте меня..." maxlength="20" autocomplete="off">
+            </div>
+            <!-- Контейнер для кнопок "Начать игру" и "Рейтинг" -->
+            <div id="name-input-buttons" class="name-input-buttons" style="display: none;">
+                <button id="solo-start-game-btn" class="name-input-btn start-btn">Начать игру</button>
+                <a href="#" id="solo-leaderboard-btn" class="name-input-btn leaderboard-btn">Рейтинг</a>
             </div>
         </div>
 
@@ -426,7 +597,17 @@
 
             <!-- Экран результатов -->
             <div id="results-screen" class="results-screen">
-                <h1>🎉 Игра завершена!</h1>
+                <h1>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+                        <path d="M12 2L13.5 6.5L18 8L13.5 9.5L12 14L10.5 9.5L6 8L10.5 6.5L12 2Z" fill="#383638"/>
+                        <path d="M5 12L6 15L9 16L6 17L5 20L4 17L1 16L4 15L5 12Z" fill="#383638"/>
+                        <path d="M19 12L20 15L23 16L20 17L19 20L18 17L15 16L18 15L19 12Z" fill="#383638"/>
+                        <circle cx="12" cy="8" r="1.5" fill="#383638"/>
+                        <circle cx="5" cy="16" r="1.5" fill="#383638"/>
+                        <circle cx="19" cy="16" r="1.5" fill="#383638"/>
+                    </svg>
+                    Игра завершена!
+                </h1>
                 <div class="score-display" id="final-score">0</div>
                 <div class="stats">
                     <div class="stat-item">
@@ -442,8 +623,8 @@
                         <span id="time-spent">0 сек</span>
                     </div>
                 </div>
-                <button class="btn full-width" id="play-again-btn">Играть снова</button>
-                <a href="#" id="leaderboard-link-2" class="btn full-width" style="margin-top: 16px; background: rgba(0, 193, 89, 0.85); color: white; text-decoration: none; display: inline-block; text-align: center;">
+                <button class="btn full-width" id="play-again-btn" style="background: #abf67c; color: #383638; border-color: #383638;">Играть снова</button>
+                <a href="#" id="leaderboard-link-2" class="btn full-width" style="margin-top: 16px; background: #2fb95d; color: white; text-decoration: none; display: inline-block; text-align: center; text-transform: uppercase; border-color: #383638;">
                     Посмотреть рейтинг
                 </a>
             </div>
@@ -889,7 +1070,9 @@
                 if (quizTitleElement && quiz) {
                     // Используем display.title если есть, иначе name
                     const displayTitle = quiz.display && quiz.display.title ? quiz.display.title : quiz.name;
-                    quizTitleElement.textContent = `🎮 ${displayTitle}`;
+                    // Используем иконку елки с flaticon.com
+                    const treeIcon = `<img class="tree-icon" src="https://cdn-icons-png.flaticon.com/512/25/25055.png" alt="Елка">`;
+                    quizTitleElement.innerHTML = `${treeIcon}${displayTitle}`;
                 }
                 
                 // Обновляем ссылки на рейтинг после загрузки квиза
@@ -964,17 +1147,19 @@
             }
             
             const hub1LeaderboardBtn = document.getElementById('frame1-leaderboard-btn');
+            const soloLeaderboardBtn = document.getElementById('solo-leaderboard-btn');
             const link2 = document.getElementById('leaderboard-link-2');
             if (hub1LeaderboardBtn) hub1LeaderboardBtn.href = leaderboardUrl;
+            if (soloLeaderboardBtn) soloLeaderboardBtn.href = leaderboardUrl;
             if (link2) link2.href = leaderboardUrl;
         }
 
         // Enter для начала игры
         document.getElementById('player-name').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                const hub1StartBtn = document.getElementById('frame1-start-btn');
-                if (hub1StartBtn) {
-                    hub1StartBtn.click();
+                const soloStartBtn = document.getElementById('solo-start-game-btn');
+                if (soloStartBtn) {
+                    soloStartBtn.click();
                 }
             }
         });
@@ -1362,33 +1547,38 @@
                 backUrl: backUrl
             });
             
+            // Добавляем кнопку меню в правый верхний угол
+            if (typeof addMenuButton === 'function') {
+                setTimeout(addMenuButton, 200);
+            }
+            
             // Элементы frame1-question-number и frame1-timer создаются динамически в showQuestion(), как на host.html
             
-            // Добавляем кнопку "Начать игру" в Frame1 справа
-            const hub1ActionsRight = document.getElementById('frame1-actions-right');
-            if (hub1ActionsRight) {
+            // Добавляем кнопки "Начать игру" и "Рейтинг" под полем ввода
+            const nameInputButtons = document.getElementById('name-input-buttons');
+            if (nameInputButtons) {
+                // Показываем контейнер с кнопками
+                nameInputButtons.style.display = 'flex';
+                
                 // Кнопка "Начать игру"
-                let startButton = document.getElementById('frame1-start-btn');
+                let startButton = document.getElementById('solo-start-game-btn');
                 if (!startButton) {
                     startButton = document.createElement('button');
-                    startButton.id = 'frame1-start-btn';
-                    startButton.className = 'frame1-button';
+                    startButton.id = 'solo-start-game-btn';
+                    startButton.className = 'name-input-btn start-btn';
                     startButton.textContent = 'Начать игру';
-                    hub1ActionsRight.appendChild(startButton);
+                    nameInputButtons.appendChild(startButton);
                 }
                 
                 // Кнопка "Рейтинг"
-                let leaderboardButton = document.getElementById('frame1-leaderboard-btn');
+                let leaderboardButton = document.getElementById('solo-leaderboard-btn');
                 if (!leaderboardButton) {
                     leaderboardButton = document.createElement('a');
-                    leaderboardButton.id = 'frame1-leaderboard-btn';
-                    leaderboardButton.className = 'frame1-button';
+                    leaderboardButton.id = 'solo-leaderboard-btn';
+                    leaderboardButton.className = 'name-input-btn leaderboard-btn';
                     leaderboardButton.textContent = 'Рейтинг';
                     leaderboardButton.href = '#';
-                    // Покраска в зеленый цвет из брендбука
-                    leaderboardButton.style.background = '#2fb95d';
-                    leaderboardButton.style.color = '#FFFFFF';
-                    hub1ActionsRight.appendChild(leaderboardButton);
+                    nameInputButtons.appendChild(leaderboardButton);
                 }
                 
                 // Функция показа модального окна для подтверждения начала игры
@@ -1403,9 +1593,11 @@
                         // Если имя не введено, показываем модальное окно с предупреждением
                         if (modalTitle) {
                             modalTitle.textContent = 'Введите ваше имя';
+                            modalTitle.style.color = '#383638'; // Фирменный черный цвет
                         }
                         if (modalText) {
                             modalText.textContent = 'Пожалуйста, введите имя перед началом игры';
+                            modalText.style.fontFamily = "'Montserrat', sans-serif";
                         }
                         if (confirmBtn) {
                             confirmBtn.textContent = 'Понятно';
@@ -1422,9 +1614,11 @@
                         // Если имя введено, показываем обычное модальное окно подтверждения
                         if (modalTitle) {
                             modalTitle.textContent = 'Готовы начать?';
+                            modalTitle.style.color = '#383638'; // Фирменный черный цвет
                         }
                         if (modalText) {
                             modalText.textContent = 'Проверьте, что вы ввели правильное имя и готовы к игре';
+                            modalText.style.fontFamily = "'Montserrat', sans-serif";
                         }
                         if (confirmBtn) {
                             confirmBtn.textContent = 'Начать игру';
@@ -1480,6 +1674,12 @@
                 });
             }
             
+            // Также обновляем ссылку на рейтинг для кнопки под полем ввода
+            const soloLeaderboardBtn = document.getElementById('solo-leaderboard-btn');
+            if (soloLeaderboardBtn) {
+                updateLeaderboardLinks();
+            }
+            
             // Обновление позиций (только Frame1, без Hub2)
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
@@ -1495,6 +1695,12 @@
             
             // Обновляем ссылку на рейтинг после создания кнопок
             updateLeaderboardLinks();
+            
+            // Скрываем кнопки в Frame1, так как они теперь под полем ввода
+            const hub1StartBtn = document.getElementById('frame1-start-btn');
+            const hub1LeaderboardBtn = document.getElementById('frame1-leaderboard-btn');
+            if (hub1StartBtn) hub1StartBtn.style.display = 'none';
+            if (hub1LeaderboardBtn) hub1LeaderboardBtn.style.display = 'none';
             
             // Ограничиваем ширину поля ввода шириной заголовка
             const nameInputScreen = document.getElementById('name-input-screen');
@@ -1584,6 +1790,58 @@
     
     <!-- Общий скрипт для автоматической заглавной буквы в шрифте Caveat -->
     <script src="/scripts/caveat-capitalize.js"></script>
+    
+    <!-- Оверлей для меню настроек -->
+    <div class="settings-menu-overlay" id="settingsMenuOverlay"></div>
+    
+    <!-- Выпадающее меню настроек -->
+    <div class="settings-menu" id="settingsMenu">
+        <div class="settings-menu-header">
+            <h2 class="settings-menu-title">⚙️ Настройки</h2>
+            <button class="settings-menu-close" id="settingsMenuClose">✕</button>
+        </div>
+        <div class="settings-menu-grid">
+            <a href="/joystick-test/joystick.html" class="settings-menu-card">
+                <span class="settings-menu-card-icon">🎮</span>
+                <div class="settings-menu-card-title">Джойстик</div>
+                <div class="settings-menu-card-description">Настройка джойстика и геймпада для управления игрой</div>
+            </a>
+            <a href="/dmx-showmaker.html" class="settings-menu-card">
+                <span class="settings-menu-card-icon">💡</span>
+                <div class="settings-menu-card-title">DMX Освещение</div>
+                <div class="settings-menu-card-description">Управление DMX фонарями и сценическим освещением</div>
+            </a>
+            <a href="/docs/design/BRAND_BOOK.md" target="_blank" class="settings-menu-card">
+                <span class="settings-menu-card-icon">🎨</span>
+                <div class="settings-menu-card-title">Брендбук</div>
+                <div class="settings-menu-card-description">Руководство по дизайну, цветам и типографике проекта</div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для пароля настроек -->
+    <div class="settings-password-modal" id="settingsPasswordModal">
+        <div class="settings-password-content">
+            <h2 class="settings-password-title">Введите пароль</h2>
+            <p style="font-family: 'Montserrat', sans-serif; font-size: clamp(14px, 2.5vw, 16px); color: #393639; margin-bottom: 16px;">Эта страница защищена паролем</p>
+            <input 
+                type="password" 
+                class="settings-password-input" 
+                id="settingsPasswordInput" 
+                placeholder="Пароль"
+                autocomplete="off"
+                autofocus
+            >
+            <div class="settings-password-buttons">
+                <button class="settings-password-button back" id="settingsPasswordBack">Назад</button>
+                <button class="settings-password-button" id="settingsPasswordSubmit">Войти</button>
+            </div>
+            <div class="settings-password-error" id="settingsPasswordError">Неверный пароль. Попробуйте снова.</div>
+        </div>
+    </div>
+    
+    <!-- Скрипт для меню настроек -->
+    <script src="/scripts/settings-menu.js"></script>
 </body>
 </html>
 
