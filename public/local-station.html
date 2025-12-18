@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Станция игрока - Локальный режим</title>
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/aspect-ratio.css">
+    <link rel="stylesheet" href="/styles/components.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Days+One&display=swap" rel="stylesheet">
+    <script>
+        window.pageLayoutConfig = {
+            showFrame1: true,
+            showFrame2: false,
+            showFrame4: true,
+            showFrame5: true
+        };
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/scripts/layout.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
+    <style>
+        .station-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .station-status {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(24px, 5vw, 36px);
+            color: #393639;
+            margin-bottom: 20px;
+        }
+        
+        .station-info {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(18px, 3vw, 24px);
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .waiting-message {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(20px, 4vw, 28px);
+            color: #00C159;
+            margin-top: 30px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .error-message {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 3vw, 20px);
+            color: #ff7664;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="site-wrapper">
+        <main class="site-main">
+            <section class="frame frame-3" data-frame="content">
+                <div class="frame-3-content">
+                    <div class="station-container">
+                        <div class="station-status" id="stationStatus">Подключение к серверу...</div>
+                        <div class="station-info" id="stationInfo"></div>
+                        <div class="waiting-message" id="waitingMessage" style="display: none;">
+                            Ожидание выбора квиза ведущим...
+                        </div>
+                        <div class="error-message" id="errorMessage" style="display: none;"></div>
+                    </div>
+                </div>
+            </section>
+            <footer class="site-footer">
+                <section class="frame frame-4" data-frame="rules" id="hub4"></section>
+                <section class="frame frame-5" data-frame="about" id="hub5">
+                    <p id="copyright-year">© 2024 ВМЕСТЕ. Все права защищены.</p>
+                </section>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        let socket = null;
+        let stationIP = null;
+        let stationNumber = null;
+        let registered = false;
+
+        // Определение IP адреса станции
+        async function detectStationIP() {
+            // Сначала пробуем через специальный API для определения IP
+            try {
+                const response = await fetch('/api/local/detect-ip');
+                const data = await response.json();
+                
+                if (data.ip && data.stationNumber) {
+                    console.log('IP определен через API:', data);
+                    return { ip: data.ip, number: data.stationNumber };
+                }
+            } catch (error) {
+                console.error('Ошибка определения IP через API:', error);
+            }
+            
+            // Пробуем определить через hostname (если открыто напрямую по IP)
+            const hostname = window.location.hostname;
+            const hostnameMatch = hostname.match(/192\.168\.1\.(\d+)/);
+            if (hostnameMatch) {
+                const lastOctet = parseInt(hostnameMatch[1]);
+                if (lastOctet >= 21 && lastOctet <= 29) {
+                    stationNumber = lastOctet - 20;
+                    stationIP = hostname;
+                    return { ip: hostname, number: stationNumber };
+                }
+            }
+            
+            // Пробуем через WebRTC
+            const webrtcResult = await detectIPViaWebRTC();
+            if (webrtcResult.ip && webrtcResult.number) {
+                return webrtcResult;
+            }
+            
+            return { ip: null, number: null };
+        }
+
+        // Альтернативный способ определения IP через WebRTC
+        function detectIPViaWebRTC() {
+            return new Promise((resolve) => {
+                const RTCPeerConnection = window.RTCPeerConnection || 
+                                         window.mozRTCPeerConnection || 
+                                         window.webkitRTCPeerConnection;
+                
+                if (!RTCPeerConnection) {
+                    resolve({ ip: null, number: null });
+                    return;
+                }
+
+                const pc = new RTCPeerConnection({ iceServers: [] });
+                pc.createDataChannel('');
+                pc.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        const candidate = event.candidate.candidate;
+                        const ipMatch = candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
+                        if (ipMatch) {
+                            const ip = ipMatch[0];
+                            const lastOctet = parseInt(ip.split('.')[3]);
+                            if (lastOctet >= 21 && lastOctet <= 29) {
+                                stationNumber = lastOctet - 20;
+                                stationIP = ip;
+                                pc.close();
+                                resolve({ ip, number: stationNumber });
+                            }
+                        }
+                    }
+                };
+                pc.createOffer().then(offer => pc.setLocalDescription(offer));
+                
+                setTimeout(() => {
+                    pc.close();
+                    resolve({ ip: null, number: null });
+                }, 2000);
+            });
+        }
+
+        // Регистрация станции на сервере
+        async function registerStation() {
+            // Если IP или номер не определены, пробуем зарегистрироваться без них
+            // Сервер сам определит IP из запроса
+            try {
+                const requestBody = {};
+                if (stationIP) requestBody.ip = stationIP;
+                if (stationNumber) requestBody.stationNumber = stationNumber;
+                
+                const response = await fetch('/api/local/register-station', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    registered = true;
+                    stationIP = data.station.ip;
+                    stationNumber = data.station.stationNumber;
+                    
+                    document.getElementById('stationStatus').textContent = `Станция ${stationNumber} подключена`;
+                    document.getElementById('stationInfo').textContent = `IP: ${stationIP}`;
+                    document.getElementById('waitingMessage').style.display = 'block';
+                    document.getElementById('errorMessage').style.display = 'none';
+                    
+                    // Подключаемся через Socket.io
+                    connectSocket();
+                } else {
+                    // Если автоматическое определение не сработало, показываем форму для ручного ввода
+                    showManualInput(data);
+                }
+            } catch (error) {
+                console.error('Ошибка регистрации:', error);
+                document.getElementById('stationStatus').textContent = 'Ошибка регистрации';
+                document.getElementById('errorMessage').textContent = error.message;
+                document.getElementById('errorMessage').style.display = 'block';
+                showManualInput();
+            }
+        }
+        
+        // Показ формы для ручного ввода номера станции
+        function showManualInput(errorData) {
+            const container = document.querySelector('.station-container');
+            const manualInput = document.createElement('div');
+            manualInput.id = 'manualInput';
+            manualInput.style.marginTop = '30px';
+            manualInput.style.padding = '20px';
+            manualInput.style.border = '3px solid #393639';
+            manualInput.style.borderRadius = '12px';
+            manualInput.style.background = '#F2F2F2';
+            manualInput.innerHTML = `
+                <h3 style="font-family: 'Days One', sans-serif; font-size: 20px; margin-bottom: 15px; color: #393639;">
+                    Введите номер станции вручную
+                </h3>
+                <p style="font-family: 'Montserrat', sans-serif; font-size: 14px; margin-bottom: 15px; color: #666;">
+                    Автоматическое определение не удалось. Укажите номер станции (1-9):
+                </p>
+                <input type="number" id="manualStationNumber" min="1" max="9" 
+                       style="width: 100px; padding: 10px; font-size: 24px; text-align: center; 
+                              border: 3px solid #393639; border-radius: 8px; font-family: 'Days One', sans-serif;"
+                       placeholder="1-9">
+                <br><br>
+                <button onclick="registerWithManualNumber()" 
+                        style="padding: 12px 24px; font-family: 'Days One', sans-serif; font-size: 18px;
+                               background: #00C159; color: white; border: 3px solid #393639; 
+                               border-radius: 8px; cursor: pointer;">
+                    Подключиться
+                </button>
+            `;
+            
+            // Удаляем старую форму, если есть
+            const oldInput = document.getElementById('manualInput');
+            if (oldInput) oldInput.remove();
+            
+            container.appendChild(manualInput);
+            
+            // Фокусируемся на поле ввода
+            setTimeout(() => {
+                const input = document.getElementById('manualStationNumber');
+                if (input) input.focus();
+            }, 100);
+        }
+        
+        // Регистрация с ручным номером станции
+        window.registerWithManualNumber = async function() {
+            const manualNumber = parseInt(document.getElementById('manualStationNumber').value);
+            
+            if (!manualNumber || manualNumber < 1 || manualNumber > 9) {
+                alert('Введите номер станции от 1 до 9');
+                return;
+            }
+            
+            stationNumber = manualNumber;
+            
+            // Удаляем форму
+            const manualInput = document.getElementById('manualInput');
+            if (manualInput) manualInput.remove();
+            
+            // Пробуем зарегистрироваться снова
+            await registerStation();
+        };
+
+        // Подключение через Socket.io
+        function connectSocket() {
+            socket = io();
+            
+            socket.on('connect', () => {
+                console.log('Socket.io подключен');
+                // Отправляем информацию о станции
+                socket.emit('local-station-connect', {
+                    ip: stationIP,
+                    stationNumber: stationNumber
+                });
+            });
+
+            // Получение команды открыть квиз
+            socket.on('local-station-open-quiz', (data) => {
+                console.log('Получена команда открыть квиз:', data);
+                const { roomCode, quizId } = data;
+                
+                if (roomCode && quizId) {
+                    // Автоматически открываем страницу игрока
+                    window.location.href = `/player.html?room=${roomCode}&station=${stationNumber}&auto=true`;
+                }
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Socket.io отключен');
+            });
+        }
+
+        // Инициализация
+        async function init() {
+            // Ждем загрузки скриптов Frame1
+            if (typeof Frame1 === 'undefined') {
+                setTimeout(init, 100);
+                return;
+            }
+
+            try {
+                // Инициализация Frame1
+                Frame1.init({
+                    showBack: false
+                });
+            } catch (error) {
+                console.warn('Ошибка инициализации Frame1:', error);
+            }
+
+            // Определяем IP и регистрируемся
+            const stationData = await detectStationIP();
+            stationIP = stationData.ip;
+            stationNumber = stationData.number;
+
+            if (stationIP && stationNumber) {
+                await registerStation();
+            } else {
+                document.getElementById('stationStatus').textContent = 'Ошибка определения станции';
+                document.getElementById('errorMessage').textContent = 'Не удалось определить IP адрес станции. Убедитесь, что станция находится в сети 192.168.1.x';
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        }
+
+        // Запуск при загрузке страницы
+        function waitForSocketIO() {
+            if (typeof io === 'undefined') {
+                setTimeout(waitForSocketIO, 100);
+                return;
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(init, 200);
+                });
+            } else {
+                setTimeout(init, 200);
+            }
+        }
+        
+        waitForSocketIO();
+    </script>
+    <script src="/scripts/frame5-copyright.js"></script>
+</body>
+</html>
+

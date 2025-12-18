@@ -913,10 +913,92 @@
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const roomParam = urlParams.get('room');
+            const stationParam = urlParams.get('station');
+            const autoParam = urlParams.get('auto');
+            
             if (roomParam) {
                 const roomCodeInput = document.getElementById('room-code');
                 if (roomCodeInput) {
                     roomCodeInput.value = roomParam.toUpperCase();
+                    roomCode = roomParam.toUpperCase();
+                }
+            }
+            
+            // Автоматическое заполнение имени игрока на основе номера станции
+            if (stationParam) {
+                const stationNumber = parseInt(stationParam);
+                if (stationNumber >= 1 && stationNumber <= 9) {
+                    const playerNameInput = document.getElementById('player-name');
+                    if (playerNameInput) {
+                        playerNameInput.value = `Игрок №${stationNumber}`;
+                        playerName = `Игрок №${stationNumber}`;
+                    }
+                }
+            }
+            
+            // Автоматическое подключение, если указан параметр auto=true
+            // Показываем экран ввода, чтобы пользователь мог изменить имя перед присоединением
+            if (autoParam === 'true' && roomParam) {
+                // Показываем экран подключения (не пропускаем его)
+                document.getElementById('connect-screen').style.display = 'block';
+                document.getElementById('waiting-screen').style.display = 'none';
+                document.getElementById('game-screen').style.display = 'none';
+                
+                // Переменная для хранения таймера автоматического подключения
+                let autoConnectTimeout = null;
+                
+                // Функция для запуска автоматического подключения
+                const scheduleAutoConnect = () => {
+                    // Отменяем предыдущий таймер, если есть
+                    if (autoConnectTimeout) {
+                        clearTimeout(autoConnectTimeout);
+                        autoConnectTimeout = null;
+                    }
+                    
+                    setTimeout(() => {
+                        const roomCodeInput = document.getElementById('room-code');
+                        const playerNameInput = document.getElementById('player-name');
+                        
+                        if (roomCodeInput && roomCodeInput.value && playerNameInput && playerNameInput.value) {
+                            console.log('🔄 Автоматическое подключение к комнате через 3 секунды:', roomCodeInput.value, 'Игрок:', playerNameInput.value);
+                            console.log('💡 Вы можете изменить имя и нажать "Подключиться" для немедленного присоединения');
+                            
+                            // Автоматически подключаемся через 3 секунды, если пользователь еще не подключился
+                            autoConnectTimeout = setTimeout(() => {
+                                const connectScreen = document.getElementById('connect-screen');
+                                if (connectScreen && connectScreen.style.display !== 'none') {
+                                    console.log('⏰ Автоматическое присоединение...');
+                                    connectToRoom();
+                                }
+                                autoConnectTimeout = null;
+                            }, 3000);
+                        } else {
+                            console.warn('⚠️ Не удалось автоматически подключиться: не заполнены поля');
+                        }
+                    }, 500);
+                };
+                
+                // Если socket уже подключен, сразу запускаем таймер
+                if (socket && socket.connected) {
+                    scheduleAutoConnect();
+                } else {
+                    // Ждем подключения Socket.io
+                    socket.on('connect', () => {
+                        scheduleAutoConnect();
+                    });
+                }
+                
+                // Если пользователь нажал кнопку, отменяем автоматическое подключение
+                const connectBtn = document.getElementById('connect-btn');
+                if (connectBtn) {
+                    // Добавляем обработчик, который отменяет таймер перед подключением
+                    connectBtn.addEventListener('click', function() {
+                        if (autoConnectTimeout) {
+                            clearTimeout(autoConnectTimeout);
+                            autoConnectTimeout = null;
+                            console.log('✅ Автоматическое присоединение отменено - пользователь нажал кнопку');
+                        }
+                    }, { once: false });
                 }
             }
         });
@@ -941,11 +1023,18 @@
         // Подключение к комнате
         document.getElementById('connect-btn').addEventListener('click', connectToRoom);
         
-        // Автоматическое подключение, если код комнаты уже есть в URL
+        // Автоматическое подключение, если код комнаты уже есть в URL (только если auto=true не установлен)
         socket.on('connect', () => {
             console.log('Socket.io подключен');
             const urlParams = new URLSearchParams(window.location.search);
             const roomParam = urlParams.get('room');
+            const autoParam = urlParams.get('auto');
+            
+            // Если auto=true, подключение уже обработано в DOMContentLoaded
+            if (autoParam === 'true') {
+                return;
+            }
+            
             if (roomParam) {
                 // Даем время на заполнение формы
                 setTimeout(() => {
@@ -1713,6 +1802,19 @@
             <button class="settings-menu-close" id="settingsMenuClose">✕</button>
         </div>
         <div class="settings-menu-grid">
+            <div class="settings-menu-card" id="mode-toggle-card">
+                <span class="settings-menu-card-icon">🌐</span>
+                <div class="settings-menu-card-title">Режим игры</div>
+                <div class="settings-menu-card-description">
+                    <span id="current-mode-text">Текущий режим: <strong>Глобальный</strong></span>
+                </div>
+                <div class="mode-toggle-switch">
+                    <label class="switch">
+                        <input type="checkbox" id="mode-toggle-switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
             <a href="/joystick-test/joystick.html" class="settings-menu-card">
                 <span class="settings-menu-card-icon">🎮</span>
                 <div class="settings-menu-card-title">Джойстик</div>

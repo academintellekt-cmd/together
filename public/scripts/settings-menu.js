@@ -143,15 +143,110 @@ function addMenuButton() {
     }
 }
 
+// Управление режимом игры (локальный/глобальный)
+const MODE_STORAGE_KEY = 'gameMode';
+const MODE_LOCAL = 'local';
+const MODE_GLOBAL = 'global';
+
+function getCurrentMode() {
+    return localStorage.getItem(MODE_STORAGE_KEY) || MODE_GLOBAL;
+}
+
+function setMode(mode) {
+    localStorage.setItem(MODE_STORAGE_KEY, mode);
+    updateModeUI();
+    // Уведомляем сервер о смене режима (опционально)
+    fetch('/api/mode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode })
+    }).catch(err => console.error('Ошибка отправки режима на сервер:', err));
+}
+
+function updateModeUI() {
+    const mode = getCurrentMode();
+    const switchEl = document.getElementById('mode-toggle-switch');
+    const textEl = document.getElementById('current-mode-text');
+    
+    if (switchEl) {
+        switchEl.checked = mode === MODE_LOCAL;
+    }
+    
+    if (textEl) {
+        const modeText = mode === MODE_LOCAL ? 'Локальный' : 'Глобальный';
+        textEl.innerHTML = `Текущий режим: <strong>${modeText}</strong>`;
+    }
+}
+
+// Проверка доступности локального режима
+async function checkLocalModeAvailability() {
+    try {
+        const response = await fetch('/api/mode');
+        const data = await response.json();
+        
+        const toggleSwitch = document.getElementById('mode-toggle-switch');
+        const modeCard = document.getElementById('mode-toggle-card');
+        
+        if (data.mode === 'unavailable') {
+            // Локальный режим недоступен - делаем переключатель неактивным
+            if (toggleSwitch) {
+                toggleSwitch.disabled = true;
+            }
+            if (modeCard) {
+                modeCard.classList.add('disabled');
+            }
+        } else {
+            // Локальный режим доступен
+            if (toggleSwitch) {
+                toggleSwitch.disabled = false;
+            }
+            if (modeCard) {
+                modeCard.classList.remove('disabled');
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка проверки режима:', error);
+        // В случае ошибки считаем, что локальный режим недоступен
+        const toggleSwitch = document.getElementById('mode-toggle-switch');
+        const modeCard = document.getElementById('mode-toggle-card');
+        if (toggleSwitch) toggleSwitch.disabled = true;
+        if (modeCard) modeCard.classList.add('disabled');
+    }
+}
+
+// Инициализация переключателя режима
+function initModeToggle() {
+    const toggleSwitch = document.getElementById('mode-toggle-switch');
+    if (!toggleSwitch) {
+        // Элемент еще не загружен, попробуем позже
+        setTimeout(initModeToggle, 100);
+        return;
+    }
+    
+    // Устанавливаем начальное состояние
+    updateModeUI();
+    
+    // Обработчик изменения переключателя
+    toggleSwitch.addEventListener('change', function(e) {
+        const newMode = e.target.checked ? MODE_LOCAL : MODE_GLOBAL;
+        setMode(newMode);
+    });
+    
+    // Проверяем доступность локального режима
+    checkLocalModeAvailability();
+}
+
 // Инициализация при загрузке страницы
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initSettingsMenu();
+        initModeToggle();
         // Добавляем кнопку меню после инициализации Frame1
         setTimeout(addMenuButton, 500);
     });
 } else {
     initSettingsMenu();
+    initModeToggle();
     setTimeout(addMenuButton, 500);
 }
 
@@ -161,4 +256,6 @@ window.closeSettingsMenu = closeSettingsMenu;
 window.checkSettingsPassword = checkSettingsPassword;
 window.closeSettingsPasswordModal = closeSettingsPasswordModal;
 window.addMenuButton = addMenuButton;
+window.getCurrentMode = getCurrentMode;
+window.setMode = setMode;
 

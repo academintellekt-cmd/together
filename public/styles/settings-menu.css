@@ -244,6 +244,34 @@
     line-height: 1.4;
 }
 
+.local-mode-link {
+    display: block;
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: rgba(0, 193, 89, 0.1);
+    border: 2px solid #00C159;
+    border-radius: 8px;
+    color: #00C159;
+    text-decoration: none;
+    font-family: 'Days One', sans-serif;
+    font-size: clamp(12px, 2vw, 14px);
+    text-align: center;
+    transition: all 0.2s;
+    font-weight: 700;
+}
+
+.local-mode-link:hover {
+    background: #00C159;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 193, 89, 0.3);
+}
+
+.local-mode-link:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 193, 89, 0.2);
+}
+
 /* Оверлей для закрытия меню */
 .settings-menu-overlay {
     position: fixed;
@@ -371,6 +399,84 @@
 }
 
 .settings-password-error.show {
+    display: block;
+}
+
+/* Переключатель режима игры */
+.mode-toggle-switch {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+    border: 2px solid #383638;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .slider {
+    background-color: #00C159;
+    border-color: #00C159;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+input:disabled + .slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#mode-toggle-card {
+    cursor: pointer;
+}
+
+#mode-toggle-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+#current-mode-text {
+    font-size: clamp(12px, 2vw, 14px);
+    margin-top: 8px;
     display: block;
 }
 

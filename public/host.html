@@ -685,7 +685,20 @@
         let roomCode = null;
         let currentTimer = null;
         let serverUrl = null;
+        let serverUrlPromise = null;
         let quizId = null;
+        
+        // Хранилище данных игроков (объявляем ДО initApp, чтобы было доступно в обработчиках)
+        let playersData = new Map(); // playerId -> {name, ready}
+        
+        // Функция для получения текущего режима игры (fallback если settings-menu.js не загружен)
+        function getCurrentMode() {
+            if (typeof window.getCurrentMode === 'function') {
+                return window.getCurrentMode();
+            }
+            // Fallback: проверяем localStorage напрямую
+            return localStorage.getItem('gameMode') || 'global';
+        }
         
         // Переменные для соло режима
 
@@ -722,14 +735,68 @@
         }
         
         function initApp() {
-            // Получаем quizId из URL
+            // Получаем quizId и roomCode из URL
             const urlParams = new URLSearchParams(window.location.search);
             quizId = urlParams.get('quiz');
+            const roomParam = urlParams.get('room');
             
             // Применяем цвета квиза к кнопкам
             if (quizId) {
                 const colors = getQuizColors(quizId);
                 applyQuizColors(colors);
+            }
+            
+            // Инициализируем socket перед проверкой roomParam
+            socket = io();
+            
+            // ВАЖНО: Регистрируем обработчики событий ДО подключения к комнате
+            // чтобы не пропустить события, которые могут прийти сразу после подключения
+            // Регистрируем обработчики сразу после создания socket
+            registerSocketEventHandlers();
+            
+            // Если указан код комнаты в URL, подключаемся к существующей комнате
+            if (roomParam) {
+                roomCode = roomParam.toUpperCase();
+                console.log('Подключение к существующей комнате:', roomCode);
+                
+                // Показываем экран лобби
+                const lobbyScreen = document.getElementById('lobby-screen');
+                if (lobbyScreen) {
+                    lobbyScreen.style.display = 'block';
+                }
+                
+                // Функция для показа кнопок после подключения
+                const showButtonsAfterConnect = () => {
+                    // Показываем кнопку "Начать игру"
+                    setTimeout(() => {
+                        const hub1StartBtn = document.getElementById('frame1-start-btn') || window.hub1StartButton;
+                        if (hub1StartBtn) {
+                            hub1StartBtn.style.display = 'inline-block';
+                            console.log('✅ Кнопка "Начать игру" показана');
+                        } else {
+                            console.warn('⚠️ Кнопка "Начать игру" не найдена');
+                        }
+                    }, 100);
+                    
+                    // Показываем кнопку QR-кода и генерируем QR
+                    showQRCodeButton();
+                    generateQRCode(roomCode);
+                };
+                
+                // Ждем подключения Socket.io
+                socket.on('connect', () => {
+                    socket.emit('host-join', roomCode);
+                    console.log('Отправлен запрос на подключение к комнате:', roomCode);
+                    showButtonsAfterConnect();
+                });
+                
+                // Если socket уже подключен, сразу подключаемся
+                if (socket.connected) {
+                    socket.emit('host-join', roomCode);
+                    showButtonsAfterConnect();
+                }
+                
+                return; // Не создаем новую комнату
             }
             
             // Пароли для разных квизов (поддерживаем как новый ID 'gnu', так и старые)
@@ -755,10 +822,12 @@
                 return;
             }
             
-            socket = io();
+            // Socket уже инициализирован выше, если подключаемся к существующей комнате
+            if (!socket) {
+                socket = io();
+            }
 
             // Получение IP-адреса сервера (с кэшированием)
-            let serverUrlPromise = null;
             async function getServerUrl() {
                 // Если уже есть запрос в процессе, возвращаем его
                 if (serverUrlPromise) {
@@ -1042,10 +1111,15 @@
                         password = requiredPassword;
                     }
                     
+                    // Получаем текущий режим из localStorage (если доступен)
+                    const currentMode = (typeof getCurrentMode === 'function') ? getCurrentMode() : 'global';
+                    
                     const requestBody = { quizId: quizId };
                     if (password) {
                         requestBody.password = password;
                     }
+                    // Добавляем режим игры
+                    requestBody.mode = currentMode;
                     
                     const response = await fetch('/api/create-room', {
                         method: 'POST',
@@ -1170,11 +1244,390 @@
                 };
             }
 
-            // Хранилище данных игроков
-            let playersData = new Map(); // playerId -> {name, ready}
+            // Регистрация обработчиков событий socket
+            // ВАЖНО: Эта функция должна быть вызвана ДО подключения к комнате
+            function registerSocketEventHandlers() {
+                // Подключение хоста
+                socket.on('host-connected', (data) => {
+                    console.log('✅ Хост подключен, данные:', data);
+                    console.log('📋 Игроки в данных:', data.players);
+                    
+                    // Обновляем код комнаты, если он был передан
+                    if (data.roomCode) {
+                        roomCode = data.roomCode;
+                        console.log('Код комнаты установлен из host-connected:', roomCode);
+                    }
+                    
+                    playersData.clear();
+                    (data.players || []).forEach(player => {
+                        // Пропускаем отключенных игроков
+                        if (player.disconnected) {
+                            console.log('⏭️ Пропуск отключенного игрока при подключении хоста:', player.id, player.name);
+                            return;
+                        }
+                        
+                        console.log('✅ Добавление игрока при подключении хоста:', player.id, player.name);
+                        playersData.set(player.id, {
+                            name: player.name,
+                            ready: player.ready || false
+                        });
+                    });
+                    
+                    // Обновляем отображение списка игроков
+                    console.log('📊 Всего активных игроков после подключения хоста:', playersData.size);
+                    updateHub();
+                    
+                    // Показываем кнопку "Начать игру" если она еще не показана
+                    setTimeout(() => {
+                        const hub1StartBtn = document.getElementById('frame1-start-btn') || window.hub1StartButton;
+                        if (hub1StartBtn) {
+                            hub1StartBtn.style.display = 'inline-block';
+                            console.log('✅ Кнопка "Начать игру" показана после host-connected');
+                            // Убеждаемся, что обработчик установлен
+                            if (typeof setupStartGameButton === 'function') {
+                                setupStartGameButton();
+                            }
+                        } else {
+                            console.warn('⚠️ Кнопка "Начать игру" не найдена после host-connected');
+                        }
+                    }, 200);
+                    
+                    // Показываем кнопку QR-кода после подключения хоста
+                    showQRCodeButton();
+                });
+
+                // Обновление списка игроков
+                socket.on('player-list-updated', (data) => {
+                    console.log('📋 Получено обновление списка игроков:', data);
+                    console.log('📋 Игроки в данных:', data.players);
+                    
+                    playersData.clear();
+                    (data.players || []).forEach(player => {
+                        // Пропускаем отключенных игроков
+                        if (player.disconnected) {
+                            console.log('⏭️ Пропуск отключенного игрока:', player.id, player.name);
+                            return;
+                        }
+                        
+                        console.log('✅ Добавление игрока:', player.id, player.name);
+                        playersData.set(player.id, {
+                            name: player.name,
+                            ready: player.ready || false
+                        });
+                    });
+                    
+                    console.log('📊 Всего активных игроков в playersData:', playersData.size);
+                    updateHub();
+                });
+
+                // Игра началась
+                socket.on('game-started', () => {
+                    console.log('🎮 Игра началась');
+                    document.getElementById('lobby-screen').style.display = 'none';
+                    document.getElementById('game-screen').style.display = 'block';
+                    
+                    // Скрываем кнопку "Начать игру" в Frame1
+                    const hub1StartBtn = document.getElementById('frame1-start-btn') || window.hub1StartButton;
+                    if (hub1StartBtn) {
+                        hub1StartBtn.style.display = 'none';
+                    }
+                    
+                    // Запускаем проверку джойстика при начале игры
+                    if (typeof startGamepadCheck === 'function') {
+                        startGamepadCheck();
+                    }
+                });
+
+                // Вопрос
+                socket.on('question', (data) => {
+                    console.log('❓ Получен вопрос:', data);
+                    // Игра началась
+                    document.getElementById('question-screen').style.display = 'block';
+                    document.getElementById('results-screen').style.display = 'none';
+                    document.getElementById('final-results').style.display = 'none';
+                    
+                    // Показываем номер вопроса и таймер в Frame1
+                    const hub1Content = document.querySelector('.frame1-content');
+                    if (hub1Content) {
+                        // Создаем или находим элемент номера вопроса
+                        let hub1QuestionNumber = document.getElementById('frame1-question-number');
+                        if (!hub1QuestionNumber) {
+                            hub1QuestionNumber = document.createElement('div');
+                            hub1QuestionNumber.id = 'frame1-question-number';
+                            hub1QuestionNumber.className = 'frame1-question-number';
+                            hub1Content.appendChild(hub1QuestionNumber);
+                        }
+                        hub1QuestionNumber.textContent = `Вопрос ${data.questionNumber} из ${data.totalQuestions}`;
+                        hub1QuestionNumber.style.display = 'block';
+                        
+                        // Создаем или находим элемент таймера
+                        let hub1Timer = document.getElementById('frame1-timer');
+                        if (!hub1Timer) {
+                            hub1Timer = document.createElement('div');
+                            hub1Timer.id = 'frame1-timer';
+                            hub1Timer.className = 'frame1-timer';
+                            const hub1ActionsRight = document.getElementById('frame1-actions-right');
+                            if (hub1ActionsRight) {
+                                hub1ActionsRight.appendChild(hub1Timer);
+                            }
+                        }
+                        hub1Timer.style.display = 'inline-block';
+                    }
+                    
+                    const questionNumEl = document.getElementById('question-num');
+                    const totalQuestionsEl = document.getElementById('total-questions');
+                    const questionTextEl = document.getElementById('question-text');
+                    
+                    if (questionNumEl) questionNumEl.textContent = data.questionNumber;
+                    if (totalQuestionsEl) totalQuestionsEl.textContent = data.totalQuestions;
+                    if (questionTextEl) questionTextEl.textContent = data.question;
+                    
+                    // Обновляем позиционирование контента (только если Frame1 инициализирован)
+                    if (typeof FrameCommon !== 'undefined') {
+                        FrameCommon.adaptSubtitleToLogo();
+                    }
+                    
+                    // Сбрасываем статусы игроков
+                    playersData.forEach((playerData) => {
+                        playerData.ready = false;
+                    });
+                    
+                    // Запускаем проверку джойстика для нового вопроса
+                    if (typeof startGamepadCheck === 'function') {
+                        startGamepadCheck();
+                    }
+                    updateHub();
+                    
+                    // Таймер
+                    let timeLeft = data.time;
+                    const hub1Timer = document.getElementById('frame1-timer');
+                    const questionStatusEl = document.getElementById('question-status');
+                    if (questionStatusEl) {
+                        questionStatusEl.textContent = 'Игроки отвечают...';
+                    }
+                    
+                    // Обновляем таймер в Frame1
+                    if (hub1Timer) {
+                        hub1Timer.textContent = timeLeft;
+                        hub1Timer.className = 'frame1-timer';
+                    }
+                    
+                    if (currentTimer) clearInterval(currentTimer);
+                    currentTimer = setInterval(() => {
+                        timeLeft--;
+                        
+                        // Обновляем таймер в Frame1
+                        if (hub1Timer) {
+                            hub1Timer.textContent = timeLeft;
+                            if (timeLeft <= 5) {
+                                hub1Timer.className = 'frame1-timer urgent';
+                            } else {
+                                hub1Timer.className = 'frame1-timer';
+                            }
+                        }
+                        
+                        if (timeLeft <= 0) {
+                            clearInterval(currentTimer);
+                        }
+                    }, 1000);
+                });
+
+                // Статус ответов игроков
+                socket.on('answer-status', (data) => {
+                    console.log('📊 Статус ответов:', data);
+                    const questionStatus = document.getElementById('question-status');
+                    
+                    // Обновляем статусы игроков: если игрок ответил, он становится ready (зеленым)
+                    if (data.players) {
+                        data.players.forEach(player => {
+                            const playerData = playersData.get(player.id);
+                            if (playerData) {
+                                // Когда игрок ответил, он становится ready (зеленым)
+                                playerData.ready = player.answered;
+                            }
+                        });
+                        updateHub();
+                    }
+                    
+                    if (questionStatus) {
+                        if (data.allAnswered) {
+                            questionStatus.textContent = 'Все ответили! Переход к результатам...';
+                            if (currentTimer) clearInterval(currentTimer);
+                        } else {
+                            questionStatus.textContent = `Игроки отвечают... (${data.answeredCount}/${data.totalPlayers})`;
+                        }
+                    }
+                });
+
+                // Результаты вопроса
+                socket.on('results', (data) => {
+                    console.log('📊 Результаты вопроса:', data);
+                    // Показываем результаты
+                    clearInterval(currentTimer);
+                    
+                    // Скрываем таймер в Frame1, но оставляем номер вопроса
+                    const hub1Timer = document.getElementById('frame1-timer');
+                    if (hub1Timer) {
+                        hub1Timer.style.display = 'none';
+                    }
+                    
+                    document.getElementById('question-screen').style.display = 'none';
+                    document.getElementById('results-screen').style.display = 'block';
+                    
+                    // Сбрасываем статусы готовности
+                    playersData.forEach((playerData) => {
+                        playerData.ready = false;
+                    });
+                    updateHub();
+                    
+                    const correctAnswerEl = document.getElementById('correct-answer');
+                    if (correctAnswerEl) {
+                        correctAnswerEl.textContent = `Правильный ответ: ${data.correctAnswerText}`;
+                    }
+                    
+                    const leaderboard = document.getElementById('leaderboard');
+                    if (leaderboard) {
+                        leaderboard.innerHTML = '';
+                        data.players.forEach((player, index) => {
+                            const item = document.createElement('div');
+                            item.className = 'leaderboard-item';
+                            item.style.animationDelay = (index * 0.1) + 's';
+                            
+                            const playerName = document.createElement('span');
+                            playerName.className = 'player-name';
+                            playerName.textContent = `${index + 1}. ${player.name}`;
+                            
+                            const playerScore = document.createElement('span');
+                            playerScore.className = 'player-score';
+                            playerScore.textContent = `${player.score} очков`;
+                            
+                            item.appendChild(playerName);
+                            item.appendChild(playerScore);
+                            leaderboard.appendChild(item);
+                        });
+                    }
+
+                    // Сбрасываем кнопку следующего вопроса
+                    const nextBtn = document.getElementById('next-btn');
+                    const nextBtnStatus = document.getElementById('next-btn-status');
+                    if (nextBtn) nextBtn.disabled = true;
+                    if (nextBtnStatus) {
+                        nextBtnStatus.textContent = 'Ожидание готовности всех игроков...';
+                    }
+                    
+                    // Запускаем проверку джойстика для управления кнопкой "Следующий вопрос"
+                    if (typeof startGamepadCheck === 'function') {
+                        startGamepadCheck();
+                    }
+                });
+
+                // Статус готовности игроков
+                socket.on('ready-status', (data) => {
+                    console.log('✅ Статус готовности:', data);
+                    const nextBtn = document.getElementById('next-btn');
+                    const nextBtnStatus = document.getElementById('next-btn-status');
+                    
+                    // Обновляем статусы готовности в playersData
+                    data.players.forEach(player => {
+                        const playerData = playersData.get(player.id);
+                        if (playerData) {
+                            playerData.ready = player.ready;
+                        }
+                    });
+                    updateHub();
+                    
+                    if (nextBtn && nextBtnStatus) {
+                        if (data.allReady) {
+                            nextBtn.disabled = false;
+                            nextBtnStatus.textContent = 'Все игроки готовы! Можно переходить к следующему вопросу.';
+                        } else {
+                            nextBtn.disabled = true;
+                            nextBtnStatus.textContent = `Ожидание готовности игроков... (${data.readyCount}/${data.totalPlayers})`;
+                        }
+                    }
+                });
+
+                // Результаты вопроса (альтернативное событие)
+                socket.on('question-results', () => {
+                    console.log('📊 Результаты вопроса (альтернативное событие)');
+                });
+
+                // Игра завершена
+                socket.on('game-finished', (data) => {
+                    console.log('🏁 Игра завершена:', data);
+                    document.getElementById('game-screen').style.display = 'block';
+                    document.getElementById('question-screen').style.display = 'none';
+                    document.getElementById('results-screen').style.display = 'none';
+                    
+                    // Скрываем номер вопроса и таймер в Frame1
+                    const hub1QuestionNumber = document.getElementById('frame1-question-number');
+                    const hub1Timer = document.getElementById('frame1-timer');
+                    if (hub1QuestionNumber) {
+                        hub1QuestionNumber.style.display = 'none';
+                    }
+                    if (hub1Timer) {
+                        hub1Timer.style.display = 'none';
+                    }
+                    
+                    document.getElementById('question-screen').style.display = 'none';
+                    document.getElementById('results-screen').style.display = 'none';
+                    document.getElementById('final-results').style.display = 'block';
+                    
+                    const leaderboard = document.getElementById('final-leaderboard');
+                    if (leaderboard) {
+                        leaderboard.innerHTML = '';
+                        const finalMessages = {
+                            0: '· Чемпион',
+                            1: '· Второе место',
+                            2: '· Третье место'
+                        };
+                        
+                        data.results.forEach((player, index) => {
+                            const item = document.createElement('div');
+                            item.className = 'leaderboard-item';
+                            item.style.animationDelay = (index * 0.1) + 's';
+                            
+                            const message = finalMessages[index] || '';
+                            const playerName = document.createElement('span');
+                            playerName.className = 'player-name';
+                            playerName.textContent = `${index + 1}. ${player.name} ${message}`;
+                            
+                            const playerScore = document.createElement('span');
+                            playerScore.className = 'player-score';
+                            playerScore.textContent = `${player.score} очков`;
+                            
+                            item.appendChild(playerName);
+                            item.appendChild(playerScore);
+                            leaderboard.appendChild(item);
+                        });
+                    }
+                });
+                
+                console.log('✅ Обработчики событий socket зарегистрированы');
+            }
 
             // Обновление игроков в Frame2
             function updateHub() {
+                // Проверяем, что Frame2 инициализирован
+                if (typeof Frame2 === 'undefined') {
+                    console.warn('⚠️ Frame2 не инициализирован, откладываем обновление игроков');
+                    setTimeout(updateHub, 100);
+                    return;
+                }
+                
+                // Проверяем, что Frame2 content существует
+                const frame2Content = document.querySelector('.frame2-content');
+                if (!frame2Content) {
+                    console.warn('⚠️ Frame2 content не найден, пытаемся инициализировать Frame2');
+                    // Пытаемся инициализировать Frame2
+                    if (Frame2.init) {
+                        Frame2.init({ showLogo: false, showSubtitle: false });
+                    }
+                    // Повторяем попытку через небольшую задержку
+                    setTimeout(updateHub, 200);
+                    return;
+                }
+                
                 // Удаляем всех игроков из Frame2
                 document.querySelectorAll('.frame2-player-icon').forEach(icon => {
                     const playerId = icon.dataset.playerId;
@@ -1183,10 +1636,10 @@
                     }
                 });
                 
-                console.log('Обновление игроков. Всего игроков:', playersData.size);
+                console.log('🔄 Обновление игроков. Всего игроков:', playersData.size);
                 
                 if (playersData.size === 0) {
-                    console.log('Нет игроков для отображения');
+                    console.log('📭 Нет игроков для отображения');
                     // Очищаем контейнер игроков, если игроков нет
                     Frame2.clearPlayers();
                     return;
@@ -1194,31 +1647,21 @@
                 
                 // Добавляем игроков в Frame2
                 playersData.forEach((data, playerId) => {
-                    console.log('Добавление игрока в Frame2:', playerId, data);
+                    console.log('➕ Добавление игрока в Frame2:', playerId, data.name);
                     const status = data.ready ? 'ready' : 'waiting';
-                    Frame2.addPlayerIcon(playerId, data.name || 'Player', status);
+                    try {
+                        const result = Frame2.addPlayerIcon(playerId, data.name || 'Player', status);
+                        if (result === undefined) {
+                            console.log('✅ Игрок добавлен:', playerId, data.name);
+                        }
+                    } catch (error) {
+                        console.error('❌ Ошибка добавления игрока в Frame2:', error, playerId, data.name);
+                    }
                 });
+                
+                console.log('✅ Игроки обновлены в Frame2. Всего добавлено:', playersData.size);
             }
 
-            // Подключение хоста
-            socket.on('host-connected', (data) => {
-                console.log('Хост подключен, данные:', data);
-                console.log('Игроки в данных:', data.players);
-                playersData.clear();
-                (data.players || []).forEach(player => {
-                    console.log('Добавление игрока при подключении хоста:', player.id, player.name);
-                    playersData.set(player.id, {
-                        name: player.name,
-                        ready: false
-                    });
-                });
-                console.log('Всего игроков после подключения хоста:', playersData.size);
-                updateHub();
-                
-                // Показываем кнопку QR-кода после подключения хоста
-                showQRCodeButton();
-            });
-            
             // Функция для показа кнопки QR-кода
             function showQRCodeButton() {
                 if (!roomCode) {
@@ -1291,35 +1734,34 @@
                 console.log('✅ Кнопка QR-кода показана, код комнаты:', roomCode);
             }
 
-            // Обновление списка игроков
-            socket.on('player-list-updated', (data) => {
-                console.log('Получено обновление списка игроков:', data);
-                playersData.clear();
-                (data.players || []).forEach(player => {
-                    console.log('Добавление игрока:', player.id, player.name);
-                    playersData.set(player.id, {
-                        name: player.name,
-                        ready: false
-                    });
-                });
-                console.log('Всего игроков в playersData:', playersData.size);
-                updateHub();
-            });
-
             // Функция показа модального окна для подтверждения начала игры
             function showStartGameModal() {
+                console.log('📋 Показ модального окна начала игры. Игроков:', playersData.size);
                 const modal = document.getElementById('start-game-modal');
                 if (modal) {
                     modal.style.display = 'flex';
+                    console.log('✅ Модальное окно показано');
+                } else {
+                    console.error('❌ Модальное окно не найдено!');
                 }
             }
             
             // Начало игры (обработчик для кнопки в Frame1)
             function handleStartGame() {
+                console.log('🎮 Запуск игры. Игроков:', playersData.size, 'Комната:', roomCode);
+                
+                if (!roomCode) {
+                    console.error('❌ Код комнаты не установлен!');
+                    alert('Ошибка: код комнаты не установлен');
+                    return;
+                }
+                
                 if (playersData.size === 0) {
                     alert('Вы добавили всех игроков?');
                     return;
                 }
+                
+                console.log('📤 Отправка события start-game для комнаты:', roomCode);
                 socket.emit('start-game', roomCode);
             }
             
@@ -1329,41 +1771,87 @@
                 const confirmBtn = document.getElementById('start-game-confirm');
                 const cancelBtn = document.getElementById('start-game-cancel');
                 
+                if (!modal) {
+                    console.error('❌ Модальное окно start-game-modal не найдено!');
+                    return;
+                }
+                
                 if (confirmBtn) {
-                    confirmBtn.addEventListener('click', () => {
+                    // Удаляем старые обработчики
+                    const newConfirmBtn = confirmBtn.cloneNode(true);
+                    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+                    
+                    newConfirmBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('✅ Подтверждение начала игры');
                         if (modal) {
                             modal.style.display = 'none';
                         }
                         handleStartGame();
                     });
+                    console.log('✅ Обработчик кнопки подтверждения установлен');
+                } else {
+                    console.error('❌ Кнопка подтверждения не найдена!');
                 }
                 
                 if (cancelBtn) {
-                    cancelBtn.addEventListener('click', () => {
+                    // Удаляем старые обработчики
+                    const newCancelBtn = cancelBtn.cloneNode(true);
+                    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+                    
+                    newCancelBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('❌ Отмена начала игры');
                         if (modal) {
                             modal.style.display = 'none';
                         }
                     });
+                    console.log('✅ Обработчик кнопки отмены установлен');
+                } else {
+                    console.error('❌ Кнопка отмены не найдена!');
                 }
                 
                 // Закрытие модального окна при клике вне его области
-                if (modal) {
-                    modal.addEventListener('click', (e) => {
-                        if (e.target === modal) {
-                            modal.style.display = 'none';
-                        }
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        console.log('❌ Закрытие модального окна по клику вне области');
+                        modal.style.display = 'none';
+                    }
+                });
+                
+                console.log('✅ Модальное окно инициализировано');
+            }
+            
+            // Функция для установки обработчика кнопки "Начать игру"
+            function setupStartGameButton() {
+                const hub1StartBtn = document.getElementById('frame1-start-btn') || window.hub1StartButton;
+                if (hub1StartBtn) {
+                    // Удаляем старый обработчик, если есть
+                    const newBtn = hub1StartBtn.cloneNode(true);
+                    hub1StartBtn.parentNode.replaceChild(newBtn, hub1StartBtn);
+                    
+                    // Добавляем новый обработчик
+                    newBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🖱️ Клик по кнопке "Начать игру"');
+                        showStartGameModal();
                     });
+                    
+                    console.log('✅ Обработчик кнопки "Начать игру" установлен');
+                } else {
+                    console.warn('⚠️ Кнопка "Начать игру" не найдена для установки обработчика');
                 }
+                
+                // Инициализируем модальное окно
+                initStartGameModal();
             }
             
             // Обработчик для кнопки "Начать игру" в Frame1 (добавляем после создания кнопки)
             setTimeout(() => {
-                const hub1StartBtn = document.getElementById('frame1-start-btn') || window.hub1StartButton;
-                if (hub1StartBtn) {
-                    hub1StartBtn.addEventListener('click', showStartGameModal);
-                }
-                // Инициализируем модальное окно
-                initStartGameModal();
+                setupStartGameButton();
             }, 500);
             
             // Старый обработчик для обратной совместимости (если кнопка есть на странице)
@@ -1665,10 +2153,15 @@
             setTimeout(() => {
                 if (typeof FrameCommon !== 'undefined') {
                     FrameCommon.updateFrame2Position();
-                    FrameCommon.updateHub4Position();
-                    FrameCommon.updateContentPadding();
-                    FrameCommon.updateFloatingElementsPosition();
-                    FrameCommon.updateBodyPaddingBottom();
+                    if (typeof FrameCommon.updateHub4Position === 'function') {
+                        FrameCommon.updateHub4Position();
+                    }
+                    if (typeof FrameCommon.updateFloatingElementsPosition === 'function') {
+                        FrameCommon.updateFloatingElementsPosition();
+                    }
+                    if (typeof FrameCommon.updateBodyPaddingBottom === 'function') {
+                        FrameCommon.updateBodyPaddingBottom();
+                    }
                 }
             }, 100);
             
@@ -1732,10 +2225,15 @@
             const hub1 = document.getElementById('hub1');
             if (hub1 && typeof FrameCommon !== 'undefined') {
                 FrameCommon.updateFrame2Position();
-                FrameCommon.updateHub4Position();
-                FrameCommon.updateContentPadding();
-                FrameCommon.updateFloatingElementsPosition();
-                FrameCommon.updateBodyPaddingBottom();
+                if (typeof FrameCommon.updateHub4Position === 'function') {
+                    FrameCommon.updateHub4Position();
+                }
+                if (typeof FrameCommon.updateFloatingElementsPosition === 'function') {
+                    FrameCommon.updateFloatingElementsPosition();
+                }
+                if (typeof FrameCommon.updateBodyPaddingBottom === 'function') {
+                    FrameCommon.updateBodyPaddingBottom();
+                }
             }
         });
         
@@ -1955,6 +2453,19 @@
             <button class="settings-menu-close" id="settingsMenuClose">✕</button>
         </div>
         <div class="settings-menu-grid">
+            <div class="settings-menu-card" id="mode-toggle-card">
+                <span class="settings-menu-card-icon">🌐</span>
+                <div class="settings-menu-card-title">Режим игры</div>
+                <div class="settings-menu-card-description">
+                    <span id="current-mode-text">Текущий режим: <strong>Глобальный</strong></span>
+                </div>
+                <div class="mode-toggle-switch">
+                    <label class="switch">
+                        <input type="checkbox" id="mode-toggle-switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
             <a href="/joystick-test/joystick.html" class="settings-menu-card">
                 <span class="settings-menu-card-icon">🎮</span>
                 <div class="settings-menu-card-title">Джойстик</div>

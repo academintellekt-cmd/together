@@ -19,6 +19,7 @@ echo "📡 Сервер: $USERNAME@$SERVER_IP"
 
 # Создание архива с актуальными файлами
 echo "📦 Создание архива с файлами проекта..."
+echo "🌐 Исключаем локальные файлы (локальный режим не деплоится в интернет)..."
 tar -czf quiz-deploy.tar.gz \
     --exclude=node_modules \
     --exclude=.git \
@@ -33,6 +34,9 @@ tar -czf quiz-deploy.tar.gz \
     --exclude=ИНСТРУКЦИЯ_ЗАПУСКА.md \
     --exclude=УСТАНОВКА.md \
     --exclude=public/fonts \
+    --exclude=.env.local \
+    --exclude=server/local \
+    --exclude=public/local-*.html \
     server.js package.json package-lock.json public/ scripts/start.sh nodemon.json server/ data/ tests/ docs/
 
 echo "📤 Загрузка файлов на сервер..."

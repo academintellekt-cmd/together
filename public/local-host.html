@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Локальный режим - Ведущий</title>
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/aspect-ratio.css">
+    <link rel="stylesheet" href="/styles/components.css">
+    <link rel="stylesheet" href="/styles/quiz-card.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <script>
+        window.pageLayoutConfig = {
+            showFrame1: true,
+            showFrame2: true,
+            showFrame4: true,
+            showFrame5: true
+        };
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/scripts/layout.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
+    <script src="/scripts/frame2.js"></script>
+    <style>
+        .local-host-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .stations-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(24px, 4vw, 32px);
+            color: #393639;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .stations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .station-card {
+            background: #FFFFFF;
+            border: 3px solid #393639;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .station-card.connected {
+            background: #d6fbbf;
+            border-color: #00C159;
+        }
+        
+        .station-card.disconnected {
+            background: #f2f2f2;
+            opacity: 0.6;
+        }
+        
+        .station-number {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(20px, 3vw, 28px);
+            color: #393639;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .station-status {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(12px, 2vw, 14px);
+            color: #666;
+        }
+        
+        .quizzes-section {
+            margin-top: 40px;
+        }
+        
+        .quizzes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .quiz-card {
+            cursor: pointer;
+        }
+        
+        .selected-quiz {
+            border: 4px solid #00C159 !important;
+            box-shadow: 0 6px 0px rgba(0, 193, 89, 0.4), 0 8px 16px rgba(0, 193, 89, 0.2) !important;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .action-button {
+            padding: 15px 30px;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(18px, 3vw, 24px);
+            border: 3px solid #393639;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-button.primary {
+            background: #00C159;
+            color: #FFFFFF;
+        }
+        
+        .action-button.primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(0, 193, 89, 0.4), 0 8px 16px rgba(0, 193, 89, 0.2);
+        }
+        
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="site-wrapper">
+        <main class="site-main">
+            <section class="frame frame-3" data-frame="content">
+                <div class="frame-3-content">
+                    <div class="local-host-container">
+                        <h1 class="section-title">🏠 Локальный режим - Ведущий</h1>
+                        
+                        <div class="stations-section">
+                            <h2 class="section-title">Станции игроков</h2>
+                            <div class="stations-grid" id="stationsGrid">
+                                <!-- Станции будут добавлены через JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <div class="quizzes-section">
+                            <h2 class="section-title">Выберите квиз</h2>
+                            <div class="quizzes-grid" id="quizzesGrid">
+                                <div style="text-align: center; padding: 40px;">Загрузка квизов...</div>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="action-button primary" id="startQuizBtn" disabled>
+                                Запустить квиз на всех станциях
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <footer class="site-footer">
+                <section class="frame frame-4" data-frame="rules" id="hub4"></section>
+                <section class="frame frame-5" data-frame="about" id="hub5">
+                    <p id="copyright-year">© 2024 ВМЕСТЕ. Все права защищены.</p>
+                </section>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        let socket = null;
+        let selectedQuizId = null;
+        let stations = [];
+        let quizzes = [];
+
+        // Инициализация
+        async function init() {
+            // Ждем загрузки скриптов
+            if (typeof Frame1 === 'undefined' || typeof Frame2 === 'undefined' || typeof io === 'undefined') {
+                setTimeout(init, 100);
+                return;
+            }
+
+            try {
+                Frame1.init({
+                    showBack: true,
+                    backUrl: '/index.html'
+                });
+                Frame2.init();
+            } catch (error) {
+                console.warn('Ошибка инициализации Frame:', error);
+            }
+
+            // Подключаемся к серверу
+            socket = io();
+            
+            socket.on('connect', () => {
+                console.log('Подключен к серверу');
+                socket.emit('local-host-connect');
+            });
+
+            // Обновление списка станций
+            socket.on('local-stations-updated', (data) => {
+                stations = data.stations || [];
+                updateStationsDisplay();
+            });
+
+            // Загружаем данные
+            await loadStations();
+            await loadQuizzes();
+            
+            // Обновляем список станций каждые 2 секунды
+            setInterval(loadStations, 2000);
+        }
+
+        // Загрузка списка станций
+        async function loadStations() {
+            try {
+                const response = await fetch('/api/local/stations');
+                const data = await response.json();
+                stations = data.stations || [];
+                updateStationsDisplay();
+            } catch (error) {
+                console.error('Ошибка загрузки станций:', error);
+            }
+        }
+
+        // Обновление отображения станций
+        function updateStationsDisplay() {
+            const grid = document.getElementById('stationsGrid');
+            grid.innerHTML = '';
+
+            // Создаем карточки для всех возможных станций (1-9)
+            for (let i = 1; i <= 9; i++) {
+                const station = stations.find(s => s.stationNumber === i);
+                const card = document.createElement('div');
+                card.className = `station-card ${station && station.connected ? 'connected' : 'disconnected'}`;
+                
+                card.innerHTML = `
+                    <div class="station-number">Станция ${i}</div>
+                    <div class="station-status">${station && station.connected ? 'Подключена' : 'Не подключена'}</div>
+                    ${station && station.ip ? `<div class="station-status" style="font-size: 10px; margin-top: 5px;">${station.ip}</div>` : ''}
+                `;
+                
+                grid.appendChild(card);
+            }
+        }
+
+        // Загрузка квизов
+        async function loadQuizzes() {
+            try {
+                const response = await fetch('/api/quizzes');
+                if (!response.ok) throw new Error('Ошибка загрузки квизов');
+                
+                quizzes = await response.json();
+                displayQuizzes();
+            } catch (error) {
+                console.error('Ошибка загрузки квизов:', error);
+                document.getElementById('quizzesGrid').innerHTML = 
+                    '<div style="text-align: center; padding: 40px; color: #ff7664;">Ошибка загрузки квизов</div>';
+            }
+        }
+
+        // Отображение квизов
+        function displayQuizzes() {
+            const grid = document.getElementById('quizzesGrid');
+            grid.innerHTML = '';
+
+            quizzes.forEach(quiz => {
+                const card = document.createElement('div');
+                card.className = 'quiz-card';
+                card.dataset.quizId = quiz.id;
+                
+                card.innerHTML = `
+                    <div class="quiz-card-content">
+                        <span class="quiz-icon">${quiz.icon || '📝'}</span>
+                        <div class="quiz-title">${quiz.name}</div>
+                        <div class="quiz-description">${quiz.description || ''}</div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => selectQuiz(quiz.id));
+                grid.appendChild(card);
+            });
+        }
+
+        // Выбор квиза
+        function selectQuiz(quizId) {
+            selectedQuizId = quizId;
+            
+            // Обновляем визуальное выделение
+            document.querySelectorAll('.quiz-card').forEach(card => {
+                card.classList.remove('selected-quiz');
+            });
+            document.querySelector(`[data-quiz-id="${quizId}"]`)?.classList.add('selected-quiz');
+            
+            // Активируем кнопку запуска
+            const startBtn = document.getElementById('startQuizBtn');
+            const connectedStations = stations.filter(s => s.connected);
+            
+            if (connectedStations.length > 0) {
+                startBtn.disabled = false;
+            } else {
+                startBtn.disabled = true;
+            }
+        }
+
+        // Запуск квиза на всех станциях
+        async function startQuiz() {
+            if (!selectedQuizId) {
+                alert('Выберите квиз');
+                return;
+            }
+
+            const connectedStations = stations.filter(s => s.connected);
+            if (connectedStations.length === 0) {
+                alert('Нет подключенных станций');
+                return;
+            }
+
+            try {
+                // Создаем комнату
+                const response = await fetch('/api/create-room', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        quizId: selectedQuizId,
+                        mode: 'local'
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Ошибка создания комнаты');
+                }
+
+                const data = await response.json();
+                const roomCode = data.roomCode;
+
+                // Отправляем команду всем станциям открыть квиз
+                socket.emit('local-start-quiz', {
+                    roomCode: roomCode,
+                    quizId: selectedQuizId
+                });
+
+                // Открываем страницу хоста в новой вкладке
+                window.open(`/host.html?quiz=${selectedQuizId}&room=${roomCode}`, '_blank');
+            } catch (error) {
+                console.error('Ошибка запуска квиза:', error);
+                alert('Ошибка запуска квиза: ' + error.message);
+            }
+        }
+
+        // Обработчик кнопки запуска
+        document.getElementById('startQuizBtn').addEventListener('click', startQuiz);
+
+        // Запуск при загрузке страницы
+        function waitForSocketIO() {
+            if (typeof io === 'undefined') {
+                setTimeout(waitForSocketIO, 100);
+                return;
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(init, 200);
+                });
+            } else {
+                setTimeout(init, 200);
+            }
+        }
+        
+        waitForSocketIO();
+    </script>
+    <script src="/scripts/frame5-copyright.js"></script>
+</body>
+</html>
+
