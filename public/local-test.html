@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест локального режима</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { color: #333; }
+        .test-item {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        .success { border-color: #00C159; background: #d6fbbf; }
+        .error { border-color: #ff7664; background: #ffe0dc; }
+        .info { border-color: #7ce8f6; background: #e0f7fa; }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #00C159;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #00a049; }
+        code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Тест локального режима</h1>
+    
+    <div class="test-item info">
+        <h3>Информация о подключении</h3>
+        <p><strong>Текущий URL:</strong> <code id="currentUrl"></code></p>
+        <p><strong>Hostname:</strong> <code id="hostname"></code></p>
+    </div>
+    
+    <div class="test-item" id="serverTest">
+        <h3>1. Проверка сервера</h3>
+        <p>Проверяем доступность сервера...</p>
+    </div>
+    
+    <div class="test-item" id="apiTest">
+        <h3>2. Проверка API</h3>
+        <p>Проверяем API endpoints...</p>
+    </div>
+    
+    <div class="test-item" id="localModeTest">
+        <h3>3. Проверка локального режима</h3>
+        <p>Проверяем доступность локального режима...</p>
+    </div>
+    
+    <div class="test-item" id="links">
+        <h3>4. Ссылки</h3>
+        <p>
+            <a href="/local-station.html"><button>Страница станции</button></a>
+            <a href="/local-host.html"><button>Страница ведущего</button></a>
+        </p>
+    </div>
+
+    <script>
+        // Показываем текущую информацию
+        document.getElementById('currentUrl').textContent = window.location.href;
+        document.getElementById('hostname').textContent = window.location.hostname;
+        
+        // Тест 1: Проверка сервера
+        async function testServer() {
+            const div = document.getElementById('serverTest');
+            try {
+                const response = await fetch('/api/mode');
+                if (response.ok) {
+                    div.className = 'test-item success';
+                    div.innerHTML = '<h3>✅ Сервер доступен</h3><p>Сервер отвечает на запросы</p>';
+                } else {
+                    throw new Error('Сервер вернул ошибку');
+                }
+            } catch (error) {
+                div.className = 'test-item error';
+                div.innerHTML = `<h3>❌ Ошибка подключения к серверу</h3><p>${error.message}</p>`;
+            }
+        }
+        
+        // Тест 2: Проверка API
+        async function testAPI() {
+            const div = document.getElementById('apiTest');
+            try {
+                const response = await fetch('/api/local/stations');
+                const data = await response.json();
+                div.className = 'test-item success';
+                div.innerHTML = `<h3>✅ API доступен</h3><p>Найдено станций: ${data.stations ? data.stations.length : 0}</p>`;
+            } catch (error) {
+                div.className = 'test-item error';
+                div.innerHTML = `<h3>❌ API недоступен</h3><p>${error.message}</p><p>Возможно, локальный режим не активирован на сервере</p>`;
+            }
+        }
+        
+        // Тест 3: Проверка локального режима
+        async function testLocalMode() {
+            const div = document.getElementById('localModeTest');
+            try {
+                const response = await fetch('/api/mode');
+                const data = await response.json();
+                if (data.mode === 'available') {
+                    div.className = 'test-item success';
+                    div.innerHTML = '<h3>✅ Локальный режим доступен</h3><p>Модули локального режима загружены</p>';
+                } else {
+                    div.className = 'test-item error';
+                    div.innerHTML = '<h3>❌ Локальный режим недоступен</h3><p>Локальные модули не найдены на сервере</p>';
+                }
+            } catch (error) {
+                div.className = 'test-item error';
+                div.innerHTML = `<h3>❌ Ошибка проверки режима</h3><p>${error.message}</p>`;
+            }
+        }
+        
+        // Запускаем все тесты
+        testServer();
+        setTimeout(testAPI, 500);
+        setTimeout(testLocalMode, 1000);
+    </script>
+</body>
+</html>
+

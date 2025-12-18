@@ -415,6 +415,24 @@
                 <div class="frame-3-content" id="mainContainer" style="display: none;">
                     <h1 class="settings-title">⚙️ Настройки</h1>
                     <div class="settings-grid">
+                        <div class="quiz-card settings-card" id="mode-toggle-card-page" style="background: #d6fbbf; box-shadow: 0 6px 0px rgba(214, 251, 191, 0.4), 0 8px 16px rgba(214, 251, 191, 0.3);">
+                            <div class="quiz-card-content">
+                                <span class="quiz-icon">🌐</span>
+                                <div class="quiz-title">Режим игры</div>
+                                <div class="quiz-description">
+                                    <span id="current-mode-text-page">Текущий режим: <strong>Глобальный</strong></span>
+                                </div>
+                                <div class="mode-toggle-switch">
+                                    <label class="switch">
+                                        <input type="checkbox" id="mode-toggle-switch-page">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <a href="http://192.168.1.10:3000/local-host.html" class="local-mode-link" style="display: block; margin-top: 12px; padding: 8px 16px; background: rgba(0, 193, 89, 0.1); border: 2px solid #00C159; border-radius: 8px; color: #00C159; text-decoration: none; font-family: 'Days One', sans-serif; font-size: 14px; text-align: center; transition: all 0.2s;">
+                                    🏠 Открыть локальный хост
+                                </a>
+                            </div>
+                        </div>
                         <a href="/joystick-test/joystick.html" class="quiz-card settings-card" style="background: #abf67c; box-shadow: 0 6px 0px rgba(47, 185, 93, 0.3), 0 8px 16px rgba(47, 185, 93, 0.1);">
                             <div class="quiz-card-content">
                                 <span class="quiz-icon">🎮</span>
@@ -621,14 +639,66 @@
             }
         }
 
+        // Инициализация переключателя режима на странице настроек
+        function initModeTogglePage() {
+            const toggleSwitch = document.getElementById('mode-toggle-switch-page');
+            const textEl = document.getElementById('current-mode-text-page');
+            const modeCard = document.getElementById('mode-toggle-card-page');
+            
+            if (!toggleSwitch) return;
+            
+            // Устанавливаем начальное состояние
+            const mode = localStorage.getItem('gameMode') || 'global';
+            toggleSwitch.checked = mode === 'local';
+            if (textEl) {
+                const modeText = mode === 'local' ? 'Локальный' : 'Глобальный';
+                textEl.innerHTML = `Текущий режим: <strong>${modeText}</strong>`;
+            }
+            
+            // Обработчик изменения переключателя
+            toggleSwitch.addEventListener('change', function(e) {
+                const newMode = e.target.checked ? 'local' : 'global';
+                localStorage.setItem('gameMode', newMode);
+                
+                if (textEl) {
+                    const modeText = newMode === 'local' ? 'Локальный' : 'Глобальный';
+                    textEl.innerHTML = `Текущий режим: <strong>${modeText}</strong>`;
+                }
+                
+                // Уведомляем сервер
+                fetch('/api/mode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: newMode })
+                }).catch(err => console.error('Ошибка отправки режима на сервер:', err));
+            });
+            
+            // Проверяем доступность локального режима
+            fetch('/api/mode')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.mode === 'unavailable') {
+                        if (toggleSwitch) toggleSwitch.disabled = true;
+                        if (modeCard) modeCard.style.opacity = '0.5';
+                    }
+                })
+                .catch(err => {
+                    console.error('Ошибка проверки режима:', err);
+                    if (toggleSwitch) toggleSwitch.disabled = true;
+                    if (modeCard) modeCard.style.opacity = '0.5';
+                });
+        }
+        
         // Инициализация Hub только если пароль уже введен
         if (passwordEntered) {
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(initHubs, 200);
+                    setTimeout(initModeTogglePage, 200);
                 });
             } else {
                 setTimeout(initHubs, 200);
+                setTimeout(initModeTogglePage, 200);
             }
         }
         
@@ -662,6 +732,22 @@
             <button class="settings-menu-close" id="settingsMenuClose">✕</button>
         </div>
         <div class="settings-menu-grid">
+            <div class="settings-menu-card" id="mode-toggle-card">
+                <span class="settings-menu-card-icon">🌐</span>
+                <div class="settings-menu-card-title">Режим игры</div>
+                <div class="settings-menu-card-description">
+                    <span id="current-mode-text">Текущий режим: <strong>Глобальный</strong></span>
+                </div>
+                <div class="mode-toggle-switch">
+                    <label class="switch">
+                        <input type="checkbox" id="mode-toggle-switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <a href="http://192.168.1.10:3000/local-host.html" class="local-mode-link" style="display: block; margin-top: 12px; padding: 8px 16px; background: rgba(0, 193, 89, 0.1); border: 2px solid #00C159; border-radius: 8px; color: #00C159; text-decoration: none; font-family: 'Days One', sans-serif; font-size: 14px; text-align: center; transition: all 0.2s;">
+                    🏠 Открыть локальный хост
+                </a>
+            </div>
             <a href="/joystick-test/joystick.html" class="settings-menu-card">
                 <span class="settings-menu-card-icon">🎮</span>
                 <div class="settings-menu-card-title">Джойстик</div>

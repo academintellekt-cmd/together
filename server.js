@@ -15,6 +15,31 @@ try {
   console.warn('⚠️ DMX модуль недоступен:', error.message);
 }
 
+// Локальный режим - условная загрузка модулей
+let localModeAvailable = false;
+let localModeManager = null;
+
+// Проверяем наличие локальных модулей при старте
+try {
+  require.resolve('./server/local/local-mode.js');
+  localModeAvailable = true;
+  console.log('✅ Локальные модули доступны');
+} catch (e) {
+  console.log('🌐 Локальные модули недоступны (глобальный режим)');
+}
+
+// Условная загрузка локального модуля
+if (localModeAvailable) {
+  try {
+    const { getLocalModeManager } = require('./server/local/local-mode.js');
+    localModeManager = getLocalModeManager();
+    console.log('✅ Локальный режим инициализирован');
+  } catch (error) {
+    console.warn('⚠️ Ошибка загрузки локального модуля:', error.message);
+    localModeManager = null;
+  }
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -23,6 +48,9 @@ const io = socketIo(server, {
     methods: ["GET", "POST"]
   }
 });
+
+// Настройка для правильного определения IP клиента
+app.set('trust proxy', true); // Доверяем прокси (для правильного определения IP)
 
 app.use(cors());
 app.use(express.json());
@@ -1203,15 +1231,133 @@ app.post('/api/reload-questions', (req, res) => {
 
 // DMX API routes уже зарегистрированы выше (перед статическим middleware)
 
-// Получение IP-адреса сервера
+// API для работы с режимом игры
+app.get('/api/mode', (req, res) => {
+  res.json({
+    mode: localModeAvailable ? 'available' : 'unavailable',
+    currentMode: req.query.mode || 'global'
+  });
+});
+
+app.post('/api/mode', (req, res) => {
+  // Просто подтверждаем получение (режим хранится на клиенте)
+  const { mode } = req.body;
+  console.log(`📝 Клиент установил режим: ${mode}`);
+  res.json({ success: true, mode: mode });
+});
+
+// API для локального режима
+if (localModeAvailable && localModeManager) {
+  // Регистрация станции
+  app.post('/api/local/register-station', (req, res) => {
+    // Получаем IP клиента из запроса
+    const clientIp = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 
+                     (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : null) ||
+                     req.headers['x-real-ip'];
+    
+    // Нормализуем IP (убираем IPv6 префикс)
+    let normalizedClientIp = clientIp;
+    if (clientIp && clientIp.startsWith('::ffff:')) {
+      normalizedClientIp = clientIp.replace('::ffff:', '');
+    }
+    
+    let { ip, stationNumber } = req.body;
+    
+    // Если IP не указан, используем IP клиента
+    if (!ip && normalizedClientIp) {
+      ip = normalizedClientIp;
+    }
+    
+    // Если номер станции не указан, пытаемся определить по IP
+    if (!stationNumber && ip) {
+      const ipMatch = ip.match(/192\.168\.1\.(\d+)/);
+      if (ipMatch) {
+        const lastOctet = parseInt(ipMatch[1]);
+        if (lastOctet >= 21 && lastOctet <= 29) {
+          stationNumber = lastOctet - 20;
+        }
+      }
+    }
+    
+    if (!ip || !stationNumber) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Не удалось определить IP или номер станции',
+        detectedIp: normalizedClientIp || ip,
+        suggestion: normalizedClientIp ? 'Попробуйте указать номер станции вручную' : 'Проверьте подключение к сети'
+      });
+    }
+    
+    const station = localModeManager.registerStation(ip, stationNumber);
+    
+    if (station) {
+      console.log(`✅ Станция ${stationNumber} зарегистрирована: ${ip} (клиент: ${normalizedClientIp})`);
+      
+      // Уведомляем всех хостов об обновлении списка станций
+      io.emit('local-stations-updated', {
+        stations: localModeManager.getStations()
+      });
+      
+      res.json({ success: true, station });
+    } else {
+      res.status(400).json({ success: false, error: 'Станция не найдена. Проверьте, что IP находится в диапазоне 192.168.1.21-29' });
+    }
+  });
+  
+  // API для определения IP клиента
+  app.get('/api/local/detect-ip', (req, res) => {
+    const clientIp = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 
+                     (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : null) ||
+                     req.headers['x-real-ip'];
+    
+    let normalizedClientIp = clientIp;
+    if (clientIp && clientIp.startsWith('::ffff:')) {
+      normalizedClientIp = clientIp.replace('::ffff:', '');
+    }
+    
+    // Определяем номер станции по IP
+    let stationNumber = null;
+    if (normalizedClientIp) {
+      const ipMatch = normalizedClientIp.match(/192\.168\.1\.(\d+)/);
+      if (ipMatch) {
+        const lastOctet = parseInt(ipMatch[1]);
+        if (lastOctet >= 21 && lastOctet <= 29) {
+          stationNumber = lastOctet - 20;
+        }
+      }
+    }
+    
+    res.json({
+      ip: normalizedClientIp,
+      stationNumber: stationNumber,
+      hostname: req.headers.host || 'unknown'
+    });
+  });
+  
+  // Получение списка станций
+  app.get('/api/local/stations', (req, res) => {
+    const stations = localModeManager.getStations();
+    res.json({ stations });
+  });
+}
+
+// Получение IP-адреса сервера и клиента
 app.get('/api/server-ip', (req, res) => {
-  // Получаем IP-адрес из запроса
-  const clientIp = req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
+  // Получаем IP-адрес клиента из запроса
+  const clientIp = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 
+                   (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : null) ||
+                   req.headers['x-real-ip'];
   
   // Получаем локальный IP-адрес сервера
   const os = require('os');
   const networkInterfaces = os.networkInterfaces();
   let serverIp = 'localhost';
+  
+  // Нормализуем IP клиента (убираем IPv6 префикс если есть)
+  let normalizedClientIp = clientIp;
+  if (clientIp && clientIp.startsWith('::ffff:')) {
+    normalizedClientIp = clientIp.replace('::ffff:', '');
+  }
   
   // Ищем первый не-loopback IPv4 адрес
   for (const interfaceName in networkInterfaces) {
@@ -1229,13 +1375,14 @@ app.get('/api/server-ip', (req, res) => {
   res.json({ 
     ip: serverIp,
     port: port,
-    url: `http://${serverIp}:${port}`
+    url: `http://${serverIp}:${port}`,
+    clientIp: normalizedClientIp || clientIp
   });
 });
 
 // Создание комнаты
 app.post('/api/create-room', (req, res) => {
-  const { quizId, password } = req.body;
+  const { quizId, password, mode } = req.body;
   
   // Проверка лимитов перед созданием комнаты
   if (rooms.size >= MAX_ROOMS) {
@@ -1336,6 +1483,9 @@ app.post('/api/create-room', (req, res) => {
     console.log(`⚠️ Используются ВСЕ вопросы (${questionsForRoom.length}) вместо ${questionsPerGame}`);
   }
   
+  // Определяем режим комнаты
+  const roomMode = (mode === 'local' && localModeAvailable && localModeManager) ? 'local' : 'global';
+  
   const room = {
     code: roomCode,
     host: null,
@@ -1350,14 +1500,21 @@ app.post('/api/create-room', (req, res) => {
     answers: new Map(),
     password: quiz.passwordRequired ? quiz.password : null, // Сохраняем пароль для проверки при подключении игроков
     createdAt: Date.now(), // Время создания комнаты
-    lastActivity: Date.now() // Время последней активности
+    lastActivity: Date.now(), // Время последней активности
+    mode: roomMode // Режим комнаты: 'local' или 'global'
   };
   rooms.set(roomCode, room);
   
-  console.log(`📋 Комната ${roomCode} создана: ${questionsForRoom.length} вопросов (из ${quiz.questions.length} доступных)`);
+  // Если локальный режим - инициализируем локальную логику
+  if (roomMode === 'local' && localModeManager) {
+    localModeManager.initializeRoom(roomCode);
+    console.log(`🏠 Локальная комната ${roomCode} инициализирована`);
+  }
+  
+  console.log(`📋 Комната ${roomCode} создана (режим: ${roomMode}): ${questionsForRoom.length} вопросов (из ${quiz.questions.length} доступных)`);
   console.log(`📋 Первые 3 вопроса комнаты:`, questionsForRoom.slice(0, 3).map(q => q.id || 'no-id'));
   
-  res.json({ roomCode });
+  res.json({ roomCode, mode: roomMode });
 });
 
 // Инициализация DMX системы сценариев (после создания io)
@@ -1392,7 +1549,64 @@ io.on('connection', (socket) => {
     room.lastActivity = Date.now(); // Обновляем активность при подключении хоста
     socket.join(roomCode);
     socket.emit('host-connected', { roomCode, players: room.players });
-    console.log(`Хост подключен к комнате ${roomCode}`);
+    console.log(`Хост подключен к комнате ${roomCode}, состояние игры: ${room.gameState}`);
+    
+    // Если игра уже началась, отправляем текущее состояние хосту
+    if (room.gameState === 'question' && room.currentQuestion < room.questions.length) {
+      // Отправляем текущий вопрос
+      const question = room.questions[room.currentQuestion];
+      const questionData = {
+        question: question.question,
+        options: question.options,
+        questionNumber: room.currentQuestion + 1,
+        totalQuestions: room.questions.length,
+        time: question.time,
+        quizId: room.quizId
+      };
+      socket.emit('question', questionData);
+      console.log(`📤 Отправлен текущий вопрос ${questionData.questionNumber} хосту при подключении`);
+      
+      // Отправляем текущий статус ответов
+      updateAnswerStatus(roomCode);
+      
+      // Вычисляем оставшееся время и обновляем данные вопроса
+      if (room.startTime) {
+        const elapsed = Date.now() - room.startTime;
+        const remaining = Math.max(0, Math.floor((question.time * 1000 - elapsed) / 1000));
+        if (remaining > 0 && remaining < question.time) {
+          // Обновляем время в данных вопроса для правильного отображения таймера
+          questionData.time = remaining;
+        }
+      }
+    } else if (room.gameState === 'results' && room.currentQuestion < room.questions.length) {
+      // Отправляем текущие результаты
+      const question = room.questions[room.currentQuestion];
+      const results = Array.from(room.answers.values());
+      const sortedPlayers = room.players.sort((a, b) => b.score - a.score);
+      socket.emit('results', {
+        correctAnswer: question.correct,
+        correctAnswerText: question.options[question.correct],
+        results: results,
+        players: sortedPlayers
+      });
+      console.log(`📤 Отправлены текущие результаты хосту при подключении`);
+      
+      // Отправляем текущий статус готовности
+      setTimeout(() => {
+        updateReadyStatus(roomCode);
+      }, 100);
+    } else if (room.gameState === 'playing') {
+      // Игра началась, но вопрос еще не показан
+      socket.emit('game-started');
+      console.log(`📤 Отправлено событие game-started хосту при подключении`);
+    } else if (room.gameState === 'finished') {
+      // Игра завершена, отправляем финальные результаты
+      const sortedPlayers = room.players.sort((a, b) => b.score - a.score);
+      socket.emit('game-finished', {
+        results: sortedPlayers
+      });
+      console.log(`📤 Отправлены финальные результаты хосту при подключении`);
+    }
   });
 
   // Игрок подключается к комнате
@@ -2729,7 +2943,71 @@ io.on('connection', (socket) => {
     });
 
   // Отключение
+  // Локальный режим - Socket.io события
+  if (localModeAvailable && localModeManager) {
+    // Подключение станции
+    socket.on('local-station-connect', (data) => {
+      const { ip, stationNumber } = data;
+      if (ip && stationNumber) {
+        const station = localModeManager.registerStation(ip, stationNumber);
+        if (station) {
+          console.log(`✅ Станция ${stationNumber} подключена через Socket.io: ${ip}`);
+          // Сохраняем socket.id для станции
+          station.socketId = socket.id;
+          
+          // Уведомляем всех хостов об обновлении
+          io.emit('local-stations-updated', {
+            stations: localModeManager.getStations()
+          });
+        }
+      }
+    });
+
+    // Подключение хоста локального режима
+    socket.on('local-host-connect', () => {
+      console.log('✅ Хост локального режима подключен');
+      // Отправляем текущий список станций
+      socket.emit('local-stations-updated', {
+        stations: localModeManager.getStations()
+      });
+    });
+
+    // Запуск квиза на всех станциях
+    socket.on('local-start-quiz', (data) => {
+      const { roomCode, quizId } = data;
+      console.log(`🏠 Запуск локального квиза: комната ${roomCode}, квиз ${quizId}`);
+      
+      // Отправляем команду всем подключенным станциям
+      const stations = localModeManager.getStations();
+      stations.forEach(station => {
+        if (station.connected && station.socketId) {
+          io.to(station.socketId).emit('local-station-open-quiz', {
+            roomCode: roomCode,
+            quizId: quizId
+          });
+          console.log(`📤 Команда отправлена станции ${station.stationNumber} (${station.ip})`);
+        }
+      });
+    });
+  }
+
   socket.on('disconnect', () => {
+    // Обработка отключения станции в локальном режиме
+    if (localModeAvailable && localModeManager) {
+      const stations = localModeManager.getStations();
+      const station = stations.find(s => s.socketId === socket.id);
+      if (station) {
+        station.connected = false;
+        station.socketId = null;
+        console.log(`🔌 Станция ${station.stationNumber} отключена`);
+        
+        // Уведомляем хостов об обновлении
+        io.emit('local-stations-updated', {
+          stations: localModeManager.getStations()
+        });
+      }
+    }
+
     const player = players.get(socket.id);
     if (player) {
       const room = rooms.get(player.roomCode);

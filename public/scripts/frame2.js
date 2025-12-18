@@ -45,7 +45,24 @@ const Frame2 = {
      */
     addPlayerIcon(playerId, name, status = 'waiting') {
         const content = document.querySelector('.frame2-content');
-        if (!content) return;
+        if (!content) {
+            console.warn('⚠️ Frame2 content не найден, пытаемся инициализировать Frame2');
+            // Пытаемся инициализировать Frame2, если он еще не инициализирован
+            if (typeof Frame2 !== 'undefined' && Frame2.init) {
+                Frame2.init({ showLogo: false, showSubtitle: false });
+            }
+            // Проверяем еще раз после небольшой задержки
+            setTimeout(() => {
+                const retryContent = document.querySelector('.frame2-content');
+                if (!retryContent) {
+                    console.error('❌ Frame2 content все еще не найден после инициализации');
+                    return;
+                }
+                // Повторяем попытку добавления игрока
+                Frame2.addPlayerIcon(playerId, name, status);
+            }, 100);
+            return;
+        }
         
         // Создаем контейнер для игроков, если его нет
         let playersContainer = document.getElementById('frame2-players-container');

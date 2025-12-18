@@ -228,6 +228,10 @@
             background: #FFD500;
         }
 
+        .mode-card.local {
+            background: #00C159;
+        }
+
         .mode-icon {
             font-size: clamp(48px, 10vw, 72px);
             margin-bottom: clamp(12px, 3vw, 20px);
@@ -260,8 +264,16 @@
 
         @media (min-width: 768px) {
             .mode-cards {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: repeat(3, 1fr);
                 gap: clamp(24px, 4vw, 32px);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .mode-cards {
+                grid-template-columns: repeat(3, 1fr);
+                max-width: 1200px;
+                margin: 0 auto;
             }
         }
 
@@ -332,6 +344,14 @@
                 <div class="mode-title">Мультиплеер</div>
                 <div class="mode-description">
                     Создай комнату и играй с друзьями. QR-код для подключения.
+                </div>
+            </div>
+            
+            <div class="mode-card local" onclick="selectMode('local')">
+                <div class="mode-icon">🏠</div>
+                <div class="mode-title">Локальный режим</div>
+                <div class="mode-description">
+                    Игра на локальной сети. Управление станциями игроков.
                 </div>
             </div>
         </div>
@@ -445,6 +465,9 @@
             } else if (mode === 'multiplayer') {
                 // Мультиплеер - открываем host.html с квизом gnu-multiplayer
                 window.location.href = '/host.html?quiz=gnu-multiplayer&password=verified';
+            } else if (mode === 'local') {
+                // Локальный режим - открываем local-host.html
+                window.location.href = 'http://192.168.1.10:3000/local-host.html';
             }
         }
         

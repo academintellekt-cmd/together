@@ -1,0 +1,111 @@
+/**
+ * Модуль локального режима игры
+ * Управляет станциями игроков в локальной сети
+ */
+
+class LocalModeManager {
+    constructor() {
+        this.stations = new Map(); // IP -> station info
+        this.rooms = new Map(); // roomCode -> local room data
+        this.initializeStations();
+    }
+
+    /**
+     * Инициализация станций по IP-адресам
+     */
+    initializeStations() {
+        // Станции игроков: 192.168.1.21 - 192.168.1.29 (до 9 станций)
+        const stationIPs = [
+            '192.168.1.21', '192.168.1.22', '192.168.1.23', '192.168.1.24',
+            '192.168.1.25', '192.168.1.26', '192.168.1.27', '192.168.1.28', '192.168.1.29'
+        ];
+
+        stationIPs.forEach((ip, index) => {
+            this.stations.set(ip, {
+                stationNumber: index + 1,
+                playerName: `Игрок ${index + 1}`,
+                ip: ip,
+                connected: false,
+                lastSeen: null
+            });
+        });
+
+        console.log(`✅ Инициализировано ${this.stations.size} станций для локального режима`);
+    }
+
+    /**
+     * Регистрация станции
+     */
+    registerStation(ip, stationNumber = null) {
+        if (stationNumber) {
+            // Если указан номер станции, используем его
+            const station = Array.from(this.stations.values()).find(s => s.stationNumber === stationNumber);
+            if (station) {
+                station.ip = ip;
+                station.connected = true;
+                station.lastSeen = Date.now();
+                return station;
+            }
+        }
+
+        // Ищем станцию по IP
+        const station = this.stations.get(ip);
+        if (station) {
+            station.connected = true;
+            station.lastSeen = Date.now();
+            return station;
+        }
+
+        return null;
+    }
+
+    /**
+     * Инициализация комнаты в локальном режиме
+     */
+    initializeRoom(roomCode) {
+        this.rooms.set(roomCode, {
+            roomCode: roomCode,
+            stations: new Map(),
+            quizId: null,
+            started: false
+        });
+        console.log(`✅ Локальная комната ${roomCode} инициализирована`);
+    }
+
+    /**
+     * Получение списка всех станций
+     */
+    getStations() {
+        return Array.from(this.stations.values());
+    }
+
+    /**
+     * Получение информации о станции по IP
+     */
+    getStationByIP(ip) {
+        return this.stations.get(ip);
+    }
+
+    /**
+     * Получение информации о станции по номеру
+     */
+    getStationByNumber(stationNumber) {
+        return Array.from(this.stations.values()).find(s => s.stationNumber === stationNumber);
+    }
+}
+
+// Singleton instance
+let localModeManagerInstance = null;
+
+function getLocalModeManager() {
+    if (!localModeManagerInstance) {
+        localModeManagerInstance = new LocalModeManager();
+    }
+    return localModeManagerInstance;
+}
+
+module.exports = {
+    getLocalModeManager,
+    LocalModeManager
+};
+
