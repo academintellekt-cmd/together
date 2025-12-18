@@ -26,7 +26,14 @@ class LocalModeManager {
                 playerName: `Игрок ${index + 1}`,
                 ip: ip,
                 connected: false,
-                lastSeen: null
+                socketId: null,
+                lastSeen: null,
+                state: {
+                    currentPage: 'waiting', // waiting, quiz, results, custom
+                    pageData: {},
+                    customState: {},
+                    lastUpdate: null
+                }
             });
         });
 
@@ -91,6 +98,78 @@ class LocalModeManager {
      */
     getStationByNumber(stationNumber) {
         return Array.from(this.stations.values()).find(s => s.stationNumber === stationNumber);
+    }
+
+    /**
+     * Обновление состояния станции
+     */
+    updateStationState(stationNumber, stateUpdate) {
+        const station = this.getStationByNumber(stationNumber);
+        if (station) {
+            station.state = {
+                ...station.state,
+                ...stateUpdate,
+                lastUpdate: Date.now()
+            };
+            return station;
+        }
+        return null;
+    }
+
+    /**
+     * Обновление состояния станции по IP
+     */
+    updateStationStateByIP(ip, stateUpdate) {
+        const station = this.stations.get(ip);
+        if (station) {
+            station.state = {
+                ...station.state,
+                ...stateUpdate,
+                lastUpdate: Date.now()
+            };
+            return station;
+        }
+        return null;
+    }
+
+    /**
+     * Получение станций по номерам
+     */
+    getStationsByNumbers(stationNumbers) {
+        if (!stationNumbers || stationNumbers.length === 0) {
+            return this.getStations().filter(s => s.connected);
+        }
+        return this.getStations().filter(s => 
+            s.connected && stationNumbers.includes(s.stationNumber)
+        );
+    }
+
+    /**
+     * Установка socketId для станции
+     */
+    setStationSocketId(stationNumber, socketId) {
+        const station = this.getStationByNumber(stationNumber);
+        if (station) {
+            station.socketId = socketId;
+            station.connected = true;
+            station.lastSeen = Date.now();
+            return station;
+        }
+        return null;
+    }
+
+    /**
+     * Удаление socketId при отключении
+     */
+    removeStationSocketId(socketId) {
+        const stations = this.getStations();
+        const station = stations.find(s => s.socketId === socketId);
+        if (station) {
+            station.socketId = null;
+            station.connected = false;
+            return station;
+        }
+        return null;
     }
 }
 

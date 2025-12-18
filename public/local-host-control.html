@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление игрой - Локальный режим</title>
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #F2F2F2;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .control-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            border: 3px solid #393639;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 6px 0px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(28px, 4vw, 36px);
+            color: #393639;
+            margin-bottom: 10px;
+        }
+
+        .room-info {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .room-info strong {
+            color: #393639;
+            font-weight: 700;
+        }
+
+        .game-status {
+            text-align: center;
+            padding: 15px;
+            background: #d6fbbf;
+            border: 2px solid #00C159;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: #393639;
+        }
+
+        .control-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(20px, 3vw, 24px);
+            color: #393639;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-button {
+            padding: 20px 30px;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 2.5vw, 20px);
+            font-weight: 700;
+            border: 3px solid #393639;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .control-button.primary {
+            background: #00C159;
+            color: #FFFFFF;
+        }
+
+        .control-button.primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(0, 193, 89, 0.4), 0 8px 16px rgba(0, 193, 89, 0.2);
+        }
+
+        .control-button.warning {
+            background: #FFA500;
+            color: #FFFFFF;
+        }
+
+        .control-button.warning:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(255, 165, 0, 0.4), 0 8px 16px rgba(255, 165, 0, 0.2);
+        }
+
+        .control-button.danger {
+            background: #ff7664;
+            color: #FFFFFF;
+        }
+
+        .control-button.danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(255, 118, 100, 0.4), 0 8px 16px rgba(255, 118, 100, 0.2);
+        }
+
+        .control-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .status-info {
+            background: #F2F2F2;
+            border: 2px solid #393639;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .status-info strong {
+            color: #393639;
+            font-weight: 700;
+        }
+
+        .question-info {
+            background: #E8F4FD;
+            border: 2px solid #4A90E2;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            color: #393639;
+        }
+
+        .question-info strong {
+            color: #4A90E2;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="control-container">
+        <div class="header">
+            <h1>🎮 Управление игрой</h1>
+            <div class="room-info" id="roomInfo">
+                Комната: <strong id="roomCode">-</strong> | Квиз: <strong id="quizName">-</strong>
+            </div>
+        </div>
+
+        <div class="game-status" id="gameStatus">
+            Ожидание начала игры...
+        </div>
+
+        <div class="status-info" id="statusInfo" style="display: none;">
+            <strong>Статус:</strong> <span id="statusText">-</span>
+        </div>
+
+        <div class="question-info" id="questionInfo" style="display: none;">
+            <strong>Текущий вопрос:</strong> <span id="questionNumber">-</span> из <span id="totalQuestions">-</span>
+        </div>
+
+        <div class="control-section">
+            <h2 class="section-title">Управление вопросами</h2>
+            <div class="control-buttons">
+                <button class="control-button warning" id="skipAnswersBtn" disabled>
+                    ⏭️ Пропустить ожидание ответов
+                </button>
+                <button class="control-button warning" id="showResultsBtn" disabled>
+                    📊 Показать результаты
+                </button>
+                <button class="control-button warning" id="skipReadyBtn" disabled>
+                    ⏭️ Пропустить ожидание готовности
+                </button>
+                <button class="control-button primary" id="nextQuestionBtn" disabled>
+                    ➡️ Следующий вопрос
+                </button>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h2 class="section-title">Управление игрой</h2>
+            <div class="control-buttons">
+                <button class="control-button danger" id="endGameBtn" disabled>
+                    🏁 Завершить игру
+                </button>
+                <button class="control-button danger" id="endQuizBtn">
+                    🛑 Завершить квиз
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let socket = null;
+        let roomCode = null;
+        let quizName = null;
+        let currentQuestion = 0;
+        let totalQuestions = 0;
+        let gameState = 'lobby'; // lobby, playing, question, results, finished
+
+        // Получаем параметры из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        roomCode = urlParams.get('room');
+        quizName = urlParams.get('quiz') || '-';
+
+        // Обновляем информацию о комнате
+        if (roomCode) {
+            document.getElementById('roomCode').textContent = roomCode.toUpperCase();
+        }
+        document.getElementById('quizName').textContent = quizName;
+
+        // Инициализация
+        function init() {
+            if (typeof io === 'undefined') {
+                setTimeout(init, 100);
+                return;
+            }
+
+            socket = io();
+
+            socket.on('connect', () => {
+                console.log('Подключен к серверу');
+                if (roomCode) {
+                    socket.emit('host-join', roomCode.toUpperCase());
+                    console.log('Подключение к комнате:', roomCode.toUpperCase());
+                }
+            });
+
+            // Подключение хоста
+            socket.on('host-connected', (data) => {
+                console.log('✅ Хост подключен к комнате');
+                updateGameStatus('Подключен к комнате');
+            });
+
+            // Игра началась
+            socket.on('game-started', () => {
+                console.log('🎮 Игра началась');
+                gameState = 'playing';
+                updateGameStatus('Игра началась');
+                enableQuestionControls();
+            });
+
+            // Вопрос
+            socket.on('question', (data) => {
+                console.log('❓ Получен вопрос:', data);
+                gameState = 'question';
+                currentQuestion = data.questionNumber || 0;
+                totalQuestions = data.totalQuestions || 0;
+                updateGameStatus(`Вопрос ${currentQuestion} из ${totalQuestions}`);
+                showQuestionInfo();
+                enableQuestionControls();
+                document.getElementById('skipAnswersBtn').disabled = false;
+                document.getElementById('showResultsBtn').disabled = false;
+                document.getElementById('skipReadyBtn').disabled = true;
+                document.getElementById('nextQuestionBtn').disabled = true;
+            });
+
+            // Результаты вопроса
+            socket.on('results', (data) => {
+                console.log('📊 Результаты вопроса:', data);
+                gameState = 'results';
+                updateGameStatus(`Результаты вопроса ${currentQuestion}`);
+                enableQuestionControls();
+                document.getElementById('skipAnswersBtn').disabled = true;
+                document.getElementById('showResultsBtn').disabled = true;
+                document.getElementById('skipReadyBtn').disabled = false;
+                document.getElementById('nextQuestionBtn').disabled = false;
+            });
+
+            // Игра завершена
+            socket.on('game-finished', (data) => {
+                console.log('🏁 Игра завершена:', data);
+                gameState = 'finished';
+                updateGameStatus('Игра завершена');
+                disableAllControls();
+            });
+
+            // Обработчики кнопок
+            document.getElementById('skipAnswersBtn').addEventListener('click', skipAnswers);
+            document.getElementById('showResultsBtn').addEventListener('click', showResults);
+            document.getElementById('skipReadyBtn').addEventListener('click', skipReady);
+            document.getElementById('nextQuestionBtn').addEventListener('click', nextQuestion);
+            document.getElementById('endGameBtn').addEventListener('click', endGame);
+            document.getElementById('endQuizBtn').addEventListener('click', endQuiz);
+        }
+
+        // Обновление статуса игры
+        function updateGameStatus(status) {
+            document.getElementById('gameStatus').textContent = status;
+        }
+
+        // Показать информацию о вопросе
+        function showQuestionInfo() {
+            const questionInfo = document.getElementById('questionInfo');
+            questionInfo.style.display = 'block';
+            document.getElementById('questionNumber').textContent = currentQuestion;
+            document.getElementById('totalQuestions').textContent = totalQuestions;
+        }
+
+        // Включить кнопки управления вопросами
+        function enableQuestionControls() {
+            document.getElementById('endGameBtn').disabled = false;
+        }
+
+        // Отключить все кнопки
+        function disableAllControls() {
+            document.getElementById('skipAnswersBtn').disabled = true;
+            document.getElementById('showResultsBtn').disabled = true;
+            document.getElementById('skipReadyBtn').disabled = true;
+            document.getElementById('nextQuestionBtn').disabled = true;
+            document.getElementById('endGameBtn').disabled = true;
+        }
+
+        // Пропустить ожидание ответов
+        function skipAnswers() {
+            if (!roomCode) return;
+            socket.emit('local-skip-answers', { roomCode: roomCode.toUpperCase() });
+            console.log('Пропуск ожидания ответов');
+        }
+
+        // Показать результаты
+        function showResults() {
+            if (!roomCode) return;
+            socket.emit('local-show-results', { roomCode: roomCode.toUpperCase() });
+            console.log('Показ результатов');
+        }
+
+        // Пропустить ожидание готовности
+        function skipReady() {
+            if (!roomCode) return;
+            socket.emit('local-skip-ready', { roomCode: roomCode.toUpperCase() });
+            console.log('Пропуск ожидания готовности');
+        }
+
+        // Следующий вопрос
+        function nextQuestion() {
+            if (!roomCode) return;
+            socket.emit('next-question', roomCode.toUpperCase());
+            console.log('Переход к следующему вопросу');
+        }
+
+        // Завершить игру
+        function endGame() {
+            if (!roomCode) return;
+            if (confirm('Вы уверены, что хотите завершить игру?')) {
+                socket.emit('local-end-game', { roomCode: roomCode.toUpperCase() });
+                console.log('Завершение игры');
+            }
+        }
+
+        // Завершить квиз (вернуть все станции на начальную страницу local-station.html)
+        async function endQuiz() {
+            if (!socket || !socket.connected) {
+                alert('Не подключен к серверу. Пожалуйста, подождите подключения.');
+                return;
+            }
+            
+            try {
+                // Получаем список всех подключенных станций
+                const response = await fetch('/api/local/stations');
+                const data = await response.json();
+                const connectedStations = (data.stations || []).filter(s => s.connected);
+                
+                if (connectedStations.length === 0) {
+                    alert('Нет подключенных станций');
+                    return;
+                }
+                
+                if (confirm(`Вы уверены, что хотите завершить квиз на всех станциях (${connectedStations.length} станций)?\nВсе станции вернутся на начальную страницу подключения.`)) {
+                    // Отправляем команду завершения квиза всем подключенным станциям
+                    // Если не указать stationNumbers, сервер отправит команду всем подключенным станциям
+                    socket.emit('local-end-quiz-on-stations', {});
+                    console.log('Завершение квиза на всех станциях');
+                }
+            } catch (error) {
+                console.error('Ошибка завершения квиза:', error);
+                alert('Ошибка завершения квиза: ' + error.message);
+            }
+        }
+
+        // Запуск при загрузке страницы
+        function waitForSocketIO() {
+            if (typeof io === 'undefined') {
+                setTimeout(waitForSocketIO, 100);
+                return;
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(init, 200);
+                });
+            } else {
+                setTimeout(init, 200);
+            }
+        }
+        
+        waitForSocketIO();
+    </script>
+</body>
+</html>
+

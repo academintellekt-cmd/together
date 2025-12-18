@@ -1339,6 +1339,203 @@ if (localModeAvailable && localModeManager) {
     const stations = localModeManager.getStations();
     res.json({ stations });
   });
+
+  // ========== УНИВЕРСАЛЬНЫЙ HTTP API ДЛЯ УПРАВЛЕНИЯ СТАНЦИЯМИ ==========
+  
+  /**
+   * Отправка универсальной команды станциям через HTTP API
+   * POST /api/local/stations/command
+   * Body: { stationNumbers: [1,2,3], command: 'navigate', params: {...} }
+   */
+  app.post('/api/local/stations/command', (req, res) => {
+    try {
+      const { stationNumbers, command, params } = req.body;
+
+      if (!command) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Команда не указана' 
+        });
+      }
+
+      // Получаем станции для отправки команды
+      const stations = localModeManager.getStationsByNumbers(stationNumbers);
+      
+      if (stations.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Нет подключенных станций для отправки команды' 
+        });
+      }
+
+      console.log(`📤 HTTP API: Универсальная команда "${command}" отправляется на станции: ${stations.map(s => s.stationNumber).join(', ')}`);
+
+      const results = [];
+
+      // Отправляем команду всем выбранным станциям
+      stations.forEach(station => {
+        if (station.connected && station.socketId) {
+          // Отправляем универсальную команду через Socket.io
+          io.to(station.socketId).emit('local-station-command', {
+            command: command,
+            params: params || {},
+            timestamp: Date.now()
+          });
+
+          // Обновляем состояние станции в зависимости от команды
+          if (command === 'navigate' && params && params.page) {
+            localModeManager.updateStationState(station.stationNumber, {
+              currentPage: params.page,
+              pageData: params.data || {}
+            });
+          } else if (command === 'update-state' && params) {
+            const currentState = station.state.customState || {};
+            localModeManager.updateStationState(station.stationNumber, {
+              customState: {
+                ...currentState,
+                ...params
+              }
+            });
+          }
+
+          results.push({
+            stationNumber: station.stationNumber,
+            ip: station.ip,
+            success: true
+          });
+
+          console.log(`✅ HTTP API: Команда "${command}" отправлена станции ${station.stationNumber} (${station.ip})`);
+        }
+      });
+
+      // Уведомляем хостов об обновлении состояния станций
+      io.emit('local-stations-updated', {
+        stations: localModeManager.getStations()
+      });
+
+      res.json({ 
+        success: true, 
+        command: command,
+        stationsAffected: results.length,
+        results: results 
+      });
+    } catch (error) {
+      console.error('❌ Ошибка отправки команды станциям:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Ошибка отправки команды: ' + error.message 
+      });
+    }
+  });
+
+  /**
+   * Получение состояния конкретной станции
+   * GET /api/local/stations/:stationNumber/state
+   */
+  app.get('/api/local/stations/:stationNumber/state', (req, res) => {
+    try {
+      const stationNumber = parseInt(req.params.stationNumber);
+      const station = localModeManager.getStationByNumber(stationNumber);
+      
+      if (!station) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Станция не найдена' 
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        stationNumber: station.stationNumber,
+        state: station.state,
+        connected: station.connected,
+        lastSeen: station.lastSeen,
+        ip: station.ip
+      });
+    } catch (error) {
+      console.error('❌ Ошибка получения состояния станции:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Ошибка получения состояния: ' + error.message 
+      });
+    }
+  });
+
+  /**
+   * Обновление состояния станции напрямую
+   * POST /api/local/stations/:stationNumber/state
+   * Body: { state: {...} }
+   */
+  app.post('/api/local/stations/:stationNumber/state', (req, res) => {
+    try {
+      const stationNumber = parseInt(req.params.stationNumber);
+      const { state } = req.body;
+
+      if (!state) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Состояние не указано' 
+        });
+      }
+
+      const station = localModeManager.updateStationState(stationNumber, state);
+      
+      if (!station) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Станция не найдена' 
+        });
+      }
+
+      // Уведомляем хостов об обновлении
+      io.emit('local-stations-updated', {
+        stations: localModeManager.getStations()
+      });
+
+      res.json({ 
+        success: true, 
+        stationNumber: station.stationNumber,
+        state: station.state
+      });
+    } catch (error) {
+      console.error('❌ Ошибка обновления состояния станции:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Ошибка обновления состояния: ' + error.message 
+      });
+    }
+  });
+
+  /**
+   * Получение списка всех станций с их состояниями
+   * GET /api/local/stations/status
+   */
+  app.get('/api/local/stations/status', (req, res) => {
+    try {
+      const stations = localModeManager.getStations();
+      const stationsStatus = stations.map(station => ({
+        stationNumber: station.stationNumber,
+        ip: station.ip,
+        connected: station.connected,
+        socketId: station.socketId,
+        state: station.state,
+        lastSeen: station.lastSeen
+      }));
+
+      res.json({ 
+        success: true, 
+        stations: stationsStatus,
+        total: stationsStatus.length,
+        connected: stationsStatus.filter(s => s.connected).length
+      });
+    } catch (error) {
+      console.error('❌ Ошибка получения статуса станций:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Ошибка получения статуса: ' + error.message 
+      });
+    }
+  });
 }
 
 // Получение IP-адреса сервера и клиента
@@ -1537,6 +1734,7 @@ function getPlayerIndex(roomCode, playerId) {
 // Подключение через Socket.io
 io.on('connection', (socket) => {
   console.log('Новое подключение:', socket.id);
+  console.log('localModeAvailable:', localModeAvailable, 'localModeManager:', !!localModeManager);
 
   // Хост подключается к комнате
   socket.on('host-join', (roomCode) => {
@@ -2164,9 +2362,15 @@ io.on('connection', (socket) => {
 
   // Завершение игры
   function endGame(roomCode) {
+    console.log(`🎮 Функция endGame вызвана для комнаты: ${roomCode}`);
     const room = rooms.get(roomCode);
-    if (!room) return;
+    if (!room) {
+      console.warn(`⚠️ Комната ${roomCode} не найдена в функции endGame`);
+      return;
+    }
 
+    console.log(`📊 Комната найдена: mode=${room.mode}, players=${room.players.length}, gameState=${room.gameState}`);
+    
     room.gameState = 'finished';
     room.lastActivity = Date.now(); // Обновляем активность
     const finalResults = room.players.sort((a, b) => b.score - a.score);
@@ -2174,6 +2378,102 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('game-finished', {
       results: finalResults
     });
+    
+    console.log(`📤 Событие game-finished отправлено в комнату ${roomCode}`);
+    
+    // Если это локальная комната, отправляем команду станциям вернуться в режим ожидания
+    if (room.mode === 'local' && localModeAvailable && localModeManager) {
+      console.log(`🔧 Локальный режим: отправка команд станциям для возврата в режим ожидания`);
+      // Получаем все станции, которые участвуют в игре (по игрокам)
+      const stationNumbers = new Set();
+      console.log(`👥 Игроки в комнате: ${room.players.map(p => p.name).join(', ')}`);
+      
+      room.players.forEach(player => {
+        // Извлекаем номер станции из имени игрока (например, "Игрок №1" -> 1)
+        const match = player.name.match(/игрок\s*№?(\d+)/i);
+        if (match) {
+          const stationNum = parseInt(match[1]);
+          stationNumbers.add(stationNum);
+          console.log(`📍 Найдена станция ${stationNum} для игрока ${player.name}`);
+        } else {
+          console.log(`⚠️ Не удалось определить номер станции для игрока: ${player.name}`);
+        }
+      });
+      
+      console.log(`📋 Найдено станций по игрокам: ${Array.from(stationNumbers).join(', ')}`);
+      
+      // Если не нашли станции по игрокам, отправляем всем подключенным станциям
+      const allStations = localModeManager.getStations();
+      const connectedStations = allStations.filter(s => s.connected);
+      console.log(`🔌 Всего подключенных станций: ${connectedStations.length}`);
+      
+      const stationsToNotify = stationNumbers.size > 0
+        ? localModeManager.getStationsByNumbers(Array.from(stationNumbers))
+        : connectedStations;
+      
+      console.log(`📤 Отправка команды возврата в режим ожидания на станции: ${stationsToNotify.map(s => `${s.stationNumber}(${s.ip}, socketId: ${s.socketId ? 'есть' : 'нет'})`).join(', ')}`);
+      
+      stationsToNotify.forEach(station => {
+        console.log(`🔍 Обработка станции ${station.stationNumber}: connected=${station.connected}, socketId=${station.socketId}`);
+        
+        if (station.connected && station.socketId) {
+          // Используем универсальную систему команд для надежности
+          const commandData = {
+            command: 'navigate',
+            params: {
+              page: 'waiting'
+            },
+            timestamp: Date.now()
+          };
+          
+          console.log(`📤 Отправка local-station-command станции ${station.stationNumber} (socketId: ${station.socketId}):`, commandData);
+          io.to(station.socketId).emit('local-station-command', commandData);
+          
+          // Также отправляем старое событие для обратной совместимости
+          console.log(`📤 Отправка local-station-return-to-waiting станции ${station.stationNumber}`);
+          io.to(station.socketId).emit('local-station-return-to-waiting');
+          
+          console.log(`✅ Команда возврата в режим ожидания отправлена станции ${station.stationNumber} (${station.ip})`);
+          
+          // Обновляем состояние станции
+          localModeManager.updateStationState(station.stationNumber, {
+            currentPage: 'waiting',
+            pageData: {}
+          });
+        } else {
+          console.warn(`⚠️ Станция ${station.stationNumber} не подключена или нет socketId: connected=${station.connected}, socketId=${station.socketId}`);
+        }
+      });
+      
+      // Также отправляем команду всем игрокам в комнате, которые могут быть на странице player.html
+      console.log(`👥 Отправка команд игрокам в комнате (${room.players.length} игроков)`);
+      room.players.forEach(player => {
+        const playerSocket = io.sockets.sockets.get(player.id);
+        if (playerSocket) {
+          const commandData = {
+            command: 'navigate',
+            params: {
+              page: 'waiting'
+            },
+            timestamp: Date.now()
+          };
+          
+          console.log(`📤 Отправка local-station-command игроку ${player.name} (ID: ${player.id}):`, commandData);
+          // Отправляем команду навигации игроку
+          playerSocket.emit('local-station-command', commandData);
+          
+          // Также отправляем старое событие для обратной совместимости
+          console.log(`📤 Отправка local-station-return-to-waiting игроку ${player.name}`);
+          playerSocket.emit('local-station-return-to-waiting');
+          
+          console.log(`✅ Команда возврата в режим ожидания отправлена игроку ${player.name} (ID: ${player.id})`);
+        } else {
+          console.warn(`⚠️ Сокет игрока ${player.name} (ID: ${player.id}) не найден`);
+        }
+      });
+      
+      console.log(`✅ Завершена отправка команд для возврата станций в режим ожидания`);
+    }
     
     // DMX: игра завершена
     if (dmxScenarioEngine) {
@@ -2947,19 +3247,45 @@ io.on('connection', (socket) => {
   if (localModeAvailable && localModeManager) {
     // Подключение станции
     socket.on('local-station-connect', (data) => {
+      console.log('📥 Получено событие local-station-connect:', data);
       const { ip, stationNumber } = data;
-      if (ip && stationNumber) {
-        const station = localModeManager.registerStation(ip, stationNumber);
-        if (station) {
-          console.log(`✅ Станция ${stationNumber} подключена через Socket.io: ${ip}`);
-          // Сохраняем socket.id для станции
-          station.socketId = socket.id;
-          
-          // Уведомляем всех хостов об обновлении
-          io.emit('local-stations-updated', {
-            stations: localModeManager.getStations()
-          });
+      
+      if (!ip || !stationNumber) {
+        console.warn('⚠️ Не указаны IP или номер станции:', { ip, stationNumber });
+        socket.emit('error', { message: 'Не указаны IP или номер станции' });
+        return;
+      }
+      
+      console.log(`🔍 Регистрация станции: IP=${ip}, номер=${stationNumber}`);
+      const station = localModeManager.registerStation(ip, stationNumber);
+      
+      if (station) {
+        console.log(`✅ Станция ${stationNumber} подключена через Socket.io: ${ip}`);
+        // Сохраняем socket.id для станции используя новый метод
+        const updatedStation = localModeManager.setStationSocketId(stationNumber, socket.id);
+        
+        if (updatedStation) {
+          console.log(`✅ Socket ID ${socket.id} сохранен для станции ${stationNumber}`);
+        } else {
+          console.warn(`⚠️ Не удалось сохранить socket ID для станции ${stationNumber}`);
         }
+        
+        // Отправляем подтверждение станции
+        socket.emit('local-station-connected', {
+          success: true,
+          stationNumber: stationNumber,
+          ip: ip
+        });
+        
+        // Уведомляем всех хостов об обновлении
+        io.emit('local-stations-updated', {
+          stations: localModeManager.getStations()
+        });
+        
+        console.log(`📤 Уведомление о подключении станции ${stationNumber} отправлено всем хостам`);
+      } else {
+        console.error(`❌ Не удалось зарегистрировать станцию: IP=${ip}, номер=${stationNumber}`);
+        socket.emit('error', { message: 'Не удалось зарегистрировать станцию' });
       }
     });
 
@@ -2972,21 +3298,862 @@ io.on('connection', (socket) => {
       });
     });
 
-    // Запуск квиза на всех станциях
+    // Запуск квиза на выбранных станциях
     socket.on('local-start-quiz', (data) => {
-      const { roomCode, quizId } = data;
-      console.log(`🏠 Запуск локального квиза: комната ${roomCode}, квиз ${quizId}`);
+      const { roomCode, quizId, stationNumbers } = data;
+      console.log(`🏠 Запуск локального квиза: комната ${roomCode}, квиз ${quizId}, станции: ${stationNumbers ? stationNumbers.join(', ') : 'все'}`);
       
-      // Отправляем команду всем подключенным станциям
+      // Отправляем команду только выбранным станциям
       const stations = localModeManager.getStations();
       stations.forEach(station => {
         if (station.connected && station.socketId) {
-          io.to(station.socketId).emit('local-station-open-quiz', {
-            roomCode: roomCode,
-            quizId: quizId
-          });
-          console.log(`📤 Команда отправлена станции ${station.stationNumber} (${station.ip})`);
+          // Если указаны конкретные станции, отправляем только им
+          if (stationNumbers && stationNumbers.length > 0) {
+            if (stationNumbers.includes(station.stationNumber)) {
+              io.to(station.socketId).emit('local-station-open-quiz', {
+                roomCode: roomCode,
+                quizId: quizId
+              });
+              console.log(`📤 Команда отправлена станции ${station.stationNumber} (${station.ip})`);
+            }
+          } else {
+            // Если станции не указаны, отправляем всем (обратная совместимость)
+            io.to(station.socketId).emit('local-station-open-quiz', {
+              roomCode: roomCode,
+              quizId: quizId
+            });
+            console.log(`📤 Команда отправлена станции ${station.stationNumber} (${station.ip})`);
+          }
         }
+      });
+    });
+
+    // Обновление станции
+    socket.on('local-station-refresh', (data) => {
+      const { stationNumber, socketId } = data;
+      if (socketId) {
+        io.to(socketId).emit('local-station-refresh');
+        console.log(`🔄 Обновление станции ${stationNumber}`);
+      }
+    });
+
+    // Перезагрузка станции
+    socket.on('local-station-reload', (data) => {
+      const { stationNumber, socketId } = data;
+      if (socketId) {
+        io.to(socketId).emit('local-station-reload');
+        console.log(`🔁 Перезагрузка станции ${stationNumber}`);
+      }
+    });
+
+    // Пропуск ожидания ответов
+    socket.on('local-skip-answers', (data) => {
+      const { roomCode } = data;
+      const room = rooms.get(roomCode);
+      if (!room || room.mode !== 'local' || room.host !== socket.id) return;
+      
+      // Если игра в состоянии вопроса, сразу показываем результаты
+      if (room.gameState === 'question') {
+        console.log(`⏭️ Пропуск ожидания ответов в комнате ${roomCode}`);
+        showResults(roomCode);
+      }
+    });
+
+    // Пропуск ожидания готовности
+    socket.on('local-skip-ready', (data) => {
+      const { roomCode } = data;
+      const room = rooms.get(roomCode);
+      if (!room || room.mode !== 'local' || room.host !== socket.id) return;
+      
+      // Если игра в состоянии результатов, переходим к следующему вопросу
+      if (room.gameState === 'results') {
+        console.log(`⏭️ Пропуск ожидания готовности в комнате ${roomCode}`);
+        room.currentQuestion++;
+        if (room.currentQuestion < room.questions.length) {
+          showQuestion(roomCode);
+        } else {
+          endGame(roomCode);
+        }
+      }
+    });
+
+    // Принудительный показ результатов
+    socket.on('local-show-results', (data) => {
+      const { roomCode } = data;
+      const room = rooms.get(roomCode);
+      if (!room || room.mode !== 'local' || room.host !== socket.id) return;
+      
+      if (room.gameState === 'question') {
+        console.log(`📊 Принудительный показ результатов в комнате ${roomCode}`);
+        showResults(roomCode);
+      }
+    });
+
+    // Завершение игры
+    socket.on('local-end-game', (data) => {
+      const { roomCode } = data;
+      const room = rooms.get(roomCode);
+      if (!room || room.mode !== 'local' || room.host !== socket.id) return;
+      
+      console.log(`🏁 Принудительное завершение игры в комнате ${roomCode}`);
+      endGame(roomCode);
+    });
+
+    // Завершение игры на станциях (вернуть их в режим ожидания)
+    socket.on('local-end-game-on-stations', (data) => {
+      const { stationNumbers } = data;
+      if (!stationNumbers || !Array.isArray(stationNumbers)) return;
+      
+      console.log(`🛑 Завершение игры на станциях: ${stationNumbers.join(', ')}`);
+      
+      const stations = localModeManager.getStations();
+      stations.forEach(station => {
+        if (station.connected && station.socketId && stationNumbers.includes(station.stationNumber)) {
+          io.to(station.socketId).emit('local-station-return-to-waiting');
+          console.log(`📤 Команда возврата в режим ожидания отправлена станции ${station.stationNumber} (${station.ip})`);
+        }
+      });
+    });
+
+    // Завершение квиза на станциях (вернуть их на начальную страницу local-station.html)
+    socket.on('local-end-quiz-on-stations', (data) => {
+      const { stationNumbers } = data || {};
+      
+      const stations = localModeManager.getStations();
+      const connectedStations = stations.filter(s => s.connected && s.socketId);
+      
+      // Если stationNumbers не указан, отправляем команду всем подключенным станциям
+      const stationsToEnd = stationNumbers && Array.isArray(stationNumbers) 
+        ? connectedStations.filter(s => stationNumbers.includes(s.stationNumber))
+        : connectedStations;
+      
+      if (stationsToEnd.length === 0) {
+        console.log('⚠️ Нет подключенных станций для завершения квиза');
+        return;
+      }
+      
+      console.log(`🛑 Завершение квиза на станциях: ${stationsToEnd.map(s => s.stationNumber).join(', ')}`);
+      
+      stationsToEnd.forEach(station => {
+        io.to(station.socketId).emit('local-station-end-quiz');
+        console.log(`📤 Команда завершения квиза отправлена станции ${station.stationNumber} (${station.ip})`);
+      });
+    });
+
+    // ========== УНИВЕРСАЛЬНАЯ СИСТЕМА УПРАВЛЕНИЯ СТАНЦИЯМИ ==========
+    
+    /**
+     * Универсальная команда для управления станциями
+     * Поддерживает команды: navigate, update-state, update-content, execute-action, custom
+     */
+    socket.on('local-station-command', (data) => {
+      const { stationNumbers, command, params } = data;
+      
+      if (!command) {
+        console.warn('⚠️ Команда не указана');
+        socket.emit('error', { message: 'Команда не указана' });
+        return;
+      }
+
+      // Получаем станции для отправки команды
+      const stations = localModeManager.getStationsByNumbers(stationNumbers);
+      
+      if (stations.length === 0) {
+        console.warn('⚠️ Нет подключенных станций для отправки команды');
+        socket.emit('error', { message: 'Нет подключенных станций' });
+        return;
+      }
+
+      console.log(`📤 Универсальная команда "${command}" отправляется на станции: ${stations.map(s => s.stationNumber).join(', ')}`);
+
+      // Отправляем команду всем выбранным станциям
+      stations.forEach(station => {
+        if (station.connected && station.socketId) {
+          // Отправляем универсальную команду
+          io.to(station.socketId).emit('local-station-command', {
+            command: command,
+            params: params || {},
+            timestamp: Date.now()
+          });
+
+          // Обновляем состояние станции в зависимости от команды
+          if (command === 'navigate' && params && params.page) {
+            localModeManager.updateStationState(station.stationNumber, {
+              currentPage: params.page,
+              pageData: params.data || {}
+            });
+          } else if (command === 'update-state' && params) {
+            const currentState = station.state.customState || {};
+            localModeManager.updateStationState(station.stationNumber, {
+              customState: {
+                ...currentState,
+                ...params
+              }
+            });
+          }
+
+          console.log(`✅ Команда "${command}" отправлена станции ${station.stationNumber} (${station.ip})`);
+        }
+      });
+
+      // Уведомляем хостов об обновлении состояния станций
+      io.emit('local-stations-updated', {
+        stations: localModeManager.getStations()
+      });
+    });
+
+    /**
+     * Получение статуса от станции
+     * Станции могут отправлять свой статус обратно на сервер
+     */
+    socket.on('local-station-status', (data) => {
+      const { stationNumber, status, state, data: statusData } = data;
+      
+      if (!stationNumber) {
+        console.warn('⚠️ Номер станции не указан в статусе');
+        return;
+      }
+
+      const station = localModeManager.getStationByNumber(stationNumber);
+      if (station && station.socketId === socket.id) {
+        // Обновляем состояние станции
+        if (state) {
+          localModeManager.updateStationState(stationNumber, {
+            ...state,
+            lastUpdate: Date.now()
+          });
+        }
+
+        console.log(`📥 Статус от станции ${stationNumber}: ${status || 'unknown'}`);
+        
+        // Уведомляем хостов об обновлении статуса
+        io.emit('local-station-status-updated', {
+          stationNumber: stationNumber,
+          status: status,
+          state: station.state,
+          data: statusData,
+          timestamp: Date.now()
+        });
+      }
+    });
+
+    /**
+     * Получение текущего состояния станции
+     */
+    socket.on('local-station-get-state', (data) => {
+      const { stationNumber } = data;
+      
+      if (!stationNumber) {
+        socket.emit('error', { message: 'Номер станции не указан' });
+        return;
+      }
+
+      const station = localModeManager.getStationByNumber(stationNumber);
+      if (station) {
+        socket.emit('local-station-state', {
+          stationNumber: stationNumber,
+          state: station.state,
+          connected: station.connected,
+          lastSeen: station.lastSeen
+        });
+      } else {
+        socket.emit('error', { message: 'Станция не найдена' });
+      }
+    });
+
+    // ========== КОМАНДЫ УПРАВЛЕНИЯ ЖИЗНЕННЫМ ЦИКЛОМ КВИЗА ==========
+
+    /**
+     * Завершить квиз и сбросить регистрации
+     */
+    socket.on('local-end-quiz-and-reset', (data) => {
+      const { stationNumbers, roomCode, clearRoom, returnToWaiting } = data;
+      
+      console.log(`🔄 Завершение квиза и сброс: комната ${roomCode}, станции: ${stationNumbers || 'все'}`);
+      
+      // 1. Завершаем текущую игру, если комната существует
+      if (roomCode && clearRoom !== false) {
+        const room = rooms.get(roomCode);
+        if (room) {
+          // Отключаем всех игроков от комнаты
+          room.players.forEach(player => {
+            const playerSocketId = player.id;
+            const playerSocket = io.sockets.sockets.get(playerSocketId);
+            if (playerSocket) {
+              playerSocket.leave(roomCode);
+              // Отправляем событие об окончании игры
+              playerSocket.emit('game-finished', { results: room.players });
+            }
+            // Удаляем игрока из глобального списка
+            players.delete(playerSocketId);
+          });
+          
+          // Удаляем комнату
+          rooms.delete(roomCode);
+          console.log(`🗑️ Комната ${roomCode} удалена`);
+        }
+      }
+      
+      // 2. Возвращаем станции в режим ожидания
+      const stations = stationNumbers 
+        ? localModeManager.getStationsByNumbers(stationNumbers)
+        : localModeManager.getStations().filter(s => s.connected);
+      
+      stations.forEach(station => {
+        if (station.connected && station.socketId) {
+          if (returnToWaiting !== false) {
+            io.to(station.socketId).emit('local-station-command', {
+              command: 'navigate',
+              params: { page: 'waiting' },
+              timestamp: Date.now()
+            });
+          }
+          
+          // Очищаем состояние станции
+          localModeManager.updateStationState(station.stationNumber, {
+            currentPage: 'waiting',
+            pageData: {},
+            customState: {}
+          });
+          
+          console.log(`✅ Станция ${station.stationNumber} сброшена в режим ожидания`);
+        }
+      });
+      
+      // Уведомляем хостов об обновлении
+      io.emit('local-stations-updated', {
+        stations: localModeManager.getStations()
+      });
+      
+      socket.emit('local-quiz-reset-complete', {
+        success: true,
+        stationsReset: stations.length
+      });
+    });
+
+    /**
+     * Начать новый квиз на станциях
+     */
+    socket.on('local-start-new-quiz', (data) => {
+      const { stationNumbers, roomCode, quizId, autoConnect, playerNames } = data;
+      
+      if (!roomCode || !quizId) {
+        socket.emit('error', { message: 'Не указаны roomCode или quizId' });
+        return;
+      }
+      
+      console.log(`🚀 Запуск нового квиза: комната ${roomCode}, квиз ${quizId}, станции: ${stationNumbers || 'все'}`);
+      
+      // Отправляем команду навигации на станции
+      const stations = stationNumbers 
+        ? localModeManager.getStationsByNumbers(stationNumbers)
+        : localModeManager.getStations().filter(s => s.connected);
+      
+      stations.forEach(station => {
+        if (station.connected && station.socketId) {
+          const playerName = playerNames && playerNames[station.stationNumber] 
+            ? playerNames[station.stationNumber]
+            : `Игрок №${station.stationNumber}`;
+          
+          io.to(station.socketId).emit('local-station-command', {
+            command: 'navigate',
+            params: {
+              page: 'quiz',
+              roomCode: roomCode,
+              quizId: quizId,
+              autoConnect: autoConnect !== false,
+              playerName: playerName
+            },
+            timestamp: Date.now()
+          });
+          
+          // Обновляем состояние станции
+          localModeManager.updateStationState(station.stationNumber, {
+            currentPage: 'quiz',
+            pageData: {
+              roomCode: roomCode,
+              quizId: quizId,
+              playerName: playerName
+            }
+          });
+          
+          console.log(`✅ Команда запуска квиза отправлена станции ${station.stationNumber}`);
+        }
+      });
+      
+      // Уведомляем хостов об обновлении
+      io.emit('local-stations-updated', {
+        stations: localModeManager.getStations()
+      });
+      
+      socket.emit('local-quiz-started', {
+        success: true,
+        roomCode: roomCode,
+        quizId: quizId,
+        stations: stations.map(s => s.stationNumber)
+      });
+    });
+
+    // ========== КОМАНДЫ УПРАВЛЕНИЯ ИГРОКАМИ ==========
+
+    /**
+     * Вспомогательная функция для поиска игрока по номеру станции
+     */
+    function findPlayerByStation(stationNumber, roomCode = null) {
+      // Ищем игрока по имени, которое соответствует станции
+      const expectedName = `Игрок №${stationNumber}`;
+      const expectedNameLower = expectedName.toLowerCase();
+      
+      // Если указана комната, ищем в ней
+      if (roomCode) {
+        const room = rooms.get(roomCode);
+        if (room) {
+          const player = room.players.find(p => {
+            const playerNameLower = (p.name || '').trim().toLowerCase();
+            return playerNameLower === expectedNameLower || 
+                   playerNameLower.includes(`игрок №${stationNumber}`) ||
+                   playerNameLower.includes(`игрок${stationNumber}`);
+          });
+          if (player) {
+            return { player, room };
+          }
+        }
+      } else {
+        // Ищем во всех комнатах
+        for (const [code, room] of rooms.entries()) {
+          const player = room.players.find(p => {
+            const playerNameLower = (p.name || '').trim().toLowerCase();
+            return playerNameLower === expectedNameLower || 
+                   playerNameLower.includes(`игрок №${stationNumber}`) ||
+                   playerNameLower.includes(`игрок${stationNumber}`);
+          });
+          if (player) {
+            return { player, room: room };
+          }
+        }
+      }
+      
+      return null;
+    }
+
+    /**
+     * Управление действиями игроков
+     */
+    socket.on('local-player-action', (data) => {
+      const { stationNumbers, action, params, roomCode } = data;
+      
+      if (!action) {
+        socket.emit('error', { message: 'Действие не указано' });
+        return;
+      }
+      
+      const stations = stationNumbers 
+        ? localModeManager.getStationsByNumbers(stationNumbers)
+        : localModeManager.getStations().filter(s => s.connected);
+      
+      console.log(`🎮 Выполнение действия "${action}" для игроков на станциях: ${stations.map(s => s.stationNumber).join(', ')}`);
+      
+      stations.forEach(station => {
+        // Получаем сокет станции для отправки команд навигации
+        const stationSocket = station.socketId ? io.sockets.sockets.get(station.socketId) : null;
+        
+        // Ищем игрока в комнате
+        const playerInfo = findPlayerByStation(station.stationNumber, roomCode);
+        const playerSocket = playerInfo ? io.sockets.sockets.get(playerInfo.player.id) : null;
+        
+        // Получаем комнату для проверки состояния игры
+        const room = roomCode ? rooms.get(roomCode) : null;
+        
+        switch(action) {
+          case 'ready':
+            // Нажать кнопку "Готов" за игрока
+            if (playerInfo && playerSocket && room && room.gameState === 'results') {
+              if (!room.readyPlayers.has(playerInfo.player.id)) {
+                room.readyPlayers.add(playerInfo.player.id);
+                room.lastActivity = Date.now();
+                console.log(`✅ Игрок ${playerInfo.player.name} (станция ${station.stationNumber}) помечен как готовый`);
+                
+                // Отправляем событие игроку
+                playerSocket.emit('force-player-ready', { roomCode: room.roomCode });
+                
+                // Обновляем статус готовности
+                updateReadyStatus(room.roomCode);
+              }
+            } else if (!playerInfo && roomCode && stationSocket && room && room.gameState === 'results') {
+              // Если игрок не найден, но есть комната, открываем страницу игрока и затем отправляем команду
+              console.log(`📂 Открываем страницу игрока для станции ${station.stationNumber} перед выполнением ready`);
+              stationSocket.emit('local-station-command', {
+                command: 'navigate',
+                params: {
+                  page: 'quiz',
+                  roomCode: roomCode,
+                  autoConnect: true
+                },
+                timestamp: Date.now()
+              });
+              
+              // Отправляем команду через небольшую задержку, чтобы страница успела загрузиться
+              setTimeout(() => {
+                const updatedPlayerInfo = findPlayerByStation(station.stationNumber, roomCode);
+                if (updatedPlayerInfo) {
+                  const updatedPlayerSocket = io.sockets.sockets.get(updatedPlayerInfo.player.id);
+                  if (updatedPlayerSocket && room && room.gameState === 'results') {
+                    if (!room.readyPlayers.has(updatedPlayerInfo.player.id)) {
+                      room.readyPlayers.add(updatedPlayerInfo.player.id);
+                      room.lastActivity = Date.now();
+                      updatedPlayerSocket.emit('force-player-ready', { roomCode: roomCode });
+                      updateReadyStatus(roomCode);
+                    }
+                  }
+                }
+              }, 2000);
+            }
+            break;
+            
+          case 'select-answer':
+            // Выбрать ответ за игрока
+            const answer = params && params.answer !== undefined ? params.answer : null;
+            if (playerInfo && playerSocket && room && room.gameState === 'question' && answer !== null) {
+              // Проверяем, не ответил ли уже игрок
+              const existingAnswer = Array.from(room.answers.values()).find(a => a.playerId === playerInfo.player.id);
+              if (!existingAnswer) {
+                // Эмулируем выбор ответа
+                playerSocket.emit('force-select-answer', {
+                  answer: answer,
+                  roomCode: room.roomCode
+                });
+                console.log(`✅ Ответ ${answer} выбран за игрока ${playerInfo.player.name} (станция ${station.stationNumber})`);
+              }
+            } else if (!playerInfo && roomCode && stationSocket && room && room.gameState === 'question' && answer !== null) {
+              // Если игрок не найден, открываем страницу игрока
+              console.log(`📂 Открываем страницу игрока для станции ${station.stationNumber} перед выбором ответа`);
+              stationSocket.emit('local-station-command', {
+                command: 'navigate',
+                params: {
+                  page: 'quiz',
+                  roomCode: roomCode,
+                  autoConnect: true
+                },
+                timestamp: Date.now()
+              });
+              
+              // Отправляем команду через задержку
+              setTimeout(() => {
+                const updatedPlayerInfo = findPlayerByStation(station.stationNumber, roomCode);
+                if (updatedPlayerInfo) {
+                  const updatedPlayerSocket = io.sockets.sockets.get(updatedPlayerInfo.player.id);
+                  if (updatedPlayerSocket && room && room.gameState === 'question') {
+                    const existingAnswer = Array.from(room.answers.values()).find(a => a.playerId === updatedPlayerInfo.player.id);
+                    if (!existingAnswer) {
+                      updatedPlayerSocket.emit('force-select-answer', {
+                        answer: answer,
+                        roomCode: roomCode
+                      });
+                    }
+                  }
+                }
+              }, 2000);
+            }
+            break;
+            
+          case 'connect':
+            // Принудительно подключить игрока к комнате
+            const targetRoomCode = params && params.roomCode ? params.roomCode : roomCode;
+            const playerName = params && params.playerName 
+              ? params.playerName 
+              : `Игрок №${station.stationNumber}`;
+            
+            if (targetRoomCode && stationSocket) {
+              // Сначала открываем страницу игрока
+              console.log(`📂 Открываем страницу игрока для станции ${station.stationNumber} для подключения к комнате ${targetRoomCode}`);
+              stationSocket.emit('local-station-command', {
+                command: 'navigate',
+                params: {
+                  page: 'quiz',
+                  roomCode: targetRoomCode,
+                  autoConnect: true,
+                  playerName: playerName
+                },
+                timestamp: Date.now()
+              });
+              
+              // Если игрок уже подключен, отправляем команду подключения
+              if (playerSocket) {
+                playerSocket.emit('force-connect', {
+                  roomCode: targetRoomCode,
+                  playerName: playerName
+                });
+                console.log(`✅ Команда подключения отправлена игроку на станции ${station.stationNumber}`);
+              }
+            }
+            break;
+            
+          case 'disconnect':
+            // Отключить игрока от комнаты
+            if (playerInfo && room) {
+              if (playerSocket) {
+                playerSocket.leave(room.roomCode);
+              }
+              room.players = room.players.filter(p => p.id !== playerInfo.player.id);
+              players.delete(playerInfo.player.id);
+              console.log(`✅ Игрок ${playerInfo.player.name} (станция ${station.stationNumber}) отключен от комнаты`);
+              
+              // Уведомляем комнату об обновлении списка игроков
+              io.to(room.roomCode).emit('player-list-updated', { players: room.players });
+              
+              // Возвращаем станцию на страницу ожидания
+              if (stationSocket) {
+                stationSocket.emit('local-station-command', {
+                  command: 'navigate',
+                  params: { page: 'waiting' },
+                  timestamp: Date.now()
+                });
+              }
+            }
+            break;
+        }
+      });
+    });
+
+    // ========== КОМАНДЫ УПРАВЛЕНИЯ ИГРОЙ ==========
+
+    /**
+     * Управление игровым процессом
+     */
+    socket.on('local-game-control', (data) => {
+      const { action, roomCode } = data;
+      
+      if (!action || !roomCode) {
+        socket.emit('error', { message: 'Не указаны action или roomCode' });
+        return;
+      }
+      
+      const room = rooms.get(roomCode);
+      if (!room) {
+        console.error(`❌ Комната ${roomCode} не найдена при обработке local-game-control`);
+        socket.emit('error', { message: 'Комната не найдена' });
+        return;
+      }
+      
+      console.log(`🎮 Управление игрой: действие "${action}" в комнате ${roomCode}, mode=${room.mode}, gameState=${room.gameState}`);
+      
+      switch(action) {
+        case 'skip-answers':
+          // Пропустить ожидание ответов
+          if (room.gameState === 'question') {
+            showResults(roomCode);
+            socket.emit('local-game-control-result', { success: true, action: 'skip-answers' });
+          }
+          break;
+          
+        case 'skip-ready':
+          // Пропустить ожидание готовности
+          if (room.gameState === 'results') {
+            room.currentQuestion++;
+            if (room.currentQuestion < room.questions.length) {
+              showQuestion(roomCode);
+            } else {
+              endGame(roomCode);
+            }
+            socket.emit('local-game-control-result', { success: true, action: 'skip-ready' });
+          }
+          break;
+          
+        case 'show-results':
+          // Показать результаты
+          if (room.gameState === 'question') {
+            showResults(roomCode);
+            socket.emit('local-game-control-result', { success: true, action: 'show-results' });
+          }
+          break;
+          
+        case 'next-question':
+          // Перейти к следующему вопросу
+          if (room.gameState === 'results') {
+            room.currentQuestion++;
+            if (room.currentQuestion < room.questions.length) {
+              showQuestion(roomCode);
+            } else {
+              endGame(roomCode);
+            }
+            socket.emit('local-game-control-result', { success: true, action: 'next-question' });
+          }
+          break;
+          
+        case 'end-game':
+          // Завершить игру
+          console.log(`🏁 Завершение игры в комнате ${roomCode} по команде local-game-control`);
+          endGame(roomCode);
+          socket.emit('local-game-control-result', { success: true, action: 'end-game' });
+          console.log(`✅ Команда end-game выполнена для комнаты ${roomCode}`);
+          break;
+          
+        default:
+          socket.emit('error', { message: `Неизвестное действие: ${action}` });
+      }
+    });
+
+    // ========== КОМАНДЫ ОБНОВЛЕНИЯ ОТОБРАЖЕНИЯ ==========
+
+    /**
+     * Обновление отображения на станциях
+     */
+    socket.on('local-update-display', (data) => {
+      const { stationNumbers, element, text, html, style, action, elements } = data;
+      
+      const stations = stationNumbers 
+        ? localModeManager.getStationsByNumbers(stationNumbers)
+        : localModeManager.getStations().filter(s => s.connected);
+      
+      console.log(`📝 Обновление отображения на станциях: ${stations.map(s => s.stationNumber).join(', ')}`);
+      
+      stations.forEach(station => {
+        if (station.connected && station.socketId) {
+          io.to(station.socketId).emit('local-station-command', {
+            command: 'update-display',
+            params: {
+              element: element,
+              text: text,
+              html: html,
+              style: style,
+              action: action, // 'show' или 'hide'
+              elements: elements // массив селекторов
+            },
+            timestamp: Date.now()
+          });
+        }
+      });
+      
+      socket.emit('local-update-display-result', {
+        success: true,
+        stationsUpdated: stations.length
+      });
+    });
+
+    // ========== КОМАНДЫ МАССОВЫХ ОПЕРАЦИЙ ==========
+
+    /**
+     * Выполнение нескольких действий подряд
+     */
+    socket.on('local-batch-actions', (data) => {
+      const { stationNumbers, actions, delay } = data;
+      
+      if (!actions || !Array.isArray(actions) || actions.length === 0) {
+        socket.emit('error', { message: 'Не указаны действия или массив пуст' });
+        return;
+      }
+      
+      console.log(`📦 Выполнение пакета из ${actions.length} действий на станциях: ${stationNumbers || 'все'}`);
+      
+      let currentIndex = 0;
+      const executeNext = () => {
+        if (currentIndex >= actions.length) {
+          socket.emit('local-batch-actions-complete', {
+            success: true,
+            actionsExecuted: actions.length
+          });
+          return;
+        }
+        
+        const action = actions[currentIndex];
+        const { command, params } = action;
+        
+        // Выполняем действие через соответствующий обработчик
+        switch(command) {
+          case 'local-station-command':
+            socket.emit('local-station-command', {
+              stationNumbers: stationNumbers,
+              command: params.command,
+              params: params.params
+            });
+            break;
+          case 'local-player-action':
+            socket.emit('local-player-action', {
+              stationNumbers: stationNumbers,
+              action: params.action,
+              params: params.params,
+              roomCode: params.roomCode
+            });
+            break;
+          case 'local-game-control':
+            socket.emit('local-game-control', {
+              action: params.action,
+              roomCode: params.roomCode
+            });
+            break;
+          case 'local-update-display':
+            socket.emit('local-update-display', {
+              stationNumbers: stationNumbers,
+              ...params
+            });
+            break;
+        }
+        
+        currentIndex++;
+        
+        // Задержка перед следующим действием
+        if (currentIndex < actions.length) {
+          setTimeout(executeNext, delay || 1000);
+        } else {
+          setTimeout(() => {
+            socket.emit('local-batch-actions-complete', {
+              success: true,
+              actionsExecuted: actions.length
+            });
+          }, delay || 1000);
+        }
+      };
+      
+      executeNext();
+    });
+
+    // ========== МОНИТОРИНГ И СТАТУСЫ ==========
+
+    /**
+     * Получение статуса всех игроков в комнате
+     */
+    socket.on('get-players-status', (data) => {
+      const { roomCode } = data;
+      
+      if (!roomCode) {
+        socket.emit('error', { message: 'Не указан roomCode' });
+        return;
+      }
+      
+      const room = rooms.get(roomCode);
+      if (!room) {
+        socket.emit('error', { message: 'Комната не найдена' });
+        return;
+      }
+      
+      const playersStatus = room.players.map(player => {
+        const station = localModeManager.getStations().find(s => {
+          const playerNameLower = (player.name || '').trim().toLowerCase();
+          const stationNameLower = `игрок №${s.stationNumber}`.toLowerCase();
+          return playerNameLower === stationNameLower || 
+                 playerNameLower.includes(`игрок${s.stationNumber}`);
+        });
+        
+        const hasAnswered = Array.from(room.answers.values()).some(a => a.playerId === player.id);
+        const isReady = room.readyPlayers.has(player.id);
+        
+        return {
+          stationNumber: station ? station.stationNumber : null,
+          name: player.name,
+          id: player.id,
+          connected: !player.disconnected,
+          ready: isReady,
+          answered: hasAnswered,
+          score: player.score || 0
+        };
+      });
+      
+      socket.emit('players-status', {
+        roomCode: roomCode,
+        players: playersStatus,
+        gameState: room.gameState,
+        currentQuestion: room.currentQuestion + 1,
+        totalQuestions: room.questions.length
       });
     });
   }
@@ -2994,11 +4161,8 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     // Обработка отключения станции в локальном режиме
     if (localModeAvailable && localModeManager) {
-      const stations = localModeManager.getStations();
-      const station = stations.find(s => s.socketId === socket.id);
+      const station = localModeManager.removeStationSocketId(socket.id);
       if (station) {
-        station.connected = false;
-        station.socketId = null;
         console.log(`🔌 Станция ${station.stationNumber} отключена`);
         
         // Уведомляем хостов об обновлении

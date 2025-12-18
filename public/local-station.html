@@ -99,6 +99,11 @@
         let stationIP = null;
         let stationNumber = null;
         let registered = false;
+        let stationState = {
+            currentPage: 'waiting',
+            pageData: {},
+            customState: {}
+        };
 
         // Определение IP адреса станции
         async function detectStationIP() {
@@ -177,6 +182,8 @@
 
         // Регистрация станции на сервере
         async function registerStation() {
+            console.log('🔧 Начало регистрации станции:', { stationIP, stationNumber });
+            
             // Если IP или номер не определены, пробуем зарегистрироваться без них
             // Сервер сам определит IP из запроса
             try {
@@ -184,18 +191,34 @@
                 if (stationIP) requestBody.ip = stationIP;
                 if (stationNumber) requestBody.stationNumber = stationNumber;
                 
+                console.log('📤 Отправка запроса регистрации:', requestBody);
+                
                 const response = await fetch('/api/local/register-station', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody)
                 });
 
+                console.log('📥 Ответ от сервера:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP ${response.status}`);
+                }
+
                 const data = await response.json();
+                console.log('📥 Данные регистрации:', data);
                 
                 if (data.success) {
                     registered = true;
                     stationIP = data.station.ip;
                     stationNumber = data.station.stationNumber;
+                    
+                    console.log('✅ Станция зарегистрирована:', { stationIP, stationNumber });
+                    
+                    // Обновляем состояние
+                    stationState.currentPage = 'waiting';
+                    stationState.pageData = {};
                     
                     document.getElementById('stationStatus').textContent = `Станция ${stationNumber} подключена`;
                     document.getElementById('stationInfo').textContent = `IP: ${stationIP}`;
@@ -203,15 +226,17 @@
                     document.getElementById('errorMessage').style.display = 'none';
                     
                     // Подключаемся через Socket.io
+                    console.log('🔌 Подключение через Socket.io...');
                     connectSocket();
                 } else {
+                    console.warn('⚠️ Регистрация не удалась:', data);
                     // Если автоматическое определение не сработало, показываем форму для ручного ввода
                     showManualInput(data);
                 }
             } catch (error) {
-                console.error('Ошибка регистрации:', error);
+                console.error('❌ Ошибка регистрации:', error);
                 document.getElementById('stationStatus').textContent = 'Ошибка регистрации';
-                document.getElementById('errorMessage').textContent = error.message;
+                document.getElementById('errorMessage').textContent = error.message || 'Неизвестная ошибка';
                 document.getElementById('errorMessage').style.display = 'block';
                 showManualInput();
             }
@@ -284,14 +309,58 @@
             socket = io();
             
             socket.on('connect', () => {
-                console.log('Socket.io подключен');
+                console.log('✅ Socket.io подключен, socket.id:', socket.id);
+                
+                // Проверяем, что у нас есть данные станции
+                if (!stationIP || !stationNumber) {
+                    console.error('❌ Не указаны IP или номер станции:', { stationIP, stationNumber });
+                    document.getElementById('stationStatus').textContent = 'Ошибка: не указаны данные станции';
+                    return;
+                }
+                
+                console.log('📤 Отправка события local-station-connect:', { ip: stationIP, stationNumber: stationNumber });
+                
                 // Отправляем информацию о станции
                 socket.emit('local-station-connect', {
                     ip: stationIP,
                     stationNumber: stationNumber
                 });
+                
+                // Отправляем начальный статус
+                setTimeout(() => {
+                    sendStationStatus('connected', {
+                        currentPage: stationState.currentPage
+                    });
+                }, 500);
+            });
+            
+            // Подтверждение подключения от сервера
+            socket.on('local-station-connected', (data) => {
+                console.log('✅ Подтверждение подключения от сервера:', data);
+                if (data.success) {
+                    document.getElementById('stationStatus').textContent = `Станция ${data.stationNumber} подключена`;
+                    document.getElementById('stationInfo').textContent = `IP: ${data.ip}`;
+                    document.getElementById('waitingMessage').style.display = 'block';
+                    document.getElementById('errorMessage').style.display = 'none';
+                }
+            });
+            
+            // Обработка ошибок
+            socket.on('error', (data) => {
+                console.error('❌ Ошибка от сервера:', data);
+                document.getElementById('errorMessage').textContent = data.message || 'Ошибка подключения';
+                document.getElementById('errorMessage').style.display = 'block';
+            });
+            
+            socket.on('connect_error', (error) => {
+                console.error('❌ Ошибка подключения Socket.io:', error);
+                document.getElementById('stationStatus').textContent = 'Ошибка подключения к серверу';
+                document.getElementById('errorMessage').textContent = 'Не удалось подключиться к серверу. Проверьте, что сервер запущен.';
+                document.getElementById('errorMessage').style.display = 'block';
             });
 
+            // ========== ОБРАТНАЯ СОВМЕСТИМОСТЬ: Старые команды ==========
+            
             // Получение команды открыть квиз
             socket.on('local-station-open-quiz', (data) => {
                 console.log('Получена команда открыть квиз:', data);
@@ -302,6 +371,336 @@
                     window.location.href = `/player.html?room=${roomCode}&station=${stationNumber}&auto=true`;
                 }
             });
+
+            // Команда вернуться в режим ожидания
+            socket.on('local-station-return-to-waiting', () => {
+                console.log('Получена команда вернуться в режим ожидания');
+                // Возвращаемся на страницу станции
+                window.location.href = '/local-station.html';
+            });
+
+            // Команда завершить квиз (вернуться на начальную страницу)
+            socket.on('local-station-end-quiz', () => {
+                console.log('Получена команда завершить квиз');
+                // Возвращаемся на начальную страницу станции
+                window.location.href = '/local-station.html';
+            });
+
+            // ========== УНИВЕРСАЛЬНАЯ СИСТЕМА КОМАНД ==========
+            
+            /**
+             * Обработчик универсальных команд от сервера
+             * Поддерживает команды: navigate, update-state, update-content, execute-action, custom
+             */
+            socket.on('local-station-command', (data) => {
+                console.log('📥 Получена универсальная команда:', data);
+                const { command, params, timestamp } = data;
+                
+                if (!command) {
+                    console.warn('⚠️ Команда не указана');
+                    return;
+                }
+
+                try {
+                    switch(command) {
+                        case 'navigate':
+                            handleNavigateCommand(params);
+                            break;
+                        case 'update-state':
+                            handleUpdateStateCommand(params);
+                            break;
+                        case 'update-content':
+                            handleUpdateContentCommand(params);
+                            break;
+                        case 'execute-action':
+                            handleExecuteActionCommand(params);
+                            break;
+                        case 'custom':
+                            handleCustomCommand(params);
+                            break;
+                        case 'update-display':
+                            handleUpdateDisplayCommand(params);
+                            break;
+                        default:
+                            console.warn(`⚠️ Неизвестная команда: ${command}`);
+                    }
+                    
+                    // Отправляем подтверждение получения команды
+                    sendStationStatus('command-received', { command, timestamp });
+                } catch (error) {
+                    console.error(`❌ Ошибка выполнения команды ${command}:`, error);
+                    sendStationStatus('command-error', { command, error: error.message });
+                }
+            });
+
+            /**
+             * Обработка команды навигации
+             * params: { page: 'quiz'|'waiting'|'results'|'custom', data: {...}, url: '...' }
+             */
+            function handleNavigateCommand(params) {
+                console.log('🧭 Команда навигации:', params);
+                
+                if (!params) {
+                    console.warn('⚠️ Параметры навигации не указаны');
+                    return;
+                }
+
+                stationState.currentPage = params.page || 'waiting';
+                stationState.pageData = params.data || {};
+
+                if (params.url) {
+                    // Если указан URL, переходим по нему
+                    window.location.href = params.url;
+                } else if (params.page === 'quiz' && params.roomCode) {
+                    // Открываем квиз
+                    const url = `/player.html?room=${params.roomCode}&station=${stationNumber}&auto=true`;
+                    if (params.quizId) {
+                        window.location.href = `${url}&quiz=${params.quizId}`;
+                    } else {
+                        window.location.href = url;
+                    }
+                } else if (params.page === 'waiting') {
+                    // Возвращаемся на страницу ожидания
+                    window.location.href = '/local-station.html';
+                } else if (params.page === 'custom' && params.customUrl) {
+                    // Кастомная страница
+                    window.location.href = params.customUrl;
+                }
+            }
+
+            /**
+             * Обработка команды обновления состояния
+             * params: { key: 'value', ... } - любые ключи-значения для обновления customState
+             */
+            function handleUpdateStateCommand(params) {
+                console.log('🔄 Команда обновления состояния:', params);
+                
+                if (!params || typeof params !== 'object') {
+                    console.warn('⚠️ Параметры состояния не указаны');
+                    return;
+                }
+
+                // Обновляем customState
+                stationState.customState = {
+                    ...stationState.customState,
+                    ...params
+                };
+
+                // Обновляем UI в зависимости от состояния
+                updateUIFromState();
+            }
+
+            /**
+             * Обработка команды обновления контента
+             * params: { selector: '#element', html: '...', text: '...', style: {...}, class: '...' }
+             */
+            function handleUpdateContentCommand(params) {
+                console.log('📝 Команда обновления контента:', params);
+                
+                if (!params || !params.selector) {
+                    console.warn('⚠️ Селектор не указан');
+                    return;
+                }
+
+                const element = document.querySelector(params.selector);
+                if (!element) {
+                    console.warn(`⚠️ Элемент не найден: ${params.selector}`);
+                    return;
+                }
+
+                // Обновляем HTML
+                if (params.html !== undefined) {
+                    element.innerHTML = params.html;
+                }
+
+                // Обновляем текст
+                if (params.text !== undefined) {
+                    element.textContent = params.text;
+                }
+
+                // Обновляем стили
+                if (params.style && typeof params.style === 'object') {
+                    Object.assign(element.style, params.style);
+                }
+
+                // Обновляем классы
+                if (params.class !== undefined) {
+                    if (params.classAdd) {
+                        element.classList.add(...params.classAdd.split(' '));
+                    }
+                    if (params.classRemove) {
+                        element.classList.remove(...params.classRemove.split(' '));
+                    }
+                    if (params.classToggle) {
+                        element.classList.toggle(params.classToggle);
+                    }
+                }
+
+                // Показываем/скрываем элемент
+                if (params.visible !== undefined) {
+                    element.style.display = params.visible ? '' : 'none';
+                }
+            }
+
+            /**
+             * Обработка команды выполнения действия
+             * params: { action: 'showQuestion', 'showResults', 'showTimer', data: {...} }
+             */
+            function handleExecuteActionCommand(params) {
+                console.log('⚡ Команда выполнения действия:', params);
+                
+                if (!params || !params.action) {
+                    console.warn('⚠️ Действие не указано');
+                    return;
+                }
+
+                switch(params.action) {
+                    case 'showQuestion':
+                        // Логика показа вопроса
+                        console.log('📋 Показать вопрос:', params.data);
+                        break;
+                    case 'showResults':
+                        // Логика показа результатов
+                        console.log('📊 Показать результаты:', params.data);
+                        break;
+                    case 'showTimer':
+                        // Логика показа таймера
+                        console.log('⏱️ Показать таймер:', params.data);
+                        break;
+                    case 'refresh':
+                        // Обновить страницу
+                        window.location.reload();
+                        break;
+                    case 'reload':
+                        // Перезагрузить страницу
+                        window.location.reload();
+                        break;
+                    default:
+                        console.warn(`⚠️ Неизвестное действие: ${params.action}`);
+                }
+            }
+
+            /**
+             * Обработка команды обновления отображения
+             * params: { element: '#selector', text: '...', html: '...', style: {...}, action: 'show'|'hide', elements: [...] }
+             */
+            function handleUpdateDisplayCommand(params) {
+                console.log('📝 Команда обновления отображения:', params);
+                
+                if (!params) {
+                    console.warn('⚠️ Параметры не указаны');
+                    return;
+                }
+
+                // Если указан action (show/hide) и массив элементов
+                if (params.action && params.elements && Array.isArray(params.elements)) {
+                    params.elements.forEach(selector => {
+                        const element = document.querySelector(selector);
+                        if (element) {
+                            if (params.action === 'show') {
+                                element.style.display = '';
+                            } else if (params.action === 'hide') {
+                                element.style.display = 'none';
+                            }
+                        }
+                    });
+                    return;
+                }
+
+                // Если указан один элемент
+                if (params.element) {
+                    const element = document.querySelector(params.element);
+                    if (!element) {
+                        console.warn(`⚠️ Элемент не найден: ${params.element}`);
+                        return;
+                    }
+
+                    // Обновляем текст
+                    if (params.text !== undefined) {
+                        element.textContent = params.text;
+                    }
+
+                    // Обновляем HTML
+                    if (params.html !== undefined) {
+                        element.innerHTML = params.html;
+                    }
+
+                    // Обновляем стили
+                    if (params.style && typeof params.style === 'object') {
+                        Object.assign(element.style, params.style);
+                    }
+                }
+            }
+
+            /**
+             * Обработка кастомной команды
+             * params: { type: 'myCustomAction', data: {...} }
+             */
+            function handleCustomCommand(params) {
+                console.log('🎨 Кастомная команда:', params);
+                
+                // Здесь можно добавить обработку любых кастомных команд
+                // Например, можно вызвать глобальную функцию или отправить событие
+                if (params.type && typeof window[params.type] === 'function') {
+                    window[params.type](params.data);
+                } else {
+                    // Отправляем кастомное событие
+                    const event = new CustomEvent('station-custom-command', {
+                        detail: params
+                    });
+                    window.dispatchEvent(event);
+                }
+            }
+
+            /**
+             * Обновление UI на основе состояния
+             */
+            function updateUIFromState() {
+                // Обновляем статус станции
+                const statusElement = document.getElementById('stationStatus');
+                if (statusElement) {
+                    if (stationState.customState.statusText) {
+                        statusElement.textContent = stationState.customState.statusText;
+                    }
+                }
+
+                // Обновляем информацию о станции
+                const infoElement = document.getElementById('stationInfo');
+                if (infoElement) {
+                    if (stationState.customState.infoText) {
+                        infoElement.textContent = stationState.customState.infoText;
+                    }
+                }
+
+                // Обновляем сообщение ожидания
+                const waitingElement = document.getElementById('waitingMessage');
+                if (waitingElement) {
+                    if (stationState.customState.waitingText !== undefined) {
+                        waitingElement.textContent = stationState.customState.waitingText;
+                    }
+                    if (stationState.customState.showWaiting !== undefined) {
+                        waitingElement.style.display = stationState.customState.showWaiting ? 'block' : 'none';
+                    }
+                }
+            }
+
+            /**
+             * Отправка статуса станции на сервер
+             */
+            function sendStationStatus(status, data = {}) {
+                if (!socket || !socket.connected) {
+                    console.warn('⚠️ Socket не подключен, невозможно отправить статус');
+                    return;
+                }
+
+                socket.emit('local-station-status', {
+                    stationNumber: stationNumber,
+                    status: status,
+                    state: stationState,
+                    data: data,
+                    timestamp: Date.now()
+                });
+            }
 
             socket.on('disconnect', () => {
                 console.log('Socket.io отключен');

@@ -1682,6 +1682,144 @@
             }
         });
 
+        // Команда вернуться в режим ожидания (для станций)
+        socket.on('local-station-return-to-waiting', () => {
+            console.log('📥 Получена команда вернуться в режим ожидания');
+            // Проверяем, играем ли мы со станции
+            const urlParams = new URLSearchParams(window.location.search);
+            const stationParam = urlParams.get('station');
+            const autoParam = urlParams.get('auto');
+            
+            if (stationParam || autoParam === 'true') {
+                // Возвращаемся на страницу станции
+                console.log('🔄 Возврат на страницу станции');
+                window.location.href = '/local-station.html';
+            }
+        });
+        
+        // Обработка универсальной команды навигации для локального режима
+        socket.on('local-station-command', (data) => {
+            console.log('📥 Получена универсальная команда на странице игрока:', data);
+            const { command, params } = data;
+            
+            if (command === 'navigate' && params && params.page === 'waiting') {
+                const urlParams = new URLSearchParams(window.location.search);
+                const stationParam = urlParams.get('station');
+                const autoParam = urlParams.get('auto');
+                
+                // Если это локальная станция, возвращаемся на страницу станции
+                if (stationParam || autoParam === 'true') {
+                    console.log('🔄 Команда навигации: возврат на страницу станции');
+                    window.location.href = '/local-station.html';
+                }
+            }
+        });
+
+        // Команда завершить квиз (вернуться на начальную страницу станции)
+        socket.on('local-station-end-quiz', () => {
+            console.log('Получена команда завершить квиз');
+            // Проверяем, играем ли мы со станции
+            const urlParams = new URLSearchParams(window.location.search);
+            const stationParam = urlParams.get('station');
+            const autoParam = urlParams.get('auto');
+            
+            if (stationParam || autoParam === 'true') {
+                // Возвращаемся на начальную страницу станции
+                window.location.href = '/local-station.html';
+            }
+        });
+
+        // ========== ПРИНУДИТЕЛЬНЫЕ ДЕЙСТВИЯ ОТ СЕРВЕРА ==========
+        
+        /**
+         * Принудительное нажатие кнопки "Готов"
+         */
+        socket.on('force-player-ready', (data) => {
+            const { roomCode: targetRoomCode } = data;
+            console.log('📥 Принудительное нажатие кнопки "Готов"', data);
+            
+            // Проверяем, что это наша комната
+            if (targetRoomCode && targetRoomCode !== roomCode) {
+                console.warn('⚠️ Команда для другой комнаты, игнорируем');
+                return;
+            }
+            
+            // Эмулируем нажатие кнопки готовности
+            if (roomCode && !isReady) {
+                const readyBtn = document.getElementById('ready-btn');
+                if (readyBtn && readyBtn.style.display !== 'none') {
+                    isReady = true;
+                    socket.emit('player-ready', roomCode);
+                    readyBtn.disabled = true;
+                    readyBtn.classList.add('ready');
+                    readyBtn.textContent = 'Готов! Ожидание игроков...';
+                    
+                    const readyStatus = document.getElementById('ready-status');
+                    if (readyStatus) {
+                        readyStatus.style.display = 'block';
+                        readyStatus.textContent = 'Ожидание игроков...';
+                    }
+                    
+                    console.log('✅ Кнопка "Готов" нажата принудительно');
+                }
+            }
+        });
+
+        /**
+         * Принудительный выбор ответа
+         */
+        socket.on('force-select-answer', (data) => {
+            const { answer, roomCode: targetRoomCode } = data;
+            console.log('📥 Принудительный выбор ответа:', answer, data);
+            
+            // Проверяем, что это наша комната
+            if (targetRoomCode && targetRoomCode !== roomCode) {
+                console.warn('⚠️ Команда для другой комнаты, игнорируем');
+                return;
+            }
+            
+            // Эмулируем выбор ответа
+            if (roomCode && !hasAnswered && answer !== null && answer !== undefined) {
+                const answerIndex = parseInt(answer);
+                if (answerIndex >= 0 && answerIndex <= 3) {
+                    selectAnswer(answerIndex);
+                    console.log(`✅ Ответ ${answerIndex} выбран принудительно`);
+                } else {
+                    console.warn(`⚠️ Неверный индекс ответа: ${answerIndex}`);
+                }
+            }
+        });
+
+        /**
+         * Принудительное подключение к комнате
+         */
+        socket.on('force-connect', (data) => {
+            const { roomCode: targetRoomCode, playerName: targetPlayerName } = data;
+            console.log('📥 Принудительное подключение к комнате:', data);
+            
+            if (!targetRoomCode) {
+                console.warn('⚠️ Не указан roomCode');
+                return;
+            }
+            
+            // Если мы еще не подключены или подключены к другой комнате
+            if (!roomCode || roomCode !== targetRoomCode) {
+                // Обновляем переменные
+                roomCode = targetRoomCode;
+                if (targetPlayerName) {
+                    playerName = targetPlayerName;
+                    const playerNameInput = document.getElementById('player-name');
+                    if (playerNameInput) {
+                        playerNameInput.value = playerName;
+                    }
+                }
+                
+                // Подключаемся к комнате
+                socket.emit('player-join', { roomCode, playerName });
+                console.log(`✅ Принудительное подключение к комнате ${roomCode}`);
+            }
+        });
+
         // Финальные результаты
         socket.on('game-finished', (data) => {
             // Скрываем элементы Frame1 при финальных результатах
@@ -1722,6 +1860,19 @@
                 item.appendChild(playerScoreSpan);
                 leaderboard.appendChild(item);
             });
+            
+            // В локальном режиме автоматически возвращаемся на страницу станции через 5 секунд
+            const urlParams = new URLSearchParams(window.location.search);
+            const stationParam = urlParams.get('station');
+            const autoParam = urlParams.get('auto');
+            
+            if (stationParam || autoParam === 'true') {
+                console.log('⏰ Автоматический возврат на страницу станции через 5 секунд');
+                setTimeout(() => {
+                    console.log('🔄 Автоматический возврат на страницу станции');
+                    window.location.href = '/local-station.html';
+                }, 5000);
+            }
         });
         
         // Инициализация джойстика при загрузке страницы
