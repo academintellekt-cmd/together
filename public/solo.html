@@ -86,7 +86,7 @@
             width: 1em; /* Размер равен размеру шрифта заголовка */
             height: 1em; /* Размер равен размеру шрифта заголовка */
             object-fit: contain;
-            /* Фильтр для изменения цвета на цвет текста (#393639) - черный */
+            /* Фильтр для изменения цвета на фирменный черный (#383638) */
             filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(95%) contrast(90%);
             opacity: 1;
         }
@@ -181,6 +181,8 @@
             min-width: 200px;
             max-width: 100%;
             box-sizing: border-box;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .game-screen {
@@ -318,11 +320,21 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: clamp(8px, 1.5vw, 12px);
+            white-space: nowrap;
+            flex-wrap: nowrap;
+            font-size: clamp(24px, 4vw, 36px);
+        }
+        
+        .results-screen h1 span {
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         
         .results-screen h1 svg {
             flex-shrink: 0;
+            width: clamp(32px, 4vw, 48px);
+            height: clamp(32px, 4vw, 48px);
         }
 
         .score-display {
@@ -598,7 +610,7 @@
             <!-- Экран результатов -->
             <div id="results-screen" class="results-screen">
                 <h1>
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 2L13.5 6.5L18 8L13.5 9.5L12 14L10.5 9.5L6 8L10.5 6.5L12 2Z" fill="#383638"/>
                         <path d="M5 12L6 15L9 16L6 17L5 20L4 17L1 16L4 15L5 12Z" fill="#383638"/>
                         <path d="M19 12L20 15L23 16L20 17L19 20L18 17L15 16L18 15L19 12Z" fill="#383638"/>
@@ -606,7 +618,7 @@
                         <circle cx="5" cy="16" r="1.5" fill="#383638"/>
                         <circle cx="19" cy="16" r="1.5" fill="#383638"/>
                     </svg>
-                    Игра завершена!
+                    <span>Игра завершена!</span>
                 </h1>
                 <div class="score-display" id="final-score">0</div>
                 <div class="stats">
@@ -1154,15 +1166,25 @@
             if (link2) link2.href = leaderboardUrl;
         }
 
-        // Enter для начала игры
-        document.getElementById('player-name').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const soloStartBtn = document.getElementById('solo-start-game-btn');
-                if (soloStartBtn) {
-                    soloStartBtn.click();
+        // Преобразование имени в верхний регистр при вводе
+        const playerNameInput = document.getElementById('player-name');
+        if (playerNameInput) {
+            playerNameInput.addEventListener('input', (e) => {
+                const cursorPosition = e.target.selectionStart;
+                e.target.value = e.target.value.toUpperCase();
+                e.target.setSelectionRange(cursorPosition, cursorPosition);
+            });
+            
+            // Enter для начала игры
+            playerNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const soloStartBtn = document.getElementById('solo-start-game-btn');
+                    if (soloStartBtn) {
+                        soloStartBtn.click();
+                    }
                 }
-            }
-        });
+            });
+        }
 
         function startGame() {
             // Проверяем, что квиз загружен
@@ -1583,7 +1605,7 @@
                 
                 // Функция показа модального окна для подтверждения начала игры
                 function showStartGameModal() {
-                    playerName = document.getElementById('player-name').value.trim();
+                    playerName = document.getElementById('player-name').value.toUpperCase().trim();
                     const modal = document.getElementById('solo-start-game-modal');
                     const modalTitle = modal.querySelector('h2');
                     const modalText = modal.querySelector('p');

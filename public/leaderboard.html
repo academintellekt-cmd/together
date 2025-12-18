@@ -18,7 +18,11 @@
     <style>
         /* Специфичные стили для страницы leaderboard */
         .frame-3-content {
-            max-width: 1200px;
+            max-width: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         /* Скрываем Frame 2 (логотип и надпись) на странице рейтинга */
@@ -43,38 +47,80 @@
             text-align: center;
             margin-bottom: 20px;
             margin-top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+            word-break: keep-all;
+            overflow-wrap: normal;
+        }
+        
+        h1 img {
+            flex-shrink: 0;
+            width: clamp(28px, 3.5vw, 36px);
+            height: clamp(28px, 3.5vw, 36px);
+            object-fit: contain;
+            /* Фильтр для изменения цвета на фирменный черный (#383638) */
+            filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(95%) contrast(90%);
         }
 
         .subtitle {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 12px;
             font-family: 'Caveat', cursive;
             color: #354FBA;
             font-size: clamp(24px, 4.5vw, 36px);
             font-weight: 400;
+            white-space: nowrap;
+            word-break: keep-all;
+            overflow-wrap: normal;
+        }
+
+        .quiz-name-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(20px, 4vw, 30px);
+            font-weight: 700;
+            color: #373639;
+            line-height: 1.2;
+            padding: 0 clamp(8px, 2vw, 14px);
+            white-space: nowrap;
+            word-break: keep-all;
+            overflow-wrap: normal;
         }
 
 
         .leaderboard-list {
             margin: 32px 0;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .leaderboard-item {
             background: rgba(255, 255, 255, 0.1);
-            padding: 20px 24px;
+            padding: clamp(16px, 3vw, 24px) clamp(20px, 4vw, 32px);
             margin: 12px 0;
             border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 18px;
+            font-size: clamp(14px, 2.5vw, 18px);
             transition: all 0.2s;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 800px;
+            box-sizing: border-box;
+            gap: 12px;
+            min-height: clamp(70px, 10vw, 90px);
         }
 
         .leaderboard-item:hover {
             background: rgba(255, 255, 255, 0.15);
-            transform: translateX(4px);
         }
 
         .leaderboard-item.first {
@@ -83,69 +129,101 @@
             border: 2px solid rgba(251, 191, 36, 0.5);
             box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
             position: relative;
-            padding-left: 60px;
+            padding-left: clamp(50px, 8vw, 70px);
         }
 
         .leaderboard-item.first::before {
             content: '🥇';
             position: absolute;
-            left: 20px;
-            font-size: 32px;
+            left: clamp(12px, 2vw, 20px);
+            font-size: clamp(20px, 4vw, 32px);
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         .leaderboard-item.second {
-            background: linear-gradient(135deg, rgba(226, 232, 240, 0.2), rgba(203, 213, 225, 0.2));
-            border: 1.5px solid rgba(226, 232, 240, 0.4);
-            padding-left: 60px;
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.3), rgba(169, 169, 169, 0.25));
+            border: 1.5px solid rgba(192, 192, 192, 0.6);
+            padding-left: clamp(50px, 8vw, 70px);
             position: relative;
         }
 
         .leaderboard-item.second::before {
             content: '🥈';
             position: absolute;
-            left: 20px;
-            font-size: 32px;
+            left: clamp(12px, 2vw, 20px);
+            font-size: clamp(20px, 4vw, 32px);
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         .leaderboard-item.third {
             background: linear-gradient(135deg, rgba(253, 186, 116, 0.2), rgba(251, 146, 60, 0.2));
             border: 1.5px solid rgba(253, 186, 116, 0.4);
-            padding-left: 60px;
+            padding-left: clamp(50px, 8vw, 70px);
             position: relative;
         }
 
         .leaderboard-item.third::before {
             content: '🥉';
             position: absolute;
-            left: 20px;
-            font-size: 32px;
+            left: clamp(12px, 2vw, 20px);
+            font-size: clamp(20px, 4vw, 32px);
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         .player-info {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
             align-items: flex-start;
             text-align: left;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            padding-left: 2cm;
+            word-break: keep-all;
+            overflow-wrap: normal;
+            hyphens: none;
         }
 
         .player-name {
             font-weight: 600;
-            font-size: 20px;
+            font-size: clamp(14px, 2.5vw, 20px);
             text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            word-break: keep-all;
+            overflow-wrap: normal;
+            hyphens: none;
         }
 
         .player-stats {
-            font-size: 14px;
+            font-size: clamp(11px, 2vw, 14px);
             opacity: 0.8;
             text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            word-break: keep-all;
+            overflow-wrap: normal;
+            hyphens: none;
         }
 
         .player-score {
-            font-size: 32px;
+            font-size: clamp(18px, 3.5vw, 32px);
             font-weight: 700;
             color: var(--color-green-alt);
             font-family: 'Days One', sans-serif;
+            flex-shrink: 0;
+            white-space: nowrap;
+            word-break: keep-all;
+            overflow-wrap: normal;
+            hyphens: none;
         }
 
         .empty-state {
@@ -188,51 +266,89 @@
 
         /* Мобильная адаптация */
         @media (max-width: 767px) {
+            .leaderboard-list {
+                max-width: 100%;
+                padding: 0 clamp(8px, 2vw, 16px);
+            }
+
             .leaderboard-item {
-                padding: 16px 16px;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
+                padding: clamp(14px, 2.5vw, 20px) clamp(16px, 3vw, 24px);
+                flex-direction: row;
+                align-items: center;
+                gap: 8px;
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                min-height: clamp(60px, 8vw, 75px);
             }
 
             .leaderboard-item.first,
             .leaderboard-item.second,
             .leaderboard-item.third {
-                padding-left: 50px;
+                padding-left: clamp(45px, 7vw, 60px);
             }
 
             .leaderboard-item.first::before,
             .leaderboard-item.second::before,
             .leaderboard-item.third::before {
-                left: 12px;
-                font-size: 28px;
+                left: clamp(10px, 1.5vw, 16px);
+                font-size: clamp(18px, 3.5vw, 28px);
             }
 
             .player-info {
-                width: 100%;
+                flex: 1;
+                min-width: 0;
+                gap: 1px;
+                padding-left: clamp(1cm, 3vw, 2cm);
+                word-break: keep-all;
+                overflow-wrap: normal;
+                hyphens: none;
             }
 
             .player-name {
-                font-size: clamp(16px, 4vw, 20px);
+                font-size: clamp(13px, 2.2vw, 18px);
+                white-space: nowrap;
+                word-break: keep-all;
+                overflow-wrap: normal;
+                hyphens: none;
             }
 
             .player-stats {
-                font-size: clamp(12px, 3vw, 14px);
+                font-size: clamp(10px, 1.8vw, 13px);
+                white-space: nowrap;
+                word-break: keep-all;
+                overflow-wrap: normal;
+                hyphens: none;
             }
 
             .player-score {
-                font-size: clamp(24px, 6vw, 32px);
-                align-self: flex-end;
-                margin-top: 4px;
+                font-size: clamp(16px, 3vw, 28px);
+                flex-shrink: 0;
+                white-space: nowrap;
+                word-break: keep-all;
+                overflow-wrap: normal;
+                hyphens: none;
             }
 
             .leaderboard-list {
                 margin: 24px 0;
+                width: 100%;
             }
 
             .subtitle {
+                margin-bottom: 8px;
+                font-size: clamp(20px, 4vw, 28px);
+                white-space: nowrap;
+                word-break: keep-all;
+                overflow-wrap: normal;
+            }
+
+            .quiz-name-title {
                 margin-bottom: 24px;
                 font-size: clamp(20px, 4vw, 28px);
+                white-space: nowrap;
+                word-break: keep-all;
+                overflow-wrap: normal;
             }
 
             .empty-state {
@@ -251,24 +367,55 @@
 
         @media (max-width: 480px) {
             .leaderboard-item {
-                padding: 12px 12px;
+                padding: clamp(12px, 2vw, 16px) clamp(14px, 2.5vw, 20px);
+                width: 100%;
+                box-sizing: border-box;
+                gap: 6px;
+                min-height: clamp(55px, 7vw, 70px);
             }
 
             .leaderboard-item.first,
             .leaderboard-item.second,
             .leaderboard-item.third {
-                padding-left: 45px;
+                padding-left: clamp(40px, 6vw, 50px);
             }
 
             .leaderboard-item.first::before,
             .leaderboard-item.second::before,
             .leaderboard-item.third::before {
-                left: 10px;
-                font-size: 24px;
+                left: clamp(8px, 1.2vw, 12px);
+                font-size: clamp(16px, 3vw, 24px);
+            }
+
+            .player-info {
+                padding-left: clamp(1cm, 2.5vw, 2cm);
+                word-break: keep-all;
+                overflow-wrap: normal;
+                hyphens: none;
+            }
+
+            .player-name {
+                font-size: clamp(12px, 2vw, 16px);
+                white-space: nowrap;
+                word-break: keep-all;
+                overflow-wrap: normal;
+                hyphens: none;
+            }
+
+            .player-stats {
+                font-size: clamp(9px, 1.6vw, 12px);
+                white-space: nowrap;
+                word-break: keep-all;
+                overflow-wrap: normal;
+                hyphens: none;
             }
 
             .player-score {
-                font-size: 20px;
+                font-size: clamp(14px, 2.5vw, 20px);
+                white-space: nowrap;
+                word-break: keep-all;
+                overflow-wrap: normal;
+                hyphens: none;
             }
         }
     </style>
@@ -286,8 +433,12 @@
             <section class="frame frame-3" data-frame="content">
                 <!-- Контентный слой -->
                 <div class="frame-3-content">
-                    <h1>🏆 Рейтинг</h1>
-                    <p class="subtitle">Лучшие результаты в квизе для друзей</p>
+                    <h1>
+                        <img src="https://cdn-icons-png.flaticon.com/512/47/47847.png" alt="Рейтинг" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+                        Рейтинг
+                    </h1>
+                    <p class="subtitle">Лучшие результаты</p>
+                    <p class="quiz-name-title" id="quiz-name-title" style="display: none;"></p>
 
                     <div id="loading" class="loading">Загрузка рейтинга...</div>
                     <div id="error" class="error" style="display: none;"></div>
@@ -328,10 +479,11 @@
                     if (response.ok) {
                         const quiz = await response.json();
                         quizName = quiz.name;
-                        // Обновляем заголовок
-                        const subtitle = document.querySelector('.subtitle');
-                        if (subtitle) {
-                            subtitle.textContent = `Лучшие результаты: ${quizName}`;
+                        // Обновляем название квиза отдельно
+                        const quizNameTitle = document.getElementById('quiz-name-title');
+                        if (quizNameTitle && quizName) {
+                            quizNameTitle.textContent = quizName;
+                            quizNameTitle.style.display = 'block';
                         }
                     }
                 } catch (error) {
@@ -509,9 +661,29 @@
                             refreshButton = document.createElement('button');
                             refreshButton.id = 'frame1-refresh-button';
                             refreshButton.className = 'frame1-button';
-                            refreshButton.textContent = 'Обновить';
                             refreshButton.type = 'button'; // Чтобы не было submit формы
                             refreshButton.style.cursor = 'pointer';
+                            refreshButton.style.display = 'inline-flex';
+                            refreshButton.style.alignItems = 'center';
+                            refreshButton.style.gap = '8px';
+                            
+                            // Создаем иконку
+                            const refreshIcon = document.createElement('img');
+                            refreshIcon.src = 'https://cdn-icons-png.flaticon.com/512/66/66758.png';
+                            refreshIcon.alt = 'Обновить';
+                            refreshIcon.style.width = '14px';
+                            refreshIcon.style.height = '14px';
+                            refreshIcon.style.objectFit = 'contain';
+                            refreshIcon.style.flexShrink = '0';
+                            // Фильтр для изменения цвета на фирменный черный (#383638)
+                            refreshIcon.style.filter = 'brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(95%) contrast(90%)';
+                            
+                            // Создаем текстовый элемент
+                            const refreshText = document.createTextNode('Обновить');
+                            
+                            // Добавляем иконку и текст в кнопку
+                            refreshButton.appendChild(refreshIcon);
+                            refreshButton.appendChild(refreshText);
                             // Обводка применяется через класс frame1-button
                             refreshButton.style.background = 'transparent'; // Прозрачный фон, стили применятся через класс
                             refreshButton.addEventListener('click', (e) => {

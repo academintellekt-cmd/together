@@ -90,6 +90,13 @@
                 top: 12px;
                 left: 20px;
             }
+            
+            #connect-screen {
+                padding-top: clamp(40px, 6vh, 80px);
+            }
+        }
+
+        @media (max-width: 768px) {
         }
 
         @media (max-width: 480px) {
@@ -97,13 +104,26 @@
                 top: 10px;
                 left: 15px;
             }
+            
+            #connect-screen {
+                padding-top: clamp(20px, 3vh, 50px);
+            }
+            
         }
+        
 
         h1 {
             text-align: center;
             margin-bottom: 30px;
             font-size: 28px;
         }
+        
+        /* Стили для названия квиза */
+        #connect-screen {
+            text-align: center;
+            padding-top: clamp(80px, 12vh, 120px);
+        }
+        
 
         input {
             text-align: center;
@@ -397,7 +417,7 @@
         
         /* Дополнительный отступ для экрана подключения */
         #connect-screen {
-            padding-top: clamp(20px, 3vh, 40px);
+            padding-top: clamp(80px, 12vh, 120px);
         }
         
         /* Парящие элементы перемещены в Hub3 через hub-layout.css */
@@ -921,10 +941,20 @@
             }
         });
 
+        // Преобразование имени в верхний регистр при вводе
+        const playerNameInput = document.getElementById('player-name');
+        if (playerNameInput) {
+            playerNameInput.addEventListener('input', (e) => {
+                const cursorPosition = e.target.selectionStart;
+                e.target.value = e.target.value.toUpperCase();
+                e.target.setSelectionRange(cursorPosition, cursorPosition);
+            });
+        }
+
         // Функция подключения к комнате
         function connectToRoom() {
             roomCode = document.getElementById('room-code').value.toUpperCase().trim();
-            playerName = document.getElementById('player-name').value.trim();
+            playerName = document.getElementById('player-name').value.toUpperCase().trim();
 
             if (!roomCode || !playerName) {
                 showError('Заполните все поля');
