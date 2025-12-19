@@ -7,6 +7,7 @@ class LocalModeManager {
     constructor() {
         this.stations = new Map(); // IP -> station info
         this.rooms = new Map(); // roomCode -> local room data
+        this.commandQueues = new Map(); // stationNumber -> command queue
         this.initializeStations();
     }
 
@@ -21,9 +22,10 @@ class LocalModeManager {
         ];
 
         stationIPs.forEach((ip, index) => {
+            const stationNumber = index + 1;
             this.stations.set(ip, {
-                stationNumber: index + 1,
-                playerName: `Игрок ${index + 1}`,
+                stationNumber: stationNumber,
+                playerName: `Игрок ${stationNumber}`,
                 ip: ip,
                 connected: false,
                 socketId: null,
@@ -35,6 +37,8 @@ class LocalModeManager {
                     lastUpdate: null
                 }
             });
+            // Инициализируем очередь команд для каждой станции
+            this.commandQueues.set(stationNumber, []);
         });
 
         console.log(`✅ Инициализировано ${this.stations.size} станций для локального режима`);
@@ -170,6 +174,82 @@ class LocalModeManager {
             return station;
         }
         return null;
+    }
+
+    /**
+     * Добавление команды в очередь для станции
+     * Команды будут доставлены через Socket.io или HTTP polling
+     */
+    enqueueCommand(stationNumber, command, params = {}) {
+        const station = this.getStationByNumber(stationNumber);
+        if (!station) {
+            console.warn(`⚠️ Станция ${stationNumber} не найдена для добавления команды`);
+            return false;
+        }
+
+        const queue = this.commandQueues.get(stationNumber) || [];
+        const commandData = {
+            id: Date.now() + Math.random(), // Уникальный ID команды
+            command: command,
+            params: params || {},
+            timestamp: Date.now()
+        };
+        
+        queue.push(commandData);
+        this.commandQueues.set(stationNumber, queue);
+        
+        console.log(`📝 Команда "${command}" добавлена в очередь для станции ${stationNumber} (всего в очереди: ${queue.length})`);
+        return true;
+    }
+
+    /**
+     * Получение всех команд из очереди для станции (для HTTP polling)
+     */
+    dequeueCommands(stationNumber) {
+        const queue = this.commandQueues.get(stationNumber);
+        if (!queue || queue.length === 0) {
+            return [];
+        }
+
+        // Возвращаем все команды и очищаем очередь
+        const commands = [...queue];
+        this.commandQueues.set(stationNumber, []);
+        
+        console.log(`📤 Возвращено ${commands.length} команд из очереди для станции ${stationNumber}`);
+        return commands;
+    }
+
+    /**
+     * Получение одной команды из очереди (для Socket.io)
+     * Возвращает null если очередь пуста
+     */
+    dequeueCommand(stationNumber) {
+        const queue = this.commandQueues.get(stationNumber);
+        if (!queue || queue.length === 0) {
+            return null;
+        }
+
+        const command = queue.shift();
+        this.commandQueues.set(stationNumber, queue);
+        
+        console.log(`📤 Команда "${command.command}" извлечена из очереди для станции ${stationNumber} (осталось: ${queue.length})`);
+        return command;
+    }
+
+    /**
+     * Получение количества команд в очереди для станции
+     */
+    getQueueSize(stationNumber) {
+        const queue = this.commandQueues.get(stationNumber);
+        return queue ? queue.length : 0;
+    }
+
+    /**
+     * Очистка очереди команд для станции
+     */
+    clearQueue(stationNumber) {
+        this.commandQueues.set(stationNumber, []);
+        console.log(`🗑️ Очередь команд для станции ${stationNumber} очищена`);
     }
 }
 

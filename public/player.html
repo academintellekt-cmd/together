@@ -1714,7 +1714,7 @@
 
         // Команда вернуться в режим ожидания (для станций)
         socket.on('local-station-return-to-waiting', () => {
-            console.log('📥 Получена команда вернуться в режим ожидания');
+            
             // Проверяем, играем ли мы со станции
             const urlParams = new URLSearchParams(window.location.search);
             const stationParam = urlParams.get('station');
@@ -1729,18 +1729,51 @@
         
         // Обработка универсальной команды навигации для локального режима
         socket.on('local-station-command', (data) => {
-            console.log('📥 Получена универсальная команда на странице игрока:', data);
             const { command, params } = data;
             
+            // Проверяем, что это команда для локальной станции
+            const urlParams = new URLSearchParams(window.location.search);
+            const stationParam = urlParams.get('station');
+            const autoParam = urlParams.get('auto');
+            
+            // Принимаем команды если есть параметр station или auto=true, или если мы в комнате
+            const isLocalStation = stationParam || autoParam === 'true' || roomCode;
+            
+            if (!isLocalStation) {
+                return;
+            }
+            
             if (command === 'navigate' && params && params.page === 'waiting') {
-                const urlParams = new URLSearchParams(window.location.search);
-                const stationParam = urlParams.get('station');
-                const autoParam = urlParams.get('auto');
+                // Возврат на страницу станции
+                console.log('🔄 Команда навигации: возврат на страницу станции');
+                window.location.href = '/local-station.html';
+            } else if (command === 'execute-action' && params && params.action) {
+                // Выполнение действия
+                console.log('⚡ Выполнение действия:', params.action);
                 
-                // Если это локальная станция, возвращаемся на страницу станции
-                if (stationParam || autoParam === 'true') {
-                    console.log('🔄 Команда навигации: возврат на страницу станции');
-                    window.location.href = '/local-station.html';
+                switch(params.action) {
+                    case 'skipAnswers':
+                        // Пропустить ожидание ответов - сервер сам отправит результаты через событие 'results'
+                        console.log('⏭️ Пропуск ожидания ответов - ожидаем результаты от сервера');
+                        // Команда обработана, сервер отправит результаты через обычные события
+                        break;
+                    case 'skipReady':
+                        // Пропустить ожидание готовности - сервер сам начнет игру через событие 'question'
+                        console.log('⏭️ Пропуск ожидания готовности - ожидаем начало игры от сервера');
+                        // Команда обработана, сервер начнет игру через обычные события
+                        break;
+                    case 'showResults':
+                        // Показать результаты - сервер сам отправит результаты через событие 'results'
+                        console.log('📊 Показать результаты - ожидаем результаты от сервера');
+                        // Команда обработана, сервер отправит результаты через обычные события
+                        break;
+                    case 'nextQuestion':
+                        // Следующий вопрос - сервер сам отправит следующий вопрос через событие 'question'
+                        console.log('➡️ Следующий вопрос - ожидаем вопрос от сервера');
+                        // Команда обработана, сервер отправит следующий вопрос через обычные события
+                        break;
+                    default:
+                        console.warn('⚠️ Неизвестное действие:', params.action);
                 }
             }
         });
@@ -1766,7 +1799,7 @@
          */
         socket.on('force-player-ready', (data) => {
             const { roomCode: targetRoomCode } = data;
-            console.log('📥 Принудительное нажатие кнопки "Готов"', data);
+            
             
             // Проверяем, что это наша комната
             if (targetRoomCode && targetRoomCode !== roomCode) {
@@ -1800,7 +1833,7 @@
          */
         socket.on('force-select-answer', (data) => {
             const { answer, roomCode: targetRoomCode } = data;
-            console.log('📥 Принудительный выбор ответа:', answer, data);
+            
             
             // Проверяем, что это наша комната
             if (targetRoomCode && targetRoomCode !== roomCode) {
@@ -1825,7 +1858,7 @@
          */
         socket.on('force-connect', (data) => {
             const { roomCode: targetRoomCode, playerName: targetPlayerName } = data;
-            console.log('📥 Принудительное подключение к комнате:', data);
+            
             
             if (!targetRoomCode) {
                 console.warn('⚠️ Не указан roomCode');

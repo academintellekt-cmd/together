@@ -1033,10 +1033,14 @@
                             qrLink.href = playerUrl;
                         }
                         
-                        // Показываем кнопку "Начать игру" под QR-кодом
+                        // Показываем кнопку "Начать игру" под QR-кодом и устанавливаем обработчик
                         const startGameBtnLobby = document.getElementById('start-game-btn-lobby');
                         if (startGameBtnLobby) {
                             startGameBtnLobby.style.display = 'block';
+                            // Устанавливаем обработчик при показе кнопки
+                            if (typeof setupStartGameButtonLobby === 'function') {
+                                setupStartGameButtonLobby();
+                            }
                         }
                     } catch (error) {
                         console.error('Ошибка при отрисовке QR-кода:', error);
@@ -1076,6 +1080,8 @@
                         const startGameBtnLobby = document.getElementById('start-game-btn-lobby');
                         if (startGameBtnLobby) {
                             startGameBtnLobby.style.display = 'block';
+                            // Устанавливаем обработчик при показе кнопки
+                            setupStartGameButtonLobby();
                         }
                         
                         qrPlaceholder.style.display = 'none';
@@ -1476,6 +1482,14 @@
             // ВАЖНО: Эта функция должна быть вызвана ДО подключения к комнате
             function registerSocketEventHandlers() {
                 // Подключение хоста
+                // Обработка ошибок от сервера
+                socket.on('error', (error) => {
+                    console.error('❌ Ошибка от сервера:', error);
+                    if (error.message) {
+                        alert('Ошибка: ' + error.message);
+                    }
+                });
+
                 socket.on('host-connected', (data) => {
                     console.log('✅ Хост подключен, данные:', data);
                     console.log('📋 Игроки в данных:', data.players);
@@ -1957,18 +1971,76 @@
             // Функция показа модального окна для подтверждения начала игры
             function showStartGameModal() {
                 console.log('📋 Показ модального окна начала игры. Игроков:', playersData.size);
+                console.log('🔍 Поиск модального окна...');
                 const modal = document.getElementById('start-game-modal');
+                console.log('🔍 Модальное окно найдено:', !!modal);
                 if (modal) {
+                    // Устанавливаем обработчики кнопок ПЕРЕД показом модального окна
+                    setupModalButtons();
+                    
+                    console.log('📊 Текущий display модального окна:', window.getComputedStyle(modal).display);
                     modal.style.display = 'flex';
-                    console.log('✅ Модальное окно показано');
+                    console.log('✅ Модальное окно должно быть показано (display: flex)');
+                    console.log('📊 Новый display модального окна:', window.getComputedStyle(modal).display);
                 } else {
-                    console.error('❌ Модальное окно не найдено!');
+                    console.error('❌ Модальное окно не найдено! Проверьте, что элемент с id="start-game-modal" существует в DOM');
+                }
+            }
+            
+            // Функция для установки обработчиков кнопок модального окна
+            function setupModalButtons() {
+                console.log('🔧 Установка обработчиков кнопок модального окна...');
+                const modal = document.getElementById('start-game-modal');
+                const confirmBtn = document.getElementById('start-game-confirm');
+                const cancelBtn = document.getElementById('start-game-cancel');
+                
+                if (!modal) {
+                    console.error('❌ Модальное окно не найдено при установке обработчиков');
+                    return;
+                }
+                
+                if (confirmBtn) {
+                    // Удаляем все старые обработчики (клонируем элемент)
+                    const newConfirmBtn = confirmBtn.cloneNode(true);
+                    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+                    
+                    newConfirmBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('✅ Подтверждение начала игры (клик по кнопке)');
+                        modal.style.display = 'none';
+                        handleStartGame();
+                    });
+                    console.log('✅ Обработчик кнопки "Начать игру" установлен');
+                } else {
+                    console.error('❌ Кнопка подтверждения не найдена!');
+                }
+                
+                if (cancelBtn) {
+                    // Удаляем все старые обработчики (клонируем элемент)
+                    const newCancelBtn = cancelBtn.cloneNode(true);
+                    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+                    
+                    newCancelBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('❌ Отмена начала игры (клик по кнопке)');
+                        modal.style.display = 'none';
+                    });
+                    console.log('✅ Обработчик кнопки "Назад" установлен');
+                } else {
+                    console.error('❌ Кнопка отмены не найдена!');
                 }
             }
             
             // Начало игры (обработчик для кнопки в Frame1)
             function handleStartGame() {
                 console.log('🎮 Запуск игры. Игроков:', playersData.size, 'Комната:', roomCode);
+                console.log('🔍 Проверка socket:', {
+                    connected: socket && socket.connected,
+                    id: socket && socket.id,
+                    rooms: socket && socket.rooms ? Array.from(socket.rooms) : 'недоступно'
+                });
                 
                 if (!roomCode) {
                     console.error('❌ Код комнаты не установлен!');
@@ -1981,67 +2053,43 @@
                     return;
                 }
                 
+                if (!socket || !socket.connected) {
+                    console.error('❌ Socket не подключен!');
+                    alert('Ошибка: не подключен к серверу. Пожалуйста, обновите страницу.');
+                    return;
+                }
+                
                 console.log('📤 Отправка события start-game для комнаты:', roomCode);
                 socket.emit('start-game', roomCode);
+                console.log('✅ Событие start-game отправлено');
             }
             
-            // Инициализация модального окна для подтверждения начала игры
+            // Инициализация модального окна для подтверждения начала игры (устанавливает обработчик закрытия по клику вне области)
             function initStartGameModal() {
                 const modal = document.getElementById('start-game-modal');
-                const confirmBtn = document.getElementById('start-game-confirm');
-                const cancelBtn = document.getElementById('start-game-cancel');
                 
                 if (!modal) {
                     console.error('❌ Модальное окно start-game-modal не найдено!');
                     return;
                 }
                 
-                if (confirmBtn) {
-                    // Удаляем старые обработчики
-                    const newConfirmBtn = confirmBtn.cloneNode(true);
-                    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-                    
-                    newConfirmBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('✅ Подтверждение начала игры');
-                        if (modal) {
-                            modal.style.display = 'none';
-                        }
-                        handleStartGame();
-                    });
-                    console.log('✅ Обработчик кнопки подтверждения установлен');
-                } else {
-                    console.error('❌ Кнопка подтверждения не найдена!');
+                // Закрытие модального окна при клике вне его области (устанавливаем один раз)
+                // Удаляем старый обработчик, если есть
+                const oldHandler = modal._clickOutsideHandler;
+                if (oldHandler) {
+                    modal.removeEventListener('click', oldHandler);
                 }
                 
-                if (cancelBtn) {
-                    // Удаляем старые обработчики
-                    const newCancelBtn = cancelBtn.cloneNode(true);
-                    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-                    
-                    newCancelBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('❌ Отмена начала игры');
-                        if (modal) {
-                            modal.style.display = 'none';
-                        }
-                    });
-                    console.log('✅ Обработчик кнопки отмены установлен');
-                } else {
-                    console.error('❌ Кнопка отмены не найдена!');
-                }
-                
-                // Закрытие модального окна при клике вне его области
-                modal.addEventListener('click', (e) => {
+                const clickOutsideHandler = function(e) {
                     if (e.target === modal) {
                         console.log('❌ Закрытие модального окна по клику вне области');
                         modal.style.display = 'none';
                     }
-                });
+                };
+                modal._clickOutsideHandler = clickOutsideHandler;
+                modal.addEventListener('click', clickOutsideHandler);
                 
-                console.log('✅ Модальное окно инициализировано');
+                console.log('✅ Модальное окно инициализировано (обработчик закрытия по клику вне области установлен)');
             }
             
             // Функция для установки обработчика кнопки "Начать игру"
@@ -2069,15 +2117,35 @@
                 initStartGameModal();
             }
             
+            // Функция для установки обработчика кнопки "Начать игру" в лобби
+            function setupStartGameButtonLobby() {
+                const startGameBtnLobby = document.getElementById('start-game-btn-lobby');
+                console.log('🔍 Установка обработчика для кнопки start-game-btn-lobby:', !!startGameBtnLobby);
+                if (startGameBtnLobby) {
+                    // Удаляем старые обработчики, если есть (клонируем элемент)
+                    const newLobbyBtn = startGameBtnLobby.cloneNode(true);
+                    startGameBtnLobby.parentNode.replaceChild(newLobbyBtn, startGameBtnLobby);
+                    
+                    newLobbyBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🖱️ Клик по кнопке "Начать игру" в лобби');
+                        showStartGameModal();
+                    });
+                    console.log('✅ Обработчик кнопки "Начать игру" в лобби установлен');
+                    return true;
+                } else {
+                    console.warn('⚠️ Кнопка start-game-btn-lobby не найдена при установке обработчика');
+                    return false;
+                }
+            }
+            
             // Обработчик для кнопки "Начать игру" в Frame1 (добавляем после создания кнопки)
             setTimeout(() => {
                 setupStartGameButton();
                 
-                // Обработчик для кнопки "Начать игру" в лобби (под QR-кодом)
-                const startGameBtnLobby = document.getElementById('start-game-btn-lobby');
-                if (startGameBtnLobby) {
-                    startGameBtnLobby.addEventListener('click', showStartGameModal);
-                }
+                // Пытаемся установить обработчик для кнопки в лобби (если она уже есть)
+                setupStartGameButtonLobby();
                 
             }, 500);
             

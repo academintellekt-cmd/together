@@ -87,11 +87,7 @@ app.get('/quiz-questions-commission.html', (req, res) => {
   res.redirect(301, '/chgk-commission.html');
 });
 
-// Статический middleware - после API роутов
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/fonts', express.static(path.join(__dirname, 'public/fonts')));
-app.use('/joystick-test', express.static(path.join(__dirname, 'tests/joystick-test')));
-app.use('/data/media', express.static(path.join(__dirname, 'data/media')));
+// Статический middleware будет зарегистрирован после всех API роутов (см. ниже)
 app.use('/docs', express.static(path.join(__dirname, 'docs')));
 
 // Хранилище комнат и игроков
@@ -1248,6 +1244,7 @@ app.post('/api/mode', (req, res) => {
 
 // API для локального режима
 if (localModeAvailable && localModeManager) {
+  console.log('✅ Локальный режим доступен, регистрация API роутов для управления станциями');
   // Регистрация станции
   app.post('/api/local/register-station', (req, res) => {
     // Получаем IP клиента из запроса
@@ -1371,41 +1368,61 @@ if (localModeAvailable && localModeManager) {
       console.log(`📤 HTTP API: Универсальная команда "${command}" отправляется на станции: ${stations.map(s => s.stationNumber).join(', ')}`);
 
       const results = [];
+      const commandData = {
+        command: command,
+        params: params || {},
+        timestamp: Date.now()
+      };
 
       // Отправляем команду всем выбранным станциям
       stations.forEach(station => {
+        // Добавляем команду в очередь (гарантирует доставку даже если Socket.io недоступен)
+        localModeManager.enqueueCommand(station.stationNumber, command, params);
+
+        let sentToStation = false;
+        let sentToPlayers = 0;
+
+        // Пытаемся отправить через Socket.io (если подключен)
         if (station.connected && station.socketId) {
           // Отправляем универсальную команду через Socket.io
-          io.to(station.socketId).emit('local-station-command', {
-            command: command,
-            params: params || {},
-            timestamp: Date.now()
-          });
-
-          // Обновляем состояние станции в зависимости от команды
-          if (command === 'navigate' && params && params.page) {
-            localModeManager.updateStationState(station.stationNumber, {
-              currentPage: params.page,
-              pageData: params.data || {}
-            });
-          } else if (command === 'update-state' && params) {
-            const currentState = station.state.customState || {};
-            localModeManager.updateStationState(station.stationNumber, {
-              customState: {
-                ...currentState,
-                ...params
-              }
-            });
-          }
-
-          results.push({
-            stationNumber: station.stationNumber,
-            ip: station.ip,
-            success: true
-          });
-
-          console.log(`✅ HTTP API: Команда "${command}" отправлена станции ${station.stationNumber} (${station.ip})`);
+          io.to(station.socketId).emit('local-station-command', commandData);
+          sentToStation = true;
+          console.log(`✅ HTTP API: Команда "${command}" отправлена через Socket.io станции ${station.stationNumber} (${station.ip})`);
+        } else {
+          console.log(`📝 HTTP API: Команда "${command}" добавлена в очередь для станции ${station.stationNumber} (Socket.io не подключен, будет получена через polling)`);
         }
+
+        // Также отправляем команду всем игрокам в комнатах, связанным с этой станцией
+        const playerSockets = findPlayersForStation(station.stationNumber);
+        playerSockets.forEach(({ socketId, playerName, roomCode }) => {
+          io.to(socketId).emit('local-station-command', commandData);
+          sentToPlayers++;
+          console.log(`✅ HTTP API: Команда "${command}" отправлена игроку ${playerName} (socketId: ${socketId}, комната: ${roomCode})`);
+        });
+
+        // Обновляем состояние станции в зависимости от команды
+        if (command === 'navigate' && params && params.page) {
+          localModeManager.updateStationState(station.stationNumber, {
+            currentPage: params.page,
+            pageData: params.data || {}
+          });
+        } else if (command === 'update-state' && params) {
+          const currentState = station.state.customState || {};
+          localModeManager.updateStationState(station.stationNumber, {
+            customState: {
+              ...currentState,
+              ...params
+            }
+          });
+        }
+
+        results.push({
+          stationNumber: station.stationNumber,
+          ip: station.ip,
+          success: true,
+          sentViaSocket: sentToStation,
+          sentToPlayers: sentToPlayers
+        });
       });
 
       // Уведомляем хостов об обновлении состояния станций
@@ -1507,6 +1524,52 @@ if (localModeAvailable && localModeManager) {
   });
 
   /**
+   * Получение команд из очереди для станции (HTTP polling)
+   * GET /api/local/stations/:stationNumber/commands
+   * Станция периодически опрашивает этот endpoint для получения команд
+   */
+  app.get('/api/local/stations/:stationNumber/commands', (req, res) => {
+    try {
+      const stationNumber = parseInt(req.params.stationNumber);
+      const station = localModeManager.getStationByNumber(stationNumber);
+      
+      if (!station) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Станция не найдена',
+          commands: []
+        });
+      }
+
+      // Обновляем время последнего контакта
+      station.lastSeen = Date.now();
+      if (!station.connected) {
+        station.connected = true;
+      }
+
+      // Получаем все команды из очереди
+      const commands = localModeManager.dequeueCommands(stationNumber);
+      
+      console.log(`📥 HTTP Polling: Станция ${stationNumber} запросила команды, получено: ${commands.length}`);
+
+      res.json({ 
+        success: true, 
+        stationNumber: stationNumber,
+        commands: commands,
+        state: station.state,
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      console.error('❌ Ошибка получения команд для станции:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Ошибка получения команд: ' + error.message,
+        commands: []
+      });
+    }
+  });
+
+  /**
    * Получение списка всех станций с их состояниями
    * GET /api/local/stations/status
    */
@@ -1536,7 +1599,16 @@ if (localModeAvailable && localModeManager) {
       });
     }
   });
+} else {
+  console.warn('⚠️ Локальный режим недоступен - роуты управления станциями не будут зарегистрированы');
+  console.warn('   localModeAvailable:', localModeAvailable, 'localModeManager:', !!localModeManager);
 }
+
+// Статический middleware - после всех API роутов (включая локальный режим)
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/fonts', express.static(path.join(__dirname, 'public/fonts')));
+app.use('/joystick-test', express.static(path.join(__dirname, 'tests/joystick-test')));
+app.use('/data/media', express.static(path.join(__dirname, 'data/media')));
 
 // Получение IP-адреса сервера и клиента
 app.get('/api/server-ip', (req, res) => {
@@ -1731,6 +1803,38 @@ function getPlayerIndex(roomCode, playerId) {
   return room.players.findIndex(p => p.id === playerId);
 }
 
+/**
+ * Найти всех игроков в комнатах, связанных со станцией
+ * Ищет игроков по имени вида "Игрок №X" где X - номер станции
+ */
+function findPlayersForStation(stationNumber) {
+  const playerSockets = [];
+  
+  // Проходим по всем комнатам
+  rooms.forEach((room, roomCode) => {
+    if (!room.players) return;
+    
+    // Ищем игроков с именем вида "Игрок №X" или "ИГРОК №X"
+    const stationPlayerNamePattern = new RegExp(`игрок\\s*№?\\s*${stationNumber}`, 'i');
+    
+    room.players.forEach(player => {
+      if (player.name && stationPlayerNamePattern.test(player.name) && !player.disconnected) {
+        // Проверяем, что socket существует
+        const playerSocket = io.sockets.sockets.get(player.id);
+        if (playerSocket) {
+          playerSockets.push({
+            socketId: player.id,
+            playerName: player.name,
+            roomCode: roomCode
+          });
+        }
+      }
+    });
+  });
+  
+  return playerSockets;
+}
+
 // Подключение через Socket.io
 io.on('connection', (socket) => {
   console.log('Новое подключение:', socket.id);
@@ -1743,7 +1847,14 @@ io.on('connection', (socket) => {
       socket.emit('error', { message: 'Комната не найдена' });
       return;
     }
-    room.host = socket.id;
+    // Устанавливаем хостом только если хост еще не установлен, или если это первый хост
+    // Это позволяет нескольким окнам управления быть подключены одновременно
+    if (!room.host) {
+      room.host = socket.id;
+      console.log(`🎮 Основной хост установлен для комнаты ${roomCode}: ${socket.id}`);
+    } else {
+      console.log(`📡 Дополнительный хост подключен к комнате ${roomCode}: ${socket.id} (основной хост: ${room.host})`);
+    }
     room.lastActivity = Date.now(); // Обновляем активность при подключении хоста
     socket.join(roomCode);
     socket.emit('host-connected', { roomCode, players: room.players });
@@ -2015,8 +2126,36 @@ io.on('connection', (socket) => {
 
   // Хост запускает игру
   socket.on('start-game', (roomCode) => {
+    console.log(`📥 Получено событие start-game для комнаты ${roomCode} от socket.id=${socket.id}`);
     const room = rooms.get(roomCode);
-    if (!room || room.host !== socket.id) return;
+    if (!room) {
+      console.warn(`⚠️ Комната ${roomCode} не найдена при попытке начать игру`);
+      socket.emit('error', { message: `Комната ${roomCode} не найдена` });
+      return;
+    }
+    
+    console.log(`🔍 Проверка прав для запуска игры: room.mode=${room.mode}, room.host=${room.host}, socket.id=${socket.id}`);
+    
+    // В локальном режиме разрешаем любому хосту запускать игру (проверяем что подключен к комнате)
+    // В обычном режиме проверяем что это основной хост
+    const isLocalMode = room.mode === 'local';
+    const socketRooms = Array.from(socket.rooms || []);
+    const isInRoom = socket.rooms && socket.rooms.has(roomCode);
+    
+    console.log(`🔍 Детали проверки: isLocalMode=${isLocalMode}, isInRoom=${isInRoom}, socket.rooms=[${socketRooms.join(', ')}]`);
+    
+    const canStart = isLocalMode 
+      ? isInRoom  // В локальном режиме - любой хост в комнате
+      : (room.host === socket.id);   // В обычном режиме - только основной хост
+    
+    if (!canStart) {
+      console.warn(`⚠️ Попытка начать игру из неподключенного хоста: roomCode=${roomCode}, mode=${room.mode}, socket.id=${socket.id}, isInRoom=${isInRoom}, canStart=${canStart}`);
+      socket.emit('error', { message: 'Недостаточно прав для запуска игры. Убедитесь, что вы подключены к комнате как хост.' });
+      return;
+    }
+    
+    console.log(`✅ Права подтверждены, начинаем игру для комнаты ${roomCode}`);
+    console.log(`📊 Игроков в комнате: ${room.players.length}`);
     
     room.gameState = 'playing';
     room.currentQuestion = 0;
@@ -3269,12 +3408,27 @@ io.on('connection', (socket) => {
         } else {
           console.warn(`⚠️ Не удалось сохранить socket ID для станции ${stationNumber}`);
         }
+
+        // Отправляем все накопленные команды из очереди при переподключении
+        const queuedCommands = localModeManager.dequeueCommands(stationNumber);
+        if (queuedCommands.length > 0) {
+          console.log(`📤 Отправка ${queuedCommands.length} накопленных команд станции ${stationNumber} при переподключении`);
+          queuedCommands.forEach(cmd => {
+            socket.emit('local-station-command', {
+              command: cmd.command,
+              params: cmd.params,
+              timestamp: cmd.timestamp
+            });
+          });
+        }
         
-        // Отправляем подтверждение станции
+        // Отправляем подтверждение станции вместе с текущим состоянием
         socket.emit('local-station-connected', {
           success: true,
           stationNumber: stationNumber,
-          ip: ip
+          ip: ip,
+          state: station.state,
+          queuedCommandsCount: queuedCommands.length
         });
         
         // Уведомляем всех хостов об обновлении
@@ -3304,27 +3458,52 @@ io.on('connection', (socket) => {
       console.log(`🏠 Запуск локального квиза: комната ${roomCode}, квиз ${quizId}, станции: ${stationNumbers ? stationNumbers.join(', ') : 'все'}`);
       
       // Отправляем команду только выбранным станциям
-      const stations = localModeManager.getStations();
+      const stations = stationNumbers && stationNumbers.length > 0
+        ? localModeManager.getStationsByNumbers(stationNumbers)
+        : localModeManager.getStations().filter(s => s.connected);
+
       stations.forEach(station => {
+        // Добавляем команду в очередь (гарантирует доставку)
+        localModeManager.enqueueCommand(station.stationNumber, 'navigate', {
+          page: 'quiz',
+          roomCode: roomCode,
+          quizId: quizId
+        });
+
+        // Обновляем состояние станции
+        localModeManager.updateStationState(station.stationNumber, {
+          currentPage: 'quiz',
+          pageData: { roomCode, quizId }
+        });
+
+        // Пытаемся отправить через Socket.io (если подключен)
         if (station.connected && station.socketId) {
-          // Если указаны конкретные станции, отправляем только им
-          if (stationNumbers && stationNumbers.length > 0) {
-            if (stationNumbers.includes(station.stationNumber)) {
-              io.to(station.socketId).emit('local-station-open-quiz', {
-                roomCode: roomCode,
-                quizId: quizId
-              });
-              console.log(`📤 Команда отправлена станции ${station.stationNumber} (${station.ip})`);
-            }
-          } else {
-            // Если станции не указаны, отправляем всем (обратная совместимость)
-            io.to(station.socketId).emit('local-station-open-quiz', {
+          // Отправляем универсальную команду через Socket.io
+          io.to(station.socketId).emit('local-station-command', {
+            command: 'navigate',
+            params: {
+              page: 'quiz',
               roomCode: roomCode,
               quizId: quizId
-            });
-            console.log(`📤 Команда отправлена станции ${station.stationNumber} (${station.ip})`);
-          }
+            },
+            timestamp: Date.now()
+          });
+          
+          // Также отправляем старое событие для обратной совместимости
+          io.to(station.socketId).emit('local-station-open-quiz', {
+            roomCode: roomCode,
+            quizId: quizId
+          });
+          
+          console.log(`✅ Команда запуска квиза отправлена через Socket.io станции ${station.stationNumber} (${station.ip})`);
+        } else {
+          console.log(`📝 Команда запуска квиза добавлена в очередь для станции ${station.stationNumber} (Socket.io не подключен, будет получена через polling)`);
         }
+      });
+
+      // Уведомляем хостов об обновлении
+      io.emit('local-stations-updated', {
+        stations: localModeManager.getStations()
       });
     });
 
@@ -3350,7 +3529,11 @@ io.on('connection', (socket) => {
     socket.on('local-skip-answers', (data) => {
       const { roomCode } = data;
       const room = rooms.get(roomCode);
-      if (!room || room.mode !== 'local' || room.host !== socket.id) return;
+      // В локальном режиме разрешаем любому хосту выполнять команды (проверяем что подключен к комнате)
+      if (!room || room.mode !== 'local' || !socket.rooms.has(roomCode)) {
+        console.warn(`⚠️ Попытка пропустить ответы из неподключенного хоста: roomCode=${roomCode}, socket.id=${socket.id}`);
+        return;
+      }
       
       // Если игра в состоянии вопроса, сразу показываем результаты
       if (room.gameState === 'question') {
@@ -3363,7 +3546,11 @@ io.on('connection', (socket) => {
     socket.on('local-skip-ready', (data) => {
       const { roomCode } = data;
       const room = rooms.get(roomCode);
-      if (!room || room.mode !== 'local' || room.host !== socket.id) return;
+      // В локальном режиме разрешаем любому хосту выполнять команды (проверяем что подключен к комнате)
+      if (!room || room.mode !== 'local' || !socket.rooms.has(roomCode)) {
+        console.warn(`⚠️ Попытка пропустить готовность из неподключенного хоста: roomCode=${roomCode}, socket.id=${socket.id}`);
+        return;
+      }
       
       // Если игра в состоянии результатов, переходим к следующему вопросу
       if (room.gameState === 'results') {
@@ -3381,7 +3568,11 @@ io.on('connection', (socket) => {
     socket.on('local-show-results', (data) => {
       const { roomCode } = data;
       const room = rooms.get(roomCode);
-      if (!room || room.mode !== 'local' || room.host !== socket.id) return;
+      // В локальном режиме разрешаем любому хосту выполнять команды (проверяем что подключен к комнате)
+      if (!room || room.mode !== 'local' || !socket.rooms.has(roomCode)) {
+        console.warn(`⚠️ Попытка показать результаты из неподключенного хоста: roomCode=${roomCode}, socket.id=${socket.id}`);
+        return;
+      }
       
       if (room.gameState === 'question') {
         console.log(`📊 Принудительный показ результатов в комнате ${roomCode}`);
@@ -3393,7 +3584,11 @@ io.on('connection', (socket) => {
     socket.on('local-end-game', (data) => {
       const { roomCode } = data;
       const room = rooms.get(roomCode);
-      if (!room || room.mode !== 'local' || room.host !== socket.id) return;
+      // В локальном режиме разрешаем любому хосту выполнять команды (проверяем что подключен к комнате)
+      if (!room || room.mode !== 'local' || !socket.rooms.has(roomCode)) {
+        console.warn(`⚠️ Попытка завершить игру из неподключенного хоста: roomCode=${roomCode}, socket.id=${socket.id}`);
+        return;
+      }
       
       console.log(`🏁 Принудительное завершение игры в комнате ${roomCode}`);
       endGame(roomCode);
@@ -3435,8 +3630,35 @@ io.on('connection', (socket) => {
       console.log(`🛑 Завершение квиза на станциях: ${stationsToEnd.map(s => s.stationNumber).join(', ')}`);
       
       stationsToEnd.forEach(station => {
-        io.to(station.socketId).emit('local-station-end-quiz');
-        console.log(`📤 Команда завершения квиза отправлена станции ${station.stationNumber} (${station.ip})`);
+        // Отправляем команду на socketId станции (если она на local-station.html)
+        if (station.socketId) {
+          io.to(station.socketId).emit('local-station-end-quiz');
+          console.log(`📤 Команда завершения квиза отправлена станции ${station.stationNumber} (socketId: ${station.socketId})`);
+        }
+        
+        // Также отправляем команду всем игрокам в комнатах, связанным с этой станцией
+        const playerSockets = findPlayersForStation(station.stationNumber);
+        playerSockets.forEach(({ socketId, playerName, roomCode }) => {
+          io.to(socketId).emit('local-station-end-quiz');
+          console.log(`📤 Команда завершения квиза отправлена игроку ${playerName} (socketId: ${socketId}, комната: ${roomCode})`);
+        });
+        
+        // Также отправляем универсальную команду навигации
+        const commandData = {
+          command: 'navigate',
+          params: {
+            page: 'waiting'
+          },
+          timestamp: Date.now()
+        };
+        
+        if (station.socketId) {
+          io.to(station.socketId).emit('local-station-command', commandData);
+        }
+        
+        playerSockets.forEach(({ socketId }) => {
+          io.to(socketId).emit('local-station-command', commandData);
+        });
       });
     });
 
@@ -3468,31 +3690,45 @@ io.on('connection', (socket) => {
 
       // Отправляем команду всем выбранным станциям
       stations.forEach(station => {
+        // Добавляем команду в очередь (гарантирует доставку даже если Socket.io отключится)
+        localModeManager.enqueueCommand(station.stationNumber, command, params);
+
+        const commandData = {
+          command: command,
+          params: params || {},
+          timestamp: Date.now()
+        };
+
+        // Пытаемся отправить через Socket.io (если подключен)
         if (station.connected && station.socketId) {
-          // Отправляем универсальную команду
-          io.to(station.socketId).emit('local-station-command', {
-            command: command,
-            params: params || {},
-            timestamp: Date.now()
+          // Отправляем универсальную команду на socketId станции
+          io.to(station.socketId).emit('local-station-command', commandData);
+          console.log(`✅ Команда "${command}" отправлена через Socket.io станции ${station.stationNumber} (socketId: ${station.socketId})`);
+        } else {
+          console.log(`📝 Команда "${command}" добавлена в очередь для станции ${station.stationNumber} (Socket.io не подключен, будет получена через polling)`);
+        }
+
+        // Также отправляем команду всем игрокам в комнатах, связанным с этой станцией
+        const playerSockets = findPlayersForStation(station.stationNumber);
+        playerSockets.forEach(({ socketId, playerName, roomCode }) => {
+          io.to(socketId).emit('local-station-command', commandData);
+          console.log(`✅ Команда "${command}" отправлена игроку ${playerName} (socketId: ${socketId}, комната: ${roomCode})`);
+        });
+
+        // Обновляем состояние станции в зависимости от команды
+        if (command === 'navigate' && params && params.page) {
+          localModeManager.updateStationState(station.stationNumber, {
+            currentPage: params.page,
+            pageData: params.data || {}
           });
-
-          // Обновляем состояние станции в зависимости от команды
-          if (command === 'navigate' && params && params.page) {
-            localModeManager.updateStationState(station.stationNumber, {
-              currentPage: params.page,
-              pageData: params.data || {}
-            });
-          } else if (command === 'update-state' && params) {
-            const currentState = station.state.customState || {};
-            localModeManager.updateStationState(station.stationNumber, {
-              customState: {
-                ...currentState,
-                ...params
-              }
-            });
-          }
-
-          console.log(`✅ Команда "${command}" отправлена станции ${station.stationNumber} (${station.ip})`);
+        } else if (command === 'update-state' && params) {
+          const currentState = station.state.customState || {};
+          localModeManager.updateStationState(station.stationNumber, {
+            customState: {
+              ...currentState,
+              ...params
+            }
+          });
         }
       });
 
@@ -3932,6 +4168,13 @@ io.on('connection', (socket) => {
       if (!room) {
         console.error(`❌ Комната ${roomCode} не найдена при обработке local-game-control`);
         socket.emit('error', { message: 'Комната не найдена' });
+        return;
+      }
+
+      // В локальном режиме разрешаем любому хосту выполнять команды (проверяем что подключен к комнате)
+      if (room.mode !== 'local' || !socket.rooms.has(roomCode)) {
+        console.warn(`⚠️ Попытка управления игрой из неподключенного хоста: roomCode=${roomCode}, mode=${room.mode}, socket.id=${socket.id}, inRoom=${socket.rooms.has(roomCode)}`);
+        socket.emit('error', { message: 'Недостаточно прав для управления игрой. Подключитесь к комнате как хост.' });
         return;
       }
       

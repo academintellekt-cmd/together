@@ -227,45 +227,70 @@
         }
         
         .control-button {
-            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 24px;
             font-family: 'Montserrat', sans-serif;
-            font-size: clamp(14px, 2vw, 16px);
-            font-weight: 600;
-            border: 2px solid #393639;
-            border-radius: 8px;
+            font-size: clamp(15px, 2.2vw, 17px);
+            font-weight: 700;
+            border: 3px solid #393639;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.2), 0 6px 12px rgba(0, 0, 0, 0.15);
+            background: #FFFFFF;
+            color: #393639;
+            min-height: 56px;
+        }
+        
+        .control-button .button-icon {
+            font-size: 24px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        
+        .control-button .button-text {
+            flex: 1;
+            text-align: center;
+            white-space: nowrap;
         }
         
         .control-button.refresh {
-            background: #4A90E2;
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
             color: #FFFFFF;
+            border-color: #2A5A8D;
         }
         
-        .control-button.refresh:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 0px rgba(74, 144, 226, 0.4), 0 6px 12px rgba(74, 144, 226, 0.2);
+        .control-button.refresh:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 0px rgba(74, 144, 226, 0.5), 0 8px 16px rgba(74, 144, 226, 0.3);
+            background: linear-gradient(135deg, #5BA0F2 0%, #4A8ACD 100%);
         }
         
         .control-button.skip {
-            background: #FFA500;
+            background: linear-gradient(135deg, #FFA500 0%, #E69400 100%);
             color: #FFFFFF;
+            border-color: #CC8400;
         }
         
-        .control-button.skip:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 0px rgba(255, 165, 0, 0.4), 0 6px 12px rgba(255, 165, 0, 0.2);
+        .control-button.skip:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 0px rgba(255, 165, 0, 0.5), 0 8px 16px rgba(255, 165, 0, 0.3);
+            background: linear-gradient(135deg, #FFB520 0%, #FFA410 100%);
         }
         
         .control-button.danger {
-            background: #ff7664;
+            background: linear-gradient(135deg, #ff7664 0%, #E65A4A 100%);
             color: #FFFFFF;
+            border-color: #CC4636;
         }
         
-        .control-button.danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 0px rgba(255, 118, 100, 0.4), 0 6px 12px rgba(255, 118, 100, 0.2);
+        .control-button.danger:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 0px rgba(255, 118, 100, 0.5), 0 8px 16px rgba(255, 118, 100, 0.3);
+            background: linear-gradient(135deg, #FF8A78 0%, #FF6A5A 100%);
         }
         
         .control-button:disabled {
@@ -274,6 +299,17 @@
             transform: none !important;
         }
         
+        .control-button:active:not(:disabled) {
+            transform: translateY(0px);
+            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
         .current-room-info {
             text-align: center;
             margin-bottom: 15px;
@@ -312,6 +348,155 @@
             color: #FFFFFF;
             transform: translateY(-1px);
         }
+        /* Кнопки выбора станций */
+        .station-select-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .station-select-button {
+            padding: 10px 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(13px, 1.8vw, 15px);
+            font-weight: 700;
+            border: 3px solid #393639;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            color: #FFFFFF;
+            border-color: #2A5A8D;
+            min-height: 44px;
+        }
+        
+        .station-select-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(74, 144, 226, 0.4), 0 8px 16px rgba(74, 144, 226, 0.2);
+            background: linear-gradient(135deg, #5BA0F2 0%, #4A8ACD 100%);
+        }
+        
+        .station-select-button:active:not(:disabled) {
+            transform: translateY(0px);
+            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .station-select-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        /* Форма добавления станции */
+        .manual-station-form {
+            margin-top: 20px;
+            padding: 20px;
+            background: #FFFFFF;
+            border: 3px solid #393639;
+            border-radius: 12px;
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .manual-station-form h3 {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(18px, 2.5vw, 22px);
+            color: #393639;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .manual-station-form input {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 15px;
+            border: 2px solid #393639;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+        
+        .manual-station-form input:focus {
+            outline: none;
+            border-color: #00C159;
+            box-shadow: 0 0 0 3px rgba(0, 193, 89, 0.1);
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .btn-primary {
+            padding: 12px 24px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(14px, 2vw, 16px);
+            font-weight: 700;
+            border: 3px solid #00C159;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0px rgba(0, 193, 89, 0.3), 0 6px 12px rgba(0, 193, 89, 0.2);
+            background: linear-gradient(135deg, #00C159 0%, #00A049 100%);
+            color: #FFFFFF;
+            min-height: 48px;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(0, 193, 89, 0.4), 0 8px 16px rgba(0, 193, 89, 0.3);
+            background: linear-gradient(135deg, #00D169 0%, #00B059 100%);
+        }
+        
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0px);
+            box-shadow: 0 2px 0px rgba(0, 193, 89, 0.3), 0 4px 8px rgba(0, 193, 89, 0.2);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .btn-cancel {
+            padding: 12px 24px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(14px, 2vw, 16px);
+            font-weight: 700;
+            border: 3px solid #666;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
+            background: #FFFFFF;
+            color: #393639;
+            min-height: 48px;
+        }
+        
+        .btn-cancel:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(0, 0, 0, 0.2), 0 8px 16px rgba(0, 0, 0, 0.15);
+            background: #F5F5F5;
+        }
+        
+        .btn-cancel:active:not(:disabled) {
+            transform: translateY(0px);
+            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-cancel:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
     </style>
 </head>
 <body>
@@ -324,14 +509,14 @@
                         
                         <div class="stations-section">
                             <h2 class="section-title">Станции игроков</h2>
-                            <div style="text-align: center; margin-bottom: 15px;">
-                                <button class="control-button refresh" id="selectAllStationsBtn" style="padding: 8px 16px; font-size: 14px;">
+                            <div class="station-select-buttons">
+                                <button class="station-select-button" id="selectAllStationsBtn">
                                     ✅ Выбрать все
                                 </button>
-                                <button class="control-button refresh" id="deselectAllStationsBtn" style="padding: 8px 16px; font-size: 14px; margin-left: 10px;">
+                                <button class="station-select-button" id="deselectAllStationsBtn">
                                     ❌ Снять выбор
                                 </button>
-                                <button class="control-button refresh" id="addStationBtn" style="padding: 8px 16px; font-size: 14px; margin-left: 10px;">
+                                <button class="station-select-button" id="addStationBtn">
                                     ➕ Добавить станцию вручную
                                 </button>
                             </div>
@@ -359,70 +544,56 @@
                             </button>
                         </div>
                         
-                        <!-- Объединенная панель управления -->
+                        <!-- Панель управления станциями -->
                         <div class="control-panel" id="controlPanel" style="display: none;">
-                            <h2 class="control-panel-title">🎮 Панель управления</h2>
+                            <h2 class="control-panel-title">🎮 Управление станциями</h2>
                             
                             <div class="current-room-info" id="currentRoomInfo" style="display: none;">
-                                Текущая комната: <strong id="currentRoomCode">-</strong> | 
-                                Квиз: <strong id="currentQuizName">-</strong>
+                                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px;">
+                                    <div style="font-family: 'Montserrat', sans-serif; font-size: 14px; color: #666;">
+                                        Комната: <strong style="color: #393639;" id="currentRoomCode">-</strong>
+                                    </div>
+                                    <div style="font-family: 'Montserrat', sans-serif; font-size: 14px; color: #666;">
+                                        Квиз: <strong style="color: #393639;" id="currentQuizName">-</strong>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <!-- Управление игрой -->
-                            <h3 style="font-family: 'Days One', sans-serif; font-size: 20px; color: #393639; margin-top: 20px; margin-bottom: 15px; text-align: center;">
-                                🎮 Управление игрой
-                            </h3>
+                            <!-- Основные действия -->
                             <div class="control-buttons">
                                 <button class="control-button refresh" id="refreshStationsBtn">
-                                    🔄 Обновить станции
-                                </button>
-                                <button class="control-button skip" id="skipAnswersBtn">
-                                    ⏭️ Пропустить ожидание ответов
-                                </button>
-                                <button class="control-button skip" id="skipReadyBtn">
-                                    ⏭️ Пропустить ожидание готовности
-                                </button>
-                                <button class="control-button skip" id="showResultsBtn">
-                                    📊 Показать результаты
+                                    <span class="button-icon">🔄</span>
+                                    <span class="button-text">Обновить станции</span>
                                 </button>
                                 <button class="control-button skip" id="nextQuestionBtn">
-                                    ➡️ Следующий вопрос
+                                    <span class="button-icon">➡️</span>
+                                    <span class="button-text">Следующий вопрос</span>
                                 </button>
-                                <button class="control-button danger" id="endGameBtn">
-                                    🏁 Завершить игру
+                                <button class="control-button skip" id="showResultsBtn">
+                                    <span class="button-icon">📊</span>
+                                    <span class="button-text">Показать результаты</span>
                                 </button>
                             </div>
                             
-                            <!-- Управление игроками -->
-                            <h3 style="font-family: 'Days One', sans-serif; font-size: 20px; color: #393639; margin-top: 30px; margin-bottom: 15px; text-align: center; border-top: 2px solid #393639; padding-top: 20px;">
-                                👥 Управление игроками
-                                </h3>
-                            <div class="control-buttons">
-                                <button class="control-button primary" id="forcePlayerReadyBtn">
-                                    ✅ Нажать "Готов" за всех игроков
-                                    </button>
-                                
-                                <div style="display: flex; gap: 10px; align-items: center; justify-content: center;">
-                                    <button class="control-button primary" id="forceSelectAnswerBtn">
-                                        🎯 Выбрать ответ за всех
-                                    </button>
-                                    <select id="answerSelect" style="padding: 10px; border: 2px solid #393639; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 16px;">
-                                        <option value="0">А</option>
-                                        <option value="1">Б</option>
-                                        <option value="2">В</option>
-                                        <option value="3">Г</option>
-                                    </select>
+                            <!-- Быстрые действия -->
+                            <div class="control-buttons" style="margin-top: 15px;">
+                                <button class="control-button skip" id="skipAnswersBtn">
+                                    <span class="button-icon">⏭️</span>
+                                    <span class="button-text">Пропустить ответы</span>
+                                </button>
+                                <button class="control-button skip" id="skipReadyBtn">
+                                    <span class="button-icon">⏭️</span>
+                                    <span class="button-text">Пропустить готовность</span>
+                                </button>
                             </div>
-
-                                <button class="control-button primary" id="forceConnectBtn">
-                                    🔌 Подключить всех к комнате
-                                    </button>
-                                
-                                <button class="control-button danger" id="forceDisconnectBtn">
-                                    ❌ Отключить всех от комнаты
-                                    </button>
+                            
+                            <!-- Завершение игры -->
+                            <div class="control-buttons" style="margin-top: 20px; border-top: 2px solid #E0E0E0; padding-top: 20px;">
+                                <button class="control-button danger" id="endGameBtn">
+                                    <span class="button-icon">🏁</span>
+                                    <span class="button-text">Завершить игру</span>
+                                </button>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -472,7 +643,8 @@
                 socket.emit('local-host-connect');
                 // Инициализируем обработчики событий socket
                 initSocketEventHandlers();
-            });
+                
+                });
 
             // Обновление списка станций
             socket.on('local-stations-updated', (data) => {
@@ -598,13 +770,13 @@
         
         // Переключение выбора станции
         window.toggleStation = function(stationNumber, isSelected) {
-            console.log(`Переключение станции ${stationNumber}: ${isSelected}`);
+            
             if (isSelected) {
                 selectedStations.add(stationNumber);
             } else {
                 selectedStations.delete(stationNumber);
             }
-            console.log(`Выбранные станции:`, Array.from(selectedStations));
+            
             updateStationsDisplay();
             // Явно обновляем состояние кнопки после изменения выбора
             updateStartButtonState();
@@ -617,7 +789,7 @@
                     selectedStations.add(station.stationNumber);
                 }
             });
-            console.log(`Выбраны все станции:`, Array.from(selectedStations));
+            
             updateStationsDisplay();
             updateStartButtonState();
         }
@@ -625,7 +797,7 @@
         // Снять выбор со всех станций
         function deselectAllStations() {
             selectedStations.clear();
-            console.log('Выбор со всех станций снят');
+            
             updateStationsDisplay();
             updateStartButtonState();
         }
@@ -637,7 +809,7 @@
                 const hasSelectedStations = selectedStations.size > 0;
                 const hasQuiz = selectedQuizId !== null;
                 const shouldEnable = hasSelectedStations && hasQuiz;
-                console.log(`Обновление кнопки запуска: выбранных станций=${selectedStations.size}, квиз=${hasQuiz ? selectedQuizId : 'не выбран'}, должна быть активна=${shouldEnable}`);
+                
                 startBtn.disabled = !shouldEnable;
             }
         }
@@ -888,17 +1060,13 @@
             const roomCodeEl = document.getElementById('currentRoomCode');
             const quizNameEl = document.getElementById('currentQuizName');
             
-            console.log('📋 Показ панели управления, panel:', !!panel, 'currentRoomCode:', currentRoomCode);
-            
             if (panel) {
                 panel.style.display = 'block';
-                console.log('✅ Панель управления показана');
                 
                 // Убеждаемся, что все кнопки активны
                 const buttons = panel.querySelectorAll('button');
                 buttons.forEach(btn => {
                     if (btn.disabled) {
-                        console.log('⚠️ Кнопка была disabled, активируем:', btn.id);
                         btn.disabled = false;
                     }
                 });
@@ -911,36 +1079,67 @@
             }
         }
         
-        // Показать панель управления игроками
-        function showPlayerControlPanel() {
-            const panel = document.getElementById('playerControlPanel');
-            console.log('📋 Показ панели управления игроками, panel:', !!panel, 'currentRoomCode:', currentRoomCode);
-            if (panel && currentRoomCode) {
-                panel.style.display = 'block';
-                console.log('✅ Панель управления игроками показана');
-                
-                // Убеждаемся, что кнопки не disabled
-                const buttons = panel.querySelectorAll('button');
-                buttons.forEach(btn => {
-                    if (btn.disabled) {
-                        console.log('⚠️ Кнопка disabled:', btn.id);
-                        btn.disabled = false;
-                    }
-                });
-            } else {
-                console.warn('⚠️ Панель управления игроками не найдена или комната не создана');
-            }
-        }
-        
-        // Обновление станций
+// Обновление станций
         async function refreshStations() {
             await loadStations();
         }
         
+        // Отправка команды станциям
+        async function sendStationCommand(command, params, stationNumbers) {
+            if (!socket || !socket.connected) {
+                console.warn('⚠️ Socket не подключен, команда не отправлена');
+                return;
+            }
+            
+            try {
+                // Определяем базовый URL
+                const baseUrl = window.location.origin;
+                const apiUrl = `${baseUrl}/api/local/stations/command`;
+                
+                // Отправляем команду через HTTP API
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        stationNumbers: stationNumbers || null, // null = все станции
+                        command: command,
+                        params: params || {}
+                    })
+                });
+                
+                // Проверяем статус ответа
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        console.error(`❌ Роут /api/local/stations/command не найден (404). Локальный режим может быть недоступен.`);
+                        console.error(`   Проверьте, что сервер запущен с поддержкой локального режима.`);
+                        return;
+                    }
+                    const errorText = await response.text();
+                    console.error(`❌ Ошибка HTTP ${response.status} при отправке команды "${command}":`, errorText);
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Команда успешно отправлена
+                } else {
+                    console.error(`❌ Ошибка отправки команды "${command}":`, data.error);
+                }
+            } catch (error) {
+                console.error(`❌ Ошибка отправки команды "${command}":`, error);
+                if (error.message && error.message.includes('JSON')) {
+                    console.error(`   Возможно, сервер вернул HTML вместо JSON. Проверьте, что роут зарегистрирован.`);
+                }
+            }
+        }
         
         // Пропустить ожидание ответов
         function skipAnswers() {
-            console.log('⚡ Функция skipAnswers вызвана, currentRoomCode:', currentRoomCode);
+            
             if (!currentRoomCode) {
                 alert('Комната не создана. Сначала запустите квиз.');
                 return;
@@ -949,14 +1148,21 @@
                 alert('Не подключен к серверу');
                 return;
             }
-            console.log('📤 Отправка команды skip-answers для комнаты:', currentRoomCode);
             socket.emit('local-game-control', { action: 'skip-answers', roomCode: currentRoomCode });
-            console.log('✅ Команда отправлена');
+            
+            // Также отправляем команду на выбранные станции
+            const selectedStationsList = Array.from(selectedStations);
+            if (selectedStationsList.length > 0) {
+                sendStationCommand('execute-action', {
+                    action: 'skipAnswers'
+                }, selectedStationsList);
+            }
+            
         }
         
         // Пропустить ожидание готовности
         function skipReady() {
-            console.log('⚡ Функция skipReady вызвана, currentRoomCode:', currentRoomCode);
+            
             if (!currentRoomCode) {
                 alert('Комната не создана. Сначала запустите квиз.');
                 return;
@@ -965,14 +1171,21 @@
                 alert('Не подключен к серверу');
                 return;
             }
-            console.log('📤 Отправка команды skip-ready для комнаты:', currentRoomCode);
             socket.emit('local-game-control', { action: 'skip-ready', roomCode: currentRoomCode });
-            console.log('✅ Команда отправлена');
+            
+            // Также отправляем команду на выбранные станции
+            const selectedStationsList = Array.from(selectedStations);
+            if (selectedStationsList.length > 0) {
+                sendStationCommand('execute-action', {
+                    action: 'skipReady'
+                }, selectedStationsList);
+            }
+            
         }
         
         // Показать результаты
         function showResults() {
-            console.log('⚡ Функция showResults вызвана, currentRoomCode:', currentRoomCode);
+            
             if (!currentRoomCode) {
                 alert('Комната не создана. Сначала запустите квиз.');
                 return;
@@ -981,14 +1194,21 @@
                 alert('Не подключен к серверу');
                 return;
             }
-            console.log('📤 Отправка команды show-results для комнаты:', currentRoomCode);
             socket.emit('local-game-control', { action: 'show-results', roomCode: currentRoomCode });
-            console.log('✅ Команда отправлена');
+            
+            // Также отправляем команду на выбранные станции
+            const selectedStationsList = Array.from(selectedStations);
+            if (selectedStationsList.length > 0) {
+                sendStationCommand('execute-action', {
+                    action: 'showResults'
+                }, selectedStationsList);
+            }
+            
         }
         
         // Следующий вопрос
         function nextQuestion() {
-            console.log('⚡ Функция nextQuestion вызвана, currentRoomCode:', currentRoomCode);
+            
             if (!currentRoomCode) {
                 alert('Комната не создана. Сначала запустите квиз.');
                 return;
@@ -997,14 +1217,21 @@
                 alert('Не подключен к серверу');
                 return;
             }
-            console.log('📤 Отправка команды next-question для комнаты:', currentRoomCode);
             socket.emit('local-game-control', { action: 'next-question', roomCode: currentRoomCode });
-            console.log('✅ Команда отправлена');
+            
+            // Также отправляем команду на выбранные станции
+            const selectedStationsList = Array.from(selectedStations);
+            if (selectedStationsList.length > 0) {
+                sendStationCommand('execute-action', {
+                    action: 'nextQuestion'
+                }, selectedStationsList);
+            }
+            
         }
         
         // Завершить игру
         function endGame() {
-            console.log('⚡ Функция endGame вызвана, currentRoomCode:', currentRoomCode);
+            
             if (!currentRoomCode) {
                 alert('Комната не создана. Сначала запустите квиз.');
                 return;
@@ -1014,9 +1241,13 @@
                 return;
             }
             if (confirm('Вы уверены, что хотите завершить игру?')) {
-                console.log('📤 Отправка команды end-game для комнаты:', currentRoomCode);
                 socket.emit('local-game-control', { action: 'end-game', roomCode: currentRoomCode });
-                console.log('✅ Команда отправлена');
+                
+                // Также отправляем команду на выбранные станции - вернуть в режим ожидания
+                const selectedStationsList = Array.from(selectedStations);
+                if (selectedStationsList.length > 0) {
+                    sendStationCommand('navigate', { page: 'waiting' }, selectedStationsList);
+                }
             }
         }
         
@@ -1058,114 +1289,6 @@
             }
         }
         
-        // Нажать "Готов" за всех игроков
-        function forcePlayerReady() {
-            console.log('⚡ Функция forcePlayerReady вызвана');
-            if (!socket || !socket.connected) {
-                alert('Не подключен к серверу');
-                return;
-            }
-            
-            if (!currentRoomCode) {
-                alert('Комната не создана. Сначала запустите квиз.');
-                return;
-            }
-            
-            const selectedStationsList = Array.from(selectedStations);
-            if (selectedStationsList.length === 0) {
-                alert('Выберите станции');
-                return;
-            }
-            
-            console.log('📤 Отправка команды player-action (ready) для станций:', selectedStationsList, 'комната:', currentRoomCode);
-            socket.emit('local-player-action', {
-                stationNumbers: selectedStationsList,
-                action: 'ready',
-                roomCode: currentRoomCode
-            });
-            
-            console.log('✅ Команда отправлена');
-        }
-        
-        // Выбрать ответ за всех игроков
-        function forceSelectAnswer() {
-            if (!socket || !socket.connected) {
-                alert('Не подключен к серверу');
-                return;
-            }
-            
-            const selectedStationsList = Array.from(selectedStations);
-            if (selectedStationsList.length === 0) {
-                alert('Выберите станции');
-                return;
-            }
-            
-            const answerSelect = document.getElementById('answerSelect');
-            const answer = parseInt(answerSelect.value);
-            
-            socket.emit('local-player-action', {
-                stationNumbers: selectedStationsList,
-                action: 'select-answer',
-                params: { answer: answer },
-                roomCode: currentRoomCode
-            });
-            
-            console.log(`Выбор ответа ${answer} за всех игроков на выбранных станциях`);
-        }
-        
-        // Подключить всех игроков к комнате
-        function forceConnect() {
-            if (!socket || !socket.connected) {
-                alert('Не подключен к серверу');
-                return;
-            }
-            
-            if (!currentRoomCode) {
-                alert('Сначала создайте комнату');
-                return;
-            }
-            
-            const selectedStationsList = Array.from(selectedStations);
-            if (selectedStationsList.length === 0) {
-                alert('Выберите станции');
-                return;
-            }
-            
-            socket.emit('local-player-action', {
-                stationNumbers: selectedStationsList,
-                action: 'connect',
-                params: {
-                    roomCode: currentRoomCode
-                }
-            });
-            
-            console.log('Подключение всех игроков к комнате');
-        }
-        
-        // Отключить всех игроков от комнаты
-        function forceDisconnect() {
-            if (!socket || !socket.connected) {
-                alert('Не подключен к серверу');
-                return;
-            }
-            
-            const selectedStationsList = Array.from(selectedStations);
-            if (selectedStationsList.length === 0) {
-                alert('Выберите станции');
-                return;
-            }
-            
-            if (confirm('Вы уверены, что хотите отключить всех игроков от комнаты?')) {
-                socket.emit('local-player-action', {
-                    stationNumbers: selectedStationsList,
-                    action: 'disconnect',
-                    roomCode: currentRoomCode
-                });
-                
-                console.log('Отключение всех игроков от комнаты');
-            }
-        }
-        
         // Завершить квиз на станциях (вернуть их на начальную страницу local-station.html)
         function endQuizOnStations() {
             if (!socket || !socket.connected) {
@@ -1189,7 +1312,7 @@
         
         // Инициализация обработчиков кнопок (не зависит от socket)
         function initButtonHandlers() {
-            console.log('🔧 Инициализация обработчиков кнопок...');
+            
             
             // Обработчики кнопок
             const startBtn = document.getElementById('startQuizBtn');
@@ -1201,25 +1324,17 @@
             const endGameBtn = document.getElementById('endGameBtn');
             const endGameOnStationsBtn = document.getElementById('endGameOnStationsBtn');
             
-            console.log('Кнопки найдены:', {
-                startBtn: !!startBtn,
-                refreshBtn: !!refreshBtn,
-                skipAnswersBtn: !!skipAnswersBtn,
-                skipReadyBtn: !!skipReadyBtn,
-                showResultsBtn: !!showResultsBtn,
-                nextQuestionBtn: !!nextQuestionBtn,
-                endGameBtn: !!endGameBtn
-            });
+            
             
             if (startBtn) {
                 startBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Запустить квиз"');
+                    
                     startQuiz();
                 });
             }
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Обновить станции"');
+                    
                     refreshStations();
                 });
             }
@@ -1227,7 +1342,7 @@
             const endQuizOnStationsBtn = document.getElementById('endQuizOnStationsBtn');
             if (endQuizOnStationsBtn) {
                 endQuizOnStationsBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Завершить квиз на станциях"');
+                    
                     endQuizOnStations();
                 });
             }
@@ -1238,101 +1353,55 @@
             const addStationBtn = document.getElementById('addStationBtn');
             if (selectAllBtn) {
                 selectAllBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Выбрать все"');
+                    
                     selectAllStations();
                 });
             }
             if (deselectAllBtn) {
                 deselectAllBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Снять выбор"');
+                    
                     deselectAllStations();
                 });
             }
             if (addStationBtn) {
                 addStationBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Добавить станцию"');
+                    
                     showAddStationForm();
                 });
             }
             
             if (skipAnswersBtn) {
                 skipAnswersBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Пропустить ожидание ответов"');
+                    
                     skipAnswers();
                 });
             }
             if (skipReadyBtn) {
                 skipReadyBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Пропустить ожидание готовности"');
+                    
                     skipReady();
                 });
             }
             if (showResultsBtn) {
                 showResultsBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Показать результаты"');
+                    
                     showResults();
                 });
             }
             if (nextQuestionBtn) {
                 nextQuestionBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Следующий вопрос"');
+                    
                     nextQuestion();
                 });
             }
             if (endGameBtn) {
                 endGameBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Завершить игру"');
+                    
                     endGame();
                 });
             }
             
-            // Новые обработчики для управления игроками
-            const forcePlayerReadyBtn = document.getElementById('forcePlayerReadyBtn');
-            const forceSelectAnswerBtn = document.getElementById('forceSelectAnswerBtn');
-            const forceConnectBtn = document.getElementById('forceConnectBtn');
-            const forceDisconnectBtn = document.getElementById('forceDisconnectBtn');
-            const endQuizAndResetBtn = document.getElementById('endQuizAndResetBtn');
             
-            console.log('Кнопки управления игроками найдены:', {
-                forcePlayerReadyBtn: !!forcePlayerReadyBtn,
-                forceSelectAnswerBtn: !!forceSelectAnswerBtn,
-                forceConnectBtn: !!forceConnectBtn,
-                forceDisconnectBtn: !!forceDisconnectBtn,
-                endQuizAndResetBtn: !!endQuizAndResetBtn
-            });
-            
-            if (forcePlayerReadyBtn) {
-                forcePlayerReadyBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Нажать Готов за всех"');
-                    forcePlayerReady();
-                });
-            }
-            if (forceSelectAnswerBtn) {
-                forceSelectAnswerBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Выбрать ответ за всех"');
-                    forceSelectAnswer();
-                });
-            }
-            if (forceConnectBtn) {
-                forceConnectBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Подключить всех"');
-                    forceConnect();
-                });
-            }
-            if (forceDisconnectBtn) {
-                forceDisconnectBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Отключить всех"');
-                    forceDisconnect();
-                });
-            }
-            if (endQuizAndResetBtn) {
-                endQuizAndResetBtn.addEventListener('click', () => {
-                    console.log('🖱️ Клик по кнопке "Завершить квиз и начать новый"');
-                    endQuizAndReset();
-                });
-            }
-            
-            console.log('✅ Обработчики кнопок инициализированы');
         }
         
         // Инициализация обработчиков событий socket

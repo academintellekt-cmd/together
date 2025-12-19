@@ -104,6 +104,9 @@
             pageData: {},
             customState: {}
         };
+        let pollingInterval = null;
+        let isPollingActive = false;
+        const POLLING_INTERVAL = 2000; // 2 секунды между запросами
 
         // Определение IP адреса станции
         async function detectStationIP() {
@@ -304,9 +307,117 @@
             await registerStation();
         };
 
+        // HTTP Polling для получения команд (fallback если Socket.io недоступен)
+        async function pollForCommands() {
+            if (!stationNumber || isPollingActive) return;
+            
+            try {
+                isPollingActive = true;
+                const response = await fetch(`/api/local/stations/${stationNumber}/commands`);
+                
+                if (!response.ok) {
+                    console.warn('⚠️ Ошибка polling команд:', response.status);
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.commands && data.commands.length > 0) {
+                    console.log(`📥 Получено ${data.commands.length} команд через HTTP polling`);
+                    
+                    // Обрабатываем каждую команду
+                    data.commands.forEach(cmd => {
+                        handleCommand(cmd);
+                    });
+                }
+                
+                // Обновляем состояние если оно изменилось
+                if (data.state) {
+                    stationState = { ...stationState, ...data.state };
+                    updateUIFromState();
+                }
+            } catch (error) {
+                console.error('❌ Ошибка HTTP polling:', error);
+            } finally {
+                isPollingActive = false;
+            }
+        }
+
+        // Запуск polling как fallback
+        function startPolling() {
+            if (pollingInterval) return;
+            
+            // Polling каждые 2 секунды
+            pollingInterval = setInterval(() => {
+                // Polling только если Socket.io не подключен или недавно был disconnect
+                if (!socket || !socket.connected) {
+                    pollForCommands();
+                }
+            }, POLLING_INTERVAL);
+            
+            console.log('🔄 HTTP polling запущен');
+        }
+
+        // Остановка polling
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+                console.log('⏹️ HTTP polling остановлен');
+            }
+        }
+
+        // Обработка команды (универсальная функция)
+        function handleCommand(cmdData) {
+            const { command, params } = cmdData;
+            
+            if (!command) {
+                console.warn('⚠️ Команда не указана:', cmdData);
+                return;
+            }
+
+            try {
+                switch(command) {
+                    case 'navigate':
+                        handleNavigateCommand(params);
+                        break;
+                    case 'update-state':
+                        handleUpdateStateCommand(params);
+                        break;
+                    case 'update-content':
+                        handleUpdateContentCommand(params);
+                        break;
+                    case 'execute-action':
+                        handleExecuteActionCommand(params);
+                        break;
+                    case 'custom':
+                        handleCustomCommand(params);
+                        break;
+                    case 'update-display':
+                        handleUpdateDisplayCommand(params);
+                        break;
+                    default:
+                        console.warn(`⚠️ Неизвестная команда: ${command}`);
+                }
+                
+                // Отправляем подтверждение получения команды
+                sendStationStatus('command-received', { command, timestamp: cmdData.timestamp });
+            } catch (error) {
+                console.error(`❌ Ошибка выполнения команды ${command}:`, error);
+                sendStationStatus('command-error', { command, error: error.message });
+            }
+        }
+
         // Подключение через Socket.io
         function connectSocket() {
-            socket = io();
+            // Настраиваем Socket.io с автоматическим переподключением
+            socket = io({
+                reconnection: true,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                reconnectionAttempts: Infinity,
+                timeout: 20000
+            });
             
             socket.on('connect', () => {
                 console.log('✅ Socket.io подключен, socket.id:', socket.id);
@@ -326,12 +437,15 @@
                     stationNumber: stationNumber
                 });
                 
-                // Отправляем начальный статус
+                    // Отправляем начальный статус
                 setTimeout(() => {
                     sendStationStatus('connected', {
                         currentPage: stationState.currentPage
                     });
                 }, 500);
+
+                // Запускаем polling как fallback (но приоритет у Socket.io)
+                startPolling();
             });
             
             // Подтверждение подключения от сервера
@@ -361,14 +475,19 @@
 
             // ========== ОБРАТНАЯ СОВМЕСТИМОСТЬ: Старые команды ==========
             
-            // Получение команды открыть квиз
+            // Получение команды открыть квиз (старое событие, для обратной совместимости)
             socket.on('local-station-open-quiz', (data) => {
-                console.log('Получена команда открыть квиз:', data);
+                console.log('📥 Получена команда открыть квиз (старое событие):', data);
                 const { roomCode, quizId } = data;
                 
-                if (roomCode && quizId) {
+                if (roomCode) {
                     // Автоматически открываем страницу игрока
-                    window.location.href = `/player.html?room=${roomCode}&station=${stationNumber}&auto=true`;
+                    const url = `/player.html?room=${roomCode}&station=${stationNumber}&auto=true`;
+                    const finalUrl = quizId ? `${url}&quiz=${quizId}` : url;
+                    console.log(`🧭 Переход на страницу игрока: ${finalUrl}`);
+                    window.location.href = finalUrl;
+                } else {
+                    console.warn('⚠️ roomCode не указан в команде local-station-open-quiz');
                 }
             });
 
@@ -389,48 +508,12 @@
             // ========== УНИВЕРСАЛЬНАЯ СИСТЕМА КОМАНД ==========
             
             /**
-             * Обработчик универсальных команд от сервера
+             * Обработчик универсальных команд от сервера через Socket.io
              * Поддерживает команды: navigate, update-state, update-content, execute-action, custom
              */
             socket.on('local-station-command', (data) => {
-                console.log('📥 Получена универсальная команда:', data);
-                const { command, params, timestamp } = data;
-                
-                if (!command) {
-                    console.warn('⚠️ Команда не указана');
-                    return;
-                }
-
-                try {
-                    switch(command) {
-                        case 'navigate':
-                            handleNavigateCommand(params);
-                            break;
-                        case 'update-state':
-                            handleUpdateStateCommand(params);
-                            break;
-                        case 'update-content':
-                            handleUpdateContentCommand(params);
-                            break;
-                        case 'execute-action':
-                            handleExecuteActionCommand(params);
-                            break;
-                        case 'custom':
-                            handleCustomCommand(params);
-                            break;
-                        case 'update-display':
-                            handleUpdateDisplayCommand(params);
-                            break;
-                        default:
-                            console.warn(`⚠️ Неизвестная команда: ${command}`);
-                    }
-                    
-                    // Отправляем подтверждение получения команды
-                    sendStationStatus('command-received', { command, timestamp });
-                } catch (error) {
-                    console.error(`❌ Ошибка выполнения команды ${command}:`, error);
-                    sendStationStatus('command-error', { command, error: error.message });
-                }
+                console.log('📥 Получена универсальная команда через Socket.io:', data);
+                handleCommand(data);
             });
 
             /**
@@ -450,21 +533,24 @@
 
                 if (params.url) {
                     // Если указан URL, переходим по нему
+                    console.log(`🧭 Переход по URL: ${params.url}`);
                     window.location.href = params.url;
                 } else if (params.page === 'quiz' && params.roomCode) {
                     // Открываем квиз
                     const url = `/player.html?room=${params.roomCode}&station=${stationNumber}&auto=true`;
-                    if (params.quizId) {
-                        window.location.href = `${url}&quiz=${params.quizId}`;
-                    } else {
-                        window.location.href = url;
-                    }
+                    const finalUrl = params.quizId ? `${url}&quiz=${params.quizId}` : url;
+                    console.log(`🧭 Переход на страницу квиза: ${finalUrl}`);
+                    window.location.href = finalUrl;
                 } else if (params.page === 'waiting') {
                     // Возвращаемся на страницу ожидания
+                    console.log('🧭 Возврат на страницу ожидания');
                     window.location.href = '/local-station.html';
                 } else if (params.page === 'custom' && params.customUrl) {
                     // Кастомная страница
+                    console.log(`🧭 Переход на кастомную страницу: ${params.customUrl}`);
                     window.location.href = params.customUrl;
+                } else {
+                    console.warn('⚠️ Неизвестные параметры навигации:', params);
                 }
             }
 
@@ -566,6 +652,21 @@
                     case 'showTimer':
                         // Логика показа таймера
                         console.log('⏱️ Показать таймер:', params.data);
+                        break;
+                    case 'skipAnswers':
+                        // Пропустить ожидание ответов
+                        console.log('⏭️ Пропуск ожидания ответов');
+                        // Команда обрабатывается на странице игрока
+                        break;
+                    case 'skipReady':
+                        // Пропустить ожидание готовности
+                        console.log('⏭️ Пропуск ожидания готовности');
+                        // Команда обрабатывается на странице игрока
+                        break;
+                    case 'nextQuestion':
+                        // Следующий вопрос
+                        console.log('➡️ Следующий вопрос');
+                        // Команда обрабатывается на странице игрока
                         break;
                     case 'refresh':
                         // Обновить страницу
@@ -702,8 +803,46 @@
                 });
             }
 
-            socket.on('disconnect', () => {
-                console.log('Socket.io отключен');
+            socket.on('disconnect', (reason) => {
+                console.log(`🔌 Socket.io отключен: ${reason}`);
+                
+                // Если отключились не по своей инициативе, активно используем polling
+                if (reason === 'io server disconnect' || reason === 'transport close') {
+                    console.log('🔄 Активируем HTTP polling для получения команд');
+                    // Увеличиваем частоту polling при потере Socket.io
+                    if (pollingInterval) {
+                        clearInterval(pollingInterval);
+                    }
+                    pollingInterval = setInterval(pollForCommands, 1000); // Каждую секунду при потере соединения
+                }
+            });
+
+            socket.on('reconnect', (attemptNumber) => {
+                console.log(`✅ Socket.io переподключен после ${attemptNumber} попыток`);
+                
+                // Возвращаемся к обычной частоте polling
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                }
+                startPolling();
+                
+                // Отправляем статус о переподключении
+                sendStationStatus('reconnected', {
+                    currentPage: stationState.currentPage,
+                    attempts: attemptNumber
+                });
+            });
+
+            socket.on('reconnect_attempt', (attemptNumber) => {
+                console.log(`🔄 Попытка переподключения Socket.io: ${attemptNumber}`);
+            });
+
+            socket.on('reconnect_error', (error) => {
+                console.warn('⚠️ Ошибка переподключения Socket.io:', error);
+            });
+
+            socket.on('reconnect_failed', () => {
+                console.error('❌ Не удалось переподключиться к Socket.io, используем только HTTP polling');
             });
         }
 
@@ -731,12 +870,23 @@
 
             if (stationIP && stationNumber) {
                 await registerStation();
+                
+                // Запускаем polling сразу после регистрации (до подключения Socket.io)
+                startPolling();
             } else {
                 document.getElementById('stationStatus').textContent = 'Ошибка определения станции';
                 document.getElementById('errorMessage').textContent = 'Не удалось определить IP адрес станции. Убедитесь, что станция находится в сети 192.168.1.x';
                 document.getElementById('errorMessage').style.display = 'block';
             }
         }
+
+        // Очистка при закрытии страницы
+        window.addEventListener('beforeunload', () => {
+            stopPolling();
+            if (socket) {
+                socket.disconnect();
+            }
+        });
 
         // Запуск при загрузке страницы
         function waitForSocketIO() {
