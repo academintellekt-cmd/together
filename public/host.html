@@ -25,7 +25,6 @@
         };
     </script>
     
-    <script src="/socket.io/socket.io.js"></script>
     <!-- Layout Manager -->
     <script src="/scripts/layout.js"></script>
     <script src="/scripts/frame-common.js"></script>
@@ -728,71 +727,90 @@
     </footer>
 
     <script>
-        // Проверка, что страница открыта через сервер
+        // Обработка ошибок для отладки
+        window.addEventListener('error', function(e) {
+            console.error('Ошибка на странице:', e.error, e.message, e.filename, e.lineno);
+        });
+        
+        // Проверка, что страница открыта через сервер (выполняется сразу)
         if (window.location.protocol === 'file:') {
             document.body.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: white;">
-                    <h1 style="font-size: 48px; margin-bottom: 20px;">⚠️ Ошибка</h1>
-                    <p style="font-size: 24px; margin-bottom: 30px;">
+                <div style="text-align: center; padding: 40px; color: #383638; background: #F2F2F2; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <h1 style="font-size: 48px; margin-bottom: 20px; color: #ff7664;">⚠️ Ошибка</h1>
+                    <p style="font-size: 24px; margin-bottom: 30px; color: #383638;">
                         Страница открыта неправильно!
                     </p>
-                    <p style="font-size: 18px; margin-bottom: 30px;">
+                    <p style="font-size: 18px; margin-bottom: 30px; color: #383638;">
                         Откройте страницу через сервер:
                     </p>
                     <a href="http://localhost:3000/host.html" 
-                       style="display: inline-block; background: white; color: #667eea; 
+                       style="display: inline-block; background: #00C159; color: white; 
                               padding: 15px 30px; border-radius: 10px; text-decoration: none; 
                               font-size: 20px; font-weight: bold; margin-top: 20px;">
                         http://localhost:3000/host.html
                     </a>
-                    <p style="font-size: 16px; margin-top: 30px; opacity: 0.8;">
+                    <p style="font-size: 16px; margin-top: 30px; opacity: 0.8; color: #383638;">
                         Убедитесь, что сервер запущен: <code>node server.js</code>
                     </p>
                 </div>
             `;
             throw new Error('Страница должна быть открыта через http://localhost:3000/');
         }
-
-        // Ожидание загрузки socket.io
+        
+        // Убеждаемся, что DOM загружен перед выполнением кода
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initHostPage);
+        } else {
+            // DOM уже загружен
+            initHostPage();
+        }
+        
+        function initHostPage() {
+        // Ожидание загрузки socket.io с улучшенной обработкой ошибок
         function waitForSocketIO(callback, maxAttempts = 50) {
             let attempts = 0;
             const checkInterval = setInterval(() => {
                 attempts++;
                 if (typeof io !== 'undefined') {
                     clearInterval(checkInterval);
-                    callback();
+                    console.log('✅ Socket.io загружен, инициализация приложения...');
+                    try {
+                        callback();
+                    } catch (error) {
+                        console.error('❌ Ошибка при инициализации приложения:', error);
+                        showError('Ошибка инициализации: ' + error.message);
+                    }
                 } else if (attempts >= maxAttempts) {
                     clearInterval(checkInterval);
-                    console.error('Socket.io не загружен за 5 секунд!');
-                    document.body.innerHTML = `
-                        <div style="text-align: center; padding: 40px; color: white;">
-                            <h1 style="font-size: 48px; margin-bottom: 20px;">❌ Ошибка загрузки</h1>
-                            <p style="font-size: 24px; margin-bottom: 30px;">
-                                Socket.io не загружен
-                            </p>
-                            <p style="font-size: 18px; margin-bottom: 30px;">
-                                Убедитесь, что сервер запущен и откройте:
-                            </p>
-                            <a href="http://localhost:3000/host.html" 
-                               style="display: inline-block; background: white; color: #667eea; 
-                                      padding: 15px 30px; border-radius: 10px; text-decoration: none; 
-                                      font-size: 20px; font-weight: bold; margin-top: 20px;">
-                                http://localhost:3000/host.html
-                            </a>
-                            <p style="font-size: 16px; margin-top: 30px; opacity: 0.8;">
-                                Запустите сервер: <code>node server.js</code>
-                            </p>
-                        </div>
-                    `;
+                    console.error('❌ Socket.io не загружен за 5 секунд!');
+                    showError('Socket.io не загружен. Проверьте подключение к серверу.');
                 }
             }, 100);
         }
+        
+        // Функция для отображения ошибки без полной замены body
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'socket-error';
+            errorDiv.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(56, 54, 56, 0.95); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; padding: 40px;';
+            errorDiv.innerHTML = `
+                <h1 style="font-size: 48px; margin-bottom: 20px; color: #ff7664;">❌ Ошибка загрузки</h1>
+                <p style="font-size: 24px; margin-bottom: 30px;">${message}</p>
+                <p style="font-size: 18px; margin-bottom: 30px;">Убедитесь, что сервер запущен и откройте:</p>
+                <a href="http://localhost:3000/host.html" 
+                   style="display: inline-block; background: #00C159; color: white; 
+                          padding: 15px 30px; border-radius: 10px; text-decoration: none; 
+                          font-size: 20px; font-weight: bold; margin-top: 20px;">
+                    http://localhost:3000/host.html
+                </a>
+                <p style="font-size: 16px; margin-top: 30px; opacity: 0.8;">
+                    Запустите сервер: <code>node server.js</code>
+                </p>
+            `;
+            document.body.appendChild(errorDiv);
+        }
 
-        // Инициализация после загрузки socket.io
-        waitForSocketIO(() => {
-            initApp();
-        });
-
+        // Объявляем переменные ДО вызова initApp()
         let socket = null;
         let roomCode = null;
         let currentTimer = null;
@@ -802,6 +820,23 @@
         
         // Хранилище данных игроков (объявляем ДО initApp, чтобы было доступно в обработчиках)
         let playersData = new Map(); // playerId -> {name, ready}
+
+        // Инициализация после загрузки socket.io
+        // Проверяем, загружен ли socket.io уже (если скрипт загрузился синхронно)
+        if (typeof io !== 'undefined') {
+            console.log('✅ Socket.io уже загружен, инициализация...');
+            try {
+                initApp();
+            } catch (error) {
+                console.error('❌ Ошибка при инициализации:', error);
+                showError('Ошибка инициализации: ' + error.message);
+            }
+        } else {
+            // Ждем загрузки socket.io
+            waitForSocketIO(() => {
+                initApp();
+            });
+        }
         
         // Функция для получения текущего режима игры (fallback если settings-menu.js не загружен)
         function getCurrentMode() {
@@ -2730,6 +2765,7 @@
         } else {
             initJoystick();
         }
+        } // Конец функции initHostPage
     </script>
     
     <!-- Модальное окно для QR-кода -->
@@ -2814,6 +2850,9 @@
     
     <!-- Скрипт для меню настроек -->
     <script src="/scripts/settings-menu.js"></script>
+    
+    <!-- Socket.io загружается в конце для предотвращения блокировки рендеринга -->
+    <script src="/socket.io/socket.io.js"></script>
 </body>
 </html>
 
