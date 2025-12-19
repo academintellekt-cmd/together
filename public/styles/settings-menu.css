@@ -165,7 +165,7 @@
 }
 
 .settings-menu-card {
-    background: #FFFFFF;
+    background: #F2F2F2;
     border: 3px solid #383638;
     border-radius: clamp(12px, 2.5vw, 20px);
     padding: clamp(16px, 3vw, 24px);
@@ -183,39 +183,7 @@
     box-shadow: 
         0 6px 0px rgba(0, 0, 0, 0.2),
         0 8px 16px rgba(0, 0, 0, 0.15);
-}
-
-.settings-menu-card:first-child {
-    background: #f2f2f2;
-    box-shadow: 
-        0 6px 0px rgba(0, 0, 0, 0.15),
-        0 8px 16px rgba(0, 0, 0, 0.1);
-}
-
-.settings-menu-card:first-child:hover {
     background: rgba(242, 242, 242, 0.9);
-}
-
-.settings-menu-card:nth-child(2) {
-    background: #d6fbbf;
-    box-shadow: 
-        0 6px 0px rgba(214, 251, 191, 0.4),
-        0 8px 16px rgba(214, 251, 191, 0.3);
-}
-
-.settings-menu-card:nth-child(2):hover {
-    background: rgba(214, 251, 191, 0.9);
-}
-
-.settings-menu-card:nth-child(3) {
-    background: #abf67c;
-    box-shadow: 
-        0 6px 0px rgba(171, 246, 124, 0.4),
-        0 8px 16px rgba(171, 246, 124, 0.3);
-}
-
-.settings-menu-card:nth-child(3):hover {
-    background: rgba(171, 246, 124, 0.9);
 }
 
 .settings-menu-card-icon {
