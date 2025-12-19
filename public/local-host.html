@@ -727,30 +727,73 @@
                     card.appendChild(ipDiv);
                 }
                 
+                // Статус джойстика
+                if (isConnected) {
+                    const joystickStatusDiv = document.createElement("div");
+                    joystickStatusDiv.className = "station-status";
+                    joystickStatusDiv.style.cssText = "font-size: 12px; margin-top: 5px; font-weight: 600;";
+                    const joystickStatus = station?.joystick?.status || "not_tested";
+                    let joystickStatusText = "⚠️ Джойстик не проверен";
+                    let joystickStatusColor = "#666";
+                    if (joystickStatus === "ok") {
+                        joystickStatusColor = "#00C159";
+                        joystickStatusText = "✅ Джойстик проверен";
+                        joystickStatusColor = "#00C159";
+                    } else if (joystickStatus === "error") {
+                        joystickStatusText = "❌ Ошибка джойстика";
+                        joystickStatusColor = "#ff7664";
+                    }
+                    joystickStatusDiv.textContent = joystickStatusText;
+                    joystickStatusDiv.style.color = joystickStatusColor;
+                    card.appendChild(joystickStatusDiv);
+                }
+
+                
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'station-actions';
                 
                 if (isConnected) {
-                    const openBtn = document.createElement('button');
-                    openBtn.className = 'station-action-btn';
-                    openBtn.textContent = '🌐 Открыть';
-                    openBtn.title = 'Открыть страницу станции';
-                    openBtn.onclick = () => openStationPage(i);
-                    actionsDiv.appendChild(openBtn);
+                    const joystickSetupBtn = document.createElement("button");
+                    joystickSetupBtn.className = "station-action-btn";
+                    joystickSetupBtn.textContent = "🎮 Настроить";
+                    const stationUrl = station ? `http://${station.ip}:3000/joystick-setup.html?station=${i}` : `http://192.168.1.${20+i}:3000/joystick-setup.html?station=${i}`;
+                    joystickSetupBtn.title = `Открыть настройку джойстика для станции ${i}
+URL: ${stationUrl}`;
+                    joystickSetupBtn.onclick = () => openJoystickSetup(i);
+                    actionsDiv.appendChild(joystickSetupBtn);
                     
-                    const reloadBtn = document.createElement('button');
-                    reloadBtn.className = 'station-action-btn';
-                    reloadBtn.textContent = '🔄 Перезагрузить';
-                    reloadBtn.title = 'Перезагрузить страницу станции';
-                    reloadBtn.onclick = () => reloadStationPage(i);
-                    actionsDiv.appendChild(reloadBtn);
+                    // Добавляем прямую ссылку для ручного открытия
+                    const directLink = document.createElement("a");
+                    directLink.href = stationUrl;
+                    directLink.target = "_blank";
+                    directLink.rel = "noopener noreferrer"; // Безопасность
+                    directLink.className = "station-action-btn";
+                    directLink.style.cssText = "text-decoration: none; display: inline-block; cursor: pointer;";
+                    directLink.textContent = "🔗 Прямая ссылка";
+                    directLink.title = `Открыть напрямую: ${stationUrl}
+
+Правый клик -> "Открыть в новой вкладке" если не работает`;
                     
-                    const closeBtn = document.createElement('button');
-                    closeBtn.className = 'station-action-btn danger';
-                    closeBtn.textContent = '❌ Закрыть';
-                    closeBtn.title = 'Закрыть страницу станции';
-                    closeBtn.onclick = () => closeStationPage(i);
-                    actionsDiv.appendChild(closeBtn);
+                    // Добавляем обработчик для отладки
+                    directLink.addEventListener('click', function(e) {
+                        console.log(`🔗 Клик по прямой ссылке для станции ${i}`);
+                        console.log(`📍 URL: ${stationUrl}`);
+                        console.log(`🌐 Текущий хост: ${window.location.hostname}`);
+                        console.log(`🎯 Целевой URL: ${stationUrl}`);
+                        
+                        // Если ссылка не открывается, показываем предупреждение
+                        setTimeout(() => {
+                            console.log("✅ Ссылка должна была открыться");
+                        }, 500);
+                    });
+                    
+                    // Также добавляем обработчик правого клика
+                    directLink.addEventListener('contextmenu', function(e) {
+                        console.log(`🖱️ Правый клик по ссылке для станции ${i}`);
+                        console.log(`📍 URL для копирования: ${stationUrl}`);
+                    });
+                    
+                    actionsDiv.appendChild(directLink);
                 } else {
                     const disabledBtn = document.createElement('button');
                     disabledBtn.className = 'station-action-btn';
@@ -813,6 +856,124 @@
                 startBtn.disabled = !shouldEnable;
             }
         }
+        
+        // Открыть настройку джойстика для станции
+        window.openJoystickSetup = function(stationNumber) {
+            const station = stations.find(s => s.stationNumber === stationNumber);
+            if (!station || !station.ip) {
+                alert("Станция не подключена или IP не определен");
+                return;
+            }
+            
+            const url = `http://${station.ip}:3000/joystick-setup.html?station=${stationNumber}`;
+            console.log(`🔗 Открытие настройки джойстика для станции ${stationNumber}`);
+            console.log(`📍 URL: ${url}`);
+            console.log(`🌐 Текущий хост: ${window.location.hostname}`);
+            console.log(`🎯 Целевой хост: ${station.ip}`);
+            
+            // Сначала проверяем доступность URL
+            fetch(url, { method: 'HEAD', mode: 'no-cors' })
+                .then(() => {
+                    console.log(`✅ URL доступен: ${url}`);
+                })
+                .catch((error) => {
+                    console.warn(`⚠️ Не удалось проверить доступность URL: ${error.message}`);
+                });
+            
+            // Пробуем открыть в новом окне (синхронно, чтобы не блокировалось)
+            try {
+                const newWindow = window.open(url, `joystick-station-${stationNumber}`, "width=1600,height=900,menubar=no,toolbar=yes,location=yes,status=yes,resizable=yes,scrollbars=yes");
+                
+                console.log(`🪟 Результат window.open:`, newWindow);
+                
+                // Проверяем результат через небольшую задержку
+                setTimeout(() => {
+                    if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
+                        console.warn("⚠️ Всплывающее окно заблокировано или не открылось");
+                        console.warn(`   newWindow: ${newWindow}`);
+                        console.warn(`   newWindow.closed: ${newWindow ? newWindow.closed : 'N/A'}`);
+                        
+                        // Предлагаем альтернативы
+                        const userChoice = confirm(
+                            `Не удалось открыть страницу настройки джойстика автоматически.
+
+` +
+                            `URL: ${url}
+
+` +
+                            `Возможные причины:
+` +
+                            `- Браузер заблокировал всплывающее окно
+` +
+                            `- Проблема с сетью
+
+` +
+                            `Выберите действие:
+` +
+                            `OK - Открыть в текущей вкладке
+` +
+                            `Отмена - Показать URL для копирования`
+                        );
+                        
+                        if (userChoice) {
+                            console.log(`🔄 Открываем в текущей вкладке: ${url}`);
+                            window.location.href = url;
+                        } else {
+                            // Показываем URL для копирования
+                            const urlToCopy = prompt("Скопируйте этот URL и откройте на станции:", url);
+                            if (urlToCopy && navigator.clipboard) {
+                                navigator.clipboard.writeText(urlToCopy).then(() => {
+                                    alert("✅ URL скопирован в буфер обмена!
+
+Вставьте его в адресную строку браузера на станции.");
+                                }).catch(() => {
+                                    console.log("Не удалось скопировать в буфер обмена");
+                                });
+                            }
+                        }
+                    } else {
+                        console.log(`✅ Окно настройки джойстика открыто для станции ${stationNumber}`);
+                        console.log(`   URL окна: ${newWindow.location.href || 'загрузка...'}`);
+                    }
+                }, 1000);
+            } catch (error) {
+                console.error(`❌ Ошибка при открытии окна: ${error.message}`);
+                alert(`Ошибка при открытии страницы настройки джойстика:
+
+${error.message}
+
+Попробуйте открыть вручную:
+${url}`);
+            }
+        };
+        
+        // Проверить джойстик на станции
+        window.testJoystick = async function(stationNumber) {
+            const station = stations.find(s => s.stationNumber === stationNumber);
+            if (!station || !station.connected) {
+                alert("Станция не подключена");
+                return;
+            }
+            
+            try {
+                // Отправляем команду на проверку джойстика через Socket.io
+                if (socket && socket.connected && station.socketId) {
+                    socket.emit("local-station-command", {
+                        stationNumber: stationNumber,
+                        socketId: station.socketId,
+                        command: "test-joystick",
+                        params: {}
+                    });
+                    console.log(`Отправлена команда проверки джойстика на станцию ${stationNumber}`);
+                    alert("Команда проверки джойстика отправлена на станцию. Результат будет отображен после проверки.");
+                } else {
+                    alert("Не удалось отправить команду. Убедитесь, что станция подключена через Socket.io.");
+                }
+            } catch (error) {
+                console.error("Ошибка проверки джойстика:", error);
+                alert("Ошибка проверки джойстика: " + error.message);
+            }
+        };
         
         // Открыть страницу станции
         window.openStationPage = function(stationNumber) {

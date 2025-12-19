@@ -1582,7 +1582,8 @@ if (localModeAvailable && localModeManager) {
         connected: station.connected,
         socketId: station.socketId,
         state: station.state,
-        lastSeen: station.lastSeen
+        lastSeen: station.lastSeen,
+        joystick: station.joystick || null
       }));
 
       res.json({ 
@@ -1596,6 +1597,258 @@ if (localModeAvailable && localModeManager) {
       res.status(500).json({ 
         success: false, 
         error: 'Ошибка получения статуса: ' + error.message 
+      });
+    }
+  });
+
+  /**
+   * Получение конфигурации джойстика для станции
+   * GET /api/local/stations/:stationNumber/joystick-config
+   */
+  app.get('/api/local/stations/:stationNumber/joystick-config', (req, res) => {
+    try {
+      const stationNumber = parseInt(req.params.stationNumber);
+      const station = localModeManager.getStationByNumber(stationNumber);
+      
+      if (!station) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Станция не найдена' 
+        });
+      }
+
+      // Сначала пробуем получить конфигурацию станции
+      let config = station.joystick?.config;
+      
+      // Если конфигурации нет, загружаем общую
+      if (!config) {
+        try {
+          const configPath = path.join(__dirname, 'data', 'joystick-config.json');
+          if (fs.existsSync(configPath)) {
+            const configData = fs.readFileSync(configPath, 'utf8');
+            config = JSON.parse(configData);
+          }
+        } catch (error) {
+          console.warn('⚠️ Ошибка загрузки общей конфигурации джойстика:', error);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        stationNumber: stationNumber,
+        config: config || { buttons: {}, axes: {} },
+        joystick: station.joystick || null
+      });
+    } catch (error) {
+      console.error('❌ Ошибка получения конфигурации джойстика:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Ошибка получения конфигурации: ' + error.message 
+      });
+    }
+  });
+
+  /**
+   * Сохранение конфигурации джойстика для станции
+   * POST /api/local/stations/:stationNumber/joystick-config
+   */
+  app.post('/api/local/stations/:stationNumber/joystick-config', (req, res) => {
+    try {
+      const stationNumber = parseInt(req.params.stationNumber);
+      const config = req.body.config || req.body;
+      const station = localModeManager.getStationByNumber(stationNumber);
+      
+      if (!station) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Станция не найдена' 
+        });
+      }
+
+      // Сохраняем конфигурацию в станцию
+      localModeManager.updateJoystickConfig(stationNumber, config);
+
+      // Также сохраняем в файл (общая конфигурация)
+      try {
+        const configPath = path.join(__dirname, 'data', 'joystick-config.json');
+        const dataDir = path.dirname(configPath);
+        if (!fs.existsSync(dataDir)) {
+          fs.mkdirSync(dataDir, { recursive: true });
+        }
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
+        console.log(`✅ Конфигурация джойстика сохранена для станции ${stationNumber}`);
+      } catch (error) {
+        console.warn('⚠️ Ошибка сохранения общей конфигурации:', error);
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Конфигурация сохранена',
+        stationNumber: stationNumber
+      });
+    } catch (error) {
+      console.error('❌ Ошибка сохранения конфигурации джойстика:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Ошибка сохранения конфигурации: ' + error.message 
+      });
+    }
+  });
+
+  /**
+   * Получение статуса джойстика для станции
+   * GET /api/local/stations/:stationNumber/joystick-status
+   */
+  app.get('/api/local/stations/:stationNumber/joystick-status', (req, res) => {
+    try {
+      const stationNumber = parseInt(req.params.stationNumber);
+      const joystick = localModeManager.getJoystickConfig(stationNumber);
+      
+      if (!joystick) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Станция не найдена' 
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        stationNumber: stationNumber,
+        joystick: joystick
+      });
+    } catch (error) {
+      console.error('❌ Ошибка получения статуса джойстика:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Ошибка получения статуса: ' + error.message 
+      });
+    }
+  });
+
+  /**
+   * Обновление статуса джойстика для станции
+   * POST /api/local/stations/:stationNumber/joystick-status
+   */
+  app.post('/api/local/stations/:stationNumber/joystick-status', (req, res) => {
+    try {
+      const stationNumber = parseInt(req.params.stationNumber);
+      const { status, error } = req.body;
+      const station = localModeManager.getStationByNumber(stationNumber);
+      
+      if (!station) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Станция не найдена' 
+        });
+      }
+
+      localModeManager.updateJoystickStatus(stationNumber, status, error);
+
+      // Уведомляем хостов об обновлении
+      io.emit('local-stations-updated', {
+        stations: localModeManager.getStations()
+      });
+
+      res.json({ 
+        success: true, 
+        message: 'Статус джойстика обновлен',
+        stationNumber: stationNumber,
+        joystick: station.joystick
+      });
+    } catch (error) {
+      console.error('❌ Ошибка обновления статуса джойстика:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Ошибка обновления статуса: ' + error.message 
+      });
+    }
+  });
+
+  /**
+   * Развертывание файлов на станции
+   * POST /api/local/stations/deploy
+   * Параметры: { username?, password?, stationPath?, stationNumbers? }
+   */
+  app.post('/api/local/stations/deploy', (req, res) => {
+    const { exec } = require('child_process');
+    const { username = 'pi', password = '', stationPath = '/home/pi/together', stationNumbers } = req.body;
+    
+    // Путь к скрипту развертывания
+    const deployScript = path.join(__dirname, 'scripts', 'deploy-to-stations.sh');
+    
+    if (!fs.existsSync(deployScript)) {
+      return res.status(404).json({
+        success: false,
+        error: 'Скрипт развертывания не найден'
+      });
+    }
+
+    // Формируем команду
+    // Всегда передаем все три параметра для корректной работы скрипта
+    let command = `bash "${deployScript}" "${username}" "${password || ''}" "${stationPath || '/home/pi/together'}"`;
+
+    console.log(`🚀 Запуск развертывания на станции...`);
+    console.log(`   Команда: ${command.replace(password, '***')}`);
+
+    // Запускаем скрипт в фоновом режиме
+    const deployProcess = exec(command, {
+      cwd: path.join(__dirname),
+      maxBuffer: 10 * 1024 * 1024 // 10MB
+    }, (error, stdout, stderr) => {
+      if (error) {
+        console.error('❌ Ошибка развертывания:', error);
+      }
+    });
+
+    // Собираем вывод
+    let output = '';
+    let errorOutput = '';
+
+    deployProcess.stdout.on('data', (data) => {
+      output += data.toString();
+      console.log(data.toString());
+    });
+
+    deployProcess.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+      console.error(data.toString());
+    });
+
+    deployProcess.on('close', (code) => {
+      console.log(`📊 Развертывание завершено с кодом: ${code}`);
+    });
+
+    // Отправляем ответ сразу (асинхронное выполнение)
+    res.json({
+      success: true,
+      message: 'Развертывание запущено',
+      pid: deployProcess.pid,
+      note: 'Проверьте логи сервера для отслеживания прогресса'
+    });
+  });
+
+  /**
+   * Получение статуса развертывания (если нужно отслеживать прогресс)
+   * GET /api/local/stations/deploy/status
+   */
+  app.get('/api/local/stations/deploy/status', (req, res) => {
+    // Здесь можно добавить логику отслеживания статуса развертывания
+    // Пока просто возвращаем информацию о станциях
+    try {
+      const stations = localModeManager.getStations();
+      res.json({
+        success: true,
+        stations: stations.map(s => ({
+          stationNumber: s.stationNumber,
+          ip: s.ip,
+          connected: s.connected,
+          lastSeen: s.lastSeen
+        }))
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message
       });
     }
   });

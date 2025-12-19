@@ -676,8 +676,99 @@
                         // Перезагрузить страницу
                         window.location.reload();
                         break;
+                    case 'test-joystick':
+                        // Проверить джойстик
+                        console.log('🎮 Проверка джойстика');
+                        testJoystickOnStation();
+                        break;
                     default:
                         console.warn(`⚠️ Неизвестное действие: ${params.action}`);
+                }
+            }
+            
+            /**
+             * Проверка джойстика на станции
+             */
+            function testJoystickOnStation() {
+                const gamepads = navigator.getGamepads();
+                let gamepad = null;
+                for (let i = 0; i < gamepads.length; i++) {
+                    if (gamepads[i]) {
+                        gamepad = gamepads[i];
+                        break;
+                    }
+                }
+                
+                if (!gamepad) {
+                    // Джойстик не подключен
+                    sendJoystickStatusToServer('error', 'Джойстик не подключен');
+                    return;
+                }
+                
+                // Проверяем наличие конфигурации
+                let hasConfig = false;
+                try {
+                    const saved = localStorage.getItem('joystickConfig');
+                    if (saved) {
+                        const config = JSON.parse(saved);
+                        hasConfig = (config.buttons && Object.keys(config.buttons).length > 0) || 
+                                   (config.axes && Object.keys(config.axes).length > 0);
+                    }
+                } catch (e) {
+                    console.warn('Ошибка проверки конфигурации:', e);
+                }
+                
+                // Проверяем работоспособность джойстика
+                let hasWorkingButtons = false;
+                let hasWorkingAxes = false;
+                
+                // Проверяем кнопки
+                for (let i = 0; i < gamepad.buttons.length; i++) {
+                    if (gamepad.buttons[i] && gamepad.buttons[i].pressed) {
+                        hasWorkingButtons = true;
+                        break;
+                    }
+                }
+                
+                // Проверяем оси
+                if (gamepad.axes && gamepad.axes.length >= 2) {
+                    const axisX = gamepad.axes[0] || 0;
+                    const axisY = gamepad.axes[1] || 0;
+                    if (Math.abs(axisX) > 0.1 || Math.abs(axisY) > 0.1) {
+                        hasWorkingAxes = true;
+                    }
+                }
+                
+                // Отправляем статус
+                if (hasConfig && (hasWorkingButtons || hasWorkingAxes)) {
+                    sendJoystickStatusToServer('ok', null);
+                } else if (!hasConfig) {
+                    sendJoystickStatusToServer('error', 'Конфигурация джойстика не настроена');
+                } else {
+                    sendJoystickStatusToServer('error', 'Джойстик не отвечает');
+                }
+            }
+            
+            /**
+             * Отправка статуса джойстика на сервер
+             */
+            async function sendJoystickStatusToServer(status, error) {
+                if (!stationNumber) return;
+                
+                try {
+                    const response = await fetch(`/api/local/stations/${stationNumber}/joystick-status`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status, error })
+                    });
+                    
+                    if (response.ok) {
+                        console.log(`✅ Статус джойстика отправлен на сервер: ${status}`);
+                    } else {
+                        console.warn('⚠️ Ошибка отправки статуса джойстика');
+                    }
+                } catch (err) {
+                    console.warn('⚠️ Ошибка отправки статуса джойстика:', err);
                 }
             }
 

@@ -30,6 +30,12 @@ class LocalModeManager {
                 connected: false,
                 socketId: null,
                 lastSeen: null,
+                joystick: {
+                    config: null, // Конфигурация джойстика для этой станции
+                    status: 'not_tested', // not_tested, ok, error
+                    lastTested: null,
+                    error: null
+                },
                 state: {
                     currentPage: 'waiting', // waiting, quiz, results, custom
                     pageData: {},
@@ -250,6 +256,41 @@ class LocalModeManager {
     clearQueue(stationNumber) {
         this.commandQueues.set(stationNumber, []);
         console.log(`🗑️ Очередь команд для станции ${stationNumber} очищена`);
+    }
+
+    /**
+     * Обновление конфигурации джойстика для станции
+     */
+    updateJoystickConfig(stationNumber, config) {
+        const station = this.getStationByNumber(stationNumber);
+        if (station) {
+            station.joystick.config = config;
+            station.joystick.lastTested = Date.now();
+            return station;
+        }
+        return null;
+    }
+
+    /**
+     * Обновление статуса джойстика для станции
+     */
+    updateJoystickStatus(stationNumber, status, error = null) {
+        const station = this.getStationByNumber(stationNumber);
+        if (station) {
+            station.joystick.status = status;
+            station.joystick.lastTested = Date.now();
+            station.joystick.error = error;
+            return station;
+        }
+        return null;
+    }
+
+    /**
+     * Получение конфигурации джойстика для станции
+     */
+    getJoystickConfig(stationNumber) {
+        const station = this.getStationByNumber(stationNumber);
+        return station ? station.joystick : null;
     }
 }
 
