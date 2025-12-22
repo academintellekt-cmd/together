@@ -19,7 +19,7 @@
     padding: 0; /* Убираем padding сверху и по бокам, высота определяется только логотипом и фразой */
     /* Адаптивный отступ снизу */
     padding-bottom: clamp(30px, 5vh, 60px); /* Уменьшенный отступ */
-    z-index: var(--z-index-frame-2); /* Используем стандартный z-index из base.css (1000) */
+    z-index: 1003 !important; /* Выше Frame3 (1002), но ниже Frame1 (10000) */
     position: relative; /* Явно указываем relative, чтобы z-index работал */
     border-bottom: none;
     box-shadow: none;
@@ -35,6 +35,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    pointer-events: auto; /* Гарантируем кликабельность содержимого */
 }
 
 /* Контент Frame2 */
@@ -54,6 +55,9 @@
     box-sizing: border-box;
     padding: 0 24px; /* Фиксированные отступы от краев экрана */
     background: transparent !important; /* Полностью прозрачный фон - никаких плашек */
+    pointer-events: auto; /* Гарантируем кликабельность содержимого */
+    isolation: isolate; /* Создаем новый stacking context для правильного z-index */
+    z-index: 1003 !important; /* Выше Frame3 (1002) */
 }
 
 /* Убираем псевдоэлемент для фона - он перекрывает подпись */
@@ -92,8 +96,27 @@
     background: transparent !important;
 }
 
+/* Когда логотип скрыт, полностью убираем его из потока */
+.frame2-logo-section[style*="display: none"] {
+    display: none !important;
+    pointer-events: none !important;
+    z-index: -1 !important; /* Ниже контейнера игроков */
+    position: absolute !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
 .frame2-logo-section * {
     pointer-events: auto;
+}
+
+/* Когда logo-section скрыт, все его дочерние элементы также не должны блокировать клики */
+.frame2-logo-section[style*="display: none"] * {
+    pointer-events: none !important;
 }
 
 .frame2-logo-section .logo {
@@ -204,6 +227,11 @@
     align-items: center;
     width: 100%;
     padding: 15px 0;
+    position: relative;
+    z-index: 1004; /* Выше всего контента, включая Frame3 */
+    pointer-events: auto; /* Гарантируем кликабельность */
+    min-height: 50px; /* Минимальная высота для кликабельности */
+    isolation: isolate; /* Создаем новый stacking context */
 }
 
 /* Иконки игроков в Frame2 */
@@ -227,9 +255,16 @@
     text-transform: uppercase;
     transition: all 0.3s;
     min-width: auto;
+    min-height: 36px; /* Минимальная высота для кликабельности */
+    height: auto; /* Автоматическая высота */
+    line-height: 1.2; /* Правильный line-height для текста */
     text-align: center;
     flex-shrink: 0;
     box-sizing: border-box;
+    position: relative;
+    z-index: 1005; /* Выше контейнера (1004) и всего контента */
+    pointer-events: auto !important; /* Гарантируем кликабельность */
+    isolation: isolate; /* Создаем новый stacking context */
 }
 
 .frame2-player-icon:hover {

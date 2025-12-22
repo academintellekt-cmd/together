@@ -10,13 +10,14 @@
     <link rel="stylesheet" href="/styles/components.css">
     <link rel="stylesheet" href="/styles/quiz-card.css">
     <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
     <script>
         window.pageLayoutConfig = {
             showFrame1: true,
-            showFrame2: false,
+            showFrame2: true,
             showFrame4: true,
             showFrame5: true
         };
@@ -25,171 +26,219 @@
     <script src="/scripts/layout.js"></script>
     <script src="/scripts/frame-common.js"></script>
     <script src="/scripts/frame1.js"></script>
+    <script src="/scripts/frame2.js"></script>
     <style>
+        /* Уменьшаем отступы Frame2 и Frame3 для этой страницы */
+        .frame2 {
+            padding-bottom: clamp(10px, 2vh, 20px) !important;
+        }
+        
+        .frame-3 {
+            padding-top: clamp(20px, 3vh, 40px) !important;
+        }
+        
         .local-host-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .stations-section {
-            margin-bottom: 40px;
+            padding: 0 20px 20px 20px;
         }
         
         .section-title {
             font-family: 'Days One', sans-serif;
             font-size: clamp(24px, 4vw, 32px);
             color: #393639;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            margin-top: 0;
             text-align: center;
         }
         
-        .stations-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-        
-        .station-card {
-            background: #FFFFFF;
-            border: 2px solid #393639;
-            border-radius: 10px;
-            padding: 12px;
-            text-align: center;
-            box-shadow: 0 3px 0px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
-            position: relative;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            min-height: 100px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .station-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.2), 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        .station-card.connected {
-            background: #d6fbbf;
-            border-color: #00C159;
-        }
-        
-        .station-card.disconnected {
-            background: #f2f2f2;
+        /* Стили для станций во Frame2 - три состояния */
+        /* 1. Серая - не подключено */
+        #frame2 .frame2-player-icon.disconnected {
+            background: #999 !important;
+            border-color: #999 !important;
+            color: #FFFFFF !important;
             opacity: 0.6;
-            cursor: not-allowed;
+            cursor: not-allowed !important;
         }
         
-        .station-card.selected {
-            border-color: #4A90E2;
-            border-width: 3px;
-            box-shadow: 0 4px 0px rgba(74, 144, 226, 0.4), 0 6px 12px rgba(74, 144, 226, 0.2);
-            background: #e8f4ff;
+        /* 2. Бледно-зеленая - подключена, но не выбрана */
+        #frame2 .frame2-player-icon.waiting {
+            background: #a8e6cf !important;
+            border-color: #a8e6cf !important;
+            color: #393639 !important;
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            position: relative !important;
+            z-index: 100 !important; /* Высокий z-index для кликабельности */
+            min-height: 36px !important; /* Минимальная высота */
         }
         
-        .station-card.selected.connected {
-            background: #c8f0d8;
+        /* 3. Ярко-зеленая - выбрана */
+        #frame2 .frame2-player-icon.ready {
+            background: #00C159 !important;
+            border-color: #00C159 !important;
+            color: #FFFFFF !important;
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            position: relative !important;
+            z-index: 100 !important; /* Высокий z-index для кликабельности */
+            min-height: 36px !important; /* Минимальная высота */
         }
         
-        /* Кастомный чекбокс */
-        .station-checkbox-wrapper {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 28px;
-            height: 28px;
+        /* Контейнер игроков должен быть кликабельным */
+        #frame2 .frame2-players-container {
+            position: relative !important;
+            z-index: 100 !important;
+            pointer-events: auto !important;
+            min-height: 50px !important;
+            isolation: isolate !important; /* Создаем новый stacking context */
         }
         
-        .station-checkbox {
-            position: absolute;
-            opacity: 0;
-            width: 28px;
-            height: 28px;
-            cursor: pointer;
-            margin: 0;
-            z-index: 1;
+        /* Убеждаемся, что logo-section не перекрывает игроков */
+        #frame2 .frame2-logo-section {
+            pointer-events: none !important;
+            z-index: 1 !important;
         }
         
-        .station-checkbox-custom {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 28px;
-            height: 28px;
-            border: 2px solid #393639;
-            border-radius: 6px;
-            background: #FFFFFF;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* Когда logo-section скрыт, полностью убираем его из потока */
+        #frame2 .frame2-logo-section[style*="display: none"] {
+            display: none !important;
+            pointer-events: none !important;
+            z-index: -1 !important;
+            position: absolute !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            width: 0 !important;
+            min-height: 0 !important;
+            max-height: 0 !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
-        .station-checkbox:checked + .station-checkbox-custom {
-            background: #4A90E2;
-            border-color: #4A90E2;
+        /* Все дочерние элементы скрытого logo-section также не должны блокировать клики */
+        #frame2 .frame2-logo-section[style*="display: none"] * {
+            pointer-events: none !important;
         }
         
-        .station-checkbox:checked + .station-checkbox-custom::after {
-            content: '✓';
-            color: #FFFFFF;
-            font-size: 18px;
-            font-weight: bold;
-            line-height: 1;
+        /* Убеждаемся, что frame2-content не блокирует клики */
+        #frame2 .frame2-content {
+            pointer-events: auto !important;
+            position: relative !important;
+            isolation: isolate !important; /* Создаем новый stacking context */
         }
         
-        .station-checkbox:disabled + .station-checkbox-custom {
-            opacity: 0.4;
-            cursor: not-allowed;
+        /* Убеждаемся, что logo-section не перекрывает контейнер игроков */
+        #frame2 .frame2-content > .frame2-logo-section {
+            z-index: 1 !important;
         }
         
-        .station-checkbox:not(:disabled):hover + .station-checkbox-custom {
-            transform: scale(1.1);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        #frame2 .frame2-content > .frame2-players-container {
+            z-index: 100 !important;
         }
         
-        .station-ip {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            color: #393639;
-            margin-bottom: 8px;
+        /* Убеждаемся, что Frame2 не блокирует клики и находится выше Frame3 */
+        #frame2 {
+            pointer-events: auto !important;
+            z-index: 1003 !important; /* Выше Frame3 (1002) */
+            position: relative !important;
         }
         
-        .station-joystick-status {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 12px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
+        /* Убеждаемся, что Frame2-content находится выше Frame3 */
+        #frame2 .frame2-content {
+            z-index: 1003 !important; /* Выше Frame3 (1002) */
         }
         
-        .station-joystick-status.connected {
-            color: #00C159;
+        /* Убеждаемся, что Frame1 не перекрывает иконки игроков */
+        #frame1 {
+            pointer-events: auto !important;
         }
         
-        .station-joystick-status.disconnected {
-            color: #ff7664;
+        /* Убеждаемся, что Frame1 не блокирует клики по иконкам игроков */
+        #frame1 ~ #frame2 {
+            pointer-events: auto !important;
         }
         
-        .station-joystick-status.not-tested {
-            color: #666;
+        /* Убеждаемся, что Frame3 не перекрывает Frame2 */
+        .frame-3,
+        .frame3 {
+            z-index: 1002 !important; /* Ниже Frame2 (1003) */
+            pointer-events: auto !important;
+        }
+        
+        /* Убеждаемся, что site-main не перекрывает Frame2 */
+        .site-main {
+            z-index: 1 !important; /* Ниже Frame2 */
+            pointer-events: auto !important;
+        }
+        
+        /* Убеждаемся, что site-wrapper не перекрывает Frame2 */
+        .site-wrapper {
+            z-index: 1 !important; /* Ниже Frame2 */
+            pointer-events: auto !important;
+        }
+        
+        /* Убеждаемся, что иконки игроков находятся выше других элементов */
+        #frame2 .frame2-players-container .frame2-player-icon {
+            position: relative !important;
+            z-index: 1004 !important; /* Выше всего контента */
+            pointer-events: auto !important;
+            isolation: isolate !important; /* Создаем новый stacking context */
+            height: auto !important;
+            min-height: 36px !important;
+            line-height: 1.2 !important;
+        }
+        
+        /* Убеждаемся, что иконки игроков имеют полную кликабельную область */
+        #frame2 .frame2-player-icon {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: auto !important;
+            line-height: 1.2 !important;
+        }
+        
+        /* Убеждаемся, что текст внутри иконки не блокирует клики */
+        #frame2 .frame2-player-icon * {
+            pointer-events: none !important;
+        }
+        
+        /* Hover эффект только для активных станций */
+        #frame2 .frame2-player-icon.waiting:hover,
+        #frame2 .frame2-player-icon.ready:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
         }
         
         .quizzes-section {
-            margin-top: 30px;
+            margin-top: 0;
         }
         
         .quizzes-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
+        }
+        
+        @media (max-width: 1200px) {
+            .quizzes-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .quizzes-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .quizzes-grid {
+                grid-template-columns: 1fr;
+            }
         }
         
         .quiz-card {
@@ -414,49 +463,6 @@
             color: #FFFFFF;
             transform: translateY(-1px);
         }
-        /* Кнопки выбора станций */
-        .station-select-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-        
-        .station-select-button {
-            padding: 10px 20px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: clamp(13px, 1.8vw, 15px);
-            font-weight: 700;
-            border: 3px solid #393639;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
-            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-            color: #FFFFFF;
-            border-color: #2A5A8D;
-            min-height: 44px;
-        }
-        
-        .station-select-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 0px rgba(74, 144, 226, 0.4), 0 8px 16px rgba(74, 144, 226, 0.2);
-            background: linear-gradient(135deg, #5BA0F2 0%, #4A8ACD 100%);
-        }
-        
-        .station-select-button:active:not(:disabled) {
-            transform: translateY(0px);
-            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        .station-select-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-
     </style>
 </head>
 <body>
@@ -465,23 +471,6 @@
             <section class="frame frame-3" data-frame="content">
                 <div class="frame-3-content">
                     <div class="local-host-container">
-                        <h1 class="section-title">🏠 Локальный режим - Ведущий</h1>
-                        
-                        <div class="stations-section">
-                            <h2 class="section-title">Станции игроков</h2>
-                            <div class="station-select-buttons">
-                                <button class="station-select-button" id="selectAllStationsBtn">
-                                    ✅ Выбрать все
-                                </button>
-                                <button class="station-select-button" id="deselectAllStationsBtn">
-                                    ❌ Снять выбор
-                                </button>
-                            </div>
-                            <div class="stations-grid" id="stationsGrid">
-                                <!-- Станции будут добавлены через JavaScript -->
-                            </div>
-                        </div>
-                        
                         <div class="quizzes-section">
                             <h2 class="section-title">Выберите квиз</h2>
                             <div class="quizzes-grid" id="quizzesGrid">
@@ -594,7 +583,7 @@
         // Инициализация
         async function init() {
             // Ждем загрузки скриптов
-            if (typeof Frame1 === 'undefined' || typeof io === 'undefined') {
+            if (typeof Frame1 === 'undefined' || typeof Frame2 === 'undefined' || typeof io === 'undefined') {
                 setTimeout(init, 100);
                 return;
             }
@@ -604,9 +593,63 @@
                     showBack: true,
                     backUrl: '/index.html'
                 });
+                Frame2.init({ showLogo: false, showSubtitle: false });
             } catch (error) {
                 console.warn('Ошибка инициализации Frame:', error);
             }
+            
+            // Инициализируем обработчик кликов по игрокам на document (самый надежный способ)
+            document.addEventListener('click', function(e) {
+                // Временное логирование для отладки
+                if (e.target.closest('#frame2')) {
+                    console.log('🖱️ Клик в области Frame2:', e.target, e.target.className);
+                }
+                
+                // Проверяем, кликнули ли по иконке игрока
+                const icon = e.target.closest('.frame2-player-icon');
+                if (!icon) {
+                    if (e.target.closest('#frame2')) {
+                        console.log('⚠️ Клик в Frame2, но не по иконке игрока');
+                    }
+                    return;
+                }
+                
+                console.log('✅ Найдена иконка игрока:', icon.id, icon.className);
+                
+                const playerId = icon.id;
+                if (!playerId || !playerId.startsWith('frame2-player-station-')) {
+                    console.log('⚠️ ID иконки не соответствует формату:', playerId);
+                    return;
+                }
+                
+                const match = playerId.match(/frame2-player-station-(\d+)/);
+                if (!match) {
+                    console.log('⚠️ Не удалось извлечь номер из ID:', playerId);
+                    return;
+                }
+                
+                const stationNumber = parseInt(match[1]);
+                console.log('🔍 Номер станции:', stationNumber);
+                
+                const station = stations.find(s => s.stationNumber === stationNumber);
+                const isReady = station && station.connected && station.socketId;
+                
+                console.log('📊 Станция найдена:', !!station, 'isReady:', isReady);
+                
+                if (!isReady) {
+                    console.log('⚠️ Станция не готова, клик игнорируется');
+                    return;
+                }
+                
+                e.stopPropagation();
+                e.preventDefault();
+                
+                const currentlySelected = selectedStations.has(stationNumber);
+                console.log(`✅ Вызываем toggleStation для игрока ${stationNumber}, текущее состояние: ${currentlySelected}`);
+                toggleStation(stationNumber, !currentlySelected);
+            }, true);
+            
+            console.log('✅ Обработчик кликов по игрокам добавлен на document');
 
             // Подключаемся к серверу
             socket = io();
@@ -629,24 +672,11 @@
             // Инициализируем обработчики кнопок сразу (не зависит от socket)
             initButtonHandlers();
             
-            
-            // Загружаем данные
-            
-            const grid = document.getElementById('stationsGrid');
-            if (!grid) {
-                console.warn('⚠️ DOM еще не готов, повторяем инициализацию через 200ms');
-                setTimeout(init, 200);
-                return;
-            }
-            
             await loadStations();
             await loadQuizzes();
             
             // Инициализируем состояние кнопки запуска
             updateStartButtonState();
-            
-            // НЕ используем периодический polling - полагаемся только на Socket.io события
-            // Сервер автоматически отправляет обновления при изменении статуса станций
         }
 
         // Загрузка списка станций
@@ -665,92 +695,57 @@
             }
         }
 
-        // Обновление отображения станций
+        
+        // Обновление отображения станций во Frame2
         function updateStationsDisplay() {
-            const grid = document.getElementById('stationsGrid');
-            if (!grid) {
-                console.warn('⚠️ Элемент stationsGrid не найден, DOM еще не загружен');
+            if (typeof Frame2 === 'undefined') {
                 setTimeout(() => updateStationsDisplay(), 100);
                 return;
             }
-            grid.innerHTML = '';
 
-            // Создаем карточки для всех возможных станций (1-9)
-            for (let i = 1; i <= 9; i++) {
+            // Очищаем всех игроков из Frame2
+            Frame2.clearPlayers();
+
+            // Добавляем станции как иконки игроков во Frame2
+            for (let i = 1; i <= 8; i++) {
                 const station = stations.find(s => s.stationNumber === i);
-                // ПРОСТАЯ ЛОГИКА: Станция готова ТОЛЬКО если:
-                // 1. Есть socketId (подключена через Socket.io)
-                // 2. И connected = true (сервер помечает станцию как подключенную на основе heartbeat)
-                // Сервер автоматически помечает станцию как отключенную, если heartbeat не приходит более 5 секунд
                 const isReady = station && station.connected && station.socketId;
                 const isSelected = selectedStations.has(i);
                 
-                const card = document.createElement('div');
-                card.className = `station-card ${isReady ? 'connected' : 'disconnected'} ${isSelected ? 'selected' : ''}`;
-                card.dataset.stationNumber = i;
-                
-                // Обработчик клика по карточке для выбора
+                // Определяем статус для отображения (три состояния)
+                let status = 'disconnected'; // Серая - не подключено
                 if (isReady) {
-                    card.addEventListener('click', function(e) {
-                        // Не переключаем, если клик был по чекбоксу
-                        if (e.target.type !== 'checkbox' && !e.target.closest('.station-checkbox-wrapper')) {
-                            toggleStation(i, !isSelected);
-                        }
-                    });
+                    status = isSelected ? 'ready' : 'waiting'; // Ярко-зеленая или бледно-зеленая
                 }
                 
-                // Обертка для чекбокса
-                const checkboxWrapper = document.createElement('div');
-                checkboxWrapper.className = 'station-checkbox-wrapper';
+                // Создаем текст для иконки: номер игрока
+                const stationText = `Игрок ${i}`;
+                const stationId = `station-${i}`;
                 
-                const checkboxId = `station-checkbox-${i}`;
-                
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'station-checkbox';
-                checkbox.id = checkboxId;
-                checkbox.checked = isSelected;
-                checkbox.disabled = !isReady;
-                checkbox.addEventListener('change', function() {
-                    toggleStation(i, this.checked);
-                });
-                
-                const checkboxCustom = document.createElement('div');
-                checkboxCustom.className = 'station-checkbox-custom';
-                
-                checkboxWrapper.appendChild(checkbox);
-                checkboxWrapper.appendChild(checkboxCustom);
-                card.appendChild(checkboxWrapper);
-                
-                // IP адрес
-                    const ipDiv = document.createElement('div');
-                ipDiv.className = 'station-ip';
-                ipDiv.textContent = station && station.ip ? station.ip : `192.168.1.${20+i}`;
-                    card.appendChild(ipDiv);
-                
-                // Статус джойстика (из hub status connected)
-                const joystickStatusDiv = document.createElement("div");
-                joystickStatusDiv.className = "station-joystick-status";
-                
-                if (isReady && station) {
-                    const joystickStatus = station.joystick?.status || "not_tested";
-                    // Проверяем статус: "connected" или "ok" = подключен, остальное = не подключен
-                    if (joystickStatus === "connected" || joystickStatus === "ok") {
-                        joystickStatusDiv.className += " connected";
-                        joystickStatusDiv.textContent = "✓ Подключен";
-                    } else {
-                        joystickStatusDiv.className += " disconnected";
-                        joystickStatusDiv.textContent = "✗ Не подключен";
-                    }
-                } else {
-                    joystickStatusDiv.className += " not-tested";
-                    joystickStatusDiv.textContent = "○ Станция не подключена";
-                }
-                
-                card.appendChild(joystickStatusDiv);
-                
-                grid.appendChild(card);
+                // Добавляем иконку станции во Frame2
+                Frame2.addPlayerIcon(stationId, stationText, status);
             }
+            
+            // Устанавливаем стили для кликабельных иконок
+            setTimeout(() => {
+                for (let i = 1; i <= 8; i++) {
+                    const station = stations.find(s => s.stationNumber === i);
+                    const isReady = station && station.connected && station.socketId;
+                    const stationId = `station-${i}`;
+                    const iconId = `frame2-player-${stationId}`;
+                    const icon = document.getElementById(iconId);
+                    
+                    if (icon) {
+                        if (isReady) {
+                            icon.style.cursor = 'pointer';
+                            icon.style.pointerEvents = 'auto';
+                        } else {
+                            icon.style.cursor = 'not-allowed';
+                            icon.style.pointerEvents = 'none';
+                        }
+                    }
+                }
+            }, 200);
             
             // Обновляем состояние кнопки запуска
             updateStartButtonState();
@@ -758,6 +753,13 @@
         
         // Переключение выбора станции
         window.toggleStation = function(stationNumber, isSelected) {
+            const station = stations.find(s => s.stationNumber === stationNumber);
+            const isReady = station && station.connected && station.socketId;
+            
+            // Можно выбирать только подключенные станции
+            if (!isReady) {
+                return;
+            }
             
             if (isSelected) {
                 selectedStations.add(stationNumber);
@@ -765,33 +767,15 @@
                 selectedStations.delete(stationNumber);
             }
             
-            updateStationsDisplay();
+            // Обновляем статус иконки во Frame2
+            if (typeof Frame2 !== 'undefined') {
+                const status = isSelected ? 'ready' : 'waiting';
+                Frame2.updatePlayerStatus(`station-${stationNumber}`, status);
+            }
+            
             // Явно обновляем состояние кнопки после изменения выбора
             updateStartButtonState();
         };
-        
-        // Выбрать все станции
-        function selectAllStations() {
-            stations.forEach(station => {
-                // Простая проверка готовности
-                const isReady = station && station.connected && station.socketId;
-                
-                if (isReady) {
-                    selectedStations.add(station.stationNumber);
-                }
-            });
-            
-            updateStationsDisplay();
-            updateStartButtonState();
-        }
-        
-        // Снять выбор со всех станций
-        function deselectAllStations() {
-            selectedStations.clear();
-            
-            updateStationsDisplay();
-            updateStartButtonState();
-        }
         
         // Обновить состояние кнопки запуска
         function updateStartButtonState() {
@@ -1068,14 +1052,13 @@
                 
                 if (response.status === 404) {
                     apiRouteAvailable = false;
-                    console.warn('⚠️ Роут /api/local/stations/command недоступен. Команды будут отправляться только через Socket.io.');
+                    // Роут недоступен - это нормально, используем только Socket.io
                 } else {
                     apiRouteAvailable = true;
                 }
             } catch (error) {
-                // При ошибке сети считаем роут недоступным
+                // При ошибке сети считаем роут недоступным - это нормально
                 apiRouteAvailable = false;
-                console.warn('⚠️ Не удалось проверить доступность роута /api/local/stations/command. Команды будут отправляться только через Socket.io.');
             }
         }
         
@@ -1195,10 +1178,6 @@
             const confirmEndQuizBtn = document.getElementById('confirmEndQuizBtn');
             const cancelEndQuizBtn = document.getElementById('cancelEndQuizBtn');
             
-            // Кнопки выбора станций
-            const selectAllBtn = document.getElementById('selectAllStationsBtn');
-            const deselectAllBtn = document.getElementById('deselectAllStationsBtn');
-            
             // Обработчики основных действий
             if (startBtn) {
                 startBtn.addEventListener('click', () => {
@@ -1239,19 +1218,6 @@
                     if (e.target === endQuizModal) {
                         hideEndQuizModal();
                     }
-                });
-            }
-            
-            // Обработчики выбора станций
-            if (selectAllBtn) {
-                selectAllBtn.addEventListener('click', () => {
-                    selectAllStations();
-                });
-            }
-            
-            if (deselectAllBtn) {
-                deselectAllBtn.addEventListener('click', () => {
-                    deselectAllStations();
                 });
             }
             
@@ -1350,8 +1316,8 @@
             }
             
             if (stationNumbers.length === 0) {
-                // Если нет выбранных станций, используем все возможные (1-9)
-                stationNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+                // Если нет выбранных станций, используем все возможные (1-8)
+                stationNumbers = [1, 2, 3, 4, 5, 6, 7, 8];
             }
             
             // Отправляем команду навигации на station.html для всех станций

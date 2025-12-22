@@ -75,6 +75,12 @@ const Frame2 = {
             const logoSection = content.querySelector('.frame2-logo-section');
             if (logoSection) {
                 logoSection.style.display = 'none';
+                logoSection.style.pointerEvents = 'none';
+                logoSection.style.position = 'absolute';
+                logoSection.style.visibility = 'hidden';
+                logoSection.style.height = '0';
+                logoSection.style.width = '0';
+                logoSection.style.overflow = 'hidden';
             }
             
             content.appendChild(playersContainer);

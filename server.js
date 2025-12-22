@@ -3772,6 +3772,7 @@ io.on('connection', (socket) => {
           queuedCommandsCount: queuedCommands.length
         });
         
+        
         // Уведомляем всех хостов об обновлении
         io.emit('local-stations-updated', {
           stations: localModeManager.getStations()

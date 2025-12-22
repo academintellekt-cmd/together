@@ -58,3 +58,4 @@ if ($process) {
     Write-Host "WARNING: Application process not found. Check logs manually." -ForegroundColor Yellow
 }
 
+

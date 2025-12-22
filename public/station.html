@@ -803,6 +803,9 @@
                                 this.updateStatus(params.status, params.info);
                             }
                             break;
+                        case 'check-joystick-status':
+                            this.checkAndSendJoystickStatus();
+                            break;
                         default:
                             console.warn('⚠️ Неизвестная команда:', command);
                     }
@@ -839,6 +842,42 @@
                     window.location.href = params.customUrl;
                 } else {
                     console.warn('⚠️ Неизвестные параметры навигации:', params);
+                }
+            },
+            
+            async checkAndSendJoystickStatus() {
+                if (!this.stationNumber) {
+                    console.warn('⚠️ Номер станции не определен, невозможно проверить статус джойстика');
+                    return;
+                }
+                
+                try {
+                    // Проверяем наличие джойстика
+                    const gamepads = navigator.getGamepads();
+                    let isConnected = false;
+                    for (let i = 0; i < gamepads.length; i++) {
+                        if (gamepads[i]) {
+                            isConnected = true;
+                            break;
+                        }
+                    }
+                    
+                    // Отправляем статус на сервер
+                    const status = isConnected ? 'connected' : 'disconnected';
+                    const response = await fetch(`/api/local/stations/${this.stationNumber}/joystick-status`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: status })
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            console.log(`✅ Статус джойстика отправлен: ${status}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Ошибка проверки статуса джойстика:', error);
                 }
             }
         };
