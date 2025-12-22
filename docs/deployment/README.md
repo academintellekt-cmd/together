@@ -46,5 +46,5 @@
 - [INTERNET.md](./INTERNET.md) - Полная инструкция по деплою в интернет
 - [LOCAL.md](./LOCAL.md) - Настройка станций (без локальных файлов)
 - [BROWSER_AUTOSTART.md](./BROWSER_AUTOSTART.md) - Настройка автозапуска браузера
-- [../guides/STATION_SETUP.md](../guides/STATION_SETUP.md) - Настройка станций
+- [../guides/STATION_MANAGEMENT.md](../guides/STATION_MANAGEMENT.md) - Полное руководство по управлению станциями
 

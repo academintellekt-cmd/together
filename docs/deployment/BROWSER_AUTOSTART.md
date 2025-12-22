@@ -226,3 +226,4 @@ msedge.exe --kiosk --app=http://192.168.1.10:3000/station.html
 3. **Linux (autostart):** Обновите файл `.desktop`
 
 
+

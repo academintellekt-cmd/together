@@ -74,6 +74,8 @@ const Frame2 = {
             // Убираем логотип и подзаголовок, если они есть
             const logoSection = content.querySelector('.frame2-logo-section');
             if (logoSection) {
+                // Перемещаем logo-section в конец, чтобы он не влиял на позиционирование игроков
+                // И полностью скрываем его
                 logoSection.style.display = 'none';
                 logoSection.style.pointerEvents = 'none';
                 logoSection.style.position = 'absolute';
@@ -81,9 +83,26 @@ const Frame2 = {
                 logoSection.style.height = '0';
                 logoSection.style.width = '0';
                 logoSection.style.overflow = 'hidden';
+                logoSection.style.opacity = '0';
+                logoSection.style.margin = '0';
+                logoSection.style.padding = '0';
+                logoSection.style.flex = '0 0 0';
+                logoSection.style.flexShrink = '0';
+                logoSection.style.flexGrow = '0';
+                // Перемещаем в конец content
+                content.appendChild(logoSection);
             }
             
-            content.appendChild(playersContainer);
+            // Вставляем контейнер игроков в начало content для правильного позиционирования
+            content.insertBefore(playersContainer, content.firstChild);
+            
+            // Добавляем класс к Frame2 для правильного центрирования игроков
+            const frame2 = document.getElementById('frame2');
+            if (frame2) {
+                frame2.classList.add('has-players-only');
+                // Добавляем класс на body для применения стилей к Frame3
+                document.body.classList.add('frame2-has-players');
+            }
         }
         
         // Проверяем, не существует ли уже иконка для этого игрока
@@ -116,11 +135,32 @@ const Frame2 = {
             const playersContainer = document.getElementById('frame2-players-container');
             if (playersContainer && playersContainer.children.length === 0) {
                 const content = document.querySelector('.frame2-content');
-                const logoSection = content?.querySelector('.frame2-logo-section');
+                
+                // Восстанавливаем logo-section, если он был удален
+                let logoSection = content?.querySelector('.frame2-logo-section');
+                if (!logoSection) {
+                    // Ищем удаленный logo-section в памяти или создаем заново
+                    const frame2 = document.getElementById('frame2');
+                    if (frame2 && typeof Frame2 !== 'undefined' && Frame2.createFrame2) {
+                        // Если logo-section был удален, нужно пересоздать Frame2 или восстановить его
+                        // Для простоты, просто переинициализируем Frame2
+                        Frame2.init({ showLogo: true, showSubtitle: true });
+                        logoSection = content?.querySelector('.frame2-logo-section');
+                    }
+                }
+                
                 if (logoSection) {
                     logoSection.style.display = 'flex';
                 }
                 playersContainer.remove();
+                
+                // Убираем класс с Frame2, когда игроков нет
+                const frame2 = document.getElementById('frame2');
+                if (frame2) {
+                    frame2.classList.remove('has-players-only');
+                    // Убираем класс с body
+                    document.body.classList.remove('frame2-has-players');
+                }
             }
         }
     },
@@ -143,11 +183,30 @@ const Frame2 = {
         if (playersContainer) {
             playersContainer.innerHTML = '';
             const content = document.querySelector('.frame2-content');
-            const logoSection = content?.querySelector('.frame2-logo-section');
+            
+            // Восстанавливаем logo-section, если он был удален
+            let logoSection = content?.querySelector('.frame2-logo-section');
+            if (!logoSection) {
+                // Переинициализируем Frame2 для восстановления logo-section
+                const frame2 = document.getElementById('frame2');
+                if (frame2 && typeof Frame2 !== 'undefined' && Frame2.init) {
+                    Frame2.init({ showLogo: true, showSubtitle: true });
+                    logoSection = content?.querySelector('.frame2-logo-section');
+                }
+            }
+            
             if (logoSection) {
                 logoSection.style.display = 'flex';
             }
             playersContainer.remove();
+            
+            // Убираем класс с Frame2, когда игроков нет
+            const frame2 = document.getElementById('frame2');
+            if (frame2) {
+                frame2.classList.remove('has-players-only');
+                // Убираем класс с body
+                document.body.classList.remove('frame2-has-players');
+            }
         }
     },
     

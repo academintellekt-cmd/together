@@ -45,6 +45,19 @@
             position: relative;
             z-index: 1; /* Ниже Frame2 */
         }
+        
+        /* Когда Frame2 имеет игроков, немного увеличиваем отступы для предотвращения перекрытия */
+        body.frame2-has-players .lobby-screen {
+            padding-top: clamp(20px, 3vh, 40px) !important;
+        }
+        
+        body.frame2-has-players .qr-container {
+            margin-top: clamp(20px, 3vh, 30px) !important;
+        }
+        
+        body.frame2-has-players .qr-instruction {
+            margin-top: clamp(10px, 2vh, 20px) !important;
+        }
 
         .qr-link-wrapper {
             display: inline-block;

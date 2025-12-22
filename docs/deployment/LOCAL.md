@@ -91,26 +91,9 @@ npm start
 1. Раскомментируйте код в `scripts/deploy-local.sh`
 2. Запустите: `./scripts/deploy-local.sh`
 
-## 🔐 Настройка SSH
+## 🔐 Настройка SSH (для автозапуска браузера)
 
-### Использование SSH ключей (рекомендуется)
-
-1. Сгенерируйте SSH ключ (если еще нет):
-```bash
-ssh-keygen -t rsa -b 4096
-```
-
-2. Скопируйте ключ на станции:
-```bash
-ssh-copy-id pi@192.168.1.21
-```
-
-3. Повторите для всех станций (21-29)
-
-После этого можно деплоить без пароля:
-```bash
-./scripts/deploy-local.sh pi
-```
+SSH может понадобиться для настройки автозапуска браузера на станциях (особенно на Linux/Raspberry Pi).
 
 📖 **Подробная инструкция:** см. [SSH_SETUP_STATIONS.md](../guides/SSH_SETUP_STATIONS.md)
 
@@ -119,20 +102,13 @@ ssh-copy-id pi@192.168.1.21
 ### На локальном компьютере
 
 - Node.js и npm
-- Bash
-- SSH клиент
-- `sshpass` (опционально, для автоматического ввода пароля):
-  ```bash
-  brew install hudochenkov/sshpass/sshpass
-  ```
+- Браузер (Chrome, Firefox, Edge)
 
 ### На станциях
 
-- SSH сервер запущен и доступен
-- Порт 22 открыт в файрволе
-- Node.js и npm установлены
-- PM2 для управления процессами
+- Браузер (Chrome, Firefox, Edge)
 - Доступ к локальной сети (192.168.1.x)
+- SSH (опционально, только для настройки автозапуска на Linux)
 
 ## 🌐 Определение станции
 
@@ -191,6 +167,5 @@ http://192.168.1.10:3000/station.html?station=1
 ## 📖 Дополнительная документация
 
 - [BROWSER_AUTOSTART.md](./BROWSER_AUTOSTART.md) - Настройка автозапуска браузера на станциях
-- [STATION_SETUP.md](../guides/STATION_SETUP.md) - Настройка станций
-- [STATION_CONTROL_API.md](../guides/STATION_CONTROL_API.md) - API управления станциями
+- [STATION_MANAGEMENT.md](../guides/STATION_MANAGEMENT.md) - Полное руководство по управлению станциями
 

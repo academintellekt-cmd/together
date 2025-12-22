@@ -1,8 +1,0 @@
-local-host.html:503 Ошибка загрузки станций: ReferenceError: updateTestStationsSelection is not defined
-    at loadStations (local-host.html:501:17)
-
-local-host.html:637 Обновление кнопки запуска: выбранных станций=0, квиз=не выбран, должна быть активна=false
-local-host.html:503 Ошибка загрузки станций: ReferenceError: updateTestStationsSelection is not defined
-    at loadStations (local-host.html:501:17)
-﻿
-
