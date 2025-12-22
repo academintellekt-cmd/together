@@ -53,13 +53,13 @@
         
         .hub-status {
             font-family: 'Montserrat', sans-serif;
-            font-size: 14px;
+            font-size: clamp(12px, 2vw, 14px);
             font-weight: 600;
             color: var(--color-dark);
             background: rgba(245, 245, 245, 0.85);
-            padding: 8px 16px;
-            border-radius: 12px;
-            border: 2px solid var(--color-black);
+            padding: clamp(6px, 1.2vw, 8px) clamp(12px, 2vw, 16px);
+            border-radius: clamp(10px, 2vw, 12px);
+            border: clamp(2px, 0.3vw, 2px) solid var(--color-black);
             box-shadow: 
                 0 2px 0px rgba(0, 0, 0, 0.2),
                 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -79,16 +79,16 @@
         
         .hub-button {
             display: inline-block;
-            padding: 8px 16px;
+            padding: clamp(6px, 1.2vw, 8px) clamp(12px, 2vw, 16px);
             background: rgba(245, 245, 245, 0.85);
-            border: 2px solid var(--color-dark);
-            border-radius: 12px;
+            border: clamp(2px, 0.3vw, 2px) solid var(--color-dark);
+            border-radius: clamp(10px, 2vw, 12px);
             color: var(--color-dark);
             text-decoration: none;
             font-family: 'Days One', sans-serif;
-            font-size: 14px;
+            font-size: clamp(12px, 2vw, 14px);
             font-weight: 700;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 
                 0 2px 0px rgba(0, 0, 0, 0.2),
                 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -113,17 +113,17 @@
         }
 
         .main-container {
-            max-width: 1600px;
+            max-width: 1400px;
             width: 100%;
             margin: 0 auto;
-            padding: 40px 20px 20px;
+            padding: clamp(20px, 3vw, 30px) clamp(16px, 3vw, 24px);
             position: relative;
             z-index: 2;
         }
         
         @media (min-width: 1024px) {
             .hub-login-fixed {
-                padding: 15px 40px;
+                padding: clamp(12px, 2vw, 15px) clamp(20px, 3vw, 40px);
             }
             
             .hub-login-fixed .hub-actions {
@@ -135,18 +135,18 @@
             }
             
             .main-container {
-                padding-top: 100px;
+                padding-top: clamp(70px, 8vh, 90px);
             }
         }
         
         @media (max-width: 1023px) {
             .hub-login-fixed {
-                padding: 15px 20px;
+                padding: clamp(10px, 2vw, 12px) clamp(15px, 3vw, 20px);
             }
             
             .hub-login-fixed .hub-actions {
                 flex-wrap: wrap;
-                gap: 8px;
+                gap: clamp(6px, 1.5vw, 8px);
             }
             
             .hub-actions-left {
@@ -155,52 +155,52 @@
             }
             
             .main-container {
-                padding-top: 100px;
+                padding-top: clamp(60px, 7vh, 80px);
             }
         }
         
         @media (max-width: 768px) {
             .hub-login-fixed {
-                padding: 12px 15px;
+                padding: clamp(8px, 2vw, 10px) clamp(12px, 3vw, 15px);
             }
             
             .hub-login-fixed .hub-actions {
                 flex-wrap: wrap;
-                gap: 6px;
+                gap: clamp(4px, 1vw, 6px);
             }
             
             .hub-button {
-                font-size: 12px;
-                padding: 6px 12px;
+                font-size: clamp(11px, 2vw, 12px);
+                padding: clamp(5px, 1.5vw, 6px) clamp(10px, 2vw, 12px);
                 min-width: auto;
             }
             
             .hub-status {
-                font-size: 12px;
-                padding: 6px 12px;
+                font-size: clamp(11px, 2vw, 12px);
+                padding: clamp(5px, 1.5vw, 6px) clamp(10px, 2vw, 12px);
             }
             
             .main-container {
-                padding: 80px 15px 30px;
+                padding: clamp(50px, 6vh, 70px) clamp(12px, 3vw, 15px) clamp(20px, 3vw, 30px);
             }
         }
 
         .joystick-section {
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
             align-items: center;
             flex-wrap: wrap;
-            gap: 40px;
-            margin-bottom: 40px;
+            gap: clamp(20px, 3vw, 30px);
+            margin-bottom: clamp(20px, 3vw, 30px);
         }
 
         .stick-container {
             position: relative;
-            width: 200px;
-            height: 200px;
+            width: clamp(150px, 20vw, 180px);
+            height: clamp(150px, 20vw, 180px);
             background: rgba(245, 245, 245, 0.85);
             border-radius: 50%;
-            border: 3px solid var(--color-black);
+            border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -211,11 +211,11 @@
 
         .stick-center {
             position: absolute;
-            width: 60px;
-            height: 60px;
+            width: clamp(45px, 6vw, 55px);
+            height: clamp(45px, 6vw, 55px);
             background: var(--color-green);
             border-radius: 50%;
-            border: 2px solid var(--color-black);
+            border: clamp(2px, 0.3vw, 2px) solid var(--color-black);
             transition: transform 0.1s ease-out;
             z-index: 2;
         }
@@ -233,18 +233,19 @@
 
         .direction {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: clamp(40px, 5vw, 45px);
+            height: clamp(40px, 5vw, 45px);
             background: rgba(171, 246, 124, 0.3);
-            border-radius: 10px;
+            border-radius: clamp(8px, 1.5vw, 10px);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-weight: bold;
+            font-weight: 700;
             font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 2.5vw, 20px);
             color: var(--color-dark);
             transition: all 0.2s;
-            border: 2px solid var(--color-black);
+            border: clamp(2px, 0.3vw, 2px) solid var(--color-black);
         }
 
         .direction.active {
@@ -280,35 +281,35 @@
 
         .buttons-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(clamp(55px, 8vw, 70px), 1fr));
+            gap: clamp(8px, 1.5vw, 10px);
             max-width: 100%;
         }
 
         .button {
-            min-width: 60px;
+            min-width: clamp(50px, 7vw, 60px);
             width: 100%;
             aspect-ratio: 1;
-            max-width: 90px;
+            max-width: clamp(70px, 10vw, 85px);
             background: rgba(245, 245, 245, 0.85);
-            border: 3px solid var(--color-black);
-            border-radius: 12px;
+            border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
+            border-radius: clamp(10px, 2vw, 12px);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-weight: bold;
-            font-size: 0.75em;
+            font-weight: 700;
+            font-size: clamp(11px, 1.8vw, 13px);
             font-family: 'Days One', sans-serif;
             color: var(--color-dark);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
             position: relative;
             box-shadow: 
                 0 4px 0px rgba(0, 0, 0, 0.2),
                 0 6px 12px rgba(0, 0, 0, 0.1);
-            padding: 4px;
+            padding: clamp(3px, 0.8vw, 4px);
             text-align: center;
             word-wrap: break-word;
             overflow: hidden;
@@ -316,14 +317,14 @@
         
         @media (max-width: 768px) {
             .buttons-grid {
-                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-                gap: 8px;
+                grid-template-columns: repeat(auto-fill, minmax(clamp(50px, 7vw, 60px), 1fr));
+                gap: clamp(6px, 1.2vw, 8px);
             }
             
             .button {
-                max-width: 80px;
-                font-size: 0.7em;
-                padding: 3px;
+                max-width: clamp(65px, 9vw, 75px);
+                font-size: clamp(10px, 1.6vw, 12px);
+                padding: clamp(2px, 0.6vw, 3px);
             }
         }
 
@@ -336,13 +337,15 @@
         }
 
         .button-label {
-            font-size: 0.7em;
+            font-size: clamp(10px, 1.5vw, 12px);
             line-height: 1.2;
             color: var(--color-dark);
             word-wrap: break-word;
             overflow-wrap: break-word;
             max-width: 100%;
             text-align: center;
+            font-family: 'Days One', sans-serif;
+            font-weight: 600;
         }
 
         .button.active .button-label {
@@ -350,19 +353,20 @@
         }
 
         .calibration-section {
-            margin-bottom: 30px;
+            margin-bottom: clamp(20px, 3vw, 25px);
         }
 
         .axis-info {
-            margin-top: 20px;
+            margin-top: clamp(15px, 2.5vw, 20px);
             text-align: center;
             font-family: 'Montserrat', sans-serif;
-            font-size: 0.9em;
+            font-size: clamp(13px, 2vw, 15px);
+            font-weight: 600;
             color: var(--color-dark);
             background: rgba(245, 245, 245, 0.85);
-            padding: 10px;
-            border-radius: 12px;
-            border: 3px solid var(--color-black);
+            padding: clamp(8px, 1.5vw, 10px);
+            border-radius: clamp(10px, 2vw, 12px);
+            border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
             box-shadow: 
                 0 4px 0px rgba(0, 0, 0, 0.2),
                 0 6px 12px rgba(0, 0, 0, 0.1);
@@ -370,18 +374,18 @@
 
         .command-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(clamp(130px, 18vw, 150px), 1fr));
+            gap: clamp(8px, 1.5vw, 10px);
+            margin-bottom: clamp(15px, 2.5vw, 20px);
         }
 
         .command-item {
             background: rgba(245, 245, 245, 0.85);
-            padding: 15px;
-            border-radius: 12px;
-            border: 3px solid var(--color-black);
+            padding: clamp(10px, 2vw, 12px);
+            border-radius: clamp(10px, 2vw, 12px);
+            border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: center;
             box-shadow: 
                 0 4px 0px rgba(0, 0, 0, 0.2),
@@ -418,19 +422,22 @@
         }
 
         .command-name {
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-bottom: 5px;
+            font-weight: 700;
+            font-size: clamp(14px, 2.2vw, 16px);
+            margin-bottom: clamp(4px, 0.8vw, 5px);
             font-family: 'Days One', sans-serif;
             color: var(--color-dark);
+            line-height: 1.2;
         }
 
         .command-assigned {
-            font-size: 0.9em;
+            font-size: clamp(12px, 1.8vw, 13px);
             color: var(--color-dark);
-            margin-top: 5px;
+            margin-top: clamp(4px, 0.8vw, 5px);
             font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
             opacity: 0.8;
+            line-height: 1.3;
         }
 
         .command-item.selected .command-assigned {
@@ -441,32 +448,41 @@
             font-family: 'Days One', sans-serif;
             color: var(--color-dark);
             font-weight: 700;
+            font-size: clamp(18px, 3vw, 22px);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-bottom: clamp(10px, 2vw, 12px);
         }
         
         .calibration-section p {
             font-family: 'Montserrat', sans-serif;
+            font-size: clamp(13px, 2vw, 14px);
+            font-weight: 400;
             color: var(--color-dark);
+            margin-bottom: clamp(10px, 2vw, 12px);
+            line-height: 1.4;
         }
         
         .main-container h1 {
             font-family: 'Days One', sans-serif;
             color: var(--color-dark);
             font-weight: 700;
+            font-size: clamp(24px, 4vw, 32px);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            margin-bottom: clamp(20px, 3vw, 25px);
         }
 
         .assign-mode {
             background: var(--color-yellow);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            padding: clamp(10px, 2vw, 12px);
+            border-radius: clamp(10px, 2vw, 12px);
+            margin-bottom: clamp(15px, 2.5vw, 18px);
             text-align: center;
-            font-weight: bold;
+            font-weight: 700;
             font-family: 'Montserrat', sans-serif;
-            border: 3px solid var(--color-black);
+            font-size: clamp(13px, 2vw, 14px);
+            border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
             box-shadow: 
                 0 4px 0px rgba(0, 0, 0, 0.2),
                 0 6px 12px rgba(0, 0, 0, 0.1);
@@ -476,15 +492,15 @@
         .btn-clear {
             background: var(--color-coral);
             color: var(--color-white);
-            border: 2px solid var(--color-black);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.8em;
+            border: clamp(2px, 0.3vw, 2px) solid var(--color-black);
+            padding: clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 12px);
+            border-radius: clamp(8px, 1.5vw, 8px);
+            font-size: clamp(11px, 1.6vw, 12px);
             font-family: 'Days One', sans-serif;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
-            margin-left: 10px;
-            transition: all 0.3s;
+            margin-left: clamp(6px, 1.2vw, 8px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 
                 0 2px 0px rgba(0, 0, 0, 0.2),
                 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -498,9 +514,9 @@
         }
 
         .station-info {
-            background: #667eea;
+            background: var(--color-sky-blue, #7cabf6);
             color: var(--color-white);
-            border-color: #5568d3;
+            border-color: var(--color-cyan, #7ce8f6);
             cursor: default;
         }
     </style>
@@ -510,11 +526,11 @@
     <div class="hub-login-fixed" id="hub-login-fixed">
         <div class="hub-actions">
             <div class="hub-actions-left">
-                <a href="/local-host.html" class="hub-button">← Назад</a>
+                <a href="/station.html" class="hub-button" id="back-button">← Назад</a>
                 <div id="station-info" class="hub-button station-info" style="display: none;">Станция: <span id="station-number-display">-</span></div>
                 <button class="hub-button" onclick="saveConfiguration()" style="background: var(--color-green); color: var(--color-white); border-color: var(--color-green-alt); min-width: 120px;">Сохранить</button>
-                <button class="hub-button" onclick="exportConfiguration()" style="background: #667eea; color: var(--color-white); border-color: #5568d3; min-width: 120px;">Экспорт</button>
-                <button class="hub-button" onclick="importConfiguration()" style="background: #9f7aea; color: var(--color-white); border-color: #805ad5; min-width: 120px;">Импорт</button>
+                <button class="hub-button" onclick="exportConfiguration()" style="background: var(--color-lavender, #8a7cf6); color: var(--color-white); border-color: var(--color-purple, #c77cf6); min-width: 120px;">Экспорт</button>
+                <button class="hub-button" onclick="importConfiguration()" style="background: var(--color-purple, #c77cf6); color: var(--color-white); border-color: var(--color-lavender, #8a7cf6); min-width: 120px;">Импорт</button>
                 <button class="hub-button" onclick="resetConfiguration()" style="background: var(--color-coral); color: var(--color-white); border-color: var(--color-coral-alt); min-width: 120px;">Сбросить</button>
             </div>
             <!-- Статус джойстика -->
@@ -529,32 +545,32 @@
         <h1>Настройка джойстика<span id="station-title" style="display: none;"> - Станция <span id="station-number-title">-</span></span></h1>
 
         <!-- Единый экран: калибровка и тест рядом -->
-        <div style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: space-around;">
+        <div style="display: flex; gap: clamp(20px, 3vw, 25px); flex-wrap: wrap; justify-content: space-around; align-items: flex-start;">
             <!-- Левая часть: Калибровка -->
-            <div style="flex: 1; min-width: 400px;">
+            <div style="flex: 1; min-width: clamp(320px, 40vw, 380px);">
                 <div class="assign-mode" id="assign-mode" style="display: none;">
                     ⚠️ Нажмите кнопку на джойстике для назначения
                 </div>
 
                 <div class="calibration-section">
-                    <h2 style="margin-bottom: 15px; font-size: 1.3em;">Калибровка кнопок</h2>
-                    <p style="margin-bottom: 15px; color: #666; font-size: 0.9em;">
+                    <h2>Калибровка кнопок</h2>
+                    <p style="color: #666;">
                         Нажмите на кнопку ниже, затем нажмите соответствующую кнопку на джойстике
                     </p>
                     <div class="command-list" id="button-commands-list" style="grid-template-columns: repeat(2, 1fr);"></div>
                 </div>
 
-                <div class="calibration-section" style="margin-top: 20px;">
-                    <h2 style="margin-bottom: 15px; font-size: 1.3em;">Калибровка стика</h2>
+                <div class="calibration-section">
+                    <h2>Калибровка стика</h2>
                     <div class="command-list" id="stick-commands-list" style="grid-template-columns: repeat(2, 1fr);"></div>
                 </div>
 
             </div>
 
             <!-- Правая часть: Тест -->
-            <div style="flex: 1; min-width: 400px;">
-                <h2 style="margin-bottom: 15px; font-size: 1.3em; text-align: center;">Тест</h2>
-                <div class="joystick-section" style="justify-content: center; margin-bottom: 20px;">
+            <div style="flex: 1; min-width: clamp(320px, 40vw, 380px);">
+                <h2 style="margin-bottom: clamp(12px, 2vw, 15px); font-size: clamp(18px, 3vw, 22px); text-align: center; font-family: 'Days One', sans-serif; font-weight: 700; text-transform: uppercase; color: var(--color-dark);">Тест</h2>
+                <div class="joystick-section" style="justify-content: center; margin-bottom: clamp(15px, 2.5vw, 20px);">
                     <div class="stick-container">
                         <div class="stick-directions">
                             <div class="direction up" id="dir-up">↑</div>
@@ -570,7 +586,7 @@
                     <!-- Кнопки будут добавлены динамически -->
                 </div>
 
-                <div class="axis-info" id="axis-info" style="margin-top: 15px;">
+                <div class="axis-info" id="axis-info">
                     Ось X: 0.00 | Ось Y: 0.00
                 </div>
             </div>
@@ -652,37 +668,93 @@
         
         // Определение номера станции
         async function detectStationNumber() {
+            // 1. Проверка URL параметра ?station=X (приоритетный метод)
             const urlParams = new URLSearchParams(window.location.search);
             const stationParam = urlParams.get('station');
             if (stationParam) {
                 const num = parseInt(stationParam);
                 if (num >= 1 && num <= 9) {
                     stationNumber = num;
+                    console.log(`✅ Станция определена через URL параметр: ${stationNumber}`);
                     return stationNumber;
                 }
             }
             
+            // 2. Проверка через API сервера (надежный метод)
             try {
                 const response = await fetch('/api/local/detect-ip');
-                const data = await response.json();
-                if (data.stationNumber) {
-                    stationNumber = data.stationNumber;
-                    return stationNumber;
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('📡 API ответ:', data);
+                    if (data.stationNumber) {
+                        stationNumber = data.stationNumber;
+                        console.log(`✅ Станция определена через API: ${stationNumber} (IP: ${data.ip})`);
+                        return stationNumber;
+                    }
+                } else {
+                    console.warn('⚠️ API вернул ошибку:', response.status, response.statusText);
                 }
             } catch (error) {
                 console.warn('⚠️ Ошибка определения номера станции через API:', error);
             }
             
+            // 3. Проверка hostname (если открыто напрямую по IP)
             const hostname = window.location.hostname;
+            console.log('🌐 Hostname:', hostname);
             const hostnameMatch = hostname.match(/192\.168\.1\.(\d+)/);
             if (hostnameMatch) {
                 const lastOctet = parseInt(hostnameMatch[1]);
                 if (lastOctet >= 21 && lastOctet <= 29) {
                     stationNumber = lastOctet - 20;
+                    console.log(`✅ Станция определена через hostname: ${stationNumber} (IP: ${hostname})`);
                     return stationNumber;
                 }
             }
             
+            // 4. WebRTC для определения локального IP (fallback)
+            try {
+                const RTCPeerConnection = window.RTCPeerConnection || 
+                                         window.mozRTCPeerConnection || 
+                                         window.webkitRTCPeerConnection;
+                
+                if (RTCPeerConnection) {
+                    const ip = await new Promise((resolve) => {
+                        const pc = new RTCPeerConnection({ iceServers: [] });
+                        pc.createDataChannel('');
+                        pc.onicecandidate = (event) => {
+                            if (event.candidate) {
+                                const candidate = event.candidate.candidate;
+                                const ipMatch = candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
+                                if (ipMatch) {
+                                    const ip = ipMatch[0];
+                                    pc.close();
+                                    resolve(ip);
+                                }
+                            }
+                        };
+                        pc.createOffer().then(offer => pc.setLocalDescription(offer));
+                        
+                        setTimeout(() => {
+                            pc.close();
+                            resolve(null);
+                        }, 2000);
+                    });
+                    
+                    if (ip) {
+                        console.log('🔍 WebRTC определил IP:', ip);
+                        const lastOctet = parseInt(ip.split('.')[3]);
+                        if (lastOctet >= 21 && lastOctet <= 29) {
+                            stationNumber = lastOctet - 20;
+                            console.log(`✅ Станция определена через WebRTC: ${stationNumber} (IP: ${ip})`);
+                            return stationNumber;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('⚠️ WebRTC detection failed:', e);
+            }
+            
+            console.warn('⚠️ Не удалось определить станцию автоматически');
             return null;
         }
         
@@ -1215,20 +1287,47 @@
             return null;
         }
 
-        function updateStatus() {
+        let lastJoystickStatus = null;
+        
+        async function updateStatus() {
             const statusEl = document.getElementById('hub-status');
             
             gamepad = getGamepad();
             
             const statusText = gamepad ? 'Джойстик подключен' : 'Джойстик не подключен';
             const statusClass = gamepad ? 'hub-status connected' : 'hub-status disconnected';
+            const isConnected = !!gamepad;
             
             if (statusEl) {
                 statusEl.textContent = statusText;
                 statusEl.className = statusClass;
             }
+            
+            // Отправляем статус на сервер при изменении
+            if (lastJoystickStatus !== isConnected && stationNumber) {
+                const previousStatus = lastJoystickStatus;
+                lastJoystickStatus = isConnected;
+                try {
+                    const status = isConnected ? 'connected' : 'disconnected';
+                    const response = await fetch(`/api/local/stations/${stationNumber}/joystick-status`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: status })
+                    });
+                    const result = await response.json();
+                    if (!result.success) {
+                        console.warn(`⚠️ Ошибка отправки статуса джойстика:`, result.error);
+                    }
+                } catch (error) {
+                    console.error('❌ Ошибка отправки статуса джойстика:', error);
+                    // Восстанавливаем предыдущий статус при ошибке
+                    lastJoystickStatus = previousStatus;
+                }
+            }
         }
 
+        let statusCheckInterval = null;
+        
         function update() {
             updateStatus();
             if (gamepad) {
@@ -1238,16 +1337,64 @@
             }
             animationFrame = requestAnimationFrame(update);
         }
+        
+        // Периодическая проверка статуса джойстика и отправка на сервер (каждые 2 секунды)
+        function startStatusMonitoring() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+            }
+            
+            statusCheckInterval = setInterval(async () => {
+                if (stationNumber) {
+                    const currentGamepad = getGamepad();
+                    const isConnected = !!currentGamepad;
+                    
+                    // Отправляем статус только если он изменился
+                    if (lastJoystickStatus !== isConnected) {
+                        const previousStatus = lastJoystickStatus;
+                        lastJoystickStatus = isConnected;
+                        
+                        try {
+                            const status = isConnected ? 'connected' : 'disconnected';
+                            const response = await fetch(`/api/local/stations/${stationNumber}/joystick-status`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ status: status })
+                            });
+                            const result = await response.json();
+                            if (!result.success) {
+                                console.warn(`⚠️ Ошибка отправки статуса джойстика:`, result.error);
+                            }
+                        } catch (error) {
+                            console.error('❌ [Мониторинг] Ошибка отправки статуса джойстика:', error);
+                            // Восстанавливаем предыдущий статус при ошибке
+                            lastJoystickStatus = previousStatus;
+                        }
+                    }
+                }
+            }, 2000); // Проверяем каждые 2 секунды
+        }
+        
+        function stopStatusMonitoring() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                statusCheckInterval = null;
+            }
+        }
 
-        window.addEventListener('gamepadconnected', (e) => {
+        window.addEventListener('gamepadconnected', async (e) => {
             console.log('Джойстик подключен:', e.gamepad.id);
-            updateStatus();
+            // Сбрасываем lastJoystickStatus чтобы гарантировать отправку статуса
+            lastJoystickStatus = null;
+            await updateStatus();
         });
 
-        window.addEventListener('gamepaddisconnected', (e) => {
+        window.addEventListener('gamepaddisconnected', async (e) => {
             console.log('Джойстик отключен:', e.gamepad.id);
             gamepad = null;
-            updateStatus();
+            // Сбрасываем lastJoystickStatus чтобы гарантировать отправку статуса
+            lastJoystickStatus = null;
+            await updateStatus();
         });
 
         async function initialize() {
@@ -1277,8 +1424,49 @@
                 }
             }, 200);
             
+            // Отправляем начальный статус джойстика при загрузке страницы
+            // Сбрасываем lastJoystickStatus чтобы гарантировать отправку
+            lastJoystickStatus = null;
+            
+            // Проверяем начальный статус джойстика
+            const initialGamepad = getGamepad();
+            const initialStatus = !!initialGamepad;
+            // Отправляем начальный статус сразу
+            if (stationNumber) {
+                try {
+                    const status = initialStatus ? 'connected' : 'disconnected';
+                    const response = await fetch(`/api/local/stations/${stationNumber}/joystick-status`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: status })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        lastJoystickStatus = initialStatus;
+                    } else {
+                        console.warn(`⚠️ Ошибка отправки начального статуса джойстика:`, result.error);
+                    }
+                } catch (error) {
+                    console.error('❌ Ошибка отправки начального статуса джойстика:', error);
+                }
+            }
+            
+            await updateStatus();
+            
+            // Запускаем мониторинг статуса джойстика
+            startStatusMonitoring();
+            
             update();
         }
+        
+        // Остановка мониторинга при закрытии страницы
+        window.addEventListener('beforeunload', () => {
+            stopStatusMonitoring();
+        });
+        
+        window.addEventListener('pagehide', () => {
+            stopStatusMonitoring();
+        });
 
         if (document.readyState === 'loading') {
             window.addEventListener('DOMContentLoaded', initialize);

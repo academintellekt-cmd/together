@@ -68,7 +68,7 @@
 
 2. **Используйте скрипт с паролем:**
    ```bash
-   ./scripts/deploy-to-stations.sh pi raspberry
+   ./scripts/deploy-local.sh pi raspberry
    ```
 
 ⚠️ **Внимание**: Пароль будет виден в истории команд и процессах. Используйте SSH ключи для продакшн-среды.
@@ -209,6 +209,6 @@ done
 После этого можно запускать развертывание:
 
 ```bash
-./scripts/deploy-to-stations.sh pi
+./scripts/deploy-local.sh pi
 ```
 

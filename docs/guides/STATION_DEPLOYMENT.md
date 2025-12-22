@@ -29,25 +29,25 @@
 ### Базовое использование (SSH ключи)
 
 ```bash
-./scripts/deploy-to-stations.sh
+./scripts/deploy-local.sh
 ```
 
 ### С указанием пользователя
 
 ```bash
-./scripts/deploy-to-stations.sh pi
+./scripts/deploy-local.sh pi
 ```
 
 ### С паролем
 
 ```bash
-./scripts/deploy-to-stations.sh pi raspberry
+./scripts/deploy-local.sh pi raspberry
 ```
 
 ### С пользовательским путем
 
 ```bash
-./scripts/deploy-to-stations.sh pi raspberry /home/pi/my-project
+./scripts/deploy-local.sh pi raspberry /home/pi/my-project
 ```
 
 ## Использование через API
@@ -161,7 +161,7 @@ git add .
 git commit -m "Обновление функционала"
 
 # Развертывание на все станции
-./scripts/deploy-to-stations.sh pi
+./scripts/deploy-local.sh pi
 ```
 
 ### Развертывание через веб-интерфейс
@@ -178,6 +178,6 @@ git commit -m "Обновление функционала"
 ```bash
 # .git/hooks/post-commit
 #!/bin/bash
-./scripts/deploy-to-stations.sh pi
+./scripts/deploy-local.sh pi
 ```
 

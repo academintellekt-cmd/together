@@ -4,42 +4,7 @@
 
 ## Варианты использования
 
-### Вариант 1: PowerShell скрипт (рекомендуется для Windows)
-
-Используйте PowerShell версию скрипта развертывания.
-
-**Требования:**
-- Windows 10/11 с PowerShell 5.1 или выше
-- Git for Windows (для команды `tar`)
-- SSH клиент (встроен в Windows 10/11 или через OpenSSH)
-
-**Использование:**
-
-```powershell
-# Базовое использование (SSH ключи)
-.\scripts\deploy-to-stations.ps1
-
-# С указанием пользователя
-.\scripts\deploy-to-stations.ps1 -Username pi
-
-# С паролем
-.\scripts\deploy-to-stations.ps1 -Username pi -Password raspberry
-
-# С пользовательским путем
-.\scripts\deploy-to-stations.ps1 -Username pi -Password raspberry -StationPath "/home/pi/together"
-```
-
-**Если скрипт заблокирован:**
-
-```powershell
-# Разрешите выполнение скриптов (один раз, от администратора)
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-
-# Затем запустите скрипт
-.\scripts\deploy-to-stations.ps1
-```
-
-### Вариант 2: WSL (Windows Subsystem for Linux)
+### Вариант 1: WSL (Windows Subsystem for Linux) - Рекомендуется
 
 Используйте оригинальный bash скрипт через WSL.
 
@@ -61,10 +26,10 @@ wsl --install
 ```bash
 # В WSL терминале
 cd /mnt/c/Users/YourName/Documents/together
-./scripts/deploy-to-stations.sh pi
+./scripts/deploy-local.sh pi
 ```
 
-### Вариант 3: Git Bash
+### Вариант 2: Git Bash
 
 Используйте Git Bash для запуска bash скриптов.
 
@@ -80,7 +45,7 @@ cd /mnt/c/Users/YourName/Documents/together
    ```
 3. Запустите скрипт:
    ```bash
-   ./scripts/deploy-to-stations.sh pi
+   ./scripts/deploy-local.sh pi
    ```
 
 ## Установка необходимых инструментов
@@ -234,36 +199,24 @@ $PSDefaultParameterValues['*:Encoding'] = 'utf8'
 ## Рекомендации
 
 1. **Используйте WSL** для максимальной совместимости с bash скриптами
-2. **Или используйте PowerShell скрипт** для нативной Windows поддержки
-3. **Настройте SSH ключи** для удобства (не нужно вводить пароль каждый раз)
-4. **Используйте Git Bash** как компромисс между удобством и совместимостью
+2. **Настройте SSH ключи** для удобства (не нужно вводить пароль каждый раз)
+3. **Используйте Git Bash** как компромисс между удобством и совместимостью
 
 ## Сравнение вариантов
 
 | Вариант | Удобство | Совместимость | Требования |
 |---------|----------|---------------|------------|
-| PowerShell | ⭐⭐⭐ | ⭐⭐ | Git, OpenSSH |
 | WSL | ⭐⭐ | ⭐⭐⭐ | WSL установка |
 | Git Bash | ⭐⭐⭐ | ⭐⭐⭐ | Git for Windows |
 
 ## Примеры использования
-
-### PowerShell
-
-```powershell
-# Перейдите в директорию проекта
-cd C:\Users\YourName\Documents\together
-
-# Запустите развертывание
-.\scripts\deploy-to-stations.ps1 -Username pi
-```
 
 ### WSL
 
 ```bash
 # В WSL терминале
 cd /mnt/c/Users/YourName/Documents/together
-./scripts/deploy-to-stations.sh pi
+./scripts/deploy-local.sh pi
 ```
 
 ### Git Bash
@@ -271,6 +224,6 @@ cd /mnt/c/Users/YourName/Documents/together
 ```bash
 # В Git Bash
 cd /c/Users/YourName/Documents/together
-./scripts/deploy-to-stations.sh pi
+./scripts/deploy-local.sh pi
 ```
 

@@ -1723,7 +1723,7 @@
             if (stationParam || autoParam === 'true') {
                 // Возвращаемся на страницу станции
                 console.log('🔄 Возврат на страницу станции');
-                window.location.href = '/local-station.html';
+                window.location.href = '/station.html';
             }
         });
         
@@ -1746,7 +1746,7 @@
             if (command === 'navigate' && params && params.page === 'waiting') {
                 // Возврат на страницу станции
                 console.log('🔄 Команда навигации: возврат на страницу станции');
-                window.location.href = '/local-station.html';
+                window.location.href = '/station.html';
             } else if (command === 'execute-action' && params && params.action) {
                 // Выполнение действия
                 console.log('⚡ Выполнение действия:', params.action);
@@ -1788,7 +1788,7 @@
             
             if (stationParam || autoParam === 'true') {
                 // Возвращаемся на начальную страницу станции
-                window.location.href = '/local-station.html';
+                window.location.href = '/station.html';
             }
         });
 
@@ -1888,6 +1888,9 @@
             // Скрываем элементы Frame1 при финальных результатах
             hideFrame1Elements();
             
+            // Скрываем экран подключения, если он был показан
+            document.getElementById('connect-screen').style.display = 'none';
+            document.getElementById('waiting-screen').style.display = 'none';
             document.getElementById('question-screen').style.display = 'none';
             document.getElementById('results-screen').style.display = 'none';
             document.getElementById('final-results').style.display = 'block';
@@ -1924,17 +1927,17 @@
                 leaderboard.appendChild(item);
             });
             
-            // В локальном режиме автоматически возвращаемся на страницу станции через 5 секунд
+            // В локальном режиме автоматически возвращаемся на страницу станции через 3 секунды (как указал пользователь)
             const urlParams = new URLSearchParams(window.location.search);
             const stationParam = urlParams.get('station');
             const autoParam = urlParams.get('auto');
             
             if (stationParam || autoParam === 'true') {
-                console.log('⏰ Автоматический возврат на страницу станции через 5 секунд');
+                console.log('⏰ Автоматический возврат на страницу станции через 3 секунды');
                 setTimeout(() => {
                     console.log('🔄 Автоматический возврат на страницу станции');
-                    window.location.href = '/local-station.html';
-                }, 5000);
+                    window.location.href = '/station.html';
+                }, 3000);
             }
         });
         

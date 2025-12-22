@@ -30,6 +30,7 @@ class LocalModeManager {
                 connected: false,
                 socketId: null,
                 lastSeen: null,
+                lastHeartbeat: null, // Время последнего heartbeat от station.html
                 joystick: {
                     config: null, // Конфигурация джойстика для этой станции
                     status: 'not_tested', // not_tested, ok, error
@@ -54,25 +55,30 @@ class LocalModeManager {
      * Регистрация станции
      */
     registerStation(ip, stationNumber = null) {
+        let station = null;
+        
         if (stationNumber) {
             // Если указан номер станции, используем его
-            const station = Array.from(this.stations.values()).find(s => s.stationNumber === stationNumber);
+            station = Array.from(this.stations.values()).find(s => s.stationNumber === stationNumber);
             if (station) {
                 station.ip = ip;
                 station.connected = true;
                 station.lastSeen = Date.now();
+                console.log(`✅ Станция ${stationNumber} зарегистрирована через HTTP API: ${ip}, connected=${station.connected}`);
                 return station;
             }
         }
 
         // Ищем станцию по IP
-        const station = this.stations.get(ip);
+        station = this.stations.get(ip);
         if (station) {
             station.connected = true;
             station.lastSeen = Date.now();
+            console.log(`✅ Станция ${station.stationNumber} зарегистрирована через HTTP API по IP: ${ip}, connected=${station.connected}`);
             return station;
         }
 
+        console.warn(`⚠️ Станция не найдена для регистрации: IP=${ip}, stationNumber=${stationNumber}`);
         return null;
     }
 
@@ -169,6 +175,67 @@ class LocalModeManager {
     }
 
     /**
+     * Обновление heartbeat от станции (подтверждение что station.html открыта)
+     * socketId передается отдельно, так как heartbeat может прийти до установки socketId
+     */
+    updateStationHeartbeat(stationNumber, socketId = null) {
+        const station = this.getStationByNumber(stationNumber);
+        if (station) {
+            const now = Date.now();
+            station.lastHeartbeat = now;
+            station.connected = true;
+            station.lastSeen = now;
+            
+            // Всегда обновляем socketId при heartbeat (может измениться при переподключении)
+            if (socketId) {
+                const oldSocketId = station.socketId;
+                station.socketId = socketId;
+                if (oldSocketId !== socketId) {
+                    console.log(`🔄 SocketId обновлен для станции ${stationNumber}: ${oldSocketId || 'нет'} -> ${socketId}`);
+                }
+            }
+            
+            return station;
+        }
+        return null;
+    }
+
+    /**
+     * Проверка и очистка устаревших heartbeat
+     * Помечает станции как отключенные, если heartbeat не приходит более 5 секунд
+     */
+    cleanupStaleHeartbeats() {
+        const now = Date.now();
+        const HEARTBEAT_TIMEOUT = 5000; // 5 секунд
+        
+        this.getStations().forEach(station => {
+            if (station.socketId && station.lastHeartbeat) {
+                const timeSinceHeartbeat = now - station.lastHeartbeat;
+                if (timeSinceHeartbeat > HEARTBEAT_TIMEOUT) {
+                    // Heartbeat устарел - помечаем как отключенную
+                    const wasConnected = station.connected;
+                    station.connected = false;
+                    if (wasConnected) {
+                        console.log(`⚠️ Станция ${station.stationNumber} помечена как отключенная (heartbeat устарел: ${Math.round(timeSinceHeartbeat / 1000)}s)`);
+                    }
+                } else {
+                    // Heartbeat свежий - убеждаемся что станция помечена как подключенная
+                    if (!station.connected) {
+                        station.connected = true;
+                        console.log(`✅ Станция ${station.stationNumber} восстановлена (heartbeat получен)`);
+                    }
+                }
+            } else if (station.socketId && !station.lastHeartbeat) {
+                // Есть socketId, но нет heartbeat - помечаем как отключенную
+                if (station.connected) {
+                    station.connected = false;
+                    console.log(`⚠️ Станция ${station.stationNumber} помечена как отключенная (нет heartbeat)`);
+                }
+            }
+        });
+    }
+
+    /**
      * Удаление socketId при отключении
      */
     removeStationSocketId(socketId) {
@@ -177,6 +244,7 @@ class LocalModeManager {
         if (station) {
             station.socketId = null;
             station.connected = false;
+            station.lastHeartbeat = null; // Очищаем heartbeat при отключении
             return station;
         }
         return null;

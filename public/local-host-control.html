@@ -254,6 +254,7 @@
             socket.on('connect', () => {
                 console.log('Подключен к серверу');
                 if (roomCode) {
+                    // Подключаемся к комнате как хост для управления игрой
                     socket.emit('host-join', roomCode.toUpperCase());
                     console.log('Подключение к комнате:', roomCode.toUpperCase());
                 }
@@ -347,28 +348,28 @@
         // Пропустить ожидание ответов
         function skipAnswers() {
             if (!roomCode) return;
-            socket.emit('local-skip-answers', { roomCode: roomCode.toUpperCase() });
+            socket.emit('local-game-control', { action: 'skip-answers', roomCode: roomCode.toUpperCase() });
             console.log('Пропуск ожидания ответов');
         }
 
         // Показать результаты
         function showResults() {
             if (!roomCode) return;
-            socket.emit('local-show-results', { roomCode: roomCode.toUpperCase() });
+            socket.emit('local-game-control', { action: 'show-results', roomCode: roomCode.toUpperCase() });
             console.log('Показ результатов');
         }
 
         // Пропустить ожидание готовности
         function skipReady() {
             if (!roomCode) return;
-            socket.emit('local-skip-ready', { roomCode: roomCode.toUpperCase() });
+            socket.emit('local-game-control', { action: 'skip-ready', roomCode: roomCode.toUpperCase() });
             console.log('Пропуск ожидания готовности');
         }
 
         // Следующий вопрос
         function nextQuestion() {
             if (!roomCode) return;
-            socket.emit('next-question', roomCode.toUpperCase());
+            socket.emit('local-game-control', { action: 'next-question', roomCode: roomCode.toUpperCase() });
             console.log('Переход к следующему вопросу');
         }
 
@@ -376,12 +377,12 @@
         function endGame() {
             if (!roomCode) return;
             if (confirm('Вы уверены, что хотите завершить игру?')) {
-                socket.emit('local-end-game', { roomCode: roomCode.toUpperCase() });
+                socket.emit('local-game-control', { action: 'end-game', roomCode: roomCode.toUpperCase() });
                 console.log('Завершение игры');
             }
         }
 
-        // Завершить квиз (вернуть все станции на начальную страницу local-station.html)
+        // Завершить квиз (вернуть все станции на начальную страницу station.html)
         async function endQuiz() {
             if (!socket || !socket.connected) {
                 alert('Не подключен к серверу. Пожалуйста, подождите подключения.');

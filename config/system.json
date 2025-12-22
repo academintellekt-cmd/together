@@ -1,0 +1,70 @@
+{
+  "version": "1.0.0",
+  "name": "ВМЕСТЕ - Квиз-платформа",
+  "description": "Система управления станциями игроков",
+  
+  "network": {
+    "stationIPRange": "192.168.1.21-29",
+    "serverIP": "192.168.1.20",
+    "subnet": "192.168.1.0/24"
+  },
+  
+  "stations": {
+    "count": 9,
+    "basePath": "/home/pi/together",
+    "startIP": 21,
+    "endIP": 29
+  },
+  
+  "joystick": {
+    "defaultConfigPath": "/together/data/joystick-config.json",
+    "perStationConfig": true,
+    "stationsConfigPath": "/together/data/stations",
+    "autoDetect": true
+  },
+  
+  "dmx": {
+    "enabled": true,
+    "port": "/dev/ttyUSB0",
+    "universe": 0,
+    "channels": 512
+  },
+  
+  "deployment": {
+    "backupEnabled": true,
+    "backupPath": "/together/backups",
+    "keepBackups": 5,
+    "excludePatterns": [
+      "node_modules",
+      ".git",
+      "*.log",
+      "*.backup"
+    ]
+  },
+  
+  "logging": {
+    "enabled": true,
+    "logPath": "/together/logs",
+    "level": "info",
+    "maxSize": "10MB",
+    "maxFiles": 5
+  },
+  
+  "server": {
+    "port": 3000,
+    "host": "0.0.0.0",
+    "cors": {
+      "enabled": true,
+      "origins": ["*"]
+    }
+  },
+  
+  "features": {
+    "localMode": true,
+    "joystickSupport": true,
+    "dmxSupport": true,
+    "stationMonitoring": true,
+    "autoUpdate": false
+  }
+}
+

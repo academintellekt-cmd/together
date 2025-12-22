@@ -213,8 +213,20 @@ const LayoutManager = {
         
         // Применяем видимость для каждого фрейма
         // По умолчанию все фреймы видимы, если не указано иное
-        this.setFrameVisibility(1, config.showFrame1 !== false);
-        this.setFrameVisibility(2, config.showFrame2 !== false);
+        // Frame 1 может создаваться динамически через Frame1.init(), поэтому применяем видимость только если он должен быть видимым
+        if (config.showFrame1 !== false) {
+            this.setFrameVisibility(1, true);
+        } else {
+            this.setFrameVisibility(1, false);
+        }
+        
+        // Frame 2 может не существовать, если showFrame2 === false
+        if (config.showFrame2 !== false) {
+            this.setFrameVisibility(2, true);
+        } else {
+            this.setFrameVisibility(2, false);
+        }
+        
         this.setFrameVisibility(4, config.showFrame4 !== false);
         this.setFrameVisibility(5, config.showFrame5 !== false);
         
@@ -250,8 +262,12 @@ const LayoutManager = {
             }
         }
         
+        // Если фрейм не найден и он должен быть скрыт, это нормально - не выдаем предупреждение
         if (!frame) {
-            console.warn(`Frame ${frameNumber} not found`);
+            // Выдаем предупреждение только если фрейм должен быть видимым
+            if (isVisible) {
+                console.warn(`Frame ${frameNumber} not found`);
+            }
             return;
         }
         

@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const { loadAllQuizzes } = require('./server/utils/quiz-loader');
+const { getConfigManager } = require('./server/utils/config-manager');
 
 // DMX интеграция - новая система сценариев
 let dmxScenarioEngine = null;
@@ -38,6 +39,17 @@ if (localModeAvailable) {
     console.warn('⚠️ Ошибка загрузки локального модуля:', error.message);
     localModeManager = null;
   }
+}
+
+// Инициализация менеджера конфигураций
+let configManager = null;
+try {
+  configManager = getConfigManager();
+  const systemConfig = configManager.getSystemConfig();
+  const versionInfo = configManager.getVersionInfo();
+  console.log(`✅ Система конфигураций инициализирована (версия: ${versionInfo.version})`);
+} catch (error) {
+  console.warn('⚠️ Ошибка инициализации менеджера конфигураций:', error.message);
 }
 
 const app = express();
@@ -1288,7 +1300,11 @@ if (localModeAvailable && localModeManager) {
     const station = localModeManager.registerStation(ip, stationNumber);
     
     if (station) {
-      console.log(`✅ Станция ${stationNumber} зарегистрирована: ${ip} (клиент: ${normalizedClientIp})`);
+      // Убеждаемся, что статус connected установлен
+      station.connected = true;
+      station.lastSeen = Date.now();
+      
+      console.log(`✅ Станция ${stationNumber} зарегистрирована через HTTP API: ${ip} (клиент: ${normalizedClientIp}), connected=${station.connected}`);
       
       // Уведомляем всех хостов об обновлении списка станций
       io.emit('local-stations-updated', {
@@ -1303,10 +1319,23 @@ if (localModeAvailable && localModeManager) {
   
   // API для определения IP клиента
   app.get('/api/local/detect-ip', (req, res) => {
-    const clientIp = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 
-                     (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : null) ||
-                     req.headers['x-real-ip'];
+    // Собираем все возможные источники IP адреса
+    const ipSources = {
+      'req.ip': req.ip,
+      'req.connection.remoteAddress': req.connection?.remoteAddress,
+      'req.socket.remoteAddress': req.socket?.remoteAddress,
+      'x-forwarded-for': req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : null,
+      'x-real-ip': req.headers['x-real-ip']
+    };
     
+    // Выбираем первый доступный IP адрес
+    let clientIp = req.ip || 
+                   req.connection?.remoteAddress || 
+                   req.socket?.remoteAddress || 
+                   (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : null) ||
+                   req.headers['x-real-ip'];
+    
+    // Нормализуем IPv6-mapped IPv4 адреса
     let normalizedClientIp = clientIp;
     if (clientIp && clientIp.startsWith('::ffff:')) {
       normalizedClientIp = clientIp.replace('::ffff:', '');
@@ -1324,10 +1353,21 @@ if (localModeAvailable && localModeManager) {
       }
     }
     
+    // Логируем для отладки (только если не localhost)
+    if (normalizedClientIp && normalizedClientIp !== '127.0.0.1' && normalizedClientIp !== '::1') {
+      console.log(`🔍 Определение IP клиента:`, {
+        ip: normalizedClientIp,
+        stationNumber: stationNumber,
+        sources: ipSources,
+        hostname: req.headers.host
+      });
+    }
+    
     res.json({
-      ip: normalizedClientIp,
+      ip: normalizedClientIp || null,
       stationNumber: stationNumber,
-      hostname: req.headers.host || 'unknown'
+      hostname: req.headers.host || 'unknown',
+      sources: ipSources // Для отладки
     });
   });
   
@@ -1543,14 +1583,17 @@ if (localModeAvailable && localModeManager) {
 
       // Обновляем время последнего контакта
       station.lastSeen = Date.now();
-      if (!station.connected) {
-        station.connected = true;
-      }
+      station.connected = true; // Всегда устанавливаем connected = true при любом контакте
+      
+      // Уведомляем хостов об обновлении статуса станции
+      io.emit('local-stations-updated', {
+        stations: localModeManager.getStations()
+      });
 
       // Получаем все команды из очереди
       const commands = localModeManager.dequeueCommands(stationNumber);
       
-      console.log(`📥 HTTP Polling: Станция ${stationNumber} запросила команды, получено: ${commands.length}`);
+      console.log(`📥 HTTP Polling: Станция ${stationNumber} запросила команды, получено: ${commands.length}, connected=${station.connected}`);
 
       res.json({ 
         success: true, 
@@ -1617,8 +1660,16 @@ if (localModeAvailable && localModeManager) {
         });
       }
 
-      // Сначала пробуем получить конфигурацию станции
-      let config = station.joystick?.config;
+      // Сначала пробуем получить конфигурацию станции из ConfigManager
+      let config = null;
+      if (configManager) {
+        config = configManager.getStationConfig(stationNumber);
+      }
+      
+      // Если нет в ConfigManager, пробуем из станции
+      if (!config) {
+        config = station.joystick?.config;
+      }
       
       // Если конфигурации нет, загружаем общую
       if (!config) {
@@ -1668,7 +1719,12 @@ if (localModeAvailable && localModeManager) {
       // Сохраняем конфигурацию в станцию
       localModeManager.updateJoystickConfig(stationNumber, config);
 
-      // Также сохраняем в файл (общая конфигурация)
+      // Сохраняем через ConfigManager (если доступен)
+      if (configManager) {
+        configManager.saveStationConfig(stationNumber, config);
+      }
+
+      // Также сохраняем в файл (общая конфигурация) для обратной совместимости
       try {
         const configPath = path.join(__dirname, 'data', 'joystick-config.json');
         const dataDir = path.dirname(configPath);
@@ -1691,6 +1747,60 @@ if (localModeAvailable && localModeManager) {
       res.status(500).json({ 
         success: false, 
         error: 'Ошибка сохранения конфигурации: ' + error.message 
+      });
+    }
+  });
+
+  /**
+   * Получение системной конфигурации
+   * GET /api/config/system
+   */
+  app.get('/api/config/system', (req, res) => {
+    try {
+      if (!configManager) {
+        return res.status(503).json({
+          success: false,
+          error: 'Менеджер конфигураций не инициализирован'
+        });
+      }
+
+      const systemConfig = configManager.getSystemConfig();
+      res.json({
+        success: true,
+        config: systemConfig
+      });
+    } catch (error) {
+      console.error('❌ Ошибка получения системной конфигурации:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Ошибка получения конфигурации: ' + error.message
+      });
+    }
+  });
+
+  /**
+   * Получение информации о версии
+   * GET /api/config/version
+   */
+  app.get('/api/config/version', (req, res) => {
+    try {
+      if (!configManager) {
+        return res.status(503).json({
+          success: false,
+          error: 'Менеджер конфигураций не инициализирован'
+        });
+      }
+
+      const versionInfo = configManager.getVersionInfo();
+      res.json({
+        success: true,
+        version: versionInfo
+      });
+    } catch (error) {
+      console.error('❌ Ошибка получения информации о версии:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Ошибка получения версии: ' + error.message
       });
     }
   });
@@ -1742,18 +1852,22 @@ if (localModeAvailable && localModeManager) {
         });
       }
 
-      localModeManager.updateJoystickStatus(stationNumber, status, error);
-
-      // Уведомляем хостов об обновлении
-      io.emit('local-stations-updated', {
-        stations: localModeManager.getStations()
-      });
+      const updatedStation = localModeManager.updateJoystickStatus(stationNumber, status, error);
+      
+      if (updatedStation) {
+        // Уведомляем хостов об обновлении
+        io.emit('local-stations-updated', {
+          stations: localModeManager.getStations()
+        });
+      } else {
+        console.warn(`⚠️ Станция ${stationNumber} не найдена при обновлении статуса джойстика`);
+      }
 
       res.json({ 
         success: true, 
         message: 'Статус джойстика обновлен',
         stationNumber: stationNumber,
-        joystick: station.joystick
+        joystick: updatedStation ? updatedStation.joystick : station.joystick
       });
     } catch (error) {
       console.error('❌ Ошибка обновления статуса джойстика:', error);
@@ -1774,7 +1888,7 @@ if (localModeAvailable && localModeManager) {
     const { username = 'pi', password = '', stationPath = '/home/pi/together', stationNumbers } = req.body;
     
     // Путь к скрипту развертывания
-    const deployScript = path.join(__dirname, 'scripts', 'deploy-to-stations.sh');
+    const deployScript = path.join(__dirname, 'scripts', 'deploy-local.sh');
     
     if (!fs.existsSync(deployScript)) {
       return res.status(404).json({
@@ -1862,6 +1976,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/fonts', express.static(path.join(__dirname, 'public/fonts')));
 app.use('/joystick-test', express.static(path.join(__dirname, 'tests/joystick-test')));
 app.use('/data/media', express.static(path.join(__dirname, 'data/media')));
+
+// Маршрут для /station без расширения (редирект на station.html)
+app.get('/station', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'station.html'));
+});
 
 // Получение IP-адреса сервера и клиента
 app.get('/api/server-ip', (req, res) => {
@@ -2416,6 +2535,48 @@ io.on('connection', (socket) => {
     room.players.forEach(p => p.score = 0);
     room.lastActivity = Date.now(); // Обновляем активность
     
+    // В локальном режиме отправляем команды станциям для перехода на страницу регистрации
+    if (isLocalMode && localModeManager) {
+      console.log(`🚀 Отправка команд станциям для перехода на страницу регистрации (комната ${roomCode}, квиз ${room.quizId})`);
+      
+      // Получаем все подключенные станции
+      const stations = localModeManager.getStations().filter(s => s.connected);
+      
+      stations.forEach(station => {
+        if (station.connected && station.socketId) {
+          const commandData = {
+            command: 'navigate',
+            params: {
+              page: 'quiz',
+              roomCode: roomCode,
+              quizId: room.quizId || null,
+              autoConnect: true
+            },
+            timestamp: Date.now()
+          };
+          
+          // Отправляем команду через Socket.io
+          io.to(station.socketId).emit('local-station-command', commandData);
+          
+          // Обновляем состояние станции
+          localModeManager.updateStationState(station.stationNumber, {
+            currentPage: 'quiz',
+            pageData: {
+              roomCode: roomCode,
+              quizId: room.quizId || null
+            }
+          });
+          
+          console.log(`✅ Команда перехода на регистрацию отправлена станции ${station.stationNumber}`);
+        }
+      });
+      
+      // Уведомляем хостов об обновлении
+      io.emit('local-stations-updated', {
+        stations: localModeManager.getStations()
+      });
+    }
+    
     io.to(roomCode).emit('game-started');
     
     // DMX: игра началась
@@ -2773,98 +2934,12 @@ io.on('connection', (socket) => {
     
     console.log(`📤 Событие game-finished отправлено в комнату ${roomCode}`);
     
-    // Если это локальная комната, отправляем команду станциям вернуться в режим ожидания
+    // В локальном режиме НЕ отправляем автоматическую команду navigate
+    // Результаты должны показываться на станциях, а перезапуск происходит по кнопке "Перезапустить станции"
+    // Это позволяет хосту видеть результаты перед перезапуском
     if (room.mode === 'local' && localModeAvailable && localModeManager) {
-      console.log(`🔧 Локальный режим: отправка команд станциям для возврата в режим ожидания`);
-      // Получаем все станции, которые участвуют в игре (по игрокам)
-      const stationNumbers = new Set();
-      console.log(`👥 Игроки в комнате: ${room.players.map(p => p.name).join(', ')}`);
-      
-      room.players.forEach(player => {
-        // Извлекаем номер станции из имени игрока (например, "Игрок №1" -> 1)
-        const match = player.name.match(/игрок\s*№?(\d+)/i);
-        if (match) {
-          const stationNum = parseInt(match[1]);
-          stationNumbers.add(stationNum);
-          console.log(`📍 Найдена станция ${stationNum} для игрока ${player.name}`);
-        } else {
-          console.log(`⚠️ Не удалось определить номер станции для игрока: ${player.name}`);
-        }
-      });
-      
-      console.log(`📋 Найдено станций по игрокам: ${Array.from(stationNumbers).join(', ')}`);
-      
-      // Если не нашли станции по игрокам, отправляем всем подключенным станциям
-      const allStations = localModeManager.getStations();
-      const connectedStations = allStations.filter(s => s.connected);
-      console.log(`🔌 Всего подключенных станций: ${connectedStations.length}`);
-      
-      const stationsToNotify = stationNumbers.size > 0
-        ? localModeManager.getStationsByNumbers(Array.from(stationNumbers))
-        : connectedStations;
-      
-      console.log(`📤 Отправка команды возврата в режим ожидания на станции: ${stationsToNotify.map(s => `${s.stationNumber}(${s.ip}, socketId: ${s.socketId ? 'есть' : 'нет'})`).join(', ')}`);
-      
-      stationsToNotify.forEach(station => {
-        console.log(`🔍 Обработка станции ${station.stationNumber}: connected=${station.connected}, socketId=${station.socketId}`);
-        
-        if (station.connected && station.socketId) {
-          // Используем универсальную систему команд для надежности
-          const commandData = {
-            command: 'navigate',
-            params: {
-              page: 'waiting'
-            },
-            timestamp: Date.now()
-          };
-          
-          console.log(`📤 Отправка local-station-command станции ${station.stationNumber} (socketId: ${station.socketId}):`, commandData);
-          io.to(station.socketId).emit('local-station-command', commandData);
-          
-          // Также отправляем старое событие для обратной совместимости
-          console.log(`📤 Отправка local-station-return-to-waiting станции ${station.stationNumber}`);
-          io.to(station.socketId).emit('local-station-return-to-waiting');
-          
-          console.log(`✅ Команда возврата в режим ожидания отправлена станции ${station.stationNumber} (${station.ip})`);
-          
-          // Обновляем состояние станции
-          localModeManager.updateStationState(station.stationNumber, {
-            currentPage: 'waiting',
-            pageData: {}
-          });
-        } else {
-          console.warn(`⚠️ Станция ${station.stationNumber} не подключена или нет socketId: connected=${station.connected}, socketId=${station.socketId}`);
-        }
-      });
-      
-      // Также отправляем команду всем игрокам в комнате, которые могут быть на странице player.html
-      console.log(`👥 Отправка команд игрокам в комнате (${room.players.length} игроков)`);
-      room.players.forEach(player => {
-        const playerSocket = io.sockets.sockets.get(player.id);
-        if (playerSocket) {
-          const commandData = {
-            command: 'navigate',
-            params: {
-              page: 'waiting'
-            },
-            timestamp: Date.now()
-          };
-          
-          console.log(`📤 Отправка local-station-command игроку ${player.name} (ID: ${player.id}):`, commandData);
-          // Отправляем команду навигации игроку
-          playerSocket.emit('local-station-command', commandData);
-          
-          // Также отправляем старое событие для обратной совместимости
-          console.log(`📤 Отправка local-station-return-to-waiting игроку ${player.name}`);
-          playerSocket.emit('local-station-return-to-waiting');
-          
-          console.log(`✅ Команда возврата в режим ожидания отправлена игроку ${player.name} (ID: ${player.id})`);
-        } else {
-          console.warn(`⚠️ Сокет игрока ${player.name} (ID: ${player.id}) не найден`);
-        }
-      });
-      
-      console.log(`✅ Завершена отправка команд для возврата станций в режим ожидания`);
+      console.log(`🔧 Локальный режим: игра завершена, результаты отправлены. Перезапуск станций будет выполнен по команде хоста.`);
+      // НЕ отправляем команду navigate автоматически - пусть результаты показываются на станциях
     }
     
     // DMX: игра завершена
@@ -3648,16 +3723,29 @@ io.on('connection', (socket) => {
         return;
       }
       
-      console.log(`🔍 Регистрация станции: IP=${ip}, номер=${stationNumber}`);
-      const station = localModeManager.registerStation(ip, stationNumber);
+      console.log(`🔍 Регистрация станции через Socket.io: IP=${ip}, номер=${stationNumber}`);
+      
+      // Сначала регистрируем станцию (устанавливает connected = true)
+      let station = localModeManager.registerStation(ip, stationNumber);
+      
+      // Если станция не найдена, пробуем найти по номеру
+      if (!station && stationNumber) {
+        station = localModeManager.getStationByNumber(stationNumber);
+        if (station) {
+          station.ip = ip;
+          station.connected = true;
+          station.lastSeen = Date.now();
+          console.log(`✅ Станция ${stationNumber} найдена и обновлена: ${ip}`);
+        }
+      }
       
       if (station) {
-        console.log(`✅ Станция ${stationNumber} подключена через Socket.io: ${ip}`);
+        console.log(`✅ Станция ${stationNumber} подключена через Socket.io: ${ip}, socketId=${socket.id}`);
         // Сохраняем socket.id для станции используя новый метод
         const updatedStation = localModeManager.setStationSocketId(stationNumber, socket.id);
         
         if (updatedStation) {
-          console.log(`✅ Socket ID ${socket.id} сохранен для станции ${stationNumber}`);
+          console.log(`✅ Socket ID ${socket.id} сохранен для станции ${stationNumber}, connected=${updatedStation.connected}`);
         } else {
           console.warn(`⚠️ Не удалось сохранить socket ID для станции ${stationNumber}`);
         }
@@ -3693,6 +3781,21 @@ io.on('connection', (socket) => {
       } else {
         console.error(`❌ Не удалось зарегистрировать станцию: IP=${ip}, номер=${stationNumber}`);
         socket.emit('error', { message: 'Не удалось зарегистрировать станцию' });
+      }
+    });
+
+    // Heartbeat от станции (подтверждение что station.html открыта)
+    socket.on('local-station-heartbeat', (data) => {
+      const { stationNumber } = data;
+      if (stationNumber) {
+        // Обновляем heartbeat (тихо, без лишних логов)
+        const station = localModeManager.updateStationHeartbeat(stationNumber, socket.id);
+        if (station) {
+          // Уведомляем всех хостов об обновлении статуса станции
+          io.emit('local-stations-updated', {
+            stations: localModeManager.getStations()
+          });
+        }
       }
     });
 
@@ -3863,7 +3966,7 @@ io.on('connection', (socket) => {
       });
     });
 
-    // Завершение квиза на станциях (вернуть их на начальную страницу local-station.html)
+    // Завершение квиза на станциях (вернуть их на начальную страницу station.html)
     socket.on('local-end-quiz-on-stations', (data) => {
       const { stationNumbers } = data || {};
       
@@ -3883,7 +3986,7 @@ io.on('connection', (socket) => {
       console.log(`🛑 Завершение квиза на станциях: ${stationsToEnd.map(s => s.stationNumber).join(', ')}`);
       
       stationsToEnd.forEach(station => {
-        // Отправляем команду на socketId станции (если она на local-station.html)
+        // Отправляем команду на socketId станции (если она на station.html)
         if (station.socketId) {
           io.to(station.socketId).emit('local-station-end-quiz');
           console.log(`📤 Команда завершения квиза отправлена станции ${station.stationNumber} (socketId: ${station.socketId})`);
@@ -4659,7 +4762,7 @@ io.on('connection', (socket) => {
     if (localModeAvailable && localModeManager) {
       const station = localModeManager.removeStationSocketId(socket.id);
       if (station) {
-        console.log(`🔌 Станция ${station.stationNumber} отключена`);
+        console.log(`🔌 Станция ${station.stationNumber} отключена (socketId: ${socket.id})`);
         
         // Уведомляем хостов об обновлении
         io.emit('local-stations-updated', {
@@ -4872,6 +4975,17 @@ if (require.main === module) {
     setInterval(() => {
       logPerformanceStats();
     }, 60 * 1000);
+    
+    // Периодическая очистка устаревших heartbeat для локального режима
+    if (localModeAvailable && localModeManager) {
+      setInterval(() => {
+        localModeManager.cleanupStaleHeartbeats();
+        // Уведомляем хостов об обновлении статусов после очистки
+        io.emit('local-stations-updated', {
+          stations: localModeManager.getStations()
+        });
+      }, 2000); // Проверяем каждые 2 секунды
+    }
 }).on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     console.error(`Порт ${PORT} уже занят. Попробуйте другой порт:`);
