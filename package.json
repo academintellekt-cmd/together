@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start:unified": "node server-unified.js",
+    "dev": "nodemon server.js",
+    "dev:unified": "nodemon server-unified.js"
   },
   "keywords": [
     "quiz",

@@ -541,8 +541,7 @@
                     Ваш счет: <span id="player-score">0</span>
                     <span id="points-added" style="font-size: 16px; margin-left: 10px; opacity: 0.8;"></span>
                 </div>
-                <button id="ready-btn" class="ready-btn" style="display: none;">Готов к следующему вопросу</button>
-                <div id="ready-status" class="ready-status" style="display: none; margin-top: 15px;">Ожидание других игроков...</div>
+                <!-- Кнопка готовности удалена - хост управляет переходом к следующему вопросу -->
             </div>
 
             <!-- Финальные результаты -->
@@ -703,29 +702,7 @@
             const currentTime = Date.now();
             const buttons = joystickConfig.buttons;
             
-            // Обработка кнопки 9 на экране результатов (готов к следующему вопросу)
-            if (resultsScreen && resultsScreen.style.display !== 'none') {
-                const readyBtn = document.getElementById('ready-btn');
-                if (readyBtn && readyBtn.style.display !== 'none' && !readyBtn.disabled) {
-                    // Проверяем кнопку 9
-                    if (buttons['Кнопка 9'] !== undefined) {
-                        const button9Index = buttons['Кнопка 9'];
-                        if (gamepad.buttons[button9Index] && gamepad.buttons[button9Index].pressed) {
-                            const buttonKey = `Кнопка 9-${button9Index}`;
-                            if (lastPressedButton !== buttonKey || (currentTime - lastPressedTime) >= 300) {
-                                lastPressedButton = buttonKey;
-                                lastPressedTime = currentTime;
-                                
-                                console.log(`🎮 Джойстик: Кнопка 9 (кнопка ${button9Index}) -> Готов к следующему вопросу`);
-                                
-                                // Эмулируем клик по кнопке готовности
-                                readyBtn.click();
-                                return; // Обработали нажатие, выходим
-                            }
-                        }
-                    }
-                }
-            }
+            // Обработка кнопки 9 на экране результатов удалена - кнопка готовности больше не используется
             
             // Обработка ответов - только на экране вопроса
             if (!questionScreen || questionScreen.style.display === 'none' || hasAnswered) {
@@ -1095,12 +1072,8 @@
             // Инициализируем элементы Frame1
             initFrame1Elements();
             
-            // Скрываем кнопку готовности при новом вопросе
+            // Сбрасываем флаг готовности при новом вопросе (кнопка готовности удалена)
             isReady = false;
-            const readyBtn = document.getElementById('ready-btn');
-            const readyStatus = document.getElementById('ready-status');
-            if (readyBtn) readyBtn.style.display = 'none';
-            if (readyStatus) readyStatus.textContent = '';
             
             // Устанавливаем флаг ответа
             hasAnswered = alreadyAnswered;
@@ -1322,20 +1295,7 @@
                             window.previousPlayerScore = newScore;
                         }
                         
-                        // Показываем кнопку готовности
-                        const readyBtn = document.getElementById('ready-btn');
-                        const readyStatus = document.getElementById('ready-status');
-                        if (readyBtn) {
-                            readyBtn.style.display = 'block';
-                            readyBtn.disabled = false;
-                            readyBtn.classList.remove('ready');
-                            readyBtn.textContent = 'Готов к следующему вопросу';
-                        }
-                        if (readyStatus) {
-                            readyStatus.style.display = 'none';
-                            readyStatus.textContent = '';
-                        }
-                        
+                        // Кнопка готовности удалена - хост управляет переходом к следующему вопросу
                         isReady = false;
                         startGamepadCheck();
                     }, 50);
@@ -1671,46 +1631,11 @@
                 window.previousPlayerScore = newScore;
             }
 
-            // Показываем кнопку готовности (красная по умолчанию)
-            const readyBtn = document.getElementById('ready-btn');
-            const readyStatus = document.getElementById('ready-status');
-            readyBtn.style.display = 'block';
-            readyBtn.disabled = false;
-            readyBtn.classList.remove('ready'); // Убираем класс ready, чтобы кнопка была красной
-            readyBtn.textContent = 'Готов к следующему вопросу?';
-            readyStatus.style.display = 'none';
+            // Кнопка готовности удалена - хост управляет переходом к следующему вопросу
             isReady = false; // Сбрасываем флаг готовности
-            
-            // Запускаем проверку джойстика для работы кнопки 9 на экране результатов
-            startGamepadCheck();
         });
 
-        // Кнопка готовности
-        const readyBtn = document.getElementById('ready-btn');
-        readyBtn.addEventListener('click', () => {
-            if (isReady) return;
-            isReady = true;
-            socket.emit('player-ready', roomCode);
-            readyBtn.disabled = true;
-            readyBtn.classList.add('ready'); // Делаем кнопку зеленой
-            readyBtn.textContent = 'Готов! Ожидание игроков...';
-            const readyStatus = document.getElementById('ready-status');
-            readyStatus.style.display = 'block';
-            readyStatus.textContent = 'Ожидание игроков...';
-        });
-
-        // Статус готовности
-        socket.on('ready-status', (data) => {
-            if (isReady && document.getElementById('results-screen').style.display !== 'none') {
-                const readyBtn = document.getElementById('ready-btn');
-                const readyStatus = document.getElementById('ready-status');
-                readyBtn.disabled = true;
-                readyBtn.classList.add('ready'); // Убеждаемся, что кнопка зеленая
-                readyBtn.textContent = 'Готов! Ожидание игроков...';
-                readyStatus.style.display = 'block';
-                readyStatus.textContent = `Ожидание игроков... (${data.readyCount}/${data.totalPlayers})`;
-            }
-        });
+        // Кнопка готовности удалена - хост управляет переходом к следующему вопросу
 
         // Команда вернуться в режим ожидания (для станций)
         socket.on('local-station-return-to-waiting', () => {
@@ -1794,39 +1719,7 @@
 
         // ========== ПРИНУДИТЕЛЬНЫЕ ДЕЙСТВИЯ ОТ СЕРВЕРА ==========
         
-        /**
-         * Принудительное нажатие кнопки "Готов"
-         */
-        socket.on('force-player-ready', (data) => {
-            const { roomCode: targetRoomCode } = data;
-            
-            
-            // Проверяем, что это наша комната
-            if (targetRoomCode && targetRoomCode !== roomCode) {
-                console.warn('⚠️ Команда для другой комнаты, игнорируем');
-                return;
-            }
-            
-            // Эмулируем нажатие кнопки готовности
-            if (roomCode && !isReady) {
-                const readyBtn = document.getElementById('ready-btn');
-                if (readyBtn && readyBtn.style.display !== 'none') {
-                    isReady = true;
-                    socket.emit('player-ready', roomCode);
-                    readyBtn.disabled = true;
-                    readyBtn.classList.add('ready');
-                    readyBtn.textContent = 'Готов! Ожидание игроков...';
-                    
-                    const readyStatus = document.getElementById('ready-status');
-                    if (readyStatus) {
-                        readyStatus.style.display = 'block';
-                        readyStatus.textContent = 'Ожидание игроков...';
-                    }
-                    
-                    console.log('✅ Кнопка "Готов" нажата принудительно');
-                }
-            }
-        });
+        // Обработчик 'force-player-ready' удален - кнопка готовности больше не используется
 
         /**
          * Принудительный выбор ответа

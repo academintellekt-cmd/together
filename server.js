@@ -3614,24 +3614,15 @@ io.on('connection', (socket) => {
       if (verifiedCount === totalAnswers && totalAnswers > 0) {
         room.gameState = 'waiting-next-question';
         
-        // Отправляем результаты каждому игроку индивидуально
-        const currentQuestion = room.questions[room.currentQuestion];
+        // ⚠️ ПРИНЦИП: Игрок НЕ должен видеть правильность ответа
+        // Сервер только сообщает, что ответ принят, но не показывает результат проверки
+        // Отправляем только уведомление о том, что можно переходить к следующему вопросу
         room.players.forEach(player => {
-          const playerAnswer = room.answers.get(player.id);
-          const verification = room.verifiedAnswers.get(player.id);
-          
+          // Игрок не должен знать правильный ответ или результат проверки
+          // Просто уведомляем, что можно переходить к следующему вопросу
           io.to(player.id).emit('intellectual-question-result', {
-            question: {
-              question: currentQuestion.question,
-              answer: currentQuestion.answer
-            },
-            playerAnswer: playerAnswer ? (playerAnswer.text || '') : '',
-            correctAnswer: currentQuestion.answer || '',
-            isCorrect: verification ? verification.isCorrect : false,
-            pointsEarned: verification ? verification.score : 0,
-            currentScore: player.score,
-            questionIndex: room.currentQuestion,
-            totalQuestions: room.questions.length
+            // Минимальная информация - только статус
+            status: 'accepted'
           });
         });
         
