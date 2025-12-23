@@ -2207,6 +2207,332 @@ function findPlayersForStation(stationNumber) {
   return playerSockets;
 }
 
+/**
+ * Получить IP-адрес из socket соединения (улучшенная версия)
+ */
+function getSocketIp(socket, debug = false) {
+  if (!socket) return null;
+  
+  let ip = null;
+  const methods = [];
+  
+  // Способ 1: handshake.address (основной для Socket.IO 4.x)
+  if (socket.handshake && socket.handshake.address) {
+    ip = socket.handshake.address;
+    methods.push('handshake.address');
+  }
+  
+  // Способ 2: headers (для прокси/nginx)
+  if (!ip && socket.handshake && socket.handshake.headers) {
+    const forwardedFor = socket.handshake.headers['x-forwarded-for'];
+    const realIp = socket.handshake.headers['x-real-ip'];
+    
+    if (forwardedFor) {
+      ip = forwardedFor.split(',')[0].trim();
+      methods.push('x-forwarded-for');
+    } else if (realIp) {
+      ip = realIp;
+      methods.push('x-real-ip');
+    }
+  }
+  
+  // Способ 3: request (fallback для старых версий)
+  if (!ip && socket.request) {
+    ip = socket.request.socket?.remoteAddress || 
+         socket.request.connection?.remoteAddress;
+    if (ip) methods.push('request.socket');
+  }
+  
+  // Способ 4: conn (еще один fallback)
+  if (!ip && socket.conn) {
+    ip = socket.conn.remoteAddress;
+    if (ip) methods.push('conn.remoteAddress');
+  }
+  
+  if (!ip) {
+    // Детальное логирование при отладке
+    if (debug || !socket._ipWarningLogged) {
+      console.warn(`⚠️ Не удалось определить IP для socket ${socket.id}`);
+      console.warn(`  - handshake.address: ${socket.handshake?.address}`);
+      console.warn(`  - x-forwarded-for: ${socket.handshake?.headers?.['x-forwarded-for']}`);
+      console.warn(`  - x-real-ip: ${socket.handshake?.headers?.['x-real-ip']}`);
+      console.warn(`  - request.socket.remoteAddress: ${socket.request?.socket?.remoteAddress}`);
+      console.warn(`  - conn.remoteAddress: ${socket.conn?.remoteAddress}`);
+      socket._ipWarningLogged = true;
+    }
+    return null;
+  }
+  
+  // Нормализуем IPv6-mapped IPv4 адреса
+  if (ip.startsWith('::ffff:')) {
+    ip = ip.replace('::ffff:', '');
+    methods.push('normalized-ipv6');
+  }
+  
+  if (debug) {
+    console.log(`  ℹ️ Socket ${socket.id}: IP = ${ip} (метод: ${methods.join(' -> ')})`);
+  }
+  
+  return ip;
+}
+
+/**
+ * Найти ВСЕ активные socketId для станции
+ * Включает socketId станции (station.html) и всех игроков этой станции (player.html)
+ */
+function findAllSocketsForStation(stationNumber) {
+  const allSockets = [];
+  
+  // Получаем IP-адрес станции
+  let stationIp = null;
+  if (localModeManager) {
+    const station = localModeManager.getStationByNumber(stationNumber);
+    if (station && station.ip) {
+      stationIp = station.ip;
+    }
+  }
+  
+  // 1. Получаем socketId станции (от station.html)
+  if (localModeManager) {
+    const station = localModeManager.getStationByNumber(stationNumber);
+    if (station && station.socketId) {
+      const stationSocket = io.sockets.sockets.get(station.socketId);
+      if (stationSocket) {
+        allSockets.push({
+          socketId: station.socketId,
+          type: 'station',
+          ip: station.ip
+        });
+      }
+    }
+  }
+  
+  // 2. Получаем все socketId игроков этой станции (от player.html)
+  const playerSockets = findPlayersForStation(stationNumber);
+  playerSockets.forEach(({ socketId, playerName, roomCode }) => {
+    // Проверяем, что socket еще существует
+    const playerSocket = io.sockets.sockets.get(socketId);
+    if (playerSocket) {
+      allSockets.push({
+        socketId: socketId,
+        type: 'player',
+        playerName: playerName,
+        roomCode: roomCode
+      });
+    }
+  });
+  
+  // 3. Также ищем во ВСЕХ подключенных сокетах по имени игрока
+  // Это нужно на случай, если игрок еще не подключен к комнате, но уже на player.html
+  // ИЛИ если комната уже удалена, но игрок все еще на player.html
+  const stationPlayerNamePattern = new RegExp(`игрок\\s*№?\\s*${stationNumber}`, 'i');
+  io.sockets.sockets.forEach((socket, socketId) => {
+    // Пропускаем если уже добавлен
+    if (allSockets.some(s => s.socketId === socketId)) {
+      return;
+    }
+    
+    // Проверяем, есть ли у этого сокета игрок с нужным именем
+    // Даже если комната удалена, игрок все еще может быть в players Map
+    const player = players.get(socketId);
+    if (player && player.name && stationPlayerNamePattern.test(player.name)) {
+      allSockets.push({
+        socketId: socketId,
+        type: 'player-standalone',
+        playerName: player.name
+      });
+    }
+  });
+  
+  // 4. КРИТИЧЕСКИ ВАЖНО: Ищем по IP-адресу станции
+  // Это позволяет найти ВСЕ соединения от станции, даже если игрок еще не зарегистрировался
+  // или находится на странице регистрации
+  if (stationIp) {
+    io.sockets.sockets.forEach((socket, socketId) => {
+      // Пропускаем если уже добавлен
+      if (allSockets.some(s => s.socketId === socketId)) {
+        return;
+      }
+      
+      // Получаем IP из socket соединения
+      const socketIp = getSocketIp(socket);
+      if (socketIp && socketIp === stationIp) {
+        // Проверяем, что это не уже известное соединение
+        const existingSocket = allSockets.find(s => s.socketId === socketId);
+        if (!existingSocket) {
+          // Определяем тип соединения
+          const player = players.get(socketId);
+          const type = player ? 'player-by-ip' : 'unknown-by-ip';
+          
+          allSockets.push({
+            socketId: socketId,
+            type: type,
+            ip: socketIp,
+            playerName: player?.name || null,
+            roomCode: player?.roomCode || null
+          });
+          console.log(`🔍 Найдено соединение по IP для станции ${stationNumber}: socketId=${socketId}, type=${type}, ip=${socketIp}`);
+        }
+      }
+    });
+  }
+  
+  return allSockets;
+}
+
+/**
+ * Отправить команду на ВСЕ активные соединения станции
+ */
+function sendCommandToAllStationSockets(stationNumber, command, params) {
+  const allSockets = findAllSocketsForStation(stationNumber);
+  const commandData = {
+    command: command,
+    params: params || {},
+    timestamp: Date.now()
+  };
+  
+  console.log(`📤 Отправка команды "${command}" на ${allSockets.length} активных соединений станции ${stationNumber}`);
+  
+  allSockets.forEach(({ socketId, type, playerName, roomCode }) => {
+    io.to(socketId).emit('local-station-command', commandData);
+    
+    // Также отправляем старые события для обратной совместимости
+    if (command === 'navigate' && params && params.page === 'waiting') {
+      io.to(socketId).emit('local-station-end-quiz');
+      io.to(socketId).emit('local-station-return-to-waiting');
+    }
+    
+    const typeInfo = type === 'station' ? 'station.html' : 
+                     type === 'player' ? `player.html (${playerName}, комната: ${roomCode})` :
+                     `player.html (${playerName}, standalone)`;
+    console.log(`  ✅ Команда отправлена на ${typeInfo} (socketId: ${socketId})`);
+  });
+  
+  return allSockets.length;
+}
+
+/**
+ * УПРОЩЕННАЯ функция отправки команд перезапуска станциям
+ * Использует МНОЖЕСТВЕННЫЕ методы поиска для максимальной надежности
+ */
+function sendRestartCommandsToStations(stationsToReset) {
+  const commandData = {
+    command: 'navigate',
+    params: { page: 'waiting' },
+    timestamp: Date.now()
+  };
+  
+  console.log(`\n🔄 ========== ОТПРАВКА КОМАНД ПЕРЕЗАПУСКА ==========`);
+  console.log(`📊 Станций для перезапуска: ${stationsToReset.length}`);
+  console.log(`📊 Всего активных socket соединений: ${io.sockets.sockets.size}`);
+  console.log(`📊 Всего игроков в players Map: ${players.size}`);
+  
+  stationsToReset.forEach(station => {
+    const sentSockets = new Set(); // Отслеживаем отправленные socketId
+    
+    console.log(`\n🔍 === Станция ${station.stationNumber} ===`);
+    console.log(`  IP: ${station.ip}`);
+    console.log(`  socketId: ${station.socketId || 'нет'}`);
+    console.log(`  connected: ${station.connected}`);
+    
+    // МЕТОД 1: Отправляем на station.html соединение (если есть)
+    if (station.socketId) {
+      const stationSocket = io.sockets.sockets.get(station.socketId);
+      if (stationSocket) {
+        io.to(station.socketId).emit('local-station-command', commandData);
+        io.to(station.socketId).emit('local-station-end-quiz');
+        io.to(station.socketId).emit('local-station-return-to-waiting');
+        sentSockets.add(station.socketId);
+        console.log(`  ✅ [Метод 1] Отправлено на station.html (socketId: ${station.socketId})`);
+      }
+    }
+    
+    // МЕТОД 2: Поиск по IP адресу
+    if (station.ip) {
+      console.log(`  🔍 [Метод 2] Поиск по IP ${station.ip}...`);
+      console.log(`    📊 Проверяем ${io.sockets.sockets.size} активных соединений...`);
+      
+      let checkedCount = 0;
+      io.sockets.sockets.forEach((socket, socketId) => {
+        if (sentSockets.has(socketId)) return;
+        
+        const socketIp = getSocketIp(socket, true); // Debug mode
+        checkedCount++;
+        
+        if (socketIp && socketIp === station.ip) {
+          io.to(socketId).emit('local-station-command', commandData);
+          io.to(socketId).emit('local-station-end-quiz');
+          io.to(socketId).emit('local-station-return-to-waiting');
+          sentSockets.add(socketId);
+          
+          const player = players.get(socketId);
+          console.log(`    ✅ НАЙДЕНО! Команда отправлена на ${player?.name || 'неизвестный тип'} (socketId: ${socketId})`);
+        }
+      });
+      
+      console.log(`    📊 Проверено соединений: ${checkedCount}`);
+      if (sentSockets.size - (station.socketId ? 1 : 0) === 0) {
+        console.error(`    ❌ НЕ НАЙДЕНО ни одного соединения по IP ${station.ip}!`);
+        console.error(`    💡 Список ВСЕХ активных соединений:`);
+        io.sockets.sockets.forEach((socket, socketId) => {
+          const socketIp = getSocketIp(socket, true);
+          const player = players.get(socketId);
+          console.error(`      - Socket ${socketId}: IP=${socketIp || 'НЕТ'}, player=${player?.name || 'нет'}`);
+        });
+      }
+    }
+    
+    // МЕТОД 3: Поиск по имени игрока "Игрок №X"
+    const stationPlayerNamePattern = new RegExp(`игрок\\s*№?\\s*${station.stationNumber}`, 'i');
+    console.log(`  🔍 [Метод 3] Поиск по имени игрока (паттерн: "игрок №${station.stationNumber}")...`);
+    
+    players.forEach((player, socketId) => {
+      if (sentSockets.has(socketId)) return;
+      
+      if (player && player.name && stationPlayerNamePattern.test(player.name)) {
+        const socket = io.sockets.sockets.get(socketId);
+        if (socket) {
+          io.to(socketId).emit('local-station-command', commandData);
+          io.to(socketId).emit('local-station-end-quiz');
+          io.to(socketId).emit('local-station-return-to-waiting');
+          sentSockets.add(socketId);
+          console.log(`  ✅ [Метод 3] Найдено по имени! player: ${player.name}, socketId: ${socketId}`);
+        }
+      }
+    });
+    
+    // МЕТОД 4: Поиск в комнатах
+    console.log(`  🔍 [Метод 4] Поиск в комнатах...`);
+    rooms.forEach((room, roomCode) => {
+      if (!room.players) return;
+      
+      room.players.forEach(player => {
+        if (sentSockets.has(player.id)) return;
+        
+        if (player.name && stationPlayerNamePattern.test(player.name)) {
+          const socket = io.sockets.sockets.get(player.id);
+          if (socket) {
+            io.to(player.id).emit('local-station-command', commandData);
+            io.to(player.id).emit('local-station-end-quiz');
+            io.to(player.id).emit('local-station-return-to-waiting');
+            sentSockets.add(player.id);
+            console.log(`  ✅ [Метод 4] Найдено в комнате! player: ${player.name}, room: ${roomCode}, socketId: ${player.id}`);
+          }
+        }
+      });
+    });
+    
+    console.log(`  📊 ИТОГО: команды отправлены на ${sentSockets.size} соединений`);
+    
+    if (sentSockets.size === 0) {
+      console.error(`  ❌ КРИТИЧЕСКАЯ ОШИБКА: Не найдено ни одного соединения для станции ${station.stationNumber}!`);
+      console.error(`  💡 Проверьте: 1) Подключена ли станция, 2) Открыта ли страница player.html на станции`);
+    }
+  });
+  
+  console.log(`\n✅ ========== ОТПРАВКА ЗАВЕРШЕНА ==========\n`);
+}
+
 // Подключение через Socket.io
 io.on('connection', (socket) => {
   console.log('Новое подключение:', socket.id);
@@ -2311,6 +2637,40 @@ io.on('connection', (socket) => {
       console.log(`❌ Комната ${normalizedRoomCode} не найдена. Доступные комнаты:`, Array.from(rooms.keys()));
       socket.emit('error', { message: 'Комната не найдена' });
       return;
+    }
+
+    // ВАЖНО: Для локального режима проверяем, была ли станция выбрана для участия в игре
+    if (room.mode === 'local' && localModeManager) {
+      // Извлекаем номер станции из имени игрока (формат: "Игрок №1", "ИГРОК №2", "Игрок 3" и т.д.)
+      const stationMatch = normalizedPlayerName.match(/игрок\s*№?\s*(\d+)/i);
+      if (stationMatch) {
+        const stationNumber = parseInt(stationMatch[1]);
+        const isSelected = localModeManager.isStationSelected(normalizedRoomCode, stationNumber);
+        
+        if (!isSelected) {
+          console.warn(`🚫 Станция ${stationNumber} не выбрана для участия в игре в комнате ${normalizedRoomCode}`);
+          socket.emit('error', { 
+            message: `Станция ${stationNumber} не выбрана для участия в этой игре. Вернитесь на страницу станции.`,
+            code: 'STATION_NOT_SELECTED',
+            stationNumber: stationNumber
+          });
+          
+          // Отправляем команду вернуться на station.html
+          const station = localModeManager.getStationByNumber(stationNumber);
+          if (station && station.socketId) {
+            io.to(station.socketId).emit('local-station-command', {
+              command: 'navigate',
+              params: { page: 'waiting' },
+              timestamp: Date.now()
+            });
+            console.log(`✅ Команда возврата на station.html отправлена невыбранной станции ${stationNumber}`);
+          }
+          
+          return;
+        } else {
+          console.log(`✅ Станция ${stationNumber} выбрана для участия в игре в комнате ${normalizedRoomCode}`);
+        }
+      }
     }
 
     // Пароль проверяется только при создании комнаты хостом
@@ -3776,6 +4136,14 @@ io.on('connection', (socket) => {
       }
     });
 
+    // Подтверждение получения команды от станции
+    socket.on('local-station-command-received', (data) => {
+      const { stationNumber, command, timestamp } = data;
+      if (stationNumber) {
+        console.log(`✅ Станция ${stationNumber} подтвердила получение команды "${command}" (задержка: ${Date.now() - timestamp}мс)`);
+      }
+    });
+    
     // Heartbeat от станции (подтверждение что station.html открыта)
     socket.on('local-station-heartbeat', (data) => {
       const { stationNumber } = data;
@@ -3805,29 +4173,79 @@ io.on('connection', (socket) => {
       const { roomCode, quizId, stationNumbers } = data;
       console.log(`🏠 Запуск локального квиза: комната ${roomCode}, квиз ${quizId}, станции: ${stationNumbers ? stationNumbers.join(', ') : 'все'}`);
       
+      if (!roomCode || !quizId) {
+        console.error('❌ Не указаны roomCode или quizId');
+        socket.emit('error', { message: 'Не указаны roomCode или quizId' });
+        return;
+      }
+      
+      // Сохраняем список выбранных станций для этой комнаты
+      if (stationNumbers && stationNumbers.length > 0) {
+        localModeManager.setSelectedStations(roomCode, stationNumbers);
+        console.log(`✅ Сохранены выбранные станции для комнаты ${roomCode}: ${stationNumbers.join(', ')}`);
+      } else {
+        // Если станции не указаны, используем все подключенные
+        const allConnected = localModeManager.getStations().filter(s => s.connected).map(s => s.stationNumber);
+        localModeManager.setSelectedStations(roomCode, allConnected);
+        console.log(`✅ Используются все подключенные станции для комнаты ${roomCode}: ${allConnected.join(', ')}`);
+      }
+      
+      // КРИТИЧЕСКИ ВАЖНО: Получаем ВСЕ зарегистрированные станции (не только connected=true)
+      // Причина: станция может быть на player.html от предыдущей игры и показываться как disconnected
+      const allStations = localModeManager.getStations();
+      
       // Отправляем команду только выбранным станциям
-      const stations = stationNumbers && stationNumbers.length > 0
-        ? localModeManager.getStationsByNumbers(stationNumbers)
-        : localModeManager.getStations().filter(s => s.connected);
+      const selectedStationNumbers = localModeManager.getSelectedStations(roomCode);
+      const selectedStations = allStations.filter(s => 
+        selectedStationNumbers.includes(s.stationNumber)
+      );
 
-      stations.forEach(station => {
-        // Добавляем команду в очередь (гарантирует доставку)
-        localModeManager.enqueueCommand(station.stationNumber, 'navigate', {
-          page: 'quiz',
-          roomCode: roomCode,
-          quizId: quizId
+      // Получаем список невыбранных станций (все зарегистрированные, но не выбранные)
+      const unselectedStations = allStations.filter(s => 
+        !selectedStationNumbers.includes(s.stationNumber)
+      );
+
+      console.log(`📊 Выбранные станции: ${selectedStations.map(s => `${s.stationNumber}(IP:${s.ip})`).join(', ') || 'нет'}`);
+      console.log(`📊 Невыбранные станции: ${unselectedStations.map(s => `${s.stationNumber}(IP:${s.ip})`).join(', ') || 'нет'}`);
+
+      // УПРОЩЕННАЯ ЛОГИКА: Отправляем команды по порядку
+      // 1. СНАЧАЛА невыбранным станциям - команда waiting (чтобы они остались на station.html)
+      // 2. ПОТОМ выбранным станциям - команда quiz (чтобы они перешли на player.html)
+      
+      // ШАГ 1: Отправляем команду waiting невыбранным станциям
+      // Используем упрощенную функцию для надежной доставки
+      if (unselectedStations.length > 0) {
+        console.log(`🚫 Отправка команды waiting невыбранным станциям...`);
+        sendRestartCommandsToStations(unselectedStations);
+        
+        // Очищаем состояние невыбранных станций
+        unselectedStations.forEach(station => {
+          localModeManager.clearQueue(station.stationNumber);
+          localModeManager.updateStationState(station.stationNumber, {
+            currentPage: 'waiting',
+            pageData: {}
+          });
         });
+      }
+      
+      // КРИТИЧЕСКИ ВАЖНО: Задержка 2 секунды перед отправкой команды quiz
+      // Это дает время невыбранным станциям обработать команду waiting и НЕ реагировать на quiz
+      setTimeout(() => {
+        // ШАГ 2: Отправляем команду quiz ТОЛЬКО выбранным станциям
+        console.log(`✅ Отправка команды quiz выбранным станциям (после обработки waiting невыбранными)...`);
+        
+        selectedStations.forEach(station => {
+          // Очищаем очередь команд
+          localModeManager.clearQueue(station.stationNumber);
+          
+          // Обновляем состояние
+          localModeManager.updateStationState(station.stationNumber, {
+            currentPage: 'quiz',
+            pageData: { roomCode, quizId }
+          });
 
-        // Обновляем состояние станции
-        localModeManager.updateStationState(station.stationNumber, {
-          currentPage: 'quiz',
-          pageData: { roomCode, quizId }
-        });
-
-        // Пытаемся отправить через Socket.io (если подключен)
-        if (station.connected && station.socketId) {
-          // Отправляем универсальную команду через Socket.io
-          io.to(station.socketId).emit('local-station-command', {
+          // Отправляем команду на ВСЕ соединения станции (station.html и player.html)
+          const commandData = {
             command: 'navigate',
             params: {
               page: 'quiz',
@@ -3835,24 +4253,40 @@ io.on('connection', (socket) => {
               quizId: quizId
             },
             timestamp: Date.now()
-          });
+          };
           
-          // Также отправляем старое событие для обратной совместимости
-          io.to(station.socketId).emit('local-station-open-quiz', {
-            roomCode: roomCode,
-            quizId: quizId
-          });
+          const sentSockets = new Set();
           
-          console.log(`✅ Команда запуска квиза отправлена через Socket.io станции ${station.stationNumber} (${station.ip})`);
-        } else {
-          console.log(`📝 Команда запуска квиза добавлена в очередь для станции ${station.stationNumber} (Socket.io не подключен, будет получена через polling)`);
-        }
-      });
-
-      // Уведомляем хостов об обновлении
-      io.emit('local-stations-updated', {
-        stations: localModeManager.getStations()
-      });
+          // 1. Отправляем на station.html соединение
+          if (station.socketId) {
+            const stationSocket = io.sockets.sockets.get(station.socketId);
+            if (stationSocket) {
+              io.to(station.socketId).emit('local-station-command', commandData);
+              sentSockets.add(station.socketId);
+            }
+          }
+          
+          // 2. Отправляем на все соединения с IP станции
+          if (station.ip) {
+            io.sockets.sockets.forEach((socket, socketId) => {
+              if (sentSockets.has(socketId)) return;
+              
+              const socketIp = getSocketIp(socket);
+              if (socketIp && socketIp === station.ip) {
+                io.to(socketId).emit('local-station-command', commandData);
+                sentSockets.add(socketId);
+              }
+            });
+          }
+          
+          console.log(`✅ Команда quiz отправлена выбранной станции ${station.stationNumber} на ${sentSockets.size} соединений`);
+        });
+        
+        // Уведомляем хостов об обновлении (после отправки всех команд)
+        io.emit('local-stations-updated', {
+          stations: localModeManager.getStations()
+        });
+      }, 2000); // Задержка 2 секунды для гарантии обработки команд waiting невыбранными станциями
     });
 
     // Обновление станции
@@ -4153,65 +4587,92 @@ io.on('connection', (socket) => {
     socket.on('local-end-quiz-and-reset', (data) => {
       const { stationNumbers, roomCode, clearRoom, returnToWaiting } = data;
       
-      console.log(`🔄 Завершение квиза и сброс: комната ${roomCode}, станции: ${stationNumbers || 'все'}`);
+      console.log(`🔄 Завершение квиза и сброс: комната ${roomCode}, станции: ${stationNumbers || 'все подключенные'}`);
       
-      // 1. Завершаем текущую игру, если комната существует
-      if (roomCode && clearRoom !== false) {
-        const room = rooms.get(roomCode);
-        if (room) {
-          // Отключаем всех игроков от комнаты
-          room.players.forEach(player => {
-            const playerSocketId = player.id;
-            const playerSocket = io.sockets.sockets.get(playerSocketId);
-            if (playerSocket) {
-              playerSocket.leave(roomCode);
-              // Отправляем событие об окончании игры
-              playerSocket.emit('game-finished', { results: room.players });
-            }
-            // Удаляем игрока из глобального списка
-            players.delete(playerSocketId);
-          });
-          
-          // Удаляем комнату
-          rooms.delete(roomCode);
-          console.log(`🗑️ Комната ${roomCode} удалена`);
-        }
+      // КРИТИЧЕСКИ ВАЖНО: Получаем ВСЕ зарегистрированные станции (не только connected=true)
+      // Причина: когда станция на player.html, она не отправляет heartbeat от station.html
+      // и показывается как disconnected, но на самом деле она активна и нужно отправить команду
+      const allStations = localModeManager.getStations(); // Берем ВСЕ станции
+      
+      let stationsToReset;
+      if (stationNumbers && stationNumbers.length > 0) {
+        // Если указаны конкретные номера станций
+        stationsToReset = localModeManager.getStationsByNumbers(stationNumbers);
+      } else if (stationNumbers === null) {
+        // Если null - перезапускаем ВСЕ зарегистрированные станции (независимо от connected)
+        stationsToReset = allStations;
+      } else {
+        // Fallback - только подключенные
+        stationsToReset = allStations.filter(s => s.connected);
       }
       
-      // 2. Возвращаем станции в режим ожидания
-      const stations = stationNumbers 
-        ? localModeManager.getStationsByNumbers(stationNumbers)
-        : localModeManager.getStations().filter(s => s.connected);
+      console.log(`🔄 Возврат станций в режим ожидания: ${stationsToReset.map(s => `${s.stationNumber}(IP:${s.ip})`).join(', ')}`);
       
-      stations.forEach(station => {
-        if (station.connected && station.socketId) {
-          if (returnToWaiting !== false) {
-            io.to(station.socketId).emit('local-station-command', {
-              command: 'navigate',
-              params: { page: 'waiting' },
-              timestamp: Date.now()
-            });
+      // ========== ПРАВИЛЬНЫЙ ПОРЯДОК ОПЕРАЦИЙ ==========
+      
+      // 1. СНАЧАЛА отправляем команды перезапуска (пока все данные доступны)
+      sendRestartCommandsToStations(stationsToReset);
+      
+      // 2. Даем время на доставку команд (500мс достаточно для локальной сети)
+      setTimeout(() => {
+        // 3. Повторная отправка для надежности (пока данные еще доступны)
+        console.log(`🔄 Повторная отправка команд перезапуска для надежности`);
+        sendRestartCommandsToStations(stationsToReset);
+        
+        // 4. ТЕПЕРЬ удаляем комнату и игроков
+        setTimeout(() => {
+          if (roomCode && clearRoom !== false) {
+            const room = rooms.get(roomCode);
+            if (room) {
+              // Отключаем всех игроков от комнаты
+              room.players.forEach(player => {
+                const playerSocket = io.sockets.sockets.get(player.id);
+                if (playerSocket) {
+                  playerSocket.leave(roomCode);
+                  // Отправляем событие об окончании игры (если еще не отправлено)
+                  if (room.gameState !== 'finished') {
+                    playerSocket.emit('game-finished', { results: room.players });
+                  }
+                }
+                // Удаляем игрока из глобального списка
+                players.delete(player.id);
+              });
+              
+              // Удаляем комнату
+              rooms.delete(roomCode);
+              
+              // Удаляем локальную комнату из LocalModeManager
+              if (localModeManager) {
+                localModeManager.removeRoom(roomCode);
+              }
+              
+              console.log(`🗑️ Комната ${roomCode} удалена`);
+            }
           }
           
-          // Очищаем состояние станции
-          localModeManager.updateStationState(station.stationNumber, {
-            currentPage: 'waiting',
-            pageData: {},
-            customState: {}
+          // 5. Очищаем состояние станций
+          stationsToReset.forEach(station => {
+            localModeManager.clearQueue(station.stationNumber);
+            localModeManager.updateStationState(station.stationNumber, {
+              currentPage: 'waiting',
+              pageData: {},
+              customState: {}
+            });
           });
           
-          console.log(`✅ Станция ${station.stationNumber} сброшена в режим ожидания`);
-        }
-      });
+          console.log(`✅ Перезапуск станций завершен`);
+          
+          // 6. Уведомляем хостов об обновлении
+          io.emit('local-stations-updated', {
+            stations: localModeManager.getStations()
+          });
+        }, 100); // Небольшая задержка перед удалением
+      }, 500); // Задержка для доставки команд
       
-      // Уведомляем хостов об обновлении
-      io.emit('local-stations-updated', {
-        stations: localModeManager.getStations()
-      });
-      
+      // Немедленно отправляем подтверждение хосту
       socket.emit('local-quiz-reset-complete', {
         success: true,
-        stationsReset: stations.length
+        stationsReset: stationsToReset.length
       });
     });
 
@@ -4575,6 +5036,13 @@ io.on('connection', (socket) => {
           // Завершить игру
           console.log(`🏁 Завершение игры в комнате ${roomCode} по команде local-game-control`);
           endGame(roomCode);
+          
+          // В локальном режиме НЕ отправляем автоматическую команду возврата на station.html
+          // Хост должен явно нажать кнопку "Перезапустить станции" для возврата
+          // Это позволяет хосту видеть результаты перед перезапуском
+          console.log(`✅ Игра завершена в комнате ${roomCode}. Результаты отправлены игрокам.`);
+          console.log(`💡 Для возврата станций на station.html используйте кнопку "Перезапустить станции"`);
+          
           socket.emit('local-game-control-result', { success: true, action: 'end-game' });
           console.log(`✅ Команда end-game выполнена для комнаты ${roomCode}`);
           break;
