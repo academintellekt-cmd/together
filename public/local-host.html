@@ -1304,38 +1304,26 @@
                 return;
             }
             
-            // Используем выбранные станции или все станции из списка
-            let stationNumbers = [];
+            // КРИТИЧЕСКИ ВАЖНО: Перезапускаем ВСЕ станции (1-9), а не только те, которые показывают connected=true
+            // Причина: когда станция переходит на player.html, она больше не отправляет heartbeat от station.html,
+            // поэтому показывается как disconnected, но на самом деле она открыта на player.html и нуждается в перезапуске!
+            // Сервер сам найдет все активные соединения по IP-адресу
+            const stationNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
             
-            if (selectedStations.size > 0) {
-                // Используем выбранные станции
-                stationNumbers = Array.from(selectedStations);
-            } else {
-                // Используем все станции из списка (не только подключенные)
-                stationNumbers = stations.map(s => s.stationNumber).filter(num => num);
-            }
+            console.log(`🔄 Перезапуск ВСЕХ станций (1-9), сервер найдет активные соединения по IP`);
+            console.log(`📊 Комната: ${currentRoomCode || 'нет'}`);
             
-            if (stationNumbers.length === 0) {
-                // Если нет выбранных станций, используем все возможные (1-8)
-                stationNumbers = [1, 2, 3, 4, 5, 6, 7, 8];
-            }
-            
-            // Отправляем команду навигации на station.html для всех станций
             // Используем local-end-quiz-and-reset для правильного сброса состояния
+            // Эта команда:
+            // 1. Завершит игру в комнате (если она еще не завершена)
+            // 2. Отправит команду navigate на ВСЕ соединения с IP станций (station.html и player.html)
+            // 3. Удалит комнату и игроков
+            // 4. Очистит очередь команд и состояние станций
             socket.emit('local-end-quiz-and-reset', {
-                stationNumbers: stationNumbers,
+                stationNumbers: null, // null = перезапуск всех подключенных станций (сервер определит по активным соединениям)
                 roomCode: currentRoomCode,
                 clearRoom: true,
                 returnToWaiting: true
-            });
-            
-            // Также отправляем команду навигации напрямую для надежности
-            socket.emit('local-station-command', {
-                stationNumbers: stationNumbers,
-                command: 'navigate',
-                params: {
-                    page: 'waiting' // Это переведет станции на station.html
-                }
             });
             
             // Сбрасываем флаг завершения игры

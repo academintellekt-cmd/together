@@ -90,9 +90,52 @@ class LocalModeManager {
             roomCode: roomCode,
             stations: new Map(),
             quizId: null,
-            started: false
+            started: false,
+            selectedStationNumbers: new Set() // Номера станций, выбранных для участия в игре
         });
         console.log(`✅ Локальная комната ${roomCode} инициализирована`);
+    }
+    
+    /**
+     * Установка выбранных станций для комнаты
+     */
+    setSelectedStations(roomCode, stationNumbers) {
+        const room = this.rooms.get(roomCode);
+        if (room) {
+            room.selectedStationNumbers = new Set(stationNumbers || []);
+            console.log(`✅ Выбранные станции для комнаты ${roomCode}: ${Array.from(room.selectedStationNumbers).join(', ')}`);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Проверка, выбрана ли станция для комнаты
+     */
+    isStationSelected(roomCode, stationNumber) {
+        const room = this.rooms.get(roomCode);
+        if (!room) return false;
+        return room.selectedStationNumbers.has(stationNumber);
+    }
+    
+    /**
+     * Получение выбранных станций для комнаты
+     */
+    getSelectedStations(roomCode) {
+        const room = this.rooms.get(roomCode);
+        if (!room) return [];
+        return Array.from(room.selectedStationNumbers);
+    }
+    
+    /**
+     * Удаление комнаты
+     */
+    removeRoom(roomCode) {
+        const removed = this.rooms.delete(roomCode);
+        if (removed) {
+            console.log(`🗑️ Локальная комната ${roomCode} удалена`);
+        }
+        return removed;
     }
 
     /**

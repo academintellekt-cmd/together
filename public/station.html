@@ -464,9 +464,21 @@
                     }
                 });
                 
+                // УПРОЩЕННАЯ ЛОГИКА: Обрабатываем команды по порядку
                 this.socket.on('local-station-command', (command) => {
                     console.log('📥 Получена команда:', command);
                     this.handleCommand(command);
+                });
+                
+                // Также слушаем команды навигации для надежности
+                this.socket.on('local-station-end-quiz', () => {
+                    console.log('📥 Получена команда завершения квиза');
+                    this.handleCommand({ command: 'navigate', params: { page: 'waiting' } });
+                });
+                
+                this.socket.on('local-station-return-to-waiting', () => {
+                    console.log('📥 Получена команда возврата в режим ожидания');
+                    this.handleCommand({ command: 'navigate', params: { page: 'waiting' } });
                 });
 
                 this.socket.on('disconnect', () => {
@@ -790,6 +802,16 @@
                     console.warn('⚠️ Команда не указана:', cmdData);
                     return;
                 }
+                
+                // Отправляем подтверждение получения команды
+                if (this.socket && this.socket.connected && this.stationNumber) {
+                    this.socket.emit('local-station-command-received', {
+                        stationNumber: this.stationNumber,
+                        command: command,
+                        timestamp: cmdData.timestamp || Date.now()
+                    });
+                    console.log(`✅ Отправлено подтверждение получения команды "${command}" для станции ${this.stationNumber}`);
+                }
 
                 try {
                     switch(command) {
@@ -814,6 +836,8 @@
                 }
             },
             
+            lastWaitingCommandTime: 0, // Время последней команды waiting
+            
             handleNavigateCommand(params) {
                 console.log('🧭 Команда навигации:', params);
                 
@@ -822,22 +846,30 @@
                     return;
                 }
 
-                if (params.url) {
-                    // Если указан URL, переходим по нему
+                // УПРОЩЕННАЯ ЛОГИКА: Обрабатываем команды по порядку
+                if (params.page === 'waiting') {
+                    console.log('🧭 Возврат на страницу ожидания');
+                    // Запоминаем время получения команды waiting
+                    this.lastWaitingCommandTime = Date.now();
+                    window.location.replace('/station.html');
+                } else if (params.url) {
                     console.log(`🧭 Переход по URL: ${params.url}`);
                     window.location.href = params.url;
                 } else if (params.page === 'quiz' && params.roomCode) {
-                    // Открываем страницу регистрации для квиза
+                    // КРИТИЧЕСКИ ВАЖНО: Проверяем, не получили ли мы команду waiting недавно
+                    // Это защищает от race condition, когда команда quiz приходит почти одновременно с waiting
+                    const timeSinceWaiting = Date.now() - this.lastWaitingCommandTime;
+                    if (timeSinceWaiting < 2000) { // Если команда waiting была менее 2 секунд назад
+                        console.warn(`⚠️ Игнорируем команду quiz - станция только что получила команду waiting (${timeSinceWaiting}мс назад)`);
+                        console.warn(`💡 Эта станция НЕ выбрана для игры, остаемся на station.html`);
+                        return; // Игнорируем команду quiz
+                    }
+                    
                     const url = `/player.html?room=${params.roomCode}&station=${this.stationNumber}&auto=true`;
                     const finalUrl = params.quizId ? `${url}&quiz=${params.quizId}` : url;
                     console.log(`🧭 Переход на страницу регистрации квиза: ${finalUrl}`);
                     window.location.href = finalUrl;
-                } else if (params.page === 'waiting') {
-                    // Возвращаемся на страницу ожидания
-                    console.log('🧭 Возврат на страницу ожидания');
-                    window.location.href = '/station.html';
                 } else if (params.page === 'custom' && params.customUrl) {
-                    // Кастомная страница
                     console.log(`🧭 Переход на кастомную страницу: ${params.customUrl}`);
                     window.location.href = params.customUrl;
                 } else {
