@@ -167,6 +167,13 @@
     box-sizing: border-box;
 }
 
+/* Когда Frame2 имеет игроков, немного увеличиваем отступ Frame3 для предотвращения перекрытия */
+body.frame2-has-players .frame-3,
+body.frame2-has-players .frame3,
+body.frame2-has-players .hub3 {
+    padding-top: clamp(80px, 12vh, 120px) !important; /* Такой же отступ как обычно, так как Frame2 компактный */
+}
+
 /* Декоративный слой для парящих элементов */
 .frame-3-decor {
     position: absolute;

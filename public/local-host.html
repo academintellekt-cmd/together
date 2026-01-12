@@ -28,130 +28,245 @@
     <script src="/scripts/frame1.js"></script>
     <script src="/scripts/frame2.js"></script>
     <style>
+        /* Уменьшаем отступы Frame2 и Frame3 для этой страницы */
+        .frame2 {
+            padding-bottom: clamp(10px, 2vh, 20px) !important;
+        }
+        
+        .frame-3 {
+            padding-top: clamp(20px, 3vh, 40px) !important;
+        }
+        
         .local-host-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .stations-section {
-            margin-bottom: 40px;
+            padding: 0 20px 20px 20px;
         }
         
         .section-title {
             font-family: 'Days One', sans-serif;
             font-size: clamp(24px, 4vw, 32px);
             color: #393639;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            margin-top: 0;
             text-align: center;
         }
         
-        .stations-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        
-        .station-card {
-            background: #FFFFFF;
-            border: 3px solid #393639;
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        
-        .station-card.connected {
-            background: #d6fbbf;
-            border-color: #00C159;
-        }
-        
-        .station-card.disconnected {
-            background: #f2f2f2;
+        /* Стили для станций во Frame2 - три состояния */
+        /* 1. Серая - не подключено */
+        #frame2 .frame2-player-icon.disconnected {
+            background: #999 !important;
+            border-color: #999 !important;
+            color: #FFFFFF !important;
             opacity: 0.6;
+            cursor: not-allowed !important;
         }
         
-        .station-card.selected {
-            border-color: #4A90E2;
-            border-width: 4px;
-            box-shadow: 0 6px 0px rgba(74, 144, 226, 0.4), 0 8px 16px rgba(74, 144, 226, 0.2);
+        /* 2. Бледно-зеленая - подключена, но не выбрана */
+        #frame2 .frame2-player-icon.waiting {
+            background: #a8e6cf !important;
+            border-color: #a8e6cf !important;
+            color: #393639 !important;
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            position: relative !important;
+            z-index: 100 !important; /* Высокий z-index для кликабельности */
+            min-height: 36px !important; /* Минимальная высота */
         }
         
-        .station-checkbox {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            accent-color: #00C159;
+        /* 3. Ярко-зеленая - выбрана */
+        #frame2 .frame2-player-icon.ready {
+            background: #00C159 !important;
+            border-color: #00C159 !important;
+            color: #FFFFFF !important;
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            position: relative !important;
+            z-index: 100 !important; /* Высокий z-index для кликабельности */
+            min-height: 36px !important; /* Минимальная высота */
         }
         
-        .station-number {
-            font-family: 'Days One', sans-serif;
-            font-size: clamp(20px, 3vw, 28px);
-            color: #393639;
-            font-weight: 700;
-            margin-bottom: 5px;
+        /* Контейнер игроков должен быть кликабельным */
+        #frame2 .frame2-players-container {
+            position: relative !important;
+            z-index: 100 !important;
+            pointer-events: auto !important;
+            min-height: 50px !important;
+            isolation: isolate !important; /* Создаем новый stacking context */
         }
         
-        .station-status {
-            font-family: 'Montserrat', sans-serif;
-            font-size: clamp(12px, 2vw, 14px);
-            color: #666;
+        /* Убеждаемся, что logo-section не перекрывает игроков */
+        #frame2 .frame2-logo-section {
+            pointer-events: none !important;
+            z-index: 1 !important;
         }
         
-        .station-actions {
-            margin-top: 10px;
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
+        /* Когда logo-section скрыт, полностью убираем его из потока */
+        #frame2 .frame2-logo-section[style*="display: none"] {
+            display: none !important;
+            pointer-events: none !important;
+            z-index: -1 !important;
+            position: absolute !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            width: 0 !important;
+            min-height: 0 !important;
+            max-height: 0 !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
-        .station-action-btn {
-            padding: 6px 12px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 11px;
-            font-weight: 600;
-            border: 2px solid #393639;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: #FFFFFF;
-            color: #393639;
+        /* Все дочерние элементы скрытого logo-section также не должны блокировать клики */
+        #frame2 .frame2-logo-section[style*="display: none"] * {
+            pointer-events: none !important;
         }
         
-        .station-action-btn:hover {
-            background: #00C159;
-            color: #FFFFFF;
-            transform: translateY(-1px);
+        /* Убеждаемся, что frame2-content не блокирует клики */
+        #frame2 .frame2-content {
+            pointer-events: auto !important;
+            position: relative !important;
+            isolation: isolate !important; /* Создаем новый stacking context */
         }
         
-        .station-action-btn.danger:hover {
-            background: #ff7664;
+        /* Убеждаемся, что logo-section не перекрывает контейнер игроков */
+        #frame2 .frame2-content > .frame2-logo-section {
+            z-index: 1 !important;
         }
         
-        .station-action-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        #frame2 .frame2-content > .frame2-players-container {
+            z-index: 100 !important;
+        }
+        
+        /* Убеждаемся, что Frame2 не блокирует клики и находится выше Frame3 */
+        #frame2 {
+            pointer-events: auto !important;
+            z-index: 1003 !important; /* Выше Frame3 (1002) */
+            position: relative !important;
+        }
+        
+        /* Убеждаемся, что Frame2-content находится выше Frame3 */
+        #frame2 .frame2-content {
+            z-index: 1003 !important; /* Выше Frame3 (1002) */
+        }
+        
+        /* Убеждаемся, что Frame1 не перекрывает иконки игроков */
+        #frame1 {
+            pointer-events: auto !important;
+        }
+        
+        /* Убеждаемся, что Frame1 не блокирует клики по иконкам игроков */
+        #frame1 ~ #frame2 {
+            pointer-events: auto !important;
+        }
+        
+        /* Убеждаемся, что Frame3 не перекрывает Frame2 */
+        .frame-3,
+        .frame3 {
+            z-index: 1002 !important; /* Ниже Frame2 (1003) */
+            pointer-events: auto !important;
+        }
+        
+        /* Убеждаемся, что site-main не перекрывает Frame2 */
+        .site-main {
+            z-index: 1 !important; /* Ниже Frame2 */
+            pointer-events: auto !important;
+        }
+        
+        /* Убеждаемся, что site-wrapper не перекрывает Frame2 */
+        .site-wrapper {
+            z-index: 1 !important; /* Ниже Frame2 */
+            pointer-events: auto !important;
+        }
+        
+        /* Убеждаемся, что иконки игроков находятся выше других элементов */
+        #frame2 .frame2-players-container .frame2-player-icon {
+            position: relative !important;
+            z-index: 1004 !important; /* Выше всего контента */
+            pointer-events: auto !important;
+            isolation: isolate !important; /* Создаем новый stacking context */
+            height: auto !important;
+            min-height: 36px !important;
+            line-height: 1.2 !important;
+        }
+        
+        /* Убеждаемся, что иконки игроков имеют полную кликабельную область */
+        #frame2 .frame2-player-icon {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: auto !important;
+            line-height: 1.2 !important;
+        }
+        
+        /* Убеждаемся, что текст внутри иконки не блокирует клики */
+        #frame2 .frame2-player-icon * {
+            pointer-events: none !important;
+        }
+        
+        /* Hover эффект только для активных станций */
+        #frame2 .frame2-player-icon.waiting:hover,
+        #frame2 .frame2-player-icon.ready:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
         }
         
         .quizzes-section {
-            margin-top: 40px;
+            margin-top: 0;
         }
         
         .quizzes-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        
+        @media (max-width: 1200px) {
+            .quizzes-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .quizzes-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .quizzes-grid {
+                grid-template-columns: 1fr;
+            }
         }
         
         .quiz-card {
             cursor: pointer;
+            min-height: 180px !important;
+            padding: 12px 14px !important;
+        }
+        
+        .quiz-card-content {
+            padding-top: 8px !important;
+        }
+        
+        .quiz-icon {
+            font-size: clamp(28px, 6vw, 40px) !important;
+            margin-bottom: 6px !important;
+            width: clamp(28px, 6vw, 40px) !important;
+            height: clamp(28px, 6vw, 40px) !important;
+        }
+        
+        .quiz-title {
+            font-size: clamp(16px, 3vw, 22px) !important;
+            margin-bottom: 4px !important;
+        }
+        
+        .quiz-description {
+            font-size: clamp(13px, 2.5vw, 16px) !important;
+            margin-bottom: 6px !important;
+            line-height: 1.3 !important;
         }
         
         .selected-quiz {
@@ -348,155 +463,6 @@
             color: #FFFFFF;
             transform: translateY(-1px);
         }
-        /* Кнопки выбора станций */
-        .station-select-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-        
-        .station-select-button {
-            padding: 10px 20px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: clamp(13px, 1.8vw, 15px);
-            font-weight: 700;
-            border: 3px solid #393639;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
-            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-            color: #FFFFFF;
-            border-color: #2A5A8D;
-            min-height: 44px;
-        }
-        
-        .station-select-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 0px rgba(74, 144, 226, 0.4), 0 8px 16px rgba(74, 144, 226, 0.2);
-            background: linear-gradient(135deg, #5BA0F2 0%, #4A8ACD 100%);
-        }
-        
-        .station-select-button:active:not(:disabled) {
-            transform: translateY(0px);
-            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        .station-select-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        /* Форма добавления станции */
-        .manual-station-form {
-            margin-top: 20px;
-            padding: 20px;
-            background: #FFFFFF;
-            border: 3px solid #393639;
-            border-radius: 12px;
-            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .manual-station-form h3 {
-            font-family: 'Days One', sans-serif;
-            font-size: clamp(18px, 2.5vw, 22px);
-            color: #393639;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .manual-station-form input {
-            width: 100%;
-            padding: 12px 16px;
-            margin-bottom: 15px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 15px;
-            border: 2px solid #393639;
-            border-radius: 8px;
-            box-sizing: border-box;
-            transition: all 0.2s;
-        }
-        
-        .manual-station-form input:focus {
-            outline: none;
-            border-color: #00C159;
-            box-shadow: 0 0 0 3px rgba(0, 193, 89, 0.1);
-        }
-        
-        .form-buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-top: 15px;
-        }
-        
-        .btn-primary {
-            padding: 12px 24px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: clamp(14px, 2vw, 16px);
-            font-weight: 700;
-            border: 3px solid #00C159;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 0px rgba(0, 193, 89, 0.3), 0 6px 12px rgba(0, 193, 89, 0.2);
-            background: linear-gradient(135deg, #00C159 0%, #00A049 100%);
-            color: #FFFFFF;
-            min-height: 48px;
-        }
-        
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 0px rgba(0, 193, 89, 0.4), 0 8px 16px rgba(0, 193, 89, 0.3);
-            background: linear-gradient(135deg, #00D169 0%, #00B059 100%);
-        }
-        
-        .btn-primary:active:not(:disabled) {
-            transform: translateY(0px);
-            box-shadow: 0 2px 0px rgba(0, 193, 89, 0.3), 0 4px 8px rgba(0, 193, 89, 0.2);
-        }
-        
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        .btn-cancel {
-            padding: 12px 24px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: clamp(14px, 2vw, 16px);
-            font-weight: 700;
-            border: 3px solid #666;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
-            background: #FFFFFF;
-            color: #393639;
-            min-height: 48px;
-        }
-        
-        .btn-cancel:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 0px rgba(0, 0, 0, 0.2), 0 8px 16px rgba(0, 0, 0, 0.15);
-            background: #F5F5F5;
-        }
-        
-        .btn-cancel:active:not(:disabled) {
-            transform: translateY(0px);
-            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        .btn-cancel:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
     </style>
 </head>
 <body>
@@ -505,26 +471,6 @@
             <section class="frame frame-3" data-frame="content">
                 <div class="frame-3-content">
                     <div class="local-host-container">
-                        <h1 class="section-title">🏠 Локальный режим - Ведущий</h1>
-                        
-                        <div class="stations-section">
-                            <h2 class="section-title">Станции игроков</h2>
-                            <div class="station-select-buttons">
-                                <button class="station-select-button" id="selectAllStationsBtn">
-                                    ✅ Выбрать все
-                                </button>
-                                <button class="station-select-button" id="deselectAllStationsBtn">
-                                    ❌ Снять выбор
-                                </button>
-                                <button class="station-select-button" id="addStationBtn">
-                                    ➕ Добавить станцию вручную
-                                </button>
-                            </div>
-                            <div class="stations-grid" id="stationsGrid">
-                                <!-- Станции будут добавлены через JavaScript -->
-                            </div>
-                        </div>
-                        
                         <div class="quizzes-section">
                             <h2 class="section-title">Выберите квиз</h2>
                             <div class="quizzes-grid" id="quizzesGrid">
@@ -536,12 +482,24 @@
                             <button class="action-button primary" id="startQuizBtn" disabled>
                                 Запустить квиз на выбранных станциях
                             </button>
-                            <button class="action-button danger" id="endQuizOnStationsBtn">
-                                🛑 Завершить квиз на станциях
+                            <button class="action-button danger" id="endQuizBtn" style="display: none;">
+                                🏁 Завершить квиз
                             </button>
-                            <button class="action-button danger" id="endQuizAndResetBtn" style="display: none;">
-                                🔄 Завершить квиз и начать новый
+                            <button class="action-button danger" id="restartStationsBtn" style="display: none; background: #ff7664; color: #FFFFFF;">
+                                🔄 Перезапустить станции
                             </button>
+                        </div>
+                        
+                        <!-- Модальное окно подтверждения завершения квиза -->
+                        <div id="endQuizModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
+                            <div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; text-align: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+                                <h2 style="font-family: 'Days One', sans-serif; font-size: 24px; color: #393639; margin-bottom: 20px;">Завершить квиз?</h2>
+                                <p style="font-family: 'Montserrat', sans-serif; font-size: 16px; color: #666; margin-bottom: 30px;">Все станции покажут финальные результаты игры.</p>
+                                <div style="display: flex; gap: 15px; justify-content: center;">
+                                    <button id="confirmEndQuizBtn" style="padding: 12px 30px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 700; background: #00C159; color: white; border: none; border-radius: 8px; cursor: pointer;">Да</button>
+                                    <button id="cancelEndQuizBtn" style="padding: 12px 30px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 700; background: #f2f2f2; color: #393639; border: none; border-radius: 8px; cursor: pointer;">Нет</button>
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- Панель управления станциями -->
@@ -556,22 +514,20 @@
                                     <div style="font-family: 'Montserrat', sans-serif; font-size: 14px; color: #666;">
                                         Квиз: <strong style="color: #393639;" id="currentQuizName">-</strong>
                                     </div>
+                                    <div style="font-family: 'Montserrat', sans-serif; font-size: 14px; color: #666;">
+                                        Вопрос: <strong style="color: #393639;" id="currentQuestionNumber">-</strong>
+                                    </div>
+                                    <div style="font-family: 'Montserrat', sans-serif; font-size: 14px; color: #666;">
+                                        Время: <strong style="color: #393639;" id="currentQuestionTime">-</strong>
+                                    </div>
                                 </div>
                             </div>
                             
                             <!-- Основные действия -->
                             <div class="control-buttons">
-                                <button class="control-button refresh" id="refreshStationsBtn">
-                                    <span class="button-icon">🔄</span>
-                                    <span class="button-text">Обновить станции</span>
-                                </button>
                                 <button class="control-button skip" id="nextQuestionBtn">
                                     <span class="button-icon">➡️</span>
                                     <span class="button-text">Следующий вопрос</span>
-                                </button>
-                                <button class="control-button skip" id="showResultsBtn">
-                                    <span class="button-icon">📊</span>
-                                    <span class="button-text">Показать результаты</span>
                                 </button>
                             </div>
                             
@@ -591,7 +547,7 @@
                             <div class="control-buttons" style="margin-top: 20px; border-top: 2px solid #E0E0E0; padding-top: 20px;">
                                 <button class="control-button danger" id="endGameBtn">
                                     <span class="button-icon">🏁</span>
-                                    <span class="button-text">Завершить игру</span>
+                                    <span class="button-text">Завершить квиз</span>
                                 </button>
                             </div>
                         </div>
@@ -614,8 +570,15 @@
         let quizzes = [];
         let currentRoomCode = null;
         let currentQuizName = null;
+        let currentQuestionNumber = null;
+        let currentQuestionTime = null;
+        let questionTimer = null; // Таймер для отсчета времени
+        let timeRemaining = 0; // Оставшееся время в секундах
+        let questionStartTime = null; // Время начала вопроса
         let hostWindow = null; // Окно host.html
         let selectedStations = new Set(); // Выбранные станции для участия в игре
+        let apiRouteAvailable = true; // Флаг доступности API роута /api/local/stations/command
+        let gameFinished = false; // Флаг завершения игры
 
         // Инициализация
         async function init() {
@@ -630,23 +593,77 @@
                     showBack: true,
                     backUrl: '/index.html'
                 });
-                Frame2.init();
+                Frame2.init({ showLogo: false, showSubtitle: false });
             } catch (error) {
                 console.warn('Ошибка инициализации Frame:', error);
             }
+            
+            // Инициализируем обработчик кликов по игрокам на document (самый надежный способ)
+            document.addEventListener('click', function(e) {
+                // Временное логирование для отладки
+                if (e.target.closest('#frame2')) {
+                    console.log('🖱️ Клик в области Frame2:', e.target, e.target.className);
+                }
+                
+                // Проверяем, кликнули ли по иконке игрока
+                const icon = e.target.closest('.frame2-player-icon');
+                if (!icon) {
+                    if (e.target.closest('#frame2')) {
+                        console.log('⚠️ Клик в Frame2, но не по иконке игрока');
+                    }
+                    return;
+                }
+                
+                console.log('✅ Найдена иконка игрока:', icon.id, icon.className);
+                
+                const playerId = icon.id;
+                if (!playerId || !playerId.startsWith('frame2-player-station-')) {
+                    console.log('⚠️ ID иконки не соответствует формату:', playerId);
+                    return;
+                }
+                
+                const match = playerId.match(/frame2-player-station-(\d+)/);
+                if (!match) {
+                    console.log('⚠️ Не удалось извлечь номер из ID:', playerId);
+                    return;
+                }
+                
+                const stationNumber = parseInt(match[1]);
+                console.log('🔍 Номер станции:', stationNumber);
+                
+                const station = stations.find(s => s.stationNumber === stationNumber);
+                const isReady = station && station.connected && station.socketId;
+                
+                console.log('📊 Станция найдена:', !!station, 'isReady:', isReady);
+                
+                if (!isReady) {
+                    console.log('⚠️ Станция не готова, клик игнорируется');
+                    return;
+                }
+                
+                e.stopPropagation();
+                e.preventDefault();
+                
+                const currentlySelected = selectedStations.has(stationNumber);
+                console.log(`✅ Вызываем toggleStation для игрока ${stationNumber}, текущее состояние: ${currentlySelected}`);
+                toggleStation(stationNumber, !currentlySelected);
+            }, true);
+            
+            console.log('✅ Обработчик кликов по игрокам добавлен на document');
 
             // Подключаемся к серверу
             socket = io();
             
             socket.on('connect', () => {
-                console.log('Подключен к серверу');
+                loadStations();
                 socket.emit('local-host-connect');
                 // Инициализируем обработчики событий socket
                 initSocketEventHandlers();
-                
+                // Проверяем доступность API роута
+                checkApiRouteAvailability();
                 });
 
-            // Обновление списка станций
+            // Обновление списка станций через Socket.io (в реальном времени)
             socket.on('local-stations-updated', (data) => {
                 stations = data.stations || [];
                 updateStationsDisplay();
@@ -655,22 +672,21 @@
             // Инициализируем обработчики кнопок сразу (не зависит от socket)
             initButtonHandlers();
             
-            
-            // Загружаем данные
             await loadStations();
             await loadQuizzes();
             
             // Инициализируем состояние кнопки запуска
             updateStartButtonState();
-            
-            // Обновляем список станций каждые 2 секунды
-            setInterval(loadStations, 2000);
         }
 
         // Загрузка списка станций
         async function loadStations() {
             try {
                 const response = await fetch('/api/local/stations');
+                if (!response.ok) {
+                    console.error('❌ Ошибка HTTP при загрузке станций:', response.status);
+                    return;
+                }
                 const data = await response.json();
                 stations = data.stations || [];
                 updateStationsDisplay();
@@ -679,90 +695,57 @@
             }
         }
 
-        // Обновление отображения станций
+        
+        // Обновление отображения станций во Frame2
         function updateStationsDisplay() {
-            const grid = document.getElementById('stationsGrid');
-            if (!grid) return;
-            grid.innerHTML = '';
+            if (typeof Frame2 === 'undefined') {
+                setTimeout(() => updateStationsDisplay(), 100);
+                return;
+            }
 
-            // Создаем карточки для всех возможных станций (1-9)
-            for (let i = 1; i <= 9; i++) {
+            // Очищаем всех игроков из Frame2
+            Frame2.clearPlayers();
+
+            // Добавляем станции как иконки игроков во Frame2
+            for (let i = 1; i <= 8; i++) {
                 const station = stations.find(s => s.stationNumber === i);
-                const isConnected = station && station.connected;
+                const isReady = station && station.connected && station.socketId;
                 const isSelected = selectedStations.has(i);
                 
-                const card = document.createElement('div');
-                card.className = `station-card ${isConnected ? 'connected' : 'disconnected'} ${isSelected ? 'selected' : ''}`;
-                card.dataset.stationNumber = i;
-                
-                const checkboxId = `station-checkbox-${i}`;
-                
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'station-checkbox';
-                checkbox.id = checkboxId;
-                checkbox.checked = isSelected;
-                checkbox.disabled = !isConnected;
-                checkbox.addEventListener('change', function() {
-                    toggleStation(i, this.checked);
-                });
-                
-                card.appendChild(checkbox);
-                
-                const numberDiv = document.createElement('div');
-                numberDiv.className = 'station-number';
-                numberDiv.textContent = `Станция ${i}`;
-                card.appendChild(numberDiv);
-                
-                const statusDiv = document.createElement('div');
-                statusDiv.className = 'station-status';
-                statusDiv.textContent = isConnected ? 'Подключена' : 'Не подключена';
-                card.appendChild(statusDiv);
-                
-                if (station && station.ip) {
-                    const ipDiv = document.createElement('div');
-                    ipDiv.className = 'station-status';
-                    ipDiv.style.cssText = 'font-size: 10px; margin-top: 5px;';
-                    ipDiv.textContent = station.ip;
-                    card.appendChild(ipDiv);
+                // Определяем статус для отображения (три состояния)
+                let status = 'disconnected'; // Серая - не подключено
+                if (isReady) {
+                    status = isSelected ? 'ready' : 'waiting'; // Ярко-зеленая или бледно-зеленая
                 }
                 
-                const actionsDiv = document.createElement('div');
-                actionsDiv.className = 'station-actions';
+                // Создаем текст для иконки: номер игрока
+                const stationText = `Игрок ${i}`;
+                const stationId = `station-${i}`;
                 
-                if (isConnected) {
-                    const openBtn = document.createElement('button');
-                    openBtn.className = 'station-action-btn';
-                    openBtn.textContent = '🌐 Открыть';
-                    openBtn.title = 'Открыть страницу станции';
-                    openBtn.onclick = () => openStationPage(i);
-                    actionsDiv.appendChild(openBtn);
-                    
-                    const reloadBtn = document.createElement('button');
-                    reloadBtn.className = 'station-action-btn';
-                    reloadBtn.textContent = '🔄 Перезагрузить';
-                    reloadBtn.title = 'Перезагрузить страницу станции';
-                    reloadBtn.onclick = () => reloadStationPage(i);
-                    actionsDiv.appendChild(reloadBtn);
-                    
-                    const closeBtn = document.createElement('button');
-                    closeBtn.className = 'station-action-btn danger';
-                    closeBtn.textContent = '❌ Закрыть';
-                    closeBtn.title = 'Закрыть страницу станции';
-                    closeBtn.onclick = () => closeStationPage(i);
-                    actionsDiv.appendChild(closeBtn);
-                } else {
-                    const disabledBtn = document.createElement('button');
-                    disabledBtn.className = 'station-action-btn';
-                    disabledBtn.disabled = true;
-                    disabledBtn.textContent = 'Не подключена';
-                    actionsDiv.appendChild(disabledBtn);
-                }
-                
-                card.appendChild(actionsDiv);
-                
-                grid.appendChild(card);
+                // Добавляем иконку станции во Frame2
+                Frame2.addPlayerIcon(stationId, stationText, status);
             }
+            
+            // Устанавливаем стили для кликабельных иконок
+            setTimeout(() => {
+                for (let i = 1; i <= 8; i++) {
+                    const station = stations.find(s => s.stationNumber === i);
+                    const isReady = station && station.connected && station.socketId;
+                    const stationId = `station-${i}`;
+                    const iconId = `frame2-player-${stationId}`;
+                    const icon = document.getElementById(iconId);
+                    
+                    if (icon) {
+                        if (isReady) {
+                            icon.style.cursor = 'pointer';
+                            icon.style.pointerEvents = 'auto';
+                        } else {
+                            icon.style.cursor = 'not-allowed';
+                            icon.style.pointerEvents = 'none';
+                        }
+                    }
+                }
+            }, 200);
             
             // Обновляем состояние кнопки запуска
             updateStartButtonState();
@@ -770,6 +753,13 @@
         
         // Переключение выбора станции
         window.toggleStation = function(stationNumber, isSelected) {
+            const station = stations.find(s => s.stationNumber === stationNumber);
+            const isReady = station && station.connected && station.socketId;
+            
+            // Можно выбирать только подключенные станции
+            if (!isReady) {
+                return;
+            }
             
             if (isSelected) {
                 selectedStations.add(stationNumber);
@@ -777,30 +767,15 @@
                 selectedStations.delete(stationNumber);
             }
             
-            updateStationsDisplay();
+            // Обновляем статус иконки во Frame2
+            if (typeof Frame2 !== 'undefined') {
+                const status = isSelected ? 'ready' : 'waiting';
+                Frame2.updatePlayerStatus(`station-${stationNumber}`, status);
+            }
+            
             // Явно обновляем состояние кнопки после изменения выбора
             updateStartButtonState();
         };
-        
-        // Выбрать все станции
-        function selectAllStations() {
-            stations.forEach(station => {
-                if (station.connected) {
-                    selectedStations.add(station.stationNumber);
-                }
-            });
-            
-            updateStationsDisplay();
-            updateStartButtonState();
-        }
-        
-        // Снять выбор со всех станций
-        function deselectAllStations() {
-            selectedStations.clear();
-            
-            updateStationsDisplay();
-            updateStartButtonState();
-        }
         
         // Обновить состояние кнопки запуска
         function updateStartButtonState() {
@@ -814,124 +789,7 @@
             }
         }
         
-        // Открыть страницу станции
-        window.openStationPage = function(stationNumber) {
-            const station = stations.find(s => s.stationNumber === stationNumber);
-            if (station && station.ip) {
-                const url = `http://${station.ip}:3000/local-station.html`;
-                window.open(url, `station-${stationNumber}`, 'width=1920,height=1080');
-                console.log(`Открыта страница станции ${stationNumber}: ${url}`);
-            }
-        };
         
-        // Перезагрузить страницу станции
-        window.reloadStationPage = function(stationNumber) {
-            const station = stations.find(s => s.stationNumber === stationNumber);
-            if (station && station.socketId && socket) {
-                socket.emit('local-station-reload-page', { stationNumber, socketId: station.socketId });
-                console.log(`Перезагрузка страницы станции ${stationNumber}`);
-            }
-        };
-        
-        // Закрыть страницу станции
-        window.closeStationPage = function(stationNumber) {
-            const station = stations.find(s => s.stationNumber === stationNumber);
-            if (station && station.socketId && socket) {
-                socket.emit('local-station-close-page', { stationNumber, socketId: station.socketId });
-                console.log(`Закрытие страницы станции ${stationNumber}`);
-            }
-        };
-        
-        // Показать форму добавления станции вручную
-        function showAddStationForm() {
-            const stationsSection = document.querySelector('.stations-section');
-            let form = document.getElementById('manualStationForm');
-            
-            if (form) {
-                form.style.display = form.style.display === 'none' ? 'block' : 'none';
-                return;
-            }
-            
-            form = document.createElement('div');
-            form.id = 'manualStationForm';
-            form.className = 'manual-station-form';
-            form.innerHTML = `
-                <h3>Добавить станцию вручную</h3>
-                <input type="text" id="manualStationIP" placeholder="IP адрес (например: 192.168.1.21)" pattern="^192\.168\.1\.(2[1-9]|29)$">
-                <input type="number" id="manualStationNumber" placeholder="Номер станции (1-9)" min="1" max="9">
-                <div class="form-buttons">
-                    <button class="btn-primary" onclick="addManualStation()">Добавить</button>
-                    <button class="btn-cancel" onclick="hideAddStationForm()">Отмена</button>
-                </div>
-            `;
-            
-            stationsSection.appendChild(form);
-            
-            // Фокус на поле IP
-            setTimeout(() => {
-                document.getElementById('manualStationIP').focus();
-            }, 100);
-        }
-        
-        // Скрыть форму добавления станции
-        function hideAddStationForm() {
-            const form = document.getElementById('manualStationForm');
-            if (form) {
-                form.style.display = 'none';
-            }
-        }
-        
-        // Добавить станцию вручную
-        window.addManualStation = async function() {
-            const ip = document.getElementById('manualStationIP').value.trim();
-            const stationNumber = parseInt(document.getElementById('manualStationNumber').value);
-            
-            if (!ip) {
-                alert('Введите IP адрес станции');
-                return;
-            }
-            
-            if (!stationNumber || stationNumber < 1 || stationNumber > 9) {
-                alert('Введите номер станции от 1 до 9');
-                return;
-            }
-            
-            // Проверяем формат IP
-            const ipPattern = /^192\.168\.1\.(2[1-9]|29)$/;
-            if (!ipPattern.test(ip)) {
-                alert('IP адрес должен быть в формате 192.168.1.21-29');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/local/register-station', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        ip: ip,
-                        stationNumber: stationNumber
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    console.log('Станция добавлена:', data.station);
-                    // Обновляем список станций
-                    await loadStations();
-                    // Скрываем форму
-                    hideAddStationForm();
-                    // Очищаем поля
-                    document.getElementById('manualStationIP').value = '';
-                    document.getElementById('manualStationNumber').value = '';
-                } else {
-                    alert('Ошибка добавления станции: ' + (data.error || 'Неизвестная ошибка'));
-                }
-            } catch (error) {
-                console.error('Ошибка добавления станции:', error);
-                alert('Ошибка добавления станции: ' + error.message);
-            }
-        };
 
         // Загрузка квизов
         async function loadQuizzes() {
@@ -1024,29 +882,39 @@
                 currentRoomCode = roomCode;
                 currentQuizName = quizzes.find(q => q.id === selectedQuizId)?.name || selectedQuizId;
 
-                // Отправляем команду только выбранным станциям открыть квиз
-                socket.emit('local-start-quiz', {
-                    roomCode: roomCode,
-                    quizId: selectedQuizId,
-                    stationNumbers: Array.from(selectedStations)
-                });
-
-                // Открываем две страницы:
-                // 1. Страница отображения (host.html) - вопросы, результаты, рейтинг
-                hostWindow = window.open(`/host.html?quiz=${selectedQuizId}&room=${roomCode}`, '_blank');
-                
-                // 2. Страница управления (local-host-control.html) - управление игрой
-                const controlWindow = window.open(`/local-host-control.html?room=${roomCode}&quiz=${selectedQuizId}`, '_blank');
-                
-                // Показываем панель управления
-                showControlPanel();
-                
-                // Показываем кнопку завершения и сброса
-                const endQuizAndResetBtn = document.getElementById('endQuizAndResetBtn');
-                if (endQuizAndResetBtn) endQuizAndResetBtn.style.display = 'inline-block';
-                
-                // Подключаемся к комнате как хост для управления
+                // Сначала подключаемся к комнате как хост для управления
                 socket.emit('host-join', roomCode);
+                
+                // Ждем подтверждения подключения к комнате перед запуском квиза
+                const onHostConnected = () => {
+                    
+                    // Отправляем команду только выбранным станциям открыть квиз
+                    socket.emit('local-start-quiz', {
+                        roomCode: roomCode,
+                        quizId: selectedQuizId,
+                        stationNumbers: Array.from(selectedStations)
+                    });
+
+                    // Открываем две страницы:
+                    // 1. Страница отображения (host.html) - вопросы, результаты, рейтинг
+                    hostWindow = window.open(`/host.html?quiz=${selectedQuizId}&room=${roomCode}`, '_blank');
+                    
+                    // 2. Страница управления (local-host-control.html) - управление игрой
+                    const controlWindow = window.open(`/local-host-control.html?room=${roomCode}&quiz=${selectedQuizId}`, '_blank');
+                    
+                    // Показываем панель управления
+                    showControlPanel();
+                    
+                    // Показываем кнопку завершения квиза
+                    const endQuizBtn = document.getElementById('endQuizBtn');
+                    if (endQuizBtn) endQuizBtn.style.display = 'inline-block';
+                    
+                    // Удаляем обработчик после использования
+                    socket.off('host-connected', onHostConnected);
+                };
+                
+                // Подписываемся на событие подключения хоста
+                socket.on('host-connected', onHostConnected);
             } catch (error) {
                 console.error('Ошибка запуска квиза:', error);
                 alert('Ошибка запуска квиза: ' + error.message);
@@ -1059,6 +927,8 @@
             const roomInfo = document.getElementById('currentRoomInfo');
             const roomCodeEl = document.getElementById('currentRoomCode');
             const quizNameEl = document.getElementById('currentQuizName');
+            const questionNumberEl = document.getElementById('currentQuestionNumber');
+            const questionTimeEl = document.getElementById('currentQuestionTime');
             
             if (panel) {
                 panel.style.display = 'block';
@@ -1076,18 +946,130 @@
                 if (roomInfo) roomInfo.style.display = 'block';
                 if (roomCodeEl) roomCodeEl.textContent = currentRoomCode;
                 if (quizNameEl) quizNameEl.textContent = currentQuizName || '-';
+                if (questionNumberEl) questionNumberEl.textContent = currentQuestionNumber || '-';
+                if (questionTimeEl) questionTimeEl.textContent = currentQuestionTime || '-';
             }
+        }
+        
+        // Обновление информации о вопросе
+        function updateQuestionInfo(questionNumber, totalQuestions, timeLimit) {
+            currentQuestionNumber = questionNumber ? `${questionNumber} / ${totalQuestions || '?'}` : null;
+            
+            const questionNumberEl = document.getElementById('currentQuestionNumber');
+            if (questionNumberEl) questionNumberEl.textContent = currentQuestionNumber || '-';
+            
+            // Запускаем таймер обратного отсчета
+            if (timeLimit && timeLimit > 0) {
+                timeRemaining = timeLimit;
+                questionStartTime = Date.now();
+                startQuestionTimer();
+            } else {
+                stopQuestionTimer();
+                const questionTimeEl = document.getElementById('currentQuestionTime');
+                if (questionTimeEl) questionTimeEl.textContent = '-';
+            }
+        }
+        
+        // Запуск таймера обратного отсчета
+        function startQuestionTimer() {
+            stopQuestionTimer(); // Останавливаем предыдущий таймер, если есть
+            
+            const questionTimeEl = document.getElementById('currentQuestionTime');
+            if (!questionTimeEl) return;
+            
+            questionTimer = setInterval(() => {
+                if (questionStartTime && timeRemaining > 0) {
+                    const elapsed = Math.floor((Date.now() - questionStartTime) / 1000);
+                    const remaining = Math.max(0, timeRemaining - elapsed);
+                    
+                    if (questionTimeEl) {
+                        questionTimeEl.textContent = `${remaining} сек`;
+                    }
+                    
+                    if (remaining <= 0) {
+                        stopQuestionTimer();
+                        if (questionTimeEl) questionTimeEl.textContent = '0 сек';
+                    }
+                }
+            }, 100); // Обновляем каждые 100мс для плавности
+        }
+        
+        // Остановка таймера
+        function stopQuestionTimer() {
+            if (questionTimer) {
+                clearInterval(questionTimer);
+                questionTimer = null;
+            }
+        }
+        
+        // Очистка информации о вопросе
+        function clearQuestionInfo() {
+            currentQuestionNumber = null;
+            currentQuestionTime = null;
+            timeRemaining = 0;
+            questionStartTime = null;
+            
+            stopQuestionTimer();
+            
+            const questionNumberEl = document.getElementById('currentQuestionNumber');
+            const questionTimeEl = document.getElementById('currentQuestionTime');
+            
+            if (questionNumberEl) questionNumberEl.textContent = '-';
+            if (questionTimeEl) questionTimeEl.textContent = '-';
         }
         
 // Обновление станций
         async function refreshStations() {
+            
+            const grid = document.getElementById('stationsGrid');
+            if (!grid) {
+                console.warn('⚠️ DOM еще не готов, повторяем инициализацию через 200ms');
+                setTimeout(init, 200);
+                return;
+            }
+            
             await loadStations();
+        }
+        
+        // Проверка доступности API роута при загрузке
+        async function checkApiRouteAvailability() {
+            try {
+                const baseUrl = window.location.origin;
+                const apiUrl = `${baseUrl}/api/local/stations/command`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        stationNumbers: [],
+                        command: 'test',
+                        params: {}
+                    })
+                });
+                
+                if (response.status === 404) {
+                    apiRouteAvailable = false;
+                    // Роут недоступен - это нормально, используем только Socket.io
+                } else {
+                    apiRouteAvailable = true;
+                }
+            } catch (error) {
+                // При ошибке сети считаем роут недоступным - это нормально
+                apiRouteAvailable = false;
+            }
         }
         
         // Отправка команды станциям
         async function sendStationCommand(command, params, stationNumbers) {
+            // Если роут недоступен, не пытаемся отправлять команды
+            if (!apiRouteAvailable) {
+                return;
+            }
+            
             if (!socket || !socket.connected) {
-                console.warn('⚠️ Socket не подключен, команда не отправлена');
                 return;
             }
             
@@ -1113,33 +1095,29 @@
                 // Проверяем статус ответа
                 if (!response.ok) {
                     if (response.status === 404) {
-                        console.error(`❌ Роут /api/local/stations/command не найден (404). Локальный режим может быть недоступен.`);
-                        console.error(`   Проверьте, что сервер запущен с поддержкой локального режима.`);
+                        // Роут недоступен - помечаем это и больше не пытаемся использовать его
+                        apiRouteAvailable = false;
                         return;
                     }
-                    const errorText = await response.text();
-                    console.error(`❌ Ошибка HTTP ${response.status} при отправке команды "${command}":`, errorText);
+                    // Для других ошибок просто игнорируем
                     return;
                 }
                 
                 const data = await response.json();
                 
-                if (data.success) {
-                    // Команда успешно отправлена
-                } else {
-                    console.error(`❌ Ошибка отправки команды "${command}":`, data.error);
+                if (!data.success) {
+                    // Тихая ошибка - не выводим в консоль
+                    return;
                 }
             } catch (error) {
-                console.error(`❌ Ошибка отправки команды "${command}":`, error);
-                if (error.message && error.message.includes('JSON')) {
-                    console.error(`   Возможно, сервер вернул HTML вместо JSON. Проверьте, что роут зарегистрирован.`);
-                }
+                // Тихая ошибка - не выводим в консоль
+                // Роут может быть временно недоступен
+                return;
             }
         }
         
         // Пропустить ожидание ответов
         function skipAnswers() {
-            
             if (!currentRoomCode) {
                 alert('Комната не создана. Сначала запустите квиз.');
                 return;
@@ -1148,21 +1126,12 @@
                 alert('Не подключен к серверу');
                 return;
             }
+            // Команда отправляется только через Socket.io - сервер сам обработает станции
             socket.emit('local-game-control', { action: 'skip-answers', roomCode: currentRoomCode });
-            
-            // Также отправляем команду на выбранные станции
-            const selectedStationsList = Array.from(selectedStations);
-            if (selectedStationsList.length > 0) {
-                sendStationCommand('execute-action', {
-                    action: 'skipAnswers'
-                }, selectedStationsList);
-            }
-            
         }
         
         // Пропустить ожидание готовности
         function skipReady() {
-            
             if (!currentRoomCode) {
                 alert('Комната не создана. Сначала запустите квиз.');
                 return;
@@ -1171,44 +1140,13 @@
                 alert('Не подключен к серверу');
                 return;
             }
+            // Команда отправляется только через Socket.io - сервер сам обработает станции
             socket.emit('local-game-control', { action: 'skip-ready', roomCode: currentRoomCode });
-            
-            // Также отправляем команду на выбранные станции
-            const selectedStationsList = Array.from(selectedStations);
-            if (selectedStationsList.length > 0) {
-                sendStationCommand('execute-action', {
-                    action: 'skipReady'
-                }, selectedStationsList);
-            }
-            
         }
         
-        // Показать результаты
-        function showResults() {
-            
-            if (!currentRoomCode) {
-                alert('Комната не создана. Сначала запустите квиз.');
-                return;
-            }
-            if (!socket || !socket.connected) {
-                alert('Не подключен к серверу');
-                return;
-            }
-            socket.emit('local-game-control', { action: 'show-results', roomCode: currentRoomCode });
-            
-            // Также отправляем команду на выбранные станции
-            const selectedStationsList = Array.from(selectedStations);
-            if (selectedStationsList.length > 0) {
-                sendStationCommand('execute-action', {
-                    action: 'showResults'
-                }, selectedStationsList);
-            }
-            
-        }
         
         // Следующий вопрос
         function nextQuestion() {
-            
             if (!currentRoomCode) {
                 alert('Комната не создана. Сначала запустите квиз.');
                 return;
@@ -1217,191 +1155,191 @@
                 alert('Не подключен к серверу');
                 return;
             }
+            // Команда отправляется только через Socket.io - сервер сам обработает станции
             socket.emit('local-game-control', { action: 'next-question', roomCode: currentRoomCode });
-            
-            // Также отправляем команду на выбранные станции
-            const selectedStationsList = Array.from(selectedStations);
-            if (selectedStationsList.length > 0) {
-                sendStationCommand('execute-action', {
-                    action: 'nextQuestion'
-                }, selectedStationsList);
-            }
-            
         }
         
-        // Завершить игру
-        function endGame() {
-            
-            if (!currentRoomCode) {
-                alert('Комната не создана. Сначала запустите квиз.');
-                return;
-            }
-            if (!socket || !socket.connected) {
-                alert('Не подключен к серверу');
-                return;
-            }
-            if (confirm('Вы уверены, что хотите завершить игру?')) {
-                socket.emit('local-game-control', { action: 'end-game', roomCode: currentRoomCode });
-                
-                // Также отправляем команду на выбранные станции - вернуть в режим ожидания
-                const selectedStationsList = Array.from(selectedStations);
-                if (selectedStationsList.length > 0) {
-                    sendStationCommand('navigate', { page: 'waiting' }, selectedStationsList);
-                }
-            }
-        }
-        
-        // ========== НОВЫЕ ФУНКЦИИ УПРАВЛЕНИЯ ==========
-        
-        // Завершить квиз и начать новый
-        function endQuizAndReset() {
-            if (!socket || !socket.connected) {
-                alert('Не подключен к серверу. Пожалуйста, подождите подключения.');
-                return;
-            }
-            
-            const selectedStationsList = Array.from(selectedStations);
-            if (selectedStationsList.length === 0) {
-                alert('Выберите станции для сброса');
-                return;
-            }
-            
-            if (confirm(`Вы уверены, что хотите завершить текущий квиз и начать новый?\nВсе регистрации игроков будут сброшены.\nСтанции: ${selectedStationsList.join(', ')}`)) {
-                socket.emit('local-end-quiz-and-reset', {
-                    stationNumbers: selectedStationsList,
-                    roomCode: currentRoomCode,
-                    clearRoom: true,
-                    returnToWaiting: true
-                });
-                
-                // Очищаем текущую комнату
-                currentRoomCode = null;
-                currentQuizName = null;
-                
-                // Скрываем панель управления
-                const controlPanel = document.getElementById('controlPanel');
-                const endQuizAndResetBtn = document.getElementById('endQuizAndResetBtn');
-                
-                if (controlPanel) controlPanel.style.display = 'none';
-                if (endQuizAndResetBtn) endQuizAndResetBtn.style.display = 'none';
-                
-                console.log('Завершение квиза и сброс для нового запуска');
-            }
-        }
-        
-        // Завершить квиз на станциях (вернуть их на начальную страницу local-station.html)
-        function endQuizOnStations() {
-            if (!socket || !socket.connected) {
-                alert('Не подключен к серверу. Пожалуйста, подождите подключения.');
-                return;
-            }
-            
-            const connectedStations = stations.filter(s => s.connected);
-            if (connectedStations.length === 0) {
-                alert('Нет подключенных станций');
-                return;
-            }
-            
-            if (confirm(`Вы уверены, что хотите завершить квиз на всех станциях (${connectedStations.length} станций)?\nВсе станции вернутся на начальную страницу подключения.`)) {
-                socket.emit('local-end-quiz-on-stations', {
-                    stationNumbers: connectedStations.map(s => s.stationNumber)
-                });
-                console.log('Завершение квиза на станциях');
-            }
-        }
         
         // Инициализация обработчиков кнопок (не зависит от socket)
         function initButtonHandlers() {
-            
-            
-            // Обработчики кнопок
+            // Основные кнопки действий
             const startBtn = document.getElementById('startQuizBtn');
-            const refreshBtn = document.getElementById('refreshStationsBtn');
+            const endQuizBtn = document.getElementById('endQuizBtn');
+            const restartStationsBtn = document.getElementById('restartStationsBtn');
+            
+            // Кнопки управления в панели управления
             const skipAnswersBtn = document.getElementById('skipAnswersBtn');
             const skipReadyBtn = document.getElementById('skipReadyBtn');
-            const showResultsBtn = document.getElementById('showResultsBtn');
             const nextQuestionBtn = document.getElementById('nextQuestionBtn');
             const endGameBtn = document.getElementById('endGameBtn');
-            const endGameOnStationsBtn = document.getElementById('endGameOnStationsBtn');
             
+            // Модальное окно завершения квиза
+            const endQuizModal = document.getElementById('endQuizModal');
+            const confirmEndQuizBtn = document.getElementById('confirmEndQuizBtn');
+            const cancelEndQuizBtn = document.getElementById('cancelEndQuizBtn');
             
-            
+            // Обработчики основных действий
             if (startBtn) {
                 startBtn.addEventListener('click', () => {
-                    
                     startQuiz();
                 });
             }
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', () => {
-                    
-                    refreshStations();
+            
+            // Кнопка завершения квиза (в основном блоке)
+            if (endQuizBtn) {
+                endQuizBtn.addEventListener('click', () => {
+                    showEndQuizModal();
                 });
             }
             
-            const endQuizOnStationsBtn = document.getElementById('endQuizOnStationsBtn');
-            if (endQuizOnStationsBtn) {
-                endQuizOnStationsBtn.addEventListener('click', () => {
-                    
-                    endQuizOnStations();
+            // Кнопка перезапуска станций
+            if (restartStationsBtn) {
+                restartStationsBtn.addEventListener('click', () => {
+                    restartStations();
                 });
             }
             
-            // Обработчики выбора станций
-            const selectAllBtn = document.getElementById('selectAllStationsBtn');
-            const deselectAllBtn = document.getElementById('deselectAllStationsBtn');
-            const addStationBtn = document.getElementById('addStationBtn');
-            if (selectAllBtn) {
-                selectAllBtn.addEventListener('click', () => {
-                    
-                    selectAllStations();
-                });
-            }
-            if (deselectAllBtn) {
-                deselectAllBtn.addEventListener('click', () => {
-                    
-                    deselectAllStations();
-                });
-            }
-            if (addStationBtn) {
-                addStationBtn.addEventListener('click', () => {
-                    
-                    showAddStationForm();
+            // Модальное окно завершения квиза
+            if (confirmEndQuizBtn) {
+                confirmEndQuizBtn.addEventListener('click', () => {
+                    confirmEndQuiz();
                 });
             }
             
+            if (cancelEndQuizBtn) {
+                cancelEndQuizBtn.addEventListener('click', () => {
+                    hideEndQuizModal();
+                });
+            }
+            
+            // Закрытие модального окна при клике вне его
+            if (endQuizModal) {
+                endQuizModal.addEventListener('click', (e) => {
+                    if (e.target === endQuizModal) {
+                        hideEndQuizModal();
+                    }
+                });
+            }
+            
+            // Обработчики управления в панели управления
             if (skipAnswersBtn) {
                 skipAnswersBtn.addEventListener('click', () => {
-                    
                     skipAnswers();
                 });
             }
+            
             if (skipReadyBtn) {
                 skipReadyBtn.addEventListener('click', () => {
-                    
                     skipReady();
                 });
             }
-            if (showResultsBtn) {
-                showResultsBtn.addEventListener('click', () => {
-                    
-                    showResults();
-                });
-            }
+            
             if (nextQuestionBtn) {
                 nextQuestionBtn.addEventListener('click', () => {
-                    
                     nextQuestion();
                 });
             }
+            
             if (endGameBtn) {
                 endGameBtn.addEventListener('click', () => {
-                    
-                    endGame();
+                    showEndQuizModal();
                 });
             }
+        }
+        
+        // Показать модальное окно завершения квиза
+        function showEndQuizModal() {
+            const modal = document.getElementById('endQuizModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        }
+        
+        // Скрыть модальное окно завершения квиза
+        function hideEndQuizModal() {
+            const modal = document.getElementById('endQuizModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Подтверждение завершения квиза
+        function confirmEndQuiz() {
+            hideEndQuizModal();
             
+            if (!socket || !socket.connected) {
+                alert('Не подключен к серверу');
+                return;
+            }
             
+            if (!currentRoomCode) {
+                alert('Комната не создана');
+                return;
+            }
+            
+            // Завершаем игру - это покажет финальные результаты на станциях
+            socket.emit('local-game-control', { action: 'end-game', roomCode: currentRoomCode });
+            
+            // Помечаем игру как завершенную
+            gameFinished = true;
+            
+            // Скрываем кнопку завершения квиза
+            const endQuizBtn = document.getElementById('endQuizBtn');
+            const endGameBtn = document.getElementById('endGameBtn');
+            if (endQuizBtn) endQuizBtn.style.display = 'none';
+            if (endGameBtn) endGameBtn.style.display = 'none';
+            
+            // Показываем кнопку перезапуска станций
+            const restartStationsBtn = document.getElementById('restartStationsBtn');
+            if (restartStationsBtn) restartStationsBtn.style.display = 'inline-block';
+            
+            // Очищаем информацию о вопросе
+            clearQuestionInfo();
+        }
+        
+        // Перезапуск станций (возврат в режим ожидания)
+        function restartStations() {
+            if (!socket || !socket.connected) {
+                alert('Не подключен к серверу');
+                return;
+            }
+            
+            // КРИТИЧЕСКИ ВАЖНО: Перезапускаем ВСЕ станции (1-9), а не только те, которые показывают connected=true
+            // Причина: когда станция переходит на player.html, она больше не отправляет heartbeat от station.html,
+            // поэтому показывается как disconnected, но на самом деле она открыта на player.html и нуждается в перезапуске!
+            // Сервер сам найдет все активные соединения по IP-адресу
+            const stationNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            
+            console.log(`🔄 Перезапуск ВСЕХ станций (1-9), сервер найдет активные соединения по IP`);
+            console.log(`📊 Комната: ${currentRoomCode || 'нет'}`);
+            
+            // Используем local-end-quiz-and-reset для правильного сброса состояния
+            // Эта команда:
+            // 1. Завершит игру в комнате (если она еще не завершена)
+            // 2. Отправит команду navigate на ВСЕ соединения с IP станций (station.html и player.html)
+            // 3. Удалит комнату и игроков
+            // 4. Очистит очередь команд и состояние станций
+            socket.emit('local-end-quiz-and-reset', {
+                stationNumbers: null, // null = перезапуск всех подключенных станций (сервер определит по активным соединениям)
+                roomCode: currentRoomCode,
+                clearRoom: true,
+                returnToWaiting: true
+            });
+            
+            // Сбрасываем флаг завершения игры
+            gameFinished = false;
+            
+            // Скрываем кнопку перезапуска
+            const restartStationsBtn = document.getElementById('restartStationsBtn');
+            if (restartStationsBtn) restartStationsBtn.style.display = 'none';
+            
+            // Очищаем комнату
+            currentRoomCode = null;
+            currentQuizName = null;
+            
+            // Скрываем панель управления
+            const controlPanel = document.getElementById('controlPanel');
+            if (controlPanel) controlPanel.style.display = 'none';
         }
         
         // Инициализация обработчиков событий socket
@@ -1411,36 +1349,57 @@
             // Получаем элементы кнопок для обновления состояния
             const skipAnswersBtn = document.getElementById('skipAnswersBtn');
             const skipReadyBtn = document.getElementById('skipReadyBtn');
-            const showResultsBtn = document.getElementById('showResultsBtn');
             const nextQuestionBtn = document.getElementById('nextQuestionBtn');
             const endGameBtn = document.getElementById('endGameBtn');
             
             // Слушаем события от хоста для обновления состояния кнопок
             socket.on('game-started', () => {
                 if (skipAnswersBtn) skipAnswersBtn.disabled = false;
-                if (showResultsBtn) showResultsBtn.disabled = false;
+                gameFinished = false;
             });
             
-            socket.on('question', () => {
+            socket.on('question', (questionData) => {
                 if (skipAnswersBtn) skipAnswersBtn.disabled = false;
-                if (showResultsBtn) showResultsBtn.disabled = false;
                 if (skipReadyBtn) skipReadyBtn.disabled = true;
                 if (nextQuestionBtn) nextQuestionBtn.disabled = true;
+                
+                // Обновляем информацию о вопросе
+                if (questionData) {
+                    updateQuestionInfo(questionData.questionNumber, questionData.totalQuestions, questionData.time);
+                }
             });
             
             socket.on('results', () => {
                 if (skipAnswersBtn) skipAnswersBtn.disabled = true;
-                if (showResultsBtn) showResultsBtn.disabled = true;
                 if (skipReadyBtn) skipReadyBtn.disabled = false;
                 if (nextQuestionBtn) nextQuestionBtn.disabled = false;
+                
+                // Останавливаем таймер времени, но оставляем номер вопроса
+                stopQuestionTimer();
+                const questionTimeEl = document.getElementById('currentQuestionTime');
+                if (questionTimeEl) questionTimeEl.textContent = '-';
             });
             
             socket.on('game-finished', () => {
                 if (skipAnswersBtn) skipAnswersBtn.disabled = true;
                 if (skipReadyBtn) skipReadyBtn.disabled = true;
-                if (showResultsBtn) showResultsBtn.disabled = true;
                 if (nextQuestionBtn) nextQuestionBtn.disabled = true;
                 if (endGameBtn) endGameBtn.disabled = true;
+                
+                // Очищаем информацию о вопросе
+                clearQuestionInfo();
+                
+                // Помечаем игру как завершенную
+                gameFinished = true;
+                
+                // Скрываем кнопку завершения квиза
+                const endQuizBtn = document.getElementById('endQuizBtn');
+                if (endQuizBtn) endQuizBtn.style.display = 'none';
+                if (endGameBtn) endGameBtn.style.display = 'none';
+                
+                // Показываем кнопку перезапуска станций
+                const restartStationsBtn = document.getElementById('restartStationsBtn');
+                if (restartStationsBtn) restartStationsBtn.style.display = 'inline-block';
             });
         }
         
@@ -1465,4 +1424,5 @@
     <script src="/scripts/frame5-copyright.js"></script>
 </body>
 </html>
+
 

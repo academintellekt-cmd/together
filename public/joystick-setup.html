@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройка джойстика - ВМЕСТЕ</title>
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/components.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Блок кнопок - закреплен */
+        .hub-login-fixed {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff !important;
+            padding: 15px 20px;
+            z-index: 1001;
+            display: block;
+            min-height: auto;
+            transition: height 0.3s ease;
+            will-change: height;
+            opacity: 1 !important;
+        }
+
+        .hub-actions {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            justify-content: space-between;
+            width: 100%;
+            flex-wrap: wrap;
+            min-height: auto;
+        }
+        
+        .hub-actions-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .hub-status {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(12px, 2vw, 14px);
+            font-weight: 600;
+            color: var(--color-dark);
+            background: rgba(245, 245, 245, 0.85);
+            padding: clamp(6px, 1.2vw, 8px) clamp(12px, 2vw, 16px);
+            border-radius: clamp(10px, 2vw, 12px);
+            border: clamp(2px, 0.3vw, 2px) solid var(--color-black);
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .hub-status.connected {
+            background: var(--color-green);
+            color: var(--color-white);
+        }
+        
+        .hub-status.disconnected {
+            background: var(--color-coral);
+            color: var(--color-white);
+        }
+        
+        .hub-button {
+            display: inline-block;
+            padding: clamp(6px, 1.2vw, 8px) clamp(12px, 2vw, 16px);
+            background: rgba(245, 245, 245, 0.85);
+            border: clamp(2px, 0.3vw, 2px) solid var(--color-dark);
+            border-radius: clamp(10px, 2vw, 12px);
+            color: var(--color-dark);
+            text-decoration: none;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(12px, 2vw, 14px);
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            line-height: 1.2;
+            box-sizing: border-box;
+        }
+        
+        .hub-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+        
+        .hub-button:active {
+            transform: translateY(0px);
+        }
+
+        .main-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: clamp(20px, 3vw, 30px) clamp(16px, 3vw, 24px);
+            position: relative;
+            z-index: 2;
+        }
+        
+        @media (min-width: 1024px) {
+            .hub-login-fixed {
+                padding: clamp(12px, 2vw, 15px) clamp(20px, 3vw, 40px);
+            }
+            
+            .hub-login-fixed .hub-actions {
+                max-width: 1400px;
+                margin: 0 auto;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .main-container {
+                padding-top: clamp(70px, 8vh, 90px);
+            }
+        }
+        
+        @media (max-width: 1023px) {
+            .hub-login-fixed {
+                padding: clamp(10px, 2vw, 12px) clamp(15px, 3vw, 20px);
+            }
+            
+            .hub-login-fixed .hub-actions {
+                flex-wrap: wrap;
+                gap: clamp(6px, 1.5vw, 8px);
+            }
+            
+            .hub-actions-left {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .main-container {
+                padding-top: clamp(60px, 7vh, 80px);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hub-login-fixed {
+                padding: clamp(8px, 2vw, 10px) clamp(12px, 3vw, 15px);
+            }
+            
+            .hub-login-fixed .hub-actions {
+                flex-wrap: wrap;
+                gap: clamp(4px, 1vw, 6px);
+            }
+            
+            .hub-button {
+                font-size: clamp(11px, 2vw, 12px);
+                padding: clamp(5px, 1.5vw, 6px) clamp(10px, 2vw, 12px);
+                min-width: auto;
+            }
+            
+            .hub-status {
+                font-size: clamp(11px, 2vw, 12px);
+                padding: clamp(5px, 1.5vw, 6px) clamp(10px, 2vw, 12px);
+            }
+            
+            .main-container {
+                padding: clamp(50px, 6vh, 70px) clamp(12px, 3vw, 15px) clamp(20px, 3vw, 30px);
+            }
+        }
+
+        .joystick-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: clamp(20px, 3vw, 30px);
+            margin-bottom: clamp(20px, 3vw, 30px);
+        }
+
+        .stick-container {
+            position: relative;
+            width: clamp(150px, 20vw, 180px);
+            height: clamp(150px, 20vw, 180px);
+            background: rgba(245, 245, 245, 0.85);
+            border-radius: 50%;
+            border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stick-center {
+            position: absolute;
+            width: clamp(45px, 6vw, 55px);
+            height: clamp(45px, 6vw, 55px);
+            background: var(--color-green);
+            border-radius: 50%;
+            border: clamp(2px, 0.3vw, 2px) solid var(--color-black);
+            transition: transform 0.1s ease-out;
+            z-index: 2;
+        }
+
+        .stick-center.active {
+            background: var(--color-lime);
+            box-shadow: 0 0 20px rgba(171, 246, 124, 0.6);
+        }
+
+        .stick-directions {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .direction {
+            position: absolute;
+            width: clamp(40px, 5vw, 45px);
+            height: clamp(40px, 5vw, 45px);
+            background: rgba(171, 246, 124, 0.3);
+            border-radius: clamp(8px, 1.5vw, 10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 2.5vw, 20px);
+            color: var(--color-dark);
+            transition: all 0.2s;
+            border: clamp(2px, 0.3vw, 2px) solid var(--color-black);
+        }
+
+        .direction.active {
+            background: var(--color-green);
+            color: var(--color-white);
+            transform: scale(1.2);
+            box-shadow: 0 0 15px rgba(47, 185, 93, 0.8);
+        }
+
+        .direction.up {
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .direction.down {
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .direction.left {
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .direction.right {
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(clamp(55px, 8vw, 70px), 1fr));
+            gap: clamp(8px, 1.5vw, 10px);
+            max-width: 100%;
+        }
+
+        .button {
+            min-width: clamp(50px, 7vw, 60px);
+            width: 100%;
+            aspect-ratio: 1;
+            max-width: clamp(70px, 10vw, 85px);
+            background: rgba(245, 245, 245, 0.85);
+            border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
+            border-radius: clamp(10px, 2vw, 12px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-size: clamp(11px, 1.8vw, 13px);
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            padding: clamp(3px, 0.8vw, 4px);
+            text-align: center;
+            word-wrap: break-word;
+            overflow: hidden;
+        }
+        
+        @media (max-width: 768px) {
+            .buttons-grid {
+                grid-template-columns: repeat(auto-fill, minmax(clamp(50px, 7vw, 60px), 1fr));
+                gap: clamp(6px, 1.2vw, 8px);
+            }
+            
+            .button {
+                max-width: clamp(65px, 9vw, 75px);
+                font-size: clamp(10px, 1.6vw, 12px);
+                padding: clamp(2px, 0.6vw, 3px);
+            }
+        }
+
+        .button.active {
+            background: var(--color-green);
+            color: var(--color-white);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(47, 185, 93, 0.8);
+            border-color: var(--color-green-alt);
+        }
+
+        .button-label {
+            font-size: clamp(10px, 1.5vw, 12px);
+            line-height: 1.2;
+            color: var(--color-dark);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            text-align: center;
+            font-family: 'Days One', sans-serif;
+            font-weight: 600;
+        }
+
+        .button.active .button-label {
+            color: var(--color-white);
+        }
+
+        .calibration-section {
+            margin-bottom: clamp(20px, 3vw, 25px);
+        }
+
+        .axis-info {
+            margin-top: clamp(15px, 2.5vw, 20px);
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(13px, 2vw, 15px);
+            font-weight: 600;
+            color: var(--color-dark);
+            background: rgba(245, 245, 245, 0.85);
+            padding: clamp(8px, 1.5vw, 10px);
+            border-radius: clamp(10px, 2vw, 12px);
+            border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .command-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(clamp(130px, 18vw, 150px), 1fr));
+            gap: clamp(8px, 1.5vw, 10px);
+            margin-bottom: clamp(15px, 2.5vw, 20px);
+        }
+
+        .command-item {
+            background: rgba(245, 245, 245, 0.85);
+            padding: clamp(10px, 2vw, 12px);
+            border-radius: clamp(10px, 2vw, 12px);
+            border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            font-family: 'Days One', sans-serif;
+        }
+
+        .command-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+
+        .command-item.selected {
+            background: var(--color-green);
+            color: var(--color-white);
+            border-color: var(--color-green-alt);
+            box-shadow: 
+                0 4px 0px rgba(47, 185, 93, 0.3),
+                0 8px 16px rgba(47, 185, 93, 0.2);
+        }
+
+        .command-item.waiting {
+            background: var(--color-yellow);
+            border-color: var(--color-coral);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .command-name {
+            font-weight: 700;
+            font-size: clamp(14px, 2.2vw, 16px);
+            margin-bottom: clamp(4px, 0.8vw, 5px);
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
+            line-height: 1.2;
+        }
+
+        .command-assigned {
+            font-size: clamp(12px, 1.8vw, 13px);
+            color: var(--color-dark);
+            margin-top: clamp(4px, 0.8vw, 5px);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            opacity: 0.8;
+            line-height: 1.3;
+        }
+
+        .command-item.selected .command-assigned {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .calibration-section h2 {
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
+            font-weight: 700;
+            font-size: clamp(18px, 3vw, 22px);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: clamp(10px, 2vw, 12px);
+        }
+        
+        .calibration-section p {
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(13px, 2vw, 14px);
+            font-weight: 400;
+            color: var(--color-dark);
+            margin-bottom: clamp(10px, 2vw, 12px);
+            line-height: 1.4;
+        }
+        
+        .main-container h1 {
+            font-family: 'Days One', sans-serif;
+            color: var(--color-dark);
+            font-weight: 700;
+            font-size: clamp(24px, 4vw, 32px);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: clamp(20px, 3vw, 25px);
+        }
+
+        .assign-mode {
+            background: var(--color-yellow);
+            padding: clamp(10px, 2vw, 12px);
+            border-radius: clamp(10px, 2vw, 12px);
+            margin-bottom: clamp(15px, 2.5vw, 18px);
+            text-align: center;
+            font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(13px, 2vw, 14px);
+            border: clamp(2px, 0.4vw, 3px) solid var(--color-black);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            color: var(--color-dark);
+        }
+
+        .btn-clear {
+            background: var(--color-coral);
+            color: var(--color-white);
+            border: clamp(2px, 0.3vw, 2px) solid var(--color-black);
+            padding: clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 12px);
+            border-radius: clamp(8px, 1.5vw, 8px);
+            font-size: clamp(11px, 1.6vw, 12px);
+            font-family: 'Days One', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            margin-left: clamp(6px, 1.2vw, 8px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 2px 0px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-clear:hover {
+            transform: translateY(-1px);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.3),
+                0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .station-info {
+            background: var(--color-sky-blue, #7cabf6);
+            color: var(--color-white);
+            border-color: var(--color-cyan, #7ce8f6);
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+    <!-- Блок кнопок - закреплен -->
+    <div class="hub-login-fixed" id="hub-login-fixed">
+        <div class="hub-actions">
+            <div class="hub-actions-left">
+                <a href="/station.html" class="hub-button" id="back-button">← Назад</a>
+                <div id="station-info" class="hub-button station-info" style="display: none;">Станция: <span id="station-number-display">-</span></div>
+                <button class="hub-button" onclick="saveConfiguration()" style="background: var(--color-green); color: var(--color-white); border-color: var(--color-green-alt); min-width: 120px;">Сохранить</button>
+                <button class="hub-button" onclick="exportConfiguration()" style="background: var(--color-lavender, #8a7cf6); color: var(--color-white); border-color: var(--color-purple, #c77cf6); min-width: 120px;">Экспорт</button>
+                <button class="hub-button" onclick="importConfiguration()" style="background: var(--color-purple, #c77cf6); color: var(--color-white); border-color: var(--color-lavender, #8a7cf6); min-width: 120px;">Импорт</button>
+                <button class="hub-button" onclick="resetConfiguration()" style="background: var(--color-coral); color: var(--color-white); border-color: var(--color-coral-alt); min-width: 120px;">Сбросить</button>
+            </div>
+            <!-- Статус джойстика -->
+            <div id="hub-status" class="hub-status disconnected">
+                Джойстик не подключен
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="main-container">
+        <h1>Настройка джойстика<span id="station-title" style="display: none;"> - Станция <span id="station-number-title">-</span></span></h1>
+
+        <!-- Единый экран: калибровка и тест рядом -->
+        <div style="display: flex; gap: clamp(20px, 3vw, 25px); flex-wrap: wrap; justify-content: space-around; align-items: flex-start;">
+            <!-- Левая часть: Калибровка -->
+            <div style="flex: 1; min-width: clamp(320px, 40vw, 380px);">
+                <div class="assign-mode" id="assign-mode" style="display: none;">
+                    ⚠️ Нажмите кнопку на джойстике для назначения
+                </div>
+
+                <div class="calibration-section">
+                    <h2>Калибровка кнопок</h2>
+                    <p style="color: #666;">
+                        Нажмите на кнопку ниже, затем нажмите соответствующую кнопку на джойстике
+                    </p>
+                    <div class="command-list" id="button-commands-list" style="grid-template-columns: repeat(2, 1fr);"></div>
+                </div>
+
+                <div class="calibration-section">
+                    <h2>Калибровка стика</h2>
+                    <div class="command-list" id="stick-commands-list" style="grid-template-columns: repeat(2, 1fr);"></div>
+                </div>
+
+            </div>
+
+            <!-- Правая часть: Тест -->
+            <div style="flex: 1; min-width: clamp(320px, 40vw, 380px);">
+                <h2 style="margin-bottom: clamp(12px, 2vw, 15px); font-size: clamp(18px, 3vw, 22px); text-align: center; font-family: 'Days One', sans-serif; font-weight: 700; text-transform: uppercase; color: var(--color-dark);">Тест</h2>
+                <div class="joystick-section" style="justify-content: center; margin-bottom: clamp(15px, 2.5vw, 20px);">
+                    <div class="stick-container">
+                        <div class="stick-directions">
+                            <div class="direction up" id="dir-up">↑</div>
+                            <div class="direction down" id="dir-down">↓</div>
+                            <div class="direction left" id="dir-left">←</div>
+                            <div class="direction right" id="dir-right">→</div>
+                        </div>
+                        <div class="stick-center" id="stick-center"></div>
+                    </div>
+                </div>
+
+                <div class="buttons-grid" id="test-buttons-grid" style="grid-template-columns: repeat(5, 1fr); max-width: 100%;">
+                    <!-- Кнопки будут добавлены динамически -->
+                </div>
+
+                <div class="axis-info" id="axis-info">
+                    Ось X: 0.00 | Ось Y: 0.00
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрытый input для импорта конфигурации -->
+    <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="handleImportFile(event)">
+
+    <script>
+        // Функция для обновления позиции контента относительно HUB1
+        let lastHub1Height = 0;
+        function updateHubPosition() {
+            const hub1 = document.getElementById('hub-login-fixed');
+            
+            if (hub1) {
+                const hub1Height = hub1.offsetHeight;
+                
+                if (hub1Height !== lastHub1Height) {
+                    lastHub1Height = hub1Height;
+                    const mainContainer = document.querySelector('.main-container');
+                    if (mainContainer) {
+                        mainContainer.style.paddingTop = (hub1Height + 20) + 'px';
+                    }
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            updateHubPosition();
+            
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(updateHubPosition, 100);
+            });
+            
+            let updateTimeout;
+            const observer = new MutationObserver(() => {
+                clearTimeout(updateTimeout);
+                updateTimeout = setTimeout(updateHubPosition, 50);
+            });
+            
+            const hub1 = document.getElementById('hub-login-fixed');
+            if (hub1) {
+                observer.observe(hub1, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['style', 'class'],
+                    characterData: false
+                });
+            }
+        });
+
+        let gamepad = null;
+        let animationFrame = null;
+        const DEAD_ZONE = 0.15;
+        let selectedCommand = null;
+        let selectedCommandType = null;
+        let waitingForInput = false;
+        let stationNumber = null;
+        
+        // Список доступных команд - кнопки 1-10
+        const availableCommands = {
+            buttons: [
+                'Кнопка 1', 'Кнопка 2', 'Кнопка 3', 'Кнопка 4', 'Кнопка 5',
+                'Кнопка 6', 'Кнопка 7', 'Кнопка 8', 'Кнопка 9', 'Кнопка 10'
+            ],
+            stick: [
+                'Вверх', 'Вниз', 'Влево', 'Вправо'
+            ]
+        };
+
+        let configuration = {
+            buttons: {},
+            axes: {}
+        };
+        
+        // Определение номера станции
+        async function detectStationNumber() {
+            // 1. Проверка URL параметра ?station=X (приоритетный метод)
+            const urlParams = new URLSearchParams(window.location.search);
+            const stationParam = urlParams.get('station');
+            if (stationParam) {
+                const num = parseInt(stationParam);
+                if (num >= 1 && num <= 9) {
+                    stationNumber = num;
+                    console.log(`✅ Станция определена через URL параметр: ${stationNumber}`);
+                    return stationNumber;
+                }
+            }
+            
+            // 2. Проверка через API сервера (надежный метод)
+            try {
+                const response = await fetch('/api/local/detect-ip');
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('📡 API ответ:', data);
+                    if (data.stationNumber) {
+                        stationNumber = data.stationNumber;
+                        console.log(`✅ Станция определена через API: ${stationNumber} (IP: ${data.ip})`);
+                        return stationNumber;
+                    }
+                } else {
+                    console.warn('⚠️ API вернул ошибку:', response.status, response.statusText);
+                }
+            } catch (error) {
+                console.warn('⚠️ Ошибка определения номера станции через API:', error);
+            }
+            
+            // 3. Проверка hostname (если открыто напрямую по IP)
+            const hostname = window.location.hostname;
+            console.log('🌐 Hostname:', hostname);
+            const hostnameMatch = hostname.match(/192\.168\.1\.(\d+)/);
+            if (hostnameMatch) {
+                const lastOctet = parseInt(hostnameMatch[1]);
+                if (lastOctet >= 21 && lastOctet <= 29) {
+                    stationNumber = lastOctet - 20;
+                    console.log(`✅ Станция определена через hostname: ${stationNumber} (IP: ${hostname})`);
+                    return stationNumber;
+                }
+            }
+            
+            // 4. WebRTC для определения локального IP (fallback)
+            try {
+                const RTCPeerConnection = window.RTCPeerConnection || 
+                                         window.mozRTCPeerConnection || 
+                                         window.webkitRTCPeerConnection;
+                
+                if (RTCPeerConnection) {
+                    const ip = await new Promise((resolve) => {
+                        const pc = new RTCPeerConnection({ iceServers: [] });
+                        pc.createDataChannel('');
+                        pc.onicecandidate = (event) => {
+                            if (event.candidate) {
+                                const candidate = event.candidate.candidate;
+                                const ipMatch = candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
+                                if (ipMatch) {
+                                    const ip = ipMatch[0];
+                                    pc.close();
+                                    resolve(ip);
+                                }
+                            }
+                        };
+                        pc.createOffer().then(offer => pc.setLocalDescription(offer));
+                        
+                        setTimeout(() => {
+                            pc.close();
+                            resolve(null);
+                        }, 2000);
+                    });
+                    
+                    if (ip) {
+                        console.log('🔍 WebRTC определил IP:', ip);
+                        const lastOctet = parseInt(ip.split('.')[3]);
+                        if (lastOctet >= 21 && lastOctet <= 29) {
+                            stationNumber = lastOctet - 20;
+                            console.log(`✅ Станция определена через WebRTC: ${stationNumber} (IP: ${ip})`);
+                            return stationNumber;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('⚠️ WebRTC detection failed:', e);
+            }
+            
+            console.warn('⚠️ Не удалось определить станцию автоматически');
+            return null;
+        }
+        
+        // Функция загрузки конфигурации с сервера
+        async function loadConfigurationFromServer() {
+            if (stationNumber) {
+                try {
+                    const response = await fetch(`/api/local/stations/${stationNumber}/joystick-config`);
+                    const data = await response.json();
+                    
+                    if (data.success && data.config) {
+                        const serverConfig = data.config;
+                        if (serverConfig && (Object.keys(serverConfig.buttons || {}).length > 0 || Object.keys(serverConfig.axes || {}).length > 0)) {
+                            configuration = {
+                                buttons: { ...(serverConfig.buttons || {}) },
+                                axes: { ...(serverConfig.axes || {}) }
+                            };
+                            
+                            try {
+                                localStorage.setItem('joystickConfig', JSON.stringify(configuration));
+                                console.log(`✅ Конфигурация загружена с сервера для станции ${stationNumber} (${Object.keys(configuration.buttons).length} кнопок)`);
+                            } catch (e) {
+                                console.warn('⚠️ Не удалось сохранить в localStorage');
+                            }
+                            return true;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Ошибка загрузки с сервера, используем localStorage');
+                }
+            }
+            
+            // Пробуем загрузить общую конфигурацию
+            try {
+                const response = await fetch('/api/joystick-config');
+                const serverConfig = await response.json();
+                
+                if (serverConfig && (Object.keys(serverConfig.buttons || {}).length > 0 || Object.keys(serverConfig.axes || {}).length > 0)) {
+                    configuration = {
+                        buttons: { ...(serverConfig.buttons || {}) },
+                        axes: { ...(serverConfig.axes || {}) }
+                    };
+                    
+                    try {
+                        localStorage.setItem('joystickConfig', JSON.stringify(configuration));
+                        console.log(`✅ Конфигурация загружена с сервера (${Object.keys(configuration.buttons).length} кнопок)`);
+                    } catch (e) {
+                        console.warn('⚠️ Не удалось сохранить в localStorage');
+                    }
+                    return true;
+                }
+            } catch (error) {
+                console.warn('⚠️ Ошибка загрузки с сервера, используем localStorage');
+            }
+            
+            return loadConfigurationFromLocalStorage();
+        }
+        
+        function loadConfigurationFromLocalStorage() {
+            try {
+                let saved = localStorage.getItem('joystickConfig') || sessionStorage.getItem('joystickConfig');
+                
+                if (saved) {
+                    const loaded = JSON.parse(saved);
+                    if (loaded && (Object.keys(loaded.buttons || {}).length > 0 || Object.keys(loaded.axes || {}).length > 0)) {
+                        configuration = {
+                            buttons: { ...(loaded.buttons || {}) },
+                            axes: { ...(loaded.axes || {}) }
+                        };
+                        if (saved === sessionStorage.getItem('joystickConfig')) {
+                            localStorage.setItem('joystickConfig', saved);
+                        }
+                        console.log(`✅ Конфигурация загружена (${Object.keys(configuration.buttons).length} кнопок)`);
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.error('❌ Ошибка загрузки конфигурации:', e);
+            }
+            return false;
+        }
+
+        window.saveConfiguration = function(silent = false) {
+            const configToSave = {
+                buttons: { ...configuration.buttons },
+                axes: { ...configuration.axes }
+            };
+            
+            const buttonCount = Object.keys(configToSave.buttons).length;
+            const axisCount = Object.keys(configToSave.axes).length;
+            
+            if (!silent) {
+                console.log(`💾 Сохранение конфигурации: ${buttonCount} кнопок, ${axisCount} осей`);
+            }
+            
+            const answerButtons = ['Кнопка 1', 'Кнопка 2', 'Кнопка 3', 'Кнопка 4'];
+            const configuredButtons = answerButtons.filter(btn => configToSave.buttons[btn] !== undefined);
+            
+            try {
+                const jsonString = JSON.stringify(configToSave);
+                localStorage.setItem('joystickConfig', jsonString);
+                
+                try {
+                    sessionStorage.setItem('joystickConfig', jsonString);
+                } catch (e) {}
+                
+                console.log(`✅ Конфигурация сохранена (${buttonCount} кнопок, ${axisCount} осей)`);
+                
+                // Сохраняем на сервер с привязкой к станции
+                if (stationNumber) {
+                    fetch(`/api/local/stations/${stationNumber}/joystick-config`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ config: configToSave })
+                    }).catch((error) => {
+                        console.warn('⚠️ Ошибка сохранения конфигурации на сервер:', error);
+                    });
+                } else {
+                    fetch('/api/joystick-config', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: jsonString
+                    }).catch(() => {});
+                }
+            } catch (e) {
+                console.error('❌ Ошибка при сохранении:', e);
+                if (!silent) {
+                    alert(`⚠️ Ошибка при сохранении конфигурации: ${e.message}`);
+                }
+            }
+            
+            if (!silent) {
+                if (configuredButtons.length === 4) {
+                    alert('✅ Конфигурация сохранена!\n\nВсе кнопки для ответов настроены. Конфигурация будет автоматически использоваться в игре.');
+                } else if (configuredButtons.length > 0) {
+                    alert(`⚠️ Конфигурация сохранена, но настроено только ${configuredButtons.length} из 4 кнопок для ответов.\n\nРекомендуется настроить все 4 кнопки (Кнопка 1-4) для ответов А-Г.`);
+                } else {
+                    alert('⚠️ Конфигурация сохранена, но не настроены кнопки для ответов.\n\nНастройте кнопки 1-4 для ответов А-Г.');
+                }
+            }
+            
+            renderCommandLists();
+            updateTestView();
+        }
+
+        window.resetConfiguration = function() {
+            if (confirm('Вы уверены, что хотите сбросить конфигурацию?')) {
+                configuration = {
+                    buttons: {},
+                    axes: {}
+                };
+                selectedCommand = null;
+                selectedCommandType = null;
+                waitingForInput = false;
+                const assignMode = document.getElementById('assign-mode');
+                if (assignMode) assignMode.style.display = 'none';
+                localStorage.removeItem('joystickConfig');
+                try {
+                    sessionStorage.removeItem('joystickConfig');
+                } catch (e) {}
+                renderCommandLists();
+                updateTestView();
+                alert('Конфигурация сброшена');
+            }
+        }
+
+        window.exportConfiguration = function() {
+            const configToExport = {
+                buttons: { ...configuration.buttons },
+                axes: { ...configuration.axes },
+                version: '1.0',
+                exportDate: new Date().toISOString()
+            };
+            
+            const jsonString = JSON.stringify(configToExport, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `joystick-config-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            console.log('✅ Конфигурация экспортирована в файл');
+            alert('✅ Конфигурация экспортирована в файл!\n\nФайл будет загружен в папку "Загрузки".');
+        }
+
+        window.importConfiguration = function() {
+            const fileInput = document.getElementById('import-file-input');
+            if (fileInput) {
+                fileInput.click();
+            }
+        }
+
+        window.handleImportFile = function(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    
+                    if (!imported || (!imported.buttons && !imported.axes)) {
+                        throw new Error('Неверный формат файла конфигурации');
+                    }
+                    
+                    configuration = {
+                        buttons: { ...(imported.buttons || {}) },
+                        axes: { ...(imported.axes || {}) }
+                    };
+                    
+                    const jsonString = JSON.stringify({
+                        buttons: configuration.buttons,
+                        axes: configuration.axes
+                    });
+                    localStorage.setItem('joystickConfig', jsonString);
+                    try {
+                        sessionStorage.setItem('joystickConfig', jsonString);
+                    } catch (e) {}
+                    
+                    console.log('✅ Конфигурация импортирована из файла');
+                    console.log(`📋 Импортировано кнопок: ${Object.keys(configuration.buttons).length}, осей: ${Object.keys(configuration.axes).length}`);
+                    
+                    renderCommandLists();
+                    updateTestView();
+                    
+                    alert(`✅ Конфигурация импортирована!\n\nИмпортировано кнопок: ${Object.keys(configuration.buttons).length}, осей: ${Object.keys(configuration.axes).length}`);
+                } catch (error) {
+                    console.error('❌ Ошибка при импорте конфигурации:', error);
+                    alert(`❌ Ошибка при импорте конфигурации:\n\n${error.message}\n\nУбедитесь, что файл имеет правильный формат JSON.`);
+                }
+            };
+            
+            reader.onerror = function() {
+                console.error('❌ Ошибка при чтении файла');
+                alert('❌ Ошибка при чтении файла. Попробуйте еще раз.');
+            };
+            
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function initCalibrationView() {
+            renderCommandLists();
+            updateTestView();
+        }
+
+        function renderCommandLists() {
+            const buttonsList = document.getElementById('button-commands-list');
+            const stickList = document.getElementById('stick-commands-list');
+
+            if (!buttonsList || !stickList) {
+                console.log('Элементы не найдены, buttonsList:', buttonsList, 'stickList:', stickList);
+                return;
+            }
+
+            buttonsList.innerHTML = availableCommands.buttons.map(cmd => {
+                const assignedButton = getButtonForCommand(cmd);
+                const cmdEscaped = cmd.replace(/'/g, "\\'");
+                const isSelected = selectedCommand === cmd;
+                const isWaiting = isSelected && waitingForInput;
+                
+                const buttonInfo = assignedButton !== null 
+                    ? `✅ Назначена (кнопка ${assignedButton})` 
+                    : '❌ Не назначена';
+                
+                return `
+                    <div class="command-item ${isWaiting ? 'waiting' : isSelected ? 'selected' : ''}" 
+                         onclick="selectCommand('${cmdEscaped}', 'button')">
+                        <div class="command-name">${cmd}</div>
+                        <div class="command-assigned" style="margin-top: 8px; font-size: 0.85em;">
+                            ${buttonInfo}
+                            ${assignedButton !== null ? `<button class="btn-clear" onclick="clearCommand('${cmdEscaped}', 'button'); event.stopPropagation();" style="margin-left: 8px;">✕</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            stickList.innerHTML = availableCommands.stick.map(cmd => {
+                const assignedDirection = getDirectionForCommand(cmd);
+                const cmdEscaped = cmd.replace(/'/g, "\\'");
+                const isSelected = selectedCommand === cmd;
+                const isWaiting = isSelected && waitingForInput;
+                
+                const directionInfo = assignedDirection 
+                    ? `✅ Назначена (${assignedDirection})` 
+                    : '❌ Не назначена';
+                
+                return `
+                    <div class="command-item ${isWaiting ? 'waiting' : isSelected ? 'selected' : ''}" 
+                         onclick="selectCommand('${cmdEscaped}', 'stick')">
+                        <div class="command-name">${cmd}</div>
+                        <div class="command-assigned" style="margin-top: 8px; font-size: 0.85em;">
+                            ${directionInfo}
+                            ${assignedDirection ? `<button class="btn-clear" onclick="clearCommand('${cmdEscaped}', 'stick'); event.stopPropagation();" style="margin-left: 8px;">✕</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getButtonForCommand(command) {
+            if (!configuration || !configuration.buttons) {
+                return null;
+            }
+            
+            for (const [cmd, btnIndex] of Object.entries(configuration.buttons)) {
+                if (cmd === command) {
+                    return btnIndex;
+                }
+            }
+            return null;
+        }
+
+        function getDirectionForCommand(command) {
+            if (!configuration || !configuration.axes) {
+                return null;
+            }
+            
+            for (const [cmd, direction] of Object.entries(configuration.axes)) {
+                if (cmd === command) return direction;
+            }
+            return null;
+        }
+
+        window.selectCommand = function(command, type) {
+            console.log('selectCommand called:', command, type);
+            selectedCommand = command;
+            selectedCommandType = type;
+            waitingForInput = true;
+            const assignMode = document.getElementById('assign-mode');
+            if (assignMode) {
+                assignMode.style.display = 'block';
+                assignMode.textContent = 
+                    `⚠️ Режим назначения: Выбрана команда "${command}". ${type === 'button' ? 'Нажмите нужную кнопку на джойстике' : 'Двигайте стик в нужном направлении'}`;
+            }
+            renderCommandLists();
+        }
+
+        window.clearCommand = function(command, type) {
+            if (type === 'button') {
+                delete configuration.buttons[command];
+            } else {
+                delete configuration.axes[command];
+            }
+            saveConfiguration(true);
+            renderCommandLists();
+        }
+
+        function updateCalibrationView() {
+            if (!gamepad) return;
+
+            if (waitingForInput && selectedCommand && selectedCommandType) {
+                if (selectedCommandType === 'button') {
+                    for (let i = 0; i < gamepad.buttons.length; i++) {
+                        if (gamepad.buttons[i] && gamepad.buttons[i].pressed) {
+                            configuration.buttons[selectedCommand] = i;
+                            console.log(`✅ Кнопка назначена: ${selectedCommand} -> физическая кнопка ${i}`);
+                            saveConfiguration(true);
+                            selectedCommand = null;
+                            selectedCommandType = null;
+                            waitingForInput = false;
+                            const assignMode = document.getElementById('assign-mode');
+                            if (assignMode) assignMode.style.display = 'none';
+                            renderCommandLists();
+                            break;
+                        }
+                    }
+                } else if (selectedCommandType === 'stick') {
+                    const axisX = gamepad.axes[0] || 0;
+                    const axisY = gamepad.axes[1] || 0;
+
+                    if (axisY < -DEAD_ZONE) {
+                        configuration.axes[selectedCommand] = 'up';
+                        saveConfiguration(true);
+                        selectedCommand = null;
+                        selectedCommandType = null;
+                        waitingForInput = false;
+                        const assignMode = document.getElementById('assign-mode');
+                        if (assignMode) assignMode.style.display = 'none';
+                        renderCommandLists();
+                    } else if (axisY > DEAD_ZONE) {
+                        configuration.axes[selectedCommand] = 'down';
+                        saveConfiguration(true);
+                        selectedCommand = null;
+                        selectedCommandType = null;
+                        waitingForInput = false;
+                        const assignMode = document.getElementById('assign-mode');
+                        if (assignMode) assignMode.style.display = 'none';
+                        renderCommandLists();
+                    } else if (axisX < -DEAD_ZONE) {
+                        configuration.axes[selectedCommand] = 'left';
+                        saveConfiguration(true);
+                        selectedCommand = null;
+                        selectedCommandType = null;
+                        waitingForInput = false;
+                        const assignMode = document.getElementById('assign-mode');
+                        if (assignMode) assignMode.style.display = 'none';
+                        renderCommandLists();
+                    } else if (axisX > DEAD_ZONE) {
+                        configuration.axes[selectedCommand] = 'right';
+                        saveConfiguration(true);
+                        selectedCommand = null;
+                        selectedCommandType = null;
+                        waitingForInput = false;
+                        const assignMode = document.getElementById('assign-mode');
+                        if (assignMode) assignMode.style.display = 'none';
+                        renderCommandLists();
+                    }
+                }
+            }
+        }
+
+        function updateTestView() {
+            const buttonsGrid = document.getElementById('test-buttons-grid');
+            if (!buttonsGrid) return;
+            
+            buttonsGrid.innerHTML = '';
+
+            Object.keys(configuration.buttons || {}).forEach(command => {
+                const btnIndex = configuration.buttons[command];
+                const isPressed = gamepad && gamepad.buttons[btnIndex] && gamepad.buttons[btnIndex].pressed;
+
+                const buttonEl = document.createElement('div');
+                buttonEl.className = `button ${isPressed ? 'active' : ''}`;
+                buttonEl.id = `test-btn-${command}`;
+                let displayText = command;
+                if (displayText.length > 10) {
+                    displayText = displayText.substring(0, 8) + '...';
+                }
+                buttonEl.innerHTML = `
+                    <div class="button-label">${displayText}</div>
+                `;
+                buttonsGrid.appendChild(buttonEl);
+            });
+        }
+
+        function updateTestButtons() {
+            if (!gamepad) return;
+
+            Object.keys(configuration.buttons).forEach(command => {
+                const buttonEl = document.getElementById(`test-btn-${command}`);
+                if (buttonEl) {
+                    const btnIndex = configuration.buttons[command];
+                    const btn = gamepad.buttons[btnIndex];
+                    if (btn && btn.pressed) {
+                        buttonEl.classList.add('active');
+                    } else {
+                        buttonEl.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        function updateTestStick() {
+            if (!gamepad) return;
+
+            const axisX = gamepad.axes[0] || 0;
+            const axisY = gamepad.axes[1] || 0;
+
+            document.getElementById('axis-info').textContent = 
+                `Ось X: ${axisX.toFixed(2)} | Ось Y: ${axisY.toFixed(2)}`;
+
+            document.getElementById('dir-up').classList.remove('active');
+            document.getElementById('dir-down').classList.remove('active');
+            document.getElementById('dir-left').classList.remove('active');
+            document.getElementById('dir-right').classList.remove('active');
+            document.getElementById('stick-center').classList.remove('active');
+
+            let upCommand = null, downCommand = null, leftCommand = null, rightCommand = null;
+            for (const [cmd, direction] of Object.entries(configuration.axes)) {
+                if (direction === 'up') upCommand = cmd;
+                if (direction === 'down') downCommand = cmd;
+                if (direction === 'left') leftCommand = cmd;
+                if (direction === 'right') rightCommand = cmd;
+            }
+
+            if (axisY < -DEAD_ZONE && upCommand) {
+                document.getElementById('dir-up').textContent = upCommand;
+                document.getElementById('dir-up').classList.add('active');
+            } else {
+                document.getElementById('dir-up').textContent = '↑';
+            }
+
+            if (axisY > DEAD_ZONE && downCommand) {
+                document.getElementById('dir-down').textContent = downCommand;
+                document.getElementById('dir-down').classList.add('active');
+            } else {
+                document.getElementById('dir-down').textContent = '↓';
+            }
+
+            if (axisX < -DEAD_ZONE && leftCommand) {
+                document.getElementById('dir-left').textContent = leftCommand;
+                document.getElementById('dir-left').classList.add('active');
+            } else {
+                document.getElementById('dir-left').textContent = '←';
+            }
+
+            if (axisX > DEAD_ZONE && rightCommand) {
+                document.getElementById('dir-right').textContent = rightCommand;
+                document.getElementById('dir-right').classList.add('active');
+            } else {
+                document.getElementById('dir-right').textContent = '→';
+            }
+
+            if (Math.abs(axisX) > DEAD_ZONE || Math.abs(axisY) > DEAD_ZONE) {
+                document.getElementById('stick-center').classList.add('active');
+                const maxMove = 60;
+                const moveX = axisX * maxMove;
+                const moveY = axisY * maxMove;
+                document.getElementById('stick-center').style.transform = 
+                    `translate(${moveX}px, ${moveY}px)`;
+            } else {
+                document.getElementById('stick-center').style.transform = 'translate(0, 0)';
+            }
+        }
+
+        function getGamepad() {
+            const gamepads = navigator.getGamepads();
+            for (let i = 0; i < gamepads.length; i++) {
+                if (gamepads[i]) {
+                    return gamepads[i];
+                }
+            }
+            return null;
+        }
+
+        let lastJoystickStatus = null;
+        
+        async function updateStatus() {
+            const statusEl = document.getElementById('hub-status');
+            
+            gamepad = getGamepad();
+            
+            const statusText = gamepad ? 'Джойстик подключен' : 'Джойстик не подключен';
+            const statusClass = gamepad ? 'hub-status connected' : 'hub-status disconnected';
+            const isConnected = !!gamepad;
+            
+            if (statusEl) {
+                statusEl.textContent = statusText;
+                statusEl.className = statusClass;
+            }
+            
+            // Отправляем статус на сервер при изменении
+            if (lastJoystickStatus !== isConnected && stationNumber) {
+                const previousStatus = lastJoystickStatus;
+                lastJoystickStatus = isConnected;
+                try {
+                    const status = isConnected ? 'connected' : 'disconnected';
+                    const response = await fetch(`/api/local/stations/${stationNumber}/joystick-status`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: status })
+                    });
+                    const result = await response.json();
+                    if (!result.success) {
+                        console.warn(`⚠️ Ошибка отправки статуса джойстика:`, result.error);
+                    }
+                } catch (error) {
+                    console.error('❌ Ошибка отправки статуса джойстика:', error);
+                    // Восстанавливаем предыдущий статус при ошибке
+                    lastJoystickStatus = previousStatus;
+                }
+            }
+        }
+
+        let statusCheckInterval = null;
+        
+        function update() {
+            updateStatus();
+            if (gamepad) {
+                updateCalibrationView();
+                updateTestButtons();
+                updateTestStick();
+            }
+            animationFrame = requestAnimationFrame(update);
+        }
+        
+        // Периодическая проверка статуса джойстика и отправка на сервер (каждые 2 секунды)
+        function startStatusMonitoring() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+            }
+            
+            statusCheckInterval = setInterval(async () => {
+                if (stationNumber) {
+                    const currentGamepad = getGamepad();
+                    const isConnected = !!currentGamepad;
+                    
+                    // Отправляем статус только если он изменился
+                    if (lastJoystickStatus !== isConnected) {
+                        const previousStatus = lastJoystickStatus;
+                        lastJoystickStatus = isConnected;
+                        
+                        try {
+                            const status = isConnected ? 'connected' : 'disconnected';
+                            const response = await fetch(`/api/local/stations/${stationNumber}/joystick-status`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ status: status })
+                            });
+                            const result = await response.json();
+                            if (!result.success) {
+                                console.warn(`⚠️ Ошибка отправки статуса джойстика:`, result.error);
+                            }
+                        } catch (error) {
+                            console.error('❌ [Мониторинг] Ошибка отправки статуса джойстика:', error);
+                            // Восстанавливаем предыдущий статус при ошибке
+                            lastJoystickStatus = previousStatus;
+                        }
+                    }
+                }
+            }, 2000); // Проверяем каждые 2 секунды
+        }
+        
+        function stopStatusMonitoring() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                statusCheckInterval = null;
+            }
+        }
+
+        window.addEventListener('gamepadconnected', async (e) => {
+            console.log('Джойстик подключен:', e.gamepad.id);
+            // Сбрасываем lastJoystickStatus чтобы гарантировать отправку статуса
+            lastJoystickStatus = null;
+            await updateStatus();
+        });
+
+        window.addEventListener('gamepaddisconnected', async (e) => {
+            console.log('Джойстик отключен:', e.gamepad.id);
+            gamepad = null;
+            // Сбрасываем lastJoystickStatus чтобы гарантировать отправку статуса
+            lastJoystickStatus = null;
+            await updateStatus();
+        });
+
+        async function initialize() {
+            await detectStationNumber();
+            
+            if (stationNumber) {
+                const stationInfo = document.getElementById('station-info');
+                const stationNumberDisplay = document.getElementById('station-number-display');
+                const stationNumberTitle = document.getElementById('station-number-title');
+                const stationTitle = document.getElementById('station-title');
+                
+                if (stationInfo) stationInfo.style.display = 'inline-block';
+                if (stationNumberDisplay) stationNumberDisplay.textContent = stationNumber;
+                if (stationNumberTitle) stationNumberTitle.textContent = stationNumber;
+                if (stationTitle) stationTitle.style.display = 'inline';
+            }
+            
+            await loadConfigurationFromServer();
+            
+            const hasButtons = Object.keys(configuration.buttons || {}).length > 0;
+            const hasAxes = Object.keys(configuration.axes || {}).length > 0;
+            
+            setTimeout(() => {
+                initCalibrationView();
+                if (hasButtons || hasAxes) {
+                    updateTestView();
+                }
+            }, 200);
+            
+            // Отправляем начальный статус джойстика при загрузке страницы
+            // Сбрасываем lastJoystickStatus чтобы гарантировать отправку
+            lastJoystickStatus = null;
+            
+            // Проверяем начальный статус джойстика
+            const initialGamepad = getGamepad();
+            const initialStatus = !!initialGamepad;
+            // Отправляем начальный статус сразу
+            if (stationNumber) {
+                try {
+                    const status = initialStatus ? 'connected' : 'disconnected';
+                    const response = await fetch(`/api/local/stations/${stationNumber}/joystick-status`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: status })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        lastJoystickStatus = initialStatus;
+                    } else {
+                        console.warn(`⚠️ Ошибка отправки начального статуса джойстика:`, result.error);
+                    }
+                } catch (error) {
+                    console.error('❌ Ошибка отправки начального статуса джойстика:', error);
+                }
+            }
+            
+            await updateStatus();
+            
+            // Запускаем мониторинг статуса джойстика
+            startStatusMonitoring();
+            
+            update();
+        }
+        
+        // Остановка мониторинга при закрытии страницы
+        window.addEventListener('beforeunload', () => {
+            stopStatusMonitoring();
+        });
+        
+        window.addEventListener('pagehide', () => {
+            stopStatusMonitoring();
+        });
+
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', initialize);
+        } else {
+            initialize();
+        }
+    </script>
+</body>
+</html>
+

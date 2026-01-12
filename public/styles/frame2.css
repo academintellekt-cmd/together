@@ -17,9 +17,9 @@
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     padding: 0; /* Убираем padding сверху и по бокам, высота определяется только логотипом и фразой */
-    /* Адаптивный отступ снизу */
-    padding-bottom: clamp(30px, 5vh, 60px); /* Уменьшенный отступ */
-    z-index: var(--z-index-frame-2); /* Используем стандартный z-index из base.css (1000) */
+    /* Адаптивный отступ снизу - уменьшен для предотвращения перекрытия контента Frame3 */
+    padding-bottom: clamp(15px, 2.5vh, 30px); /* Компактный отступ */
+    z-index: 1003 !important; /* Выше Frame3 (1002), но ниже Frame1 (10000) */
     position: relative; /* Явно указываем relative, чтобы z-index работал */
     border-bottom: none;
     box-shadow: none;
@@ -35,6 +35,68 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column; /* Вертикальное расположение для правильного центрирования */
+    pointer-events: auto; /* Гарантируем кликабельность содержимого */
+}
+
+/* Когда есть только игроки (без логотипа), уменьшаем отступ снизу и центрируем */
+.frame2.has-players-only {
+    padding-bottom: clamp(5px, 1.5vh, 15px) !important; /* Компактный отступ снизу */
+    padding-top: clamp(5px, 1vh, 15px) !important; /* Минимальные отступы */
+    /* Гарантируем правильное вертикальное центрирование игроков */
+    justify-content: flex-start !important; /* Выравниваем по верху, чтобы игроки были выше */
+    align-items: center !important;
+    /* Минимальная высота для компактности */
+    min-height: auto !important;
+    height: auto !important;
+    /* Убираем лишние отступы */
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    /* Гарантируем, что содержимое начинается с верха */
+    align-content: flex-start !important;
+}
+
+/* Гарантируем, что контейнер игроков центрируется правильно */
+.frame2.has-players-only .frame2-content {
+    justify-content: flex-start !important; /* Выравниваем по верху */
+    align-items: center !important;
+    flex-wrap: nowrap !important; /* Убираем wrap для правильного центрирования */
+    min-height: 0 !important; /* Убираем минимальную высоту */
+    padding-top: 0 !important; /* Убираем отступ сверху */
+    padding-bottom: 0 !important; /* Убираем отступ снизу */
+    /* Гарантируем, что logo-section не влияет на позиционирование */
+    position: relative;
+}
+
+/* Когда есть игроки, полностью убираем logo-section из потока */
+.frame2.has-players-only .frame2-logo-section {
+    display: none !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+    /* Полностью убираем из flex-потока */
+    flex: 0 0 0 !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    order: 999 !important; /* Перемещаем в конец */
+    /* Убираем из видимого пространства */
+    left: -9999px !important;
+    top: -9999px !important;
+}
+
+.frame2.has-players-only .frame2-players-container {
+    margin: 0 auto !important;
+    flex-shrink: 0 !important; /* Не сжимаем контейнер игроков */
+    /* Гарантируем, что контейнер игроков находится вверху */
+    align-self: flex-start !important;
+    order: -1 !important; /* Перемещаем в начало flex-контейнера */
+    width: 100% !important;
 }
 
 /* Контент Frame2 */
@@ -54,6 +116,9 @@
     box-sizing: border-box;
     padding: 0 24px; /* Фиксированные отступы от краев экрана */
     background: transparent !important; /* Полностью прозрачный фон - никаких плашек */
+    pointer-events: auto; /* Гарантируем кликабельность содержимого */
+    isolation: isolate; /* Создаем новый stacking context для правильного z-index */
+    z-index: 1003 !important; /* Выше Frame3 (1002) */
 }
 
 /* Убираем псевдоэлемент для фона - он перекрывает подпись */
@@ -92,8 +157,36 @@
     background: transparent !important;
 }
 
+/* Когда логотип скрыт, полностью убираем его из потока */
+.frame2-logo-section[style*="display: none"],
+.frame2.has-players-only .frame2-logo-section {
+    display: none !important;
+    pointer-events: none !important;
+    z-index: -1 !important; /* Ниже контейнера игроков */
+    position: absolute !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+    flex: 0 0 0 !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    order: -1 !important; /* Перемещаем в начало для flex */
+    /* Полностью убираем из потока документа */
+    left: -9999px !important;
+    top: -9999px !important;
+}
+
 .frame2-logo-section * {
     pointer-events: auto;
+}
+
+/* Когда logo-section скрыт, все его дочерние элементы также не должны блокировать клики */
+.frame2-logo-section[style*="display: none"] * {
+    pointer-events: none !important;
 }
 
 .frame2-logo-section .logo {
@@ -143,15 +236,25 @@
 /* Адаптивные отступы для разных размеров экрана - устойчивы к масштабированию */
 @media (min-width: 768px) {
     .frame2 {
-        padding-bottom: clamp(30px, 5vh, 60px); /* Уменьшенный отступ на больших экранах */
+        padding-bottom: clamp(20px, 3vh, 35px); /* Компактный отступ на больших экранах */
+    }
+    
+    /* Когда есть игроки, еще более компактный отступ */
+    .frame2.has-players-only {
+        padding-bottom: clamp(5px, 1.5vh, 15px) !important;
     }
 }
 
 @media (max-width: 767px) {
     .frame2 {
-        padding-bottom: clamp(20px, 4vh, 50px); /* Уменьшенный отступ на мобильных */
+        padding-bottom: clamp(15px, 2.5vh, 30px); /* Компактный отступ на мобильных */
         padding-top: 0 !important; /* Убираем отступ сверху - логотип ближе к кнопкам */
         margin-top: 0 !important;
+    }
+    
+    /* Когда есть игроки, еще более компактный отступ */
+    .frame2.has-players-only {
+        padding-bottom: clamp(5px, 1.5vh, 15px) !important;
     }
     
     .frame2-content {
@@ -178,7 +281,12 @@
 
 @media (max-width: 480px) {
     .frame2 {
-        padding-bottom: clamp(15px, 3vh, 40px); /* Минимальный отступ на очень маленьких экранах */
+        padding-bottom: clamp(12px, 2vh, 25px); /* Компактный отступ на очень маленьких экранах */
+    }
+    
+    /* Когда есть игроки, еще более компактный отступ */
+    .frame2.has-players-only {
+        padding-bottom: clamp(5px, 1vh, 12px) !important;
     }
     
     .frame2-content {
@@ -203,7 +311,23 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    padding: 15px 0;
+    padding: 10px 0; /* Уменьшенные отступы */
+    position: relative;
+    z-index: 1004; /* Выше всего контента, включая Frame3 */
+    pointer-events: auto; /* Гарантируем кликабельность */
+    min-height: 50px; /* Минимальная высота для кликабельности */
+    isolation: isolate; /* Создаем новый stacking context */
+    /* Гарантируем центрирование по вертикали и горизонтали */
+    margin: 0 auto;
+    flex-shrink: 0;
+    /* Убираем отступы сверху и снизу для лучшего центрирования */
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* Когда есть только игроки, уменьшаем отступы контейнера */
+.frame2.has-players-only .frame2-players-container {
+    padding: 5px 0; /* Минимальные отступы */
 }
 
 /* Иконки игроков в Frame2 */
@@ -227,9 +351,16 @@
     text-transform: uppercase;
     transition: all 0.3s;
     min-width: auto;
+    min-height: 36px; /* Минимальная высота для кликабельности */
+    height: auto; /* Автоматическая высота */
+    line-height: 1.2; /* Правильный line-height для текста */
     text-align: center;
     flex-shrink: 0;
     box-sizing: border-box;
+    position: relative;
+    z-index: 1005; /* Выше контейнера (1004) и всего контента */
+    pointer-events: auto !important; /* Гарантируем кликабельность */
+    isolation: isolate; /* Создаем новый stacking context */
 }
 
 .frame2-player-icon:hover {

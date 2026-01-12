@@ -101,13 +101,28 @@ function loadIntellectualQuestions(quizId) {
       const answerText = line.replace(/^A\d*:\s*/, '').trim();
       currentQuestion.answer = answerText;
     }
-    // Время начинается с T:
-    else if (line.match(/^T\s*:/) && currentQuestion) {
-      // Извлекаем время (убираем T: и берем число)
-      const timeMatch = line.match(/^T\s*:\s*(\d+)/);
+    // Время начинается с T: или TIME:
+    else if ((line.match(/^T\s*:/) || line.match(/^TIME\s*:/)) && currentQuestion) {
+      // Извлекаем время (убираем T: или TIME: и берем число)
+      const timeMatch = line.match(/^(?:T|TIME)\s*:\s*(\d+)/);
       if (timeMatch) {
         currentQuestion.time = parseInt(timeMatch[1], 10);
         console.log(`⏱️ Время для вопроса ${currentQuestion.id} установлено из файла: ${currentQuestion.time} секунд`);
+      }
+    }
+    // Тип вопроса (TYPE: text) - для совместимости с новым форматом
+    else if (line.match(/^TYPE\s*:/) && currentQuestion) {
+      // Игнорируем TYPE для ЧГК, так как все вопросы текстовые
+      // Это поле нужно только для других механик
+    }
+    // Комментарий (COMMENT:) - для хоста, не для сервера
+    else if (line.match(/^COMMENT\s*:/) && currentQuestion) {
+      // Сохраняем комментарий для хоста (опционально)
+      const commentText = line.replace(/^COMMENT\s*:\s*/, '').trim();
+      if (!currentQuestion.comment) {
+        currentQuestion.comment = commentText;
+      } else {
+        currentQuestion.comment += ' ' + commentText;
       }
     }
   }

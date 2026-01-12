@@ -541,8 +541,7 @@
                     Ваш счет: <span id="player-score">0</span>
                     <span id="points-added" style="font-size: 16px; margin-left: 10px; opacity: 0.8;"></span>
                 </div>
-                <button id="ready-btn" class="ready-btn" style="display: none;">Готов к следующему вопросу</button>
-                <div id="ready-status" class="ready-status" style="display: none; margin-top: 15px;">Ожидание других игроков...</div>
+                <!-- Кнопка готовности удалена - хост управляет переходом к следующему вопросу -->
             </div>
 
             <!-- Финальные результаты -->
@@ -703,29 +702,7 @@
             const currentTime = Date.now();
             const buttons = joystickConfig.buttons;
             
-            // Обработка кнопки 9 на экране результатов (готов к следующему вопросу)
-            if (resultsScreen && resultsScreen.style.display !== 'none') {
-                const readyBtn = document.getElementById('ready-btn');
-                if (readyBtn && readyBtn.style.display !== 'none' && !readyBtn.disabled) {
-                    // Проверяем кнопку 9
-                    if (buttons['Кнопка 9'] !== undefined) {
-                        const button9Index = buttons['Кнопка 9'];
-                        if (gamepad.buttons[button9Index] && gamepad.buttons[button9Index].pressed) {
-                            const buttonKey = `Кнопка 9-${button9Index}`;
-                            if (lastPressedButton !== buttonKey || (currentTime - lastPressedTime) >= 300) {
-                                lastPressedButton = buttonKey;
-                                lastPressedTime = currentTime;
-                                
-                                console.log(`🎮 Джойстик: Кнопка 9 (кнопка ${button9Index}) -> Готов к следующему вопросу`);
-                                
-                                // Эмулируем клик по кнопке готовности
-                                readyBtn.click();
-                                return; // Обработали нажатие, выходим
-                            }
-                        }
-                    }
-                }
-            }
+            // Обработка кнопки 9 на экране результатов удалена - кнопка готовности больше не используется
             
             // Обработка ответов - только на экране вопроса
             if (!questionScreen || questionScreen.style.display === 'none' || hasAnswered) {
@@ -956,26 +933,66 @@
                 }
             }
             
+            // УПРОЩЕННАЯ ЛОГИКА: Если auto=true, разрешаем подключение через 1 секунду
+            // Если за это время придет команда waiting, она отменит подключение
+            if (autoParam === 'true' && roomParam) {
+                window.allowAutoConnect = true; // Разрешаем по умолчанию
+                
+                // Ждем 1 секунду перед запуском автоматического подключения
+                // Это дает время серверу отправить команду waiting для невыбранных станций
+                setTimeout(() => {
+                    if (window.allowAutoConnect && socket && socket.connected) {
+                        const scheduleAutoConnect = window.scheduleAutoConnect;
+                        if (scheduleAutoConnect && typeof scheduleAutoConnect === 'function') {
+                            scheduleAutoConnect();
+                        }
+                    }
+                }, 1000);
+            }
+            
             // Автоматическое подключение, если указан параметр auto=true
             // Показываем экран ввода, чтобы пользователь мог изменить имя перед присоединением
             if (autoParam === 'true' && roomParam) {
+                // ВАЖНО: Глобальная переменная для отмены автоматического подключения
+                window.autoConnectTimeout = null;
+                // allowAutoConnect устанавливается выше - изначально false для auto=true
+                
                 // Показываем экран подключения (не пропускаем его)
                 document.getElementById('connect-screen').style.display = 'block';
                 document.getElementById('waiting-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'none';
                 
-                // Переменная для хранения таймера автоматического подключения
-                let autoConnectTimeout = null;
+                // Функция для отмены автоматического подключения
+                const cancelAutoConnect = () => {
+                    if (window.autoConnectTimeout) {
+                        clearTimeout(window.autoConnectTimeout);
+                        window.autoConnectTimeout = null;
+                        console.log('✅ Автоматическое подключение отменено');
+                    }
+                    window.allowAutoConnect = false;
+                };
                 
                 // Функция для запуска автоматического подключения
                 const scheduleAutoConnect = () => {
+                    // Проверяем флаг разрешения
+                    if (!window.allowAutoConnect) {
+                        console.log('🚫 Автоматическое подключение запрещено (получена команда navigate)');
+                        return;
+                    }
+                    
                     // Отменяем предыдущий таймер, если есть
-                    if (autoConnectTimeout) {
-                        clearTimeout(autoConnectTimeout);
-                        autoConnectTimeout = null;
+                    if (window.autoConnectTimeout) {
+                        clearTimeout(window.autoConnectTimeout);
+                        window.autoConnectTimeout = null;
                     }
                     
                     setTimeout(() => {
+                        // Еще раз проверяем флаг перед запуском таймера
+                        if (!window.allowAutoConnect) {
+                            console.log('🚫 Автоматическое подключение запрещено (получена команда navigate)');
+                            return;
+                        }
+                        
                         const roomCodeInput = document.getElementById('room-code');
                         const playerNameInput = document.getElementById('player-name');
                         
@@ -984,13 +1001,19 @@
                             console.log('💡 Вы можете изменить имя и нажать "Подключиться" для немедленного присоединения');
                             
                             // Автоматически подключаемся через 3 секунды, если пользователь еще не подключился
-                            autoConnectTimeout = setTimeout(() => {
+                            window.autoConnectTimeout = setTimeout(() => {
+                                // Финальная проверка флага перед подключением
+                                if (!window.allowAutoConnect) {
+                                    console.log('🚫 Автоматическое подключение отменено в последний момент (получена команда navigate)');
+                                    return;
+                                }
+                                
                                 const connectScreen = document.getElementById('connect-screen');
                                 if (connectScreen && connectScreen.style.display !== 'none') {
                                     console.log('⏰ Автоматическое присоединение...');
                                     connectToRoom();
                                 }
-                                autoConnectTimeout = null;
+                                window.autoConnectTimeout = null;
                             }, 3000);
                         } else {
                             console.warn('⚠️ Не удалось автоматически подключиться: не заполнены поля');
@@ -998,28 +1021,20 @@
                     }, 500);
                 };
                 
-                // Если socket уже подключен, сразу запускаем таймер
-                if (socket && socket.connected) {
-                    scheduleAutoConnect();
-                } else {
-                    // Ждем подключения Socket.io
-                    socket.on('connect', () => {
-                        scheduleAutoConnect();
-                    });
-                }
+                // Сохраняем функцию в глобальной области для доступа из таймера выше
+                window.scheduleAutoConnect = scheduleAutoConnect;
                 
                 // Если пользователь нажал кнопку, отменяем автоматическое подключение
                 const connectBtn = document.getElementById('connect-btn');
                 if (connectBtn) {
                     // Добавляем обработчик, который отменяет таймер перед подключением
                     connectBtn.addEventListener('click', function() {
-                        if (autoConnectTimeout) {
-                            clearTimeout(autoConnectTimeout);
-                            autoConnectTimeout = null;
-                            console.log('✅ Автоматическое присоединение отменено - пользователь нажал кнопку');
-                        }
+                        cancelAutoConnect();
                     }, { once: false });
                 }
+                
+                // Сохраняем функцию отмены в глобальной области для доступа из обработчика команд
+                window.cancelAutoConnect = cancelAutoConnect;
             }
         });
 
@@ -1095,12 +1110,8 @@
             // Инициализируем элементы Frame1
             initFrame1Elements();
             
-            // Скрываем кнопку готовности при новом вопросе
+            // Сбрасываем флаг готовности при новом вопросе (кнопка готовности удалена)
             isReady = false;
-            const readyBtn = document.getElementById('ready-btn');
-            const readyStatus = document.getElementById('ready-status');
-            if (readyBtn) readyBtn.style.display = 'none';
-            if (readyStatus) readyStatus.textContent = '';
             
             // Устанавливаем флаг ответа
             hasAnswered = alreadyAnswered;
@@ -1322,20 +1333,7 @@
                             window.previousPlayerScore = newScore;
                         }
                         
-                        // Показываем кнопку готовности
-                        const readyBtn = document.getElementById('ready-btn');
-                        const readyStatus = document.getElementById('ready-status');
-                        if (readyBtn) {
-                            readyBtn.style.display = 'block';
-                            readyBtn.disabled = false;
-                            readyBtn.classList.remove('ready');
-                            readyBtn.textContent = 'Готов к следующему вопросу';
-                        }
-                        if (readyStatus) {
-                            readyStatus.style.display = 'none';
-                            readyStatus.textContent = '';
-                        }
-                        
+                        // Кнопка готовности удалена - хост управляет переходом к следующему вопросу
                         isReady = false;
                         startGamepadCheck();
                     }, 50);
@@ -1401,6 +1399,26 @@
 
         socket.on('error', (data) => {
             console.error('❌ Ошибка от сервера:', data);
+            
+            // Если станция не выбрана для участия в игре, автоматически возвращаемся на station.html
+            if (data.code === 'STATION_NOT_SELECTED') {
+                console.log(`🚫 Станция ${data.stationNumber || ''} не выбрана для участия в игре. Возврат на station.html...`);
+                
+                // Отменяем автоматическое подключение
+                if (typeof window.allowAutoConnect !== 'undefined') {
+                    window.allowAutoConnect = false;
+                }
+                if (typeof window.cancelAutoConnect === 'function') {
+                    window.cancelAutoConnect();
+                }
+                
+                showError(`Станция ${data.stationNumber || ''} не выбрана для участия в этой игре. Возврат на страницу станции...`);
+                setTimeout(() => {
+                    window.location.href = '/station.html';
+                }, 2000); // Даем время показать сообщение
+                return;
+            }
+            
             // Не показываем модальное окно для пароля - подключаемся без пароля
             showError(data.message);
         });
@@ -1671,46 +1689,11 @@
                 window.previousPlayerScore = newScore;
             }
 
-            // Показываем кнопку готовности (красная по умолчанию)
-            const readyBtn = document.getElementById('ready-btn');
-            const readyStatus = document.getElementById('ready-status');
-            readyBtn.style.display = 'block';
-            readyBtn.disabled = false;
-            readyBtn.classList.remove('ready'); // Убираем класс ready, чтобы кнопка была красной
-            readyBtn.textContent = 'Готов к следующему вопросу?';
-            readyStatus.style.display = 'none';
+            // Кнопка готовности удалена - хост управляет переходом к следующему вопросу
             isReady = false; // Сбрасываем флаг готовности
-            
-            // Запускаем проверку джойстика для работы кнопки 9 на экране результатов
-            startGamepadCheck();
         });
 
-        // Кнопка готовности
-        const readyBtn = document.getElementById('ready-btn');
-        readyBtn.addEventListener('click', () => {
-            if (isReady) return;
-            isReady = true;
-            socket.emit('player-ready', roomCode);
-            readyBtn.disabled = true;
-            readyBtn.classList.add('ready'); // Делаем кнопку зеленой
-            readyBtn.textContent = 'Готов! Ожидание игроков...';
-            const readyStatus = document.getElementById('ready-status');
-            readyStatus.style.display = 'block';
-            readyStatus.textContent = 'Ожидание игроков...';
-        });
-
-        // Статус готовности
-        socket.on('ready-status', (data) => {
-            if (isReady && document.getElementById('results-screen').style.display !== 'none') {
-                const readyBtn = document.getElementById('ready-btn');
-                const readyStatus = document.getElementById('ready-status');
-                readyBtn.disabled = true;
-                readyBtn.classList.add('ready'); // Убеждаемся, что кнопка зеленая
-                readyBtn.textContent = 'Готов! Ожидание игроков...';
-                readyStatus.style.display = 'block';
-                readyStatus.textContent = `Ожидание игроков... (${data.readyCount}/${data.totalPlayers})`;
-            }
-        });
+        // Кнопка готовности удалена - хост управляет переходом к следующему вопросу
 
         // Команда вернуться в режим ожидания (для станций)
         socket.on('local-station-return-to-waiting', () => {
@@ -1719,34 +1702,102 @@
             const urlParams = new URLSearchParams(window.location.search);
             const stationParam = urlParams.get('station');
             const autoParam = urlParams.get('auto');
+            const roomParam = urlParams.get('room');
             
-            if (stationParam || autoParam === 'true') {
+            // Принимаем команды если есть параметр station или auto=true, или если мы в комнате (даже если roomCode уже null)
+            const isLocalStation = stationParam || autoParam === 'true' || roomCode || roomParam;
+            
+            if (isLocalStation) {
                 // Возвращаемся на страницу станции
-                console.log('🔄 Возврат на страницу станции');
-                window.location.href = '/local-station.html';
+                console.log('🔄 Возврат на страницу станции (из обработчика local-station-return-to-waiting)');
+                window.location.replace('/station.html');
             }
         });
         
         // Обработка универсальной команды навигации для локального режима
+        // ВАЖНО: Этот обработчик должен работать ВСЕГДА, включая страницу финальных результатов
         socket.on('local-station-command', (data) => {
             const { command, params } = data;
             
             // Проверяем, что это команда для локальной станции
+            // ВАЖНО: Проверяем URL параметры каждый раз, так как roomCode может быть null после удаления комнаты
             const urlParams = new URLSearchParams(window.location.search);
             const stationParam = urlParams.get('station');
             const autoParam = urlParams.get('auto');
+            const roomParam = urlParams.get('room');
             
-            // Принимаем команды если есть параметр station или auto=true, или если мы в комнате
-            const isLocalStation = stationParam || autoParam === 'true' || roomCode;
+            // Принимаем команды если есть параметр station или auto=true, или если мы в комнате (даже если roomCode уже null)
+            // Также проверяем roomParam из URL на случай, если комната была удалена, но мы все еще на player.html
+            const isLocalStation = stationParam || autoParam === 'true' || roomCode || roomParam;
             
             if (!isLocalStation) {
+                console.log(`⚠️ Команда проигнорирована (не локальная станция): stationParam=${stationParam}, autoParam=${autoParam}, roomCode=${roomCode}, roomParam=${roomParam}`);
                 return;
             }
             
-            if (command === 'navigate' && params && params.page === 'waiting') {
-                // Возврат на страницу станции
-                console.log('🔄 Команда навигации: возврат на страницу станции');
-                window.location.href = '/local-station.html';
+            // Логируем получение команды с информацией о текущем состоянии страницы
+            const finalResultsEl = document.getElementById('final-results');
+            const resultsScreenEl = document.getElementById('results-screen');
+            const questionScreenEl = document.getElementById('question-screen');
+            const connectScreenEl = document.getElementById('connect-screen');
+            
+            const currentScreen = finalResultsEl && finalResultsEl.style.display !== 'none' ? 'final-results' :
+                                  resultsScreenEl && resultsScreenEl.style.display !== 'none' ? 'results-screen' :
+                                  questionScreenEl && questionScreenEl.style.display !== 'none' ? 'question-screen' :
+                                  connectScreenEl && connectScreenEl.style.display !== 'none' ? 'connect-screen' :
+                                  'unknown';
+            console.log(`📥 Получена команда для локальной станции: ${command}`, params, `[Текущий экран: ${currentScreen}, stationParam=${stationParam}, autoParam=${autoParam}, roomCode=${roomCode}, socket.connected=${socket?.connected}]`);
+            
+            // Отправляем подтверждение получения команды
+            if (stationParam && socket && socket.connected) {
+                socket.emit('local-station-command-received', {
+                    stationNumber: parseInt(stationParam),
+                    command: command,
+                    timestamp: Date.now()
+                });
+                console.log(`✅ Отправлено подтверждение получения команды "${command}" для станции ${stationParam}`);
+            }
+            
+            // Проверяем, что socket соединение активно
+            if (!socket || !socket.connected) {
+                console.warn('⚠️ Socket соединение не активно, но команда получена. Попытка переподключения...');
+                // Socket.io автоматически переподключится, но команда может быть потеряна
+                // В этом случае команда будет получена через очередь команд при переподключении
+            }
+            
+            if (command === 'navigate' && params) {
+                if (params.page === 'waiting') {
+                    // УПРОЩЕННАЯ ЛОГИКА: Если получили команду waiting, просто возвращаемся на station.html
+                    // Без сложных проверок - команда waiting означает что станция не выбрана или игра завершена
+                    console.log(`🔄 Команда waiting: возврат на station.html [Экран: ${currentScreen}, Socket: ${socket?.connected ? 'подключен' : 'отключен'}]`);
+                    
+                    // Запрещаем автоматическое подключение
+                    window.allowAutoConnect = false;
+                    
+                    // Отменяем таймеры
+                    if (window.autoConnectTimeout) {
+                        clearTimeout(window.autoConnectTimeout);
+                        window.autoConnectTimeout = null;
+                    }
+                    
+                    // Переход на station.html
+                    // Используем replace чтобы не было возможности вернуться назад
+                    window.location.replace('/station.html');
+                    return;
+                } else if (params.page === 'quiz' && params.roomCode) {
+                    // Переход на страницу квиза (если еще не на ней)
+                    const currentUrl = window.location.pathname;
+                    if (!currentUrl.includes('player.html') || !window.location.search.includes(`room=${params.roomCode}`)) {
+                        const url = `/player.html?room=${params.roomCode}&station=${stationParam || ''}&auto=true`;
+                        const finalUrl = params.quizId ? `${url}&quiz=${params.quizId}` : url;
+                        console.log(`🔄 Команда навигации: переход на страницу квиза: ${finalUrl}`);
+                        window.location.href = finalUrl;
+                    }
+                } else if (params.url) {
+                    // Переход по указанному URL
+                    console.log(`🔄 Команда навигации: переход по URL: ${params.url}`);
+                    window.location.href = params.url;
+                }
             } else if (command === 'execute-action' && params && params.action) {
                 // Выполнение действия
                 console.log('⚡ Выполнение действия:', params.action);
@@ -1777,6 +1828,53 @@
                 }
             }
         });
+        
+        // Также слушаем старые события для обратной совместимости
+        socket.on('local-station-end-quiz', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const stationParam = urlParams.get('station');
+            const autoParam = urlParams.get('auto');
+            const roomParam = urlParams.get('room');
+            // Проверяем также roomParam из URL на случай, если комната была удалена
+            const isLocalStation = stationParam || autoParam === 'true' || roomCode || roomParam;
+            
+            if (isLocalStation) {
+                console.log('📥 Получена команда завершения квиза (старое событие)');
+                
+                // Отменяем автоматическое подключение
+                if (typeof window.allowAutoConnect !== 'undefined') {
+                    window.allowAutoConnect = false;
+                }
+                if (typeof window.cancelAutoConnect === 'function') {
+                    window.cancelAutoConnect();
+                }
+                
+                window.location.href = '/station.html';
+            }
+        });
+        
+        socket.on('local-station-return-to-waiting', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const stationParam = urlParams.get('station');
+            const autoParam = urlParams.get('auto');
+            const roomParam = urlParams.get('room');
+            // Проверяем также roomParam из URL на случай, если комната была удалена
+            const isLocalStation = stationParam || autoParam === 'true' || roomCode || roomParam;
+            
+            if (isLocalStation) {
+                console.log('📥 Получена команда возврата в режим ожидания (старое событие)');
+                
+                // Отменяем автоматическое подключение
+                if (typeof window.allowAutoConnect !== 'undefined') {
+                    window.allowAutoConnect = false;
+                }
+                if (typeof window.cancelAutoConnect === 'function') {
+                    window.cancelAutoConnect();
+                }
+                
+                window.location.href = '/station.html';
+            }
+        });
 
         // Команда завершить квиз (вернуться на начальную страницу станции)
         socket.on('local-station-end-quiz', () => {
@@ -1788,45 +1886,13 @@
             
             if (stationParam || autoParam === 'true') {
                 // Возвращаемся на начальную страницу станции
-                window.location.href = '/local-station.html';
+                window.location.href = '/station.html';
             }
         });
 
         // ========== ПРИНУДИТЕЛЬНЫЕ ДЕЙСТВИЯ ОТ СЕРВЕРА ==========
         
-        /**
-         * Принудительное нажатие кнопки "Готов"
-         */
-        socket.on('force-player-ready', (data) => {
-            const { roomCode: targetRoomCode } = data;
-            
-            
-            // Проверяем, что это наша комната
-            if (targetRoomCode && targetRoomCode !== roomCode) {
-                console.warn('⚠️ Команда для другой комнаты, игнорируем');
-                return;
-            }
-            
-            // Эмулируем нажатие кнопки готовности
-            if (roomCode && !isReady) {
-                const readyBtn = document.getElementById('ready-btn');
-                if (readyBtn && readyBtn.style.display !== 'none') {
-                    isReady = true;
-                    socket.emit('player-ready', roomCode);
-                    readyBtn.disabled = true;
-                    readyBtn.classList.add('ready');
-                    readyBtn.textContent = 'Готов! Ожидание игроков...';
-                    
-                    const readyStatus = document.getElementById('ready-status');
-                    if (readyStatus) {
-                        readyStatus.style.display = 'block';
-                        readyStatus.textContent = 'Ожидание игроков...';
-                    }
-                    
-                    console.log('✅ Кнопка "Готов" нажата принудительно');
-                }
-            }
-        });
+        // Обработчик 'force-player-ready' удален - кнопка готовности больше не используется
 
         /**
          * Принудительный выбор ответа
@@ -1888,6 +1954,9 @@
             // Скрываем элементы Frame1 при финальных результатах
             hideFrame1Elements();
             
+            // Скрываем экран подключения, если он был показан
+            document.getElementById('connect-screen').style.display = 'none';
+            document.getElementById('waiting-screen').style.display = 'none';
             document.getElementById('question-screen').style.display = 'none';
             document.getElementById('results-screen').style.display = 'none';
             document.getElementById('final-results').style.display = 'block';
@@ -1924,17 +1993,26 @@
                 leaderboard.appendChild(item);
             });
             
-            // В локальном режиме автоматически возвращаемся на страницу станции через 5 секунд
+            // В локальном режиме НЕ делаем автоматический возврат на station.html
+            // Управление должно происходить только через команды сервера (local-station-command)
+            // Это позволяет хосту контролировать когда станции должны вернуться на station.html
+            // ВАЖНО: Обработчик local-station-command должен продолжать работать даже на странице финальных результатов
             const urlParams = new URLSearchParams(window.location.search);
             const stationParam = urlParams.get('station');
             const autoParam = urlParams.get('auto');
             
             if (stationParam || autoParam === 'true') {
-                console.log('⏰ Автоматический возврат на страницу станции через 5 секунд');
-                setTimeout(() => {
-                    console.log('🔄 Автоматический возврат на страницу станции');
-                    window.location.href = '/local-station.html';
-                }, 5000);
+                console.log('✅ Игра завершена. Ожидание команды от сервера для возврата на station.html');
+                console.log('💡 Обработчик команд навигации активен и готов к получению команд');
+                console.log(`📊 Состояние: stationParam=${stationParam}, autoParam=${autoParam}, roomCode=${roomCode}, socket.connected=${socket?.connected}`);
+                // Автоматический возврат убран - управление только через команды сервера
+                
+                // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Убеждаемся, что обработчик local-station-command зарегистрирован
+                if (socket && socket.hasListeners && socket.hasListeners('local-station-command')) {
+                    console.log('✅ Обработчик local-station-command зарегистрирован');
+                } else {
+                    console.warn('⚠️ Обработчик local-station-command может быть не зарегистрирован!');
+                }
             }
         });
         

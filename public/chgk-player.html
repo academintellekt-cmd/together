@@ -1115,34 +1115,15 @@
             });
 
             // Результаты вопроса для игрока
+            // ⚠️ ПРИНЦИП: Игрок НЕ должен видеть правильность ответа
+            // Сервер только сообщает, что ответ принят, но не показывает результат проверки
             socket.on('intellectual-question-result', (data) => {
-                const { question, playerAnswer, correctAnswer, isCorrect, pointsEarned, currentScore } = data;
-                
-                // Скрываем экран ожидания и вопрос
-                document.getElementById('waiting-next-question-screen').style.display = 'none';
+                // Игрок не должен видеть правильный ответ или результат проверки
+                // Просто показываем экран ожидания следующего вопроса
+                document.getElementById('waiting-next-question-screen').style.display = 'block';
                 document.getElementById('question-screen').style.display = 'none';
-                
-                // Скрываем элементы Frame1 при показе результатов
+                document.getElementById('question-result-screen').style.display = 'none';
                 hideFrame1Elements();
-                
-                // Показываем экран результатов
-                document.getElementById('question-result-screen').style.display = 'block';
-                
-                // Заполняем данные
-                const questionText = question && question.question ? question.question : '';
-                document.getElementById('result-question-text').textContent = questionText;
-                document.getElementById('result-player-answer').textContent = playerAnswer || '(Нет ответа)';
-                document.getElementById('result-correct-answer').textContent = correctAnswer || '(Не указан)';
-                document.getElementById('result-points-earned').textContent = pointsEarned || 0;
-                document.getElementById('result-total-score').textContent = currentScore || 0;
-                
-                // Подсвечиваем ответ игрока в зависимости от правильности
-                const playerAnswerEl = document.getElementById('result-player-answer');
-                if (isCorrect) {
-                    playerAnswerEl.classList.add('correct');
-                } else {
-                    playerAnswerEl.classList.remove('correct');
-                }
             });
         }
 

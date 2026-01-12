@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Станция - ВМЕСТЕ</title>
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/aspect-ratio.css">
+    <link rel="stylesheet" href="/styles/components.css">
+    <link rel="stylesheet" href="/styles/frame1.css">
+    <link rel="stylesheet" href="/styles/frame2.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <script>
+        window.pageLayoutConfig = {
+            showFrame1: true,
+            showFrame2: false,
+            showFrame4: true,
+            showFrame5: true
+        };
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/scripts/layout.js"></script>
+    <script src="/scripts/frame-common.js"></script>
+    <script src="/scripts/frame1.js"></script>
+    <style>
+        /* Стили для режима ожидания */
+        .station-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+            padding: clamp(30px, 5vw, 40px) clamp(20px, 4vw, 40px);
+        }
+        
+        .station-status {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(24px, 5vw, 36px);
+            font-weight: 700;
+            color: var(--color-dark);
+            margin-bottom: clamp(15px, 3vw, 20px);
+            line-height: 1.2;
+        }
+        
+        .station-info {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(18px, 3vw, 24px);
+            font-weight: 400;
+            color: #666;
+            margin-bottom: clamp(10px, 2vw, 15px);
+            line-height: 1.4;
+        }
+        
+        .waiting-message {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(20px, 4vw, 28px);
+            font-weight: 600;
+            color: var(--color-green);
+            margin-top: clamp(25px, 4vw, 30px);
+            animation: pulse 2s ease-in-out infinite;
+            line-height: 1.3;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .error-message {
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(16px, 3vw, 20px);
+            font-weight: 600;
+            color: var(--color-coral);
+            margin-top: clamp(15px, 3vw, 20px);
+            padding: clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 24px);
+            background: rgba(251, 108, 107, 0.1);
+            border: clamp(2px, 0.4vw, 3px) solid var(--color-coral);
+            border-radius: clamp(10px, 2vw, 12px);
+            line-height: 1.4;
+        }
+
+        /* Стили для режима настройки джойстика */
+        .joystick-setup-container {
+            display: none;
+            padding: clamp(30px, 5vw, 40px) clamp(20px, 4vw, 40px);
+            min-height: 60vh;
+        }
+
+        .joystick-setup-container.active {
+            display: block;
+        }
+
+        .mode-switcher {
+            display: flex;
+            gap: clamp(10px, 2vw, 15px);
+            margin-bottom: clamp(20px, 4vw, 30px);
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .mode-btn {
+            padding: clamp(10px, 2.5vw, 14px) clamp(20px, 4vw, 32px);
+            background: rgba(245, 245, 245, 0.85);
+            border: clamp(2px, 0.4vw, 3px) solid var(--color-dark);
+            border-radius: clamp(10px, 2vw, 12px);
+            color: var(--color-dark);
+            font-family: 'Days One', sans-serif;
+            font-size: clamp(14px, 2.5vw, 16px);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 4px 0px rgba(0, 0, 0, 0.2),
+                0 6px 12px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            min-height: 44px;
+            min-width: 44px;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+            touch-action: manipulation;
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mode-btn:hover:not(.active) {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 6px 0px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.15);
+            background: rgba(245, 245, 245, 0.6);
+        }
+
+        .mode-btn:active:not(.active) {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        .mode-btn.active {
+            background: var(--color-green);
+            color: var(--color-white);
+            border-color: var(--color-green-alt);
+            box-shadow: 
+                0 4px 0px rgba(47, 185, 93, 0.3),
+                0 8px 16px rgba(47, 185, 93, 0.2);
+        }
+
+        .mode-btn.active:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 6px 0px rgba(47, 185, 93, 0.4),
+                0 12px 24px rgba(47, 185, 93, 0.25);
+        }
+
+        /* Стили для загруженного интерфейса настройки джойстика */
+        #joystick-setup-content {
+            width: 100%;
+        }
+        
+        #joystick-setup-content .hub-login-fixed {
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            z-index: auto !important;
+            margin-bottom: clamp(15px, 2.5vw, 20px);
+        }
+        
+        #joystick-setup-content .main-container {
+            padding-top: clamp(15px, 2.5vw, 20px) !important;
+        }
+        
+        /* Компактное отображение на станции */
+        #joystick-setup-content .main-container h1 {
+            font-size: clamp(20px, 3.5vw, 28px) !important;
+            margin-bottom: clamp(15px, 2.5vw, 20px) !important;
+        }
+        
+        #joystick-setup-content .calibration-section {
+            margin-bottom: clamp(15px, 2.5vw, 20px) !important;
+        }
+        
+        #joystick-setup-content .joystick-section {
+            gap: clamp(15px, 2.5vw, 20px) !important;
+            margin-bottom: clamp(15px, 2.5vw, 20px) !important;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .station-container {
+                padding: clamp(20px, 4vw, 30px) clamp(15px, 3vw, 20px);
+                min-height: 50vh;
+            }
+
+            .joystick-setup-container {
+                padding: clamp(20px, 4vw, 30px) clamp(15px, 3vw, 20px);
+            }
+
+            .mode-switcher {
+                gap: clamp(8px, 2vw, 12px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="site-wrapper">
+        <!-- HEADER: Frame 2 -->
+        <header class="site-header">
+            <!-- Frame 2: Логотип + фраза (создается через Frame2.js, скрыт на этой странице) -->
+            <div class="frame frame-2" data-frame="logo" id="hub2-container"></div>
+        </header>
+
+        <!-- MAIN: Frame 3 -->
+        <main class="site-main">
+            <section class="frame frame-3" data-frame="content">
+                <div class="frame-3-content">
+                    <!-- Режим ожидания -->
+                    <div id="mode-waiting" class="station-container">
+                        <div class="station-status" id="stationStatus">Подключение к серверу...</div>
+                        <div class="station-info" id="stationInfo"></div>
+                        <div class="waiting-message" id="waitingMessage" style="display: none;">
+                            Ожидание выбора квиза ведущим...
+                        </div>
+                        <div class="error-message" id="errorMessage" style="display: none;"></div>
+                        
+                        <!-- Переключатель режимов -->
+                        <div class="mode-switcher" style="margin-top: clamp(25px, 4vw, 30px);">
+                            <button class="mode-btn active" onclick="station.switchMode('waiting', event)">Ожидание</button>
+                            <button class="mode-btn" onclick="station.switchMode('joystick-setup', event)">Настройка джойстика</button>
+                        </div>
+                    </div>
+
+                    <!-- Режим настройки джойстика -->
+                    <div id="mode-joystick-setup" class="joystick-setup-container">
+                        <div class="mode-switcher">
+                            <button class="mode-btn" onclick="station.switchMode('waiting', event)">Ожидание</button>
+                            <button class="mode-btn active" onclick="station.switchMode('joystick-setup', event)">Настройка джойстика</button>
+                        </div>
+                        <div id="joystick-setup-content">
+                            <!-- Контент настройки джойстика будет загружен динамически -->
+                            <p style="text-align: center; padding: 40px;">Загрузка интерфейса настройки джойстика...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- FOOTER: Frame 4 и Frame 5 -->
+            <footer class="site-footer">
+                <!-- Frame 4: Правила безопасности -->
+                <section class="frame frame-4" data-frame="rules" id="hub4">
+                </section>
+
+                <!-- Frame 5: Информация о создателе -->
+                <section class="frame frame-5" data-frame="about" id="hub5">
+                    <p id="copyright-year">© 2024 ВМЕСТЕ. Все права защищены.</p>
+                </section>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        /**
+         * ========== МОДУЛЬ 1: Определение станции ==========
+         */
+        class StationDetector {
+            static async detect() {
+                // 1. Проверка URL параметра ?station=X (приоритетный метод)
+                const urlParams = new URLSearchParams(window.location.search);
+                const stationParam = urlParams.get('station');
+                if (stationParam) {
+                    const num = parseInt(stationParam);
+                    if (num >= 1 && num <= 9) {
+                        console.log(`✅ Станция определена через URL параметр: ${num}`);
+                        return { stationNumber: num, method: 'url-param' };
+                    }
+                }
+                
+                // 2. Проверка через API сервера (надежный метод)
+                try {
+                    const response = await fetch('/api/local/detect-ip');
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('📡 API ответ:', data);
+                        if (data.stationNumber) {
+                            console.log(`✅ Станция определена через API: ${data.stationNumber} (IP: ${data.ip})`);
+                            return { stationNumber: data.stationNumber, method: 'api', ip: data.ip };
+                        }
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Ошибка определения через API:', error);
+                }
+                
+                // 3. Проверка hostname (если открыто напрямую по IP)
+                const hostname = window.location.hostname;
+                console.log('🌐 Hostname:', hostname);
+                const hostnameMatch = hostname.match(/192\.168\.1\.(\d+)/);
+                if (hostnameMatch) {
+                    const lastOctet = parseInt(hostnameMatch[1]);
+                    if (lastOctet >= 21 && lastOctet <= 29) {
+                        const stationNumber = lastOctet - 20;
+                        console.log(`✅ Станция определена через hostname: ${stationNumber} (IP: ${hostname})`);
+                        return { stationNumber, method: 'hostname', ip: hostname };
+                    }
+                }
+                
+                // 4. WebRTC для определения локального IP (fallback)
+                try {
+                    const ip = await this.detectViaWebRTC();
+                    if (ip) {
+                        console.log('🔍 WebRTC определил IP:', ip);
+                        const lastOctet = parseInt(ip.split('.')[3]);
+                        if (lastOctet >= 21 && lastOctet <= 29) {
+                            const stationNumber = lastOctet - 20;
+                            console.log(`✅ Станция определена через WebRTC: ${stationNumber} (IP: ${ip})`);
+                            return { stationNumber, method: 'webrtc', ip };
+                        }
+                    }
+                } catch (e) {
+                    console.warn('⚠️ WebRTC detection failed:', e);
+                }
+                
+                console.warn('⚠️ Не удалось определить станцию автоматически');
+                return null;
+            }
+            
+            static detectViaWebRTC() {
+                return new Promise((resolve) => {
+                    const RTCPeerConnection = window.RTCPeerConnection || 
+                                             window.mozRTCPeerConnection || 
+                                             window.webkitRTCPeerConnection;
+                    
+                    if (!RTCPeerConnection) {
+                        resolve(null);
+                        return;
+                    }
+
+                    const pc = new RTCPeerConnection({ iceServers: [] });
+                    pc.createDataChannel('');
+                    pc.onicecandidate = (event) => {
+                        if (event.candidate) {
+                            const candidate = event.candidate.candidate;
+                            const ipMatch = candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
+                            if (ipMatch) {
+                                const ip = ipMatch[0];
+                                pc.close();
+                                resolve(ip);
+                            }
+                        }
+                    };
+                    pc.createOffer().then(offer => pc.setLocalDescription(offer));
+                    
+                    setTimeout(() => {
+                        pc.close();
+                        resolve(null);
+                    }, 2000);
+                });
+            }
+        }
+
+        /**
+         * ========== МОДУЛЬ 2: Управление станцией ==========
+         */
+        const station = {
+            stationNumber: null,
+            detectedIp: null,
+            socket: null,
+            currentMode: 'waiting',
+            
+            async init() {
+                // Определяем номер станции
+                const detection = await StationDetector.detect();
+                if (detection) {
+                    this.stationNumber = detection.stationNumber;
+                    this.detectedIp = detection.ip || null;
+                    console.log(`✅ Станция определена: ${this.stationNumber} (метод: ${detection.method})`);
+                    const ipInfo = detection.ip ? `IP: ${detection.ip}` : '';
+                    const methodInfo = detection.method === 'url-param' ? ' (через параметр URL)' : 
+                                      detection.method === 'api' ? ' (через API сервера)' :
+                                      detection.method === 'hostname' ? ' (через hostname)' :
+                                      detection.method === 'webrtc' ? ' (через WebRTC)' : '';
+                    this.updateStatus(`Станция ${this.stationNumber}`, ipInfo + methodInfo);
+                } else {
+                    console.warn('⚠️ Не удалось определить станцию автоматически');
+                    const hostname = window.location.hostname;
+                    const suggestion = hostname === 'localhost' || hostname === '127.0.0.1' 
+                        ? 'Откройте страницу по IP адресу станции (например: http://192.168.1.21:3000/station.html) или добавьте параметр ?station=1'
+                        : 'Добавьте параметр ?station=X в URL (например: ?station=1)';
+                    this.updateStatus('Станция не определена', suggestion);
+                }
+                
+                // Подключаемся к серверу
+                this.connect();
+            },
+            
+            async connect() {
+                // Сначала регистрируемся через HTTP API
+                if (this.stationNumber) {
+                    try {
+                        const registerData = {
+                            stationNumber: this.stationNumber
+                        };
+                        // Добавляем IP, если он определен
+                        if (this.detectedIp) {
+                            registerData.ip = this.detectedIp;
+                        }
+                        
+                        const response = await fetch('/api/local/register-station', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(registerData)
+                        });
+                        if (response.ok) {
+                            const data = await response.json();
+                            console.log('✅ Станция зарегистрирована через HTTP API:', data);
+                            // Обновляем IP из ответа, если он был определен сервером
+                            if (data.station && data.station.ip) {
+                                this.detectedIp = data.station.ip;
+                            }
+                        } else {
+                            const errorData = await response.json().catch(() => ({}));
+                            console.warn('⚠️ Ошибка регистрации через HTTP API:', response.status, errorData);
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Ошибка регистрации через HTTP API:', error);
+                    }
+                }
+                
+                // Затем подключаемся через Socket.io
+                if (typeof io === 'undefined') {
+                    console.error('Socket.io не загружен');
+                    return;
+                }
+                
+                this.socket = io();
+                
+                this.socket.on('connect', () => {
+                    console.log('✅ Подключено к серверу через Socket.io');
+                    if (this.stationNumber) {
+                        // Отправляем событие local-station-connect (как ожидает сервер)
+                        // IP может быть определен сервером, если не был определен клиентом
+                        const connectData = {
+                            stationNumber: this.stationNumber
+                        };
+                        if (this.detectedIp) {
+                            connectData.ip = this.detectedIp;
+                        }
+                        this.socket.emit('local-station-connect', connectData);
+                        // Начинаем отправку heartbeat сразу после подключения
+                        // Не ждем события local-station-connected
+                        this.startHeartbeat();
+                    }
+                });
+                
+                this.socket.on('local-station-connected', (data) => {
+                    console.log('✅ Станция подключена через Socket.io:', data);
+                    this.updateStatus(`Станция ${data.stationNumber} подключена`, 'Ожидание команд...');
+                    // Убеждаемся, что heartbeat запущен (на случай если он не запустился при connect)
+                    if (!this.heartbeatInterval) {
+                        this.startHeartbeat();
+                    }
+                });
+                
+                // УПРОЩЕННАЯ ЛОГИКА: Обрабатываем команды по порядку
+                this.socket.on('local-station-command', (command) => {
+                    console.log('📥 Получена команда:', command);
+                    this.handleCommand(command);
+                });
+                
+                // Также слушаем команды навигации для надежности
+                this.socket.on('local-station-end-quiz', () => {
+                    console.log('📥 Получена команда завершения квиза');
+                    this.handleCommand({ command: 'navigate', params: { page: 'waiting' } });
+                });
+                
+                this.socket.on('local-station-return-to-waiting', () => {
+                    console.log('📥 Получена команда возврата в режим ожидания');
+                    this.handleCommand({ command: 'navigate', params: { page: 'waiting' } });
+                });
+
+                this.socket.on('disconnect', () => {
+                    console.log('⚠️ Отключено от сервера');
+                    this.stopHeartbeat();
+                });
+
+                this.socket.on('reconnect', () => {
+                    console.log('🔄 Переподключено к серверу');
+                    if (this.stationNumber) {
+                        // Повторно отправляем событие подключения
+                        const connectData = {
+                            stationNumber: this.stationNumber
+                        };
+                        if (this.detectedIp) {
+                            connectData.ip = this.detectedIp;
+                        }
+                        this.socket.emit('local-station-connect', connectData);
+                        // Перезапускаем heartbeat
+                        this.startHeartbeat();
+                    }
+                });
+
+                this.socket.on('reconnect_attempt', () => {
+                    console.log('🔄 Попытка переподключения...');
+                });
+
+                this.socket.on('reconnect_error', (error) => {
+                    console.warn('⚠️ Ошибка переподключения:', error);
+                });
+            },
+            
+            heartbeatInterval: null,
+            
+            startHeartbeat() {
+                // Останавливаем предыдущий интервал, если есть
+                this.stopHeartbeat();
+                
+                // Отправляем heartbeat сразу при старте
+                this.sendHeartbeat();
+                
+                // Отправляем heartbeat каждые 2 секунды (чаще для надежности)
+                this.heartbeatInterval = setInterval(() => {
+                    this.sendHeartbeat();
+                }, 2000);
+            },
+            
+            stopHeartbeat() {
+                if (this.heartbeatInterval) {
+                    clearInterval(this.heartbeatInterval);
+                    this.heartbeatInterval = null;
+                }
+            },
+            
+            sendHeartbeat() {
+                if (this.socket && this.socket.connected && this.stationNumber) {
+                    this.socket.emit('local-station-heartbeat', {
+                        stationNumber: this.stationNumber
+                    });
+                    // Логируем только периодически, чтобы не засорять консоль
+                    if (Math.random() < 0.1) { // Логируем примерно каждые 10 heartbeat (раз в 20 секунд)
+                        console.log(`💓 Heartbeat отправлен для станции ${this.stationNumber}`);
+                    }
+                } else {
+                    console.warn(`⚠️ Не удалось отправить heartbeat: socket=${!!this.socket}, connected=${this.socket?.connected}, stationNumber=${this.stationNumber}`);
+                    // Если socket не подключен, пытаемся перезапустить heartbeat после небольшой задержки
+                    if (this.socket && !this.socket.connected) {
+                        setTimeout(() => {
+                            if (this.socket && this.socket.connected && !this.heartbeatInterval) {
+                                console.log('🔄 Перезапуск heartbeat после переподключения');
+                                this.startHeartbeat();
+                            }
+                        }, 1000);
+                    }
+                }
+            },
+            
+            // Проверка работоспособности heartbeat (защита от остановки)
+            checkHeartbeatHealth() {
+                if (this.heartbeatInterval && this.socket && this.socket.connected) {
+                    // Heartbeat работает нормально
+                    return true;
+                } else if (this.socket && this.socket.connected && !this.heartbeatInterval) {
+                    // Socket подключен, но heartbeat не запущен - перезапускаем
+                    console.warn('⚠️ Heartbeat не запущен, но socket подключен. Перезапускаем...');
+                    this.startHeartbeat();
+                    return false;
+                }
+                return false;
+            },
+            
+            updateStatus(status, info = '') {
+                const statusEl = document.getElementById('stationStatus');
+                const infoEl = document.getElementById('stationInfo');
+                if (statusEl) statusEl.textContent = status;
+                if (infoEl) infoEl.textContent = info;
+            },
+            
+            switchMode(mode, event) {
+                if (event) event.preventDefault();
+                
+                this.currentMode = mode;
+                
+                // Обновляем UI
+                document.getElementById('mode-waiting').style.display = mode === 'waiting' ? 'flex' : 'none';
+                document.getElementById('mode-joystick-setup').classList.toggle('active', mode === 'joystick-setup');
+                
+                // Обновляем кнопки
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                if (event && event.target) {
+                    event.target.classList.add('active');
+                }
+                
+                // Загружаем контент для режима настройки джойстика
+                if (mode === 'joystick-setup') {
+                    this.loadJoystickSetup();
+                }
+            },
+            
+            async loadJoystickSetup() {
+                const content = document.getElementById('joystick-setup-content');
+                if (!content) return;
+                
+                try {
+                    // Загружаем полную страницу настройки джойстика
+                    const response = await fetch('/joystick-setup.html');
+                    if (response.ok) {
+                        const html = await response.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        
+                        // Загружаем стили из head
+                        const styles = doc.querySelectorAll('style, link[rel="stylesheet"]');
+                        styles.forEach(style => {
+                            if (style.tagName === 'STYLE') {
+                                // Встроенные стили - добавляем в head текущего документа
+                                if (!document.head.querySelector(`style[data-joystick-setup]`)) {
+                                    const newStyle = document.createElement('style');
+                                    newStyle.setAttribute('data-joystick-setup', 'true');
+                                    newStyle.textContent = style.textContent;
+                                    document.head.appendChild(newStyle);
+                                }
+                            } else if (style.tagName === 'LINK') {
+                                // Внешние стили - проверяем, не загружены ли уже
+                                const href = style.getAttribute('href');
+                                if (href && !document.head.querySelector(`link[href="${href}"]`)) {
+                                    const newLink = document.createElement('link');
+                                    newLink.rel = 'stylesheet';
+                                    newLink.href = href;
+                                    document.head.appendChild(newLink);
+                                }
+                            }
+                        });
+                        
+                        // Извлекаем основной контент
+                        const mainContainer = doc.querySelector('.main-container');
+                        const hubLoginFixed = doc.querySelector('.hub-login-fixed');
+                        
+                        if (mainContainer) {
+                            // Очищаем контент перед загрузкой
+                            content.innerHTML = '';
+                            
+                            // Создаем обертку для правильной структуры
+                            const wrapper = document.createElement('div');
+                            wrapper.style.position = 'relative';
+                            wrapper.style.width = '100%';
+                            
+                            // Добавляем блок кнопок управления, если есть
+                            if (hubLoginFixed) {
+                                const hubClone = hubLoginFixed.cloneNode(true);
+                                // Удаляем кнопку "Назад", так как у нас есть переключатель режимов
+                                const backButton = hubClone.querySelector('a[href="/station.html"], a#back-button');
+                                if (backButton) {
+                                    backButton.remove();
+                                }
+                                // Делаем блок не фиксированным, так как он уже внутри контейнера
+                                hubClone.style.position = 'relative';
+                                hubClone.style.top = 'auto';
+                                hubClone.style.left = 'auto';
+                                hubClone.style.right = 'auto';
+                                hubClone.style.zIndex = 'auto';
+                                wrapper.appendChild(hubClone);
+                            }
+                            
+                            // Добавляем основной контент
+                            const mainClone = mainContainer.cloneNode(true);
+                            // Убираем padding-top, так как он не нужен в контексте станции
+                            mainClone.style.paddingTop = '20px';
+                            wrapper.appendChild(mainClone);
+                            
+                            content.appendChild(wrapper);
+                            
+                            // Сначала добавляем inline скрипты (они могут определять функции)
+                            const bodyScripts = Array.from(doc.body.querySelectorAll('script'));
+                            const inlineScripts = bodyScripts.filter(s => !s.src);
+                            const externalScripts = bodyScripts.filter(s => s.src);
+                            
+                            // Выполняем inline скрипты сразу
+                            inlineScripts.forEach(script => {
+                                try {
+                                    // Создаем новый скрипт и выполняем его
+                                    const newScript = document.createElement('script');
+                                    newScript.textContent = script.textContent;
+                                    // Добавляем в document.body, чтобы он выполнился в правильном контексте
+                                    document.body.appendChild(newScript);
+                                    // Удаляем после выполнения
+                                    setTimeout(() => newScript.remove(), 100);
+                                } catch (error) {
+                                    console.error('Ошибка выполнения inline скрипта:', error);
+                                }
+                            });
+                            
+                            // Затем загружаем внешние скрипты
+                            externalScripts.forEach(script => {
+                                const newScript = document.createElement('script');
+                                newScript.src = script.src;
+                                newScript.async = false;
+                                document.body.appendChild(newScript);
+                            });
+                            
+                            // Ждем загрузки всех скриптов
+                            await this.waitForScriptsToLoad(document.body);
+                            
+                            // Передаем номер станции в загруженный интерфейс
+                            if (this.stationNumber) {
+                                // Устанавливаем глобальную переменную для загруженного интерфейса
+                                // Это перезапишет значение, если оно было установлено ранее
+                                window.stationNumber = this.stationNumber;
+                                
+                                // Также устанавливаем в глобальном контексте, чтобы функции могли его использовать
+                                if (typeof window.detectStationNumber === 'function') {
+                                    // Переопределяем переменную stationNumber в загруженном скрипте
+                                    try {
+                                        // Выполняем код, который установит stationNumber
+                                        const setStationScript = document.createElement('script');
+                                        setStationScript.textContent = `
+                                            if (typeof stationNumber !== 'undefined') {
+                                                stationNumber = ${this.stationNumber};
+                                                console.log('✅ Номер станции установлен из station.html: ' + stationNumber);
+                                            }
+                                        `;
+                                        document.body.appendChild(setStationScript);
+                                        setTimeout(() => setStationScript.remove(), 100);
+                                    } catch (e) {
+                                        console.warn('Ошибка при установке номера станции:', e);
+                                    }
+                                }
+                                
+                                // Обновляем отображение номера станции в интерфейсе
+                                setTimeout(() => {
+                                    const stationInfo = content.querySelector('#station-info');
+                                    const stationNumberDisplay = content.querySelector('#station-number-display');
+                                    const stationNumberTitle = content.querySelector('#station-number-title');
+                                    const stationTitle = content.querySelector('#station-title');
+                                    
+                                    if (stationInfo) {
+                                        stationInfo.style.display = 'inline-block';
+                                    }
+                                    if (stationNumberDisplay) {
+                                        stationNumberDisplay.textContent = this.stationNumber;
+                                    }
+                                    if (stationNumberTitle) {
+                                        stationNumberTitle.textContent = this.stationNumber;
+                                    }
+                                    if (stationTitle) {
+                                        stationTitle.style.display = 'inline';
+                                    }
+                                }, 100);
+                            } else {
+                                console.warn('⚠️ Номер станции не определен в station.html, будет использована автоматическая детекция');
+                            }
+                            
+                            // Даем время на инициализацию
+                            await new Promise(resolve => setTimeout(resolve, 200));
+                            
+                            console.log('✅ Интерфейс настройки джойстика загружен' + (this.stationNumber ? ` для станции ${this.stationNumber}` : ''));
+                        } else {
+                            content.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">Структура страницы настройки джойстика не найдена</p>';
+                        }
+                    } else {
+                        content.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">Интерфейс настройки джойстика недоступен</p>';
+                    }
+                } catch (error) {
+                    console.error('Ошибка загрузки интерфейса настройки джойстика:', error);
+                    content.innerHTML = '<p style="text-align: center; padding: 40px; color: #ff7664;">Ошибка загрузки интерфейса настройки джойстика: ' + error.message + '</p>';
+                }
+            },
+            
+            async waitForScriptsToLoad(container) {
+                const scripts = container.querySelectorAll('script[src]');
+                if (scripts.length === 0) {
+                    return;
+                }
+                
+                const loadPromises = Array.from(scripts).map(script => {
+                    return new Promise((resolve) => {
+                        if (script.complete || script.readyState === 'complete') {
+                            resolve();
+                            return;
+                        }
+                        script.onload = resolve;
+                        script.onerror = resolve; // Разрешаем даже при ошибке, чтобы не блокировать
+                        // Таймаут на случай, если скрипт не загрузится
+                        setTimeout(resolve, 5000);
+                    });
+                });
+                
+                try {
+                    await Promise.all(loadPromises);
+                } catch (error) {
+                    console.warn('Некоторые скрипты не загрузились:', error);
+                }
+            },
+            
+            handleCommand(cmdData) {
+                const { command, params } = cmdData;
+                
+                if (!command) {
+                    console.warn('⚠️ Команда не указана:', cmdData);
+                    return;
+                }
+                
+                // Отправляем подтверждение получения команды
+                if (this.socket && this.socket.connected && this.stationNumber) {
+                    this.socket.emit('local-station-command-received', {
+                        stationNumber: this.stationNumber,
+                        command: command,
+                        timestamp: cmdData.timestamp || Date.now()
+                    });
+                    console.log(`✅ Отправлено подтверждение получения команды "${command}" для станции ${this.stationNumber}`);
+                }
+
+                try {
+                    switch(command) {
+                        case 'navigate':
+                            this.handleNavigateCommand(params);
+                            break;
+                        case 'update':
+                            if (cmdData.status || cmdData.info) {
+                                this.updateStatus(cmdData.status, cmdData.info);
+                            } else if (params && params.status) {
+                                this.updateStatus(params.status, params.info);
+                            }
+                            break;
+                        case 'check-joystick-status':
+                            this.checkAndSendJoystickStatus();
+                            break;
+                        default:
+                            console.warn('⚠️ Неизвестная команда:', command);
+                    }
+                } catch (error) {
+                    console.error('❌ Ошибка обработки команды:', error);
+                }
+            },
+            
+            lastWaitingCommandTime: 0, // Время последней команды waiting
+            
+            handleNavigateCommand(params) {
+                console.log('🧭 Команда навигации:', params);
+                
+                if (!params) {
+                    console.warn('⚠️ Параметры навигации не указаны');
+                    return;
+                }
+
+                // УПРОЩЕННАЯ ЛОГИКА: Обрабатываем команды по порядку
+                if (params.page === 'waiting') {
+                    console.log('🧭 Возврат на страницу ожидания');
+                    // Запоминаем время получения команды waiting
+                    this.lastWaitingCommandTime = Date.now();
+                    window.location.replace('/station.html');
+                } else if (params.url) {
+                    console.log(`🧭 Переход по URL: ${params.url}`);
+                    window.location.href = params.url;
+                } else if (params.page === 'quiz' && params.roomCode) {
+                    // КРИТИЧЕСКИ ВАЖНО: Проверяем, не получили ли мы команду waiting недавно
+                    // Это защищает от race condition, когда команда quiz приходит почти одновременно с waiting
+                    const timeSinceWaiting = Date.now() - this.lastWaitingCommandTime;
+                    if (timeSinceWaiting < 2000) { // Если команда waiting была менее 2 секунд назад
+                        console.warn(`⚠️ Игнорируем команду quiz - станция только что получила команду waiting (${timeSinceWaiting}мс назад)`);
+                        console.warn(`💡 Эта станция НЕ выбрана для игры, остаемся на station.html`);
+                        return; // Игнорируем команду quiz
+                    }
+                    
+                    const url = `/player.html?room=${params.roomCode}&station=${this.stationNumber}&auto=true`;
+                    const finalUrl = params.quizId ? `${url}&quiz=${params.quizId}` : url;
+                    console.log(`🧭 Переход на страницу регистрации квиза: ${finalUrl}`);
+                    window.location.href = finalUrl;
+                } else if (params.page === 'custom' && params.customUrl) {
+                    console.log(`🧭 Переход на кастомную страницу: ${params.customUrl}`);
+                    window.location.href = params.customUrl;
+                } else {
+                    console.warn('⚠️ Неизвестные параметры навигации:', params);
+                }
+            },
+            
+            async checkAndSendJoystickStatus() {
+                if (!this.stationNumber) {
+                    console.warn('⚠️ Номер станции не определен, невозможно проверить статус джойстика');
+                    return;
+                }
+                
+                try {
+                    // Проверяем наличие джойстика
+                    const gamepads = navigator.getGamepads();
+                    let isConnected = false;
+                    for (let i = 0; i < gamepads.length; i++) {
+                        if (gamepads[i]) {
+                            isConnected = true;
+                            break;
+                        }
+                    }
+                    
+                    // Отправляем статус на сервер
+                    const status = isConnected ? 'connected' : 'disconnected';
+                    const response = await fetch(`/api/local/stations/${this.stationNumber}/joystick-status`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: status })
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            console.log(`✅ Статус джойстика отправлен: ${status}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Ошибка проверки статуса джойстика:', error);
+                }
+            }
+        };
+
+        // Инициализация при загрузке страницы
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                station.init();
+            });
+        } else {
+            station.init();
+        }
+        
+        // Проверка работоспособности heartbeat каждые 10 секунд (защита от остановки)
+        setInterval(() => {
+            if (station && station.checkHeartbeatHealth) {
+                station.checkHeartbeatHealth();
+            }
+        }, 10000);
+        
+        // Остановка heartbeat при закрытии страницы
+        window.addEventListener('beforeunload', () => {
+            if (station && station.stopHeartbeat) {
+                station.stopHeartbeat();
+            }
+        });
+        
+        window.addEventListener('pagehide', () => {
+            if (station && station.stopHeartbeat) {
+                station.stopHeartbeat();
+            }
+        });
+    </script>
+    <script src="/scripts/frame5-copyright.js"></script>
+</body>
+</html>

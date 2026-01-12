@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест доступа к joystick-setup.html</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-link {
+            display: block;
+            padding: 15px;
+            margin: 10px 0;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .test-link:hover {
+            background: #45a049;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест доступа к joystick-setup.html</h1>
+    
+    <div class="info">
+        <p><strong>Текущий URL:</strong> <span id="current-url"></span></p>
+        <p><strong>Время загрузки:</strong> <span id="load-time"></span></p>
+    </div>
+    
+    <h2>Проверка доступности файла:</h2>
+    <a href="/joystick-setup.html" class="test-link" target="_blank">Открыть joystick-setup.html</a>
+    
+    <h2>Проверка через fetch API:</h2>
+    <button onclick="testFetch()" class="test-link" style="border: none; cursor: pointer;">Проверить доступность через fetch</button>
+    <div id="fetch-result" style="margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px; display: none;"></div>
+    
+    <script>
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('load-time').textContent = new Date().toLocaleString();
+        
+        async function testFetch() {
+            const resultDiv = document.getElementById('fetch-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Проверка...';
+            
+            try {
+                const response = await fetch('/joystick-setup.html');
+                if (response.ok) {
+                    resultDiv.innerHTML = `<strong style="color: green;">✅ Успешно!</strong><br>
+                        Статус: ${response.status} ${response.statusText}<br>
+                        Content-Type: ${response.headers.get('content-type')}<br>
+                        Размер: ${response.headers.get('content-length')} байт`;
+                } else {
+                    resultDiv.innerHTML = `<strong style="color: red;">❌ Ошибка!</strong><br>
+                        Статус: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<strong style="color: red;">❌ Ошибка сети!</strong><br>
+                    ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+

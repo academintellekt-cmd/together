@@ -4,15 +4,55 @@
 
 ---
 
+## 🚀 Деплой
+
+Проект поддерживает два типа деплоя:
+
+### 🌐 Деплой в интернет
+
+Деплой на внешний сервер (вместе.fun) для публичного доступа.
+
+**Команда:**
+```bash
+./scripts/deploy.sh 109.107.187.189 root
+```
+
+**Пароль:** `t6LP6kJBE_9w663RR=Mc`
+
+📖 **Подробная инструкция:** [docs/deployment/INTERNET.md](../deployment/INTERNET.md)
+
+### 🏠 Локальный деплой (SSH)
+
+Деплой на станции через SSH по локальной сети (192.168.1.21-29).
+
+**Команда:**
+```bash
+./scripts/deploy-local.sh [USERNAME] [PASSWORD]
+```
+
+**Пример:**
+```bash
+./scripts/deploy-local.sh pi
+```
+
+📖 **Подробная инструкция:** [docs/deployment/LOCAL.md](../deployment/LOCAL.md)
+
+---
+
 ## ⚡ Быстрые команды
 
-### 🚀 Основной деплой
+### 🌐 Деплой в интернет
 ```bash
 cd /Users/romanfilipenko/Documents/together && ./scripts/deploy.sh 109.107.187.189 root
 ```
 **Пароль:** `t6LP6kJBE_9w663RR=Mc`
 
-### 🔄 Коммит + Деплой
+### 🏠 Локальный деплой
+```bash
+cd /Users/romanfilipenko/Documents/together && ./scripts/deploy-local.sh pi
+```
+
+### 🔄 Коммит + Деплой в интернет
 ```bash
 cd /Users/romanfilipenko/Documents/together && git add . && git commit -m "Update: $(date)" && git push && ./scripts/deploy.sh 109.107.187.189 root
 ```
@@ -75,7 +115,9 @@ sudo systemctl status nginx
 
 ---
 
-## 🚀 Деплой на внешний сервер
+## 🌐 Деплой в интернет
+
+📖 **Подробная инструкция:** [docs/deployment/INTERNET.md](../deployment/INTERNET.md)
 
 ### 📋 Общая информация
 - **Сервер:** 109.107.187.189
@@ -86,15 +128,11 @@ sudo systemctl status nginx
 
 ### 🔧 Команда для деплоя
 
-#### Основная команда:
 ```bash
-cd /Users/romanfilipenko/Documents/together && ./scripts/deploy.sh 109.107.187.189 root
+./scripts/deploy.sh 109.107.187.189 root
 ```
 
-#### При запросе пароля введите:
-```
-t6LP6kJBE_9w663RR=Mc
-```
+При запросе пароля введите: `t6LP6kJBE_9w663RR=Mc`
 
 ### 📚 Пошаговый процесс деплоя
 
@@ -588,15 +626,29 @@ function doGet(e) {
 ## 📞 Быстрая справка
 
 ### Основные команды:
+
+#### 🌐 Деплой в интернет:
 ```bash
-# Деплой
 cd /Users/romanfilipenko/Documents/together && ./scripts/deploy.sh 109.107.187.189 root
+```
+**Пароль:** `t6LP6kJBE_9w663RR=Mc`
 
-# Коммит + деплой
+#### 🏠 Локальный деплой (SSH):
+```bash
+cd /Users/romanfilipenko/Documents/together && ./scripts/deploy-local.sh pi
+```
+
+#### Коммит + Деплой в интернет:
+```bash
 cd /Users/romanfilipenko/Documents/together && git add . && git commit -m "Update" && git push && ./scripts/deploy.sh 109.107.187.189 root
+```
+**Пароль:** `t6LP6kJBE_9w663RR=Mc`
 
-# Подключение к серверу
+#### Подключение к серверу:
+```bash
 ssh root@109.107.187.189
+```
+**Пароль:** `t6LP6kJBE_9w663RR=Mc`
 
 # Проверка статуса
 pm2 status

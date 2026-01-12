@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Развертывание на станции</title>
+    <link rel="stylesheet" href="/styles/base.css">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #F5F5F5;
+        }
+        
+        .container {
+            background: #FFFFFF;
+            border: 3px solid #393639;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-family: 'Days One', sans-serif;
+            font-size: 32px;
+            color: #393639;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #393639;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #393639;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #00C159 0%, #00A049 100%);
+            color: #FFFFFF;
+            border: 3px solid #008039;
+            border-radius: 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0px rgba(0, 128, 57, 0.3);
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px rgba(0, 128, 57, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+            font-size: 14px;
+        }
+        
+        #status.success {
+            background: #D1ECF1;
+            border: 2px solid #0C5460;
+            color: #0C5460;
+        }
+        
+        #status.error {
+            background: #F8D7DA;
+            border: 2px solid #721C24;
+            color: #721C24;
+        }
+        
+        #status.info {
+            background: #FFF3CD;
+            border: 2px solid #FFC107;
+            color: #856404;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #00C159;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/local-host.html" class="back-link">← Назад к управлению станциями</a>
+        
+        <h1>🚀 Развертывание на станции</h1>
+        <p class="subtitle">Автоматически загрузите файлы проекта на все подключенные станции</p>
+        
+        <form id="deployForm">
+            <div class="form-group">
+                <label for="username">Имя пользователя (SSH):</label>
+                <input type="text" id="username" value="pi" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Пароль (SSH, опционально, если используется SSH ключ):</label>
+                <input type="password" id="password" placeholder="Оставьте пустым, если используете SSH ключи">
+            </div>
+            
+            <div class="form-group">
+                <label for="path">Путь к проекту на станции:</label>
+                <input type="text" id="path" value="/home/pi/together" required>
+            </div>
+            
+            <button type="submit" id="deployBtn">
+                🚀 Развернуть на все станции
+            </button>
+        </form>
+        
+        <div id="status"></div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('deployForm');
+        const statusDiv = document.getElementById('status');
+        const deployBtn = document.getElementById('deployBtn');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const path = document.getElementById('path').value.trim() || '/home/pi/together';
+            
+            if (!username) {
+                showStatus('Укажите имя пользователя SSH', 'error');
+                return;
+            }
+            
+            if (!confirm(`Запустить развертывание на все станции?\n\nПользователь: ${username}\nПуть: ${path}\n\nЭто может занять несколько минут.`)) {
+                return;
+            }
+            
+            deployBtn.disabled = true;
+            deployBtn.textContent = '⏳ Развертывание...';
+            showStatus('🚀 Запуск развертывания... Проверьте логи сервера для отслеживания прогресса.', 'info');
+            
+            try {
+                const response = await fetch('/api/local/stations/deploy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        stationPath: path
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus(`✅ Развертывание запущено!<br>PID процесса: ${data.pid}<br><br>Развертывание выполняется в фоновом режиме. Проверьте логи сервера для отслеживания прогресса.`, 'success');
+                } else {
+                    throw new Error(data.error || 'Неизвестная ошибка');
+                }
+            } catch (error) {
+                console.error('Ошибка развертывания:', error);
+                showStatus(`❌ Ошибка: ${error.message}`, 'error');
+            } finally {
+                deployBtn.disabled = false;
+                deployBtn.textContent = '🚀 Развернуть на все станции';
+            }
+        });
+        
+        function showStatus(message, type) {
+            statusDiv.style.display = 'block';
+            statusDiv.className = type;
+            statusDiv.innerHTML = message;
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,280 @@
+ТЗ ДЛЯ ПРОГРАММИСТА: УНИФИКАЦИЯ МЕХАНИК + ПЕРЕИМЕНОВАНИЕ СТРАНИЦ И КОДА (проект "together")
+
+Цель
+- Привести весь проект к единой логике: один формат комнат, один формат состояния, один протокол Socket.IO, единая структура страниц/скриптов.
+- Убрать "разные миры" (quiz vs chgk vs local) и сделать так, чтобы локальный/онлайн режимы отличались только типом клиента, а не логикой игры.
+- Сохранить обратную совместимость URL (редиректы со старых страниц на новые).
+
+0) Инвентаризация текущих механик (что уже есть)
+A) Квиз с вариантами ответов (мультиплеер)
+- UI: public/host.html, public/player.html
+- Socket события: host-join, player-join, start-game, answer, player-ready, next-question и т.д.
+- Сервер: server.js, rooms Map, players Map, таймеры/очки/переходы.
+
+B) ЧГК (текстовый ввод + жюри)
+- UI: public/chgk-host.html, public/chgk-player.html, public/chgk-commission.html
+- Socket события: интеллектуальная ветка (intellectual-*)
+- Сервер: server/routes/chgk-api.js + куски в server.js
+- Отдельное хранилище: global.intellectualRooms
+
+C) Локальные станции (офлайн зал до 8-9 станций)
+- UI: public/local-host.html, public/local-host-control.html, public/station.html, public/station-deploy.html
+- Сервер: server/local/local-mode.js + REST /api/local/*
+- Socket события: local-* (отдельный протокол)
+- Конфиги: data/stations/*.json, data/joystick-config.json
+
+D) Соло-режим + лидерборд
+- UI: public/solo.html, public/leaderboard.html
+- Сервер: /api/leaderboard, синк с Google Sheets.
+
+E) DMX управление и сценарии
+- UI: public/dmx-control.html, public/dmx-config.html, public/dmx-showmaker.html
+- Сервер: server/routes/dmx-api.js + server/dmx/*
+- Важно: движок сценариев есть, но низкоуровневый DMX контроллер в Node в текущем архиве не доведен (заглушка).
+
+F) Тест/служебные страницы
+- test-joystick.html, joystick-setup.html, local-test.html, settings.html, poker.html, gnu-quiz.html, mode-select.html, quiz-mode-select.html и т.д.
+
+1) Главные проблемы, которые надо исправить
+- Разные протоколы Socket.IO для разных режимов (quiz/CHGK/local).
+- Два разных хранилища комнат (rooms vs global.intellectualRooms).
+- Локальный режим сделан как отдельный "мир", хотя должен быть просто типом клиента (station).
+- Логика частично размазана по HTML (инлайн JS), что усложняет поддержку и переименование.
+- DMX завязан на текущие реализации вместо единой "шины событий".
+
+2) Целевой стандарт: 3 слоя для любой механики
+Слой 1 - UI (страницы по ролям)
+- host (ведущий)
+- player (игрок)
+- station (локальная станция, опционально)
+- commission (жюри, опционально)
+
+Слой 2 - Game Engine на сервере (state machine)
+- фазы (phase), таймеры (server-side), очки, правила, переходы
+
+Слой 3 - Протокол событий (Socket.IO + REST API)
+- единые события и единый формат состояния
+
+3) Единый протокол Socket.IO (обязательный стандарт)
+Новый протокол (единый для всех игр):
+- room:join
+- room:leave
+- room:state (сервер -> всем клиентам, единый формат)
+- game:action (клиент -> сервер, действия внутри конкретной игры)
+- system:error (опционально)
+
+Принцип
+- UI не "думает", он только:
+  - подключается
+  - join
+  - слушает room:state
+  - отправляет game:action
+- Вся логика - на сервере.
+
+Примеры
+- Player answer (quiz):
+  game:action { roomCode, type: "answer", payload: { answerIndex: 2 } }
+- CHGK submit:
+  game:action { roomCode, type: "submit", payload: { text: "..." } }
+- Host start:
+  game:action { roomCode, type: "start" }
+
+4) Единый объект состояния комнаты (room:state)
+Сервер должен отправлять клиентам единый JSON состояния.
+
+Рекомендуемая структура (минимум):
+{
+  roomCode: string,
+  gameId: "quiz" | "chgk" | "solo" | ...,
+  phase: string,
+  phaseEndsAt: number | null,      // Unix ms, если есть таймер
+  players: [
+    { id, name, score, isReady, isConnected, stationId? }
+  ],
+  host: { id, isConnected },
+  ui: {                           // то, что UI должен отображать
+    title?: string,
+    question?: { text, options?, media? },
+    results?: { correct?, perPlayer? },
+    board?: any,                  // для "Своя игра"
+  },
+  meta: { createdAt, updatedAt }
+}
+
+Важно
+- phaseEndsAt считается на сервере, клиент лишь рисует отсчет.
+- Права/видимость: getState(room, role) может фильтровать поле ui.
+
+5) Единая архитектура серверной логики игр (реестр движков)
+Создать папку:
+- server/games/
+
+Файлы:
+- server/games/index.js (реестр)
+- server/games/quiz.game.js
+- server/games/chgk.game.js
+- server/games/solo.game.js (если соло оставляем как отдельную игру)
+- (позже) server/games/guess.game.js, server/games/jeopardy.game.js
+
+Единый интерфейс для всех игр (обязателен):
+- createRoom(params) -> room
+- join(room, client) -> void
+- handleAction(room, client, action) -> void
+- getState(room, role) -> state
+- tick(room) -> void (если есть таймеры)
+
+Роутер на сокетах (в server.js или server/core/socket-router.js)
+- при room:join:
+  - найти/создать room
+  - определить role
+  - games[room.gameId].join(...)
+  - emit room:state
+- при game:action:
+  - найти room
+  - games[room.gameId].handleAction(...)
+  - emit room:state
+
+6) Единое хранилище комнат
+Запрещено:
+- global.intellectualRooms (и любые отдельные "миры" комнат)
+
+Нужно:
+- один Map rooms: Map<roomCode, room>
+- в room хранить gameId и состояние
+
+Миграция CHGK:
+- CHGK комнаты должны создаваться как обычные rooms с gameId="chgk".
+- Все события CHGK идут через room:join + game:action.
+
+7) Локальные станции: перестать быть отдельным режимом
+Ключевая мысль:
+- station - это тот же player client, только:
+  - имеет stationId
+  - может читать input с джойстика
+  - может получать admin-команды навигации/диагностики
+
+Что сделать:
+- Убрать отдельный протокол local-* для геймплея.
+- Station подключается так:
+  room:join { roomCode, role: "station", stationId: 1, name: "P1" }
+- Нажатия на джойстике превращаются в game:action, как у обычного игрока.
+- Управление станциями (deploy/status/ping/joystick-check) оставить как admin REST:
+  - /api/stations/* (переименовать из /api/local/*)
+
+8) DMX: привязать к "шине событий", а не к страницам/частным реализациям
+Сделать единый event bus:
+- server/core/events.js (или аналог)
+
+Игры эмитят события:
+- ROUND_STARTED
+- PLAYER_ANSWERED
+- PLAYER_READY
+- PLAYER_CORRECT
+- PLAYER_WRONG
+- ROUND_ENDED
+- GAME_FINISHED
+
+DMX модуль подписывается:
+- on(event) -> применяет mapping сценариев -> вызывает DMX transport
+
+Решить transport (как реально отправлять на железо):
+A) Дописать server/dmx/dmx-controller.js (ArtNet/sACN/serial)
+или
+B) Сделать HTTP bridge на ESP32 (проще для старта):
+- Node отправляет запросы на ESP32 контроллер: setPreset/setColor/setScene
+
+9) Стандарт структуры страниц и переименование (обязательно)
+Новый стандарт путей:
+- public/app/*                       // меню/главная/общие страницы
+- public/games/<gameId>/<role>.html  // все игровые UI по ролям
+- public/admin/<module>/*            // админка железа/DMX/инпуты
+- public/dev/*                       // тесты/временные страницы
+
+Переименования (минимальный план)
+- public/index.html -> public/app/index.html
+- public/mode-select.html -> public/app/menu.html
+- public/quiz-mode-select.html -> public/app/game-select.html
+
+- public/host.html -> public/games/quiz/host.html
+- public/player.html -> public/games/quiz/player.html
+
+- public/chgk-host.html -> public/games/chgk/host.html
+- public/chgk-player.html -> public/games/chgk/player.html
+- public/chgk-commission.html -> public/games/chgk/commission.html
+
+- public/solo.html -> public/games/solo/play.html
+- public/leaderboard.html -> public/games/solo/leaderboard.html
+
+- public/station.html -> public/admin/stations/station.html (или public/games/common/station.html, если станция как "игрок")
+- public/local-host.html -> удалить как отдельный режим (функции встроить в quiz host/admin)
+- public/local-host-control.html -> public/admin/stations/control.html
+- public/station-deploy.html -> public/admin/stations/deploy.html
+
+- public/dmx-control.html -> public/admin/dmx/control.html
+- public/dmx-config.html -> public/admin/dmx/config.html
+- public/dmx-showmaker.html -> public/admin/dmx/showmaker.html
+
+- public/joystick-setup.html -> public/admin/input/joystick-setup.html
+- public/test-joystick.html -> public/dev/test-joystick.html
+- public/local-test.html, poker.html, gnu-quiz.html -> public/dev/* (или удалить, если не нужно)
+- public/settings.html -> public/admin/system/settings.html (или public/app/settings.html)
+
+Обратная совместимость
+- Добавить редиректы со старых URL на новые (Express route redirects).
+
+10) Вынести весь JS из HTML в отдельные файлы (обязательное правило)
+Новый стандарт JS:
+- public/js/core/socket.js            // соединение + send/join + обработка reconnection
+- public/js/core/state-render.js      // общий рендер по state.phase
+- public/js/games/quiz/host.js
+- public/js/games/quiz/player.js
+- public/js/games/chgk/host.js
+- public/js/games/chgk/player.js
+- public/js/games/chgk/commission.js
+- public/js/admin/stations/control.js
+- public/js/admin/stations/station.js
+- public/js/admin/dmx/control.js
+- public/js/admin/dmx/config.js
+- public/js/admin/dmx/showmaker.js
+- public/js/admin/input/joystick-setup.js
+- public/js/dev/test-joystick.js
+
+Правило
+- HTML содержит только разметку и подключения .js (без инлайн логики).
+
+11) API стандартизация (REST)
+Комнаты (единый endpoint):
+- POST /api/rooms { gameId, settings } -> { roomCode }
+- GET /api/rooms/:roomCode -> state (для диагностики)
+- GET /api/games -> список игр/режимов
+
+Контент квизов:
+- GET /api/quizzes (как сейчас)
+- GET /api/quizzes/:id (опционально)
+
+Станции:
+- /api/stations/status
+- /api/stations/command
+- /api/stations/deploy
+
+DMX:
+- /api/dmx/* (как сейчас, но подружить с event bus)
+
+12) Чеклист приемки (Definition of Done)
+- Любая игра использует room:join + game:action + room:state.
+- CHGK больше не использует global.intellectualRooms, а работает через rooms Map.
+- Локальные станции играют через тот же протокол, что и обычные игроки.
+- Серверные таймеры везде: phaseEndsAt на сервере.
+- Все страницы переименованы по структуре app/games/admin/dev, есть редиректы.
+- Логика вынесена из HTML в public/js.
+- DMX получает события через event bus (не напрямую из UI).
+- Старые URL не ломают пользователей (редиректы работают).
+
+13) План миграции (без "сломать все сразу")
+Шаг 1 - Ввести новый протокол параллельно старому (compat mode), добавить room:state.
+Шаг 2 - Перевести quiz (host/player) на room:join + game:action + room:state.
+Шаг 3 - Перевести chgk на тот же протокол и убрать global.intellectualRooms.
+Шаг 4 - Перевести local/stations на тот же протокол (station как player role).
+Шаг 5 - Удалить старые socket события, оставить только редиректы URL и, при необходимости, временный слой совместимости.
+
+Конец файла.
