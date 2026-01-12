@@ -541,7 +541,8 @@
                     Ваш счет: <span id="player-score">0</span>
                     <span id="points-added" style="font-size: 16px; margin-left: 10px; opacity: 0.8;"></span>
                 </div>
-                <!-- Кнопка готовности удалена - хост управляет переходом к следующему вопросу -->
+                <button id="ready-btn" class="ready-btn">Готов к следующему вопросу</button>
+                <div id="ready-status" class="ready-status" style="display:none;"></div>
             </div>
 
             <!-- Финальные результаты -->
@@ -576,6 +577,9 @@
         let currentTimer = null;
         let hasAnswered = false;
         let currentQuizId = null; // ID текущего квиза
+        let isReady = false;
+        const readyBtn = document.getElementById('ready-btn');
+        const readyStatusEl = document.getElementById('ready-status');
         
         // Поддержка джойстика
         let gamepad = null;
@@ -1110,8 +1114,17 @@
             // Инициализируем элементы Frame1
             initFrame1Elements();
             
-            // Сбрасываем флаг готовности при новом вопросе (кнопка готовности удалена)
+            // Сбрасываем готовность при новом вопросе
             isReady = false;
+            if (readyBtn) {
+                readyBtn.style.display = 'none';
+                readyBtn.disabled = false;
+                readyBtn.classList.remove('ready');
+            }
+            if (readyStatusEl) {
+                readyStatusEl.style.display = 'none';
+                readyStatusEl.textContent = '';
+            }
             
             // Устанавливаем флаг ответа
             hasAnswered = alreadyAnswered;
@@ -1633,18 +1646,38 @@
             });
         });
 
-        let isReady = false;
-
         // Результаты вопроса
         socket.on('results', (data) => {
             clearInterval(currentTimer);
             isReady = false;
+            
+            // Сбрасываем кнопку готовности
+            if (readyBtn) {
+                readyBtn.disabled = false;
+                readyBtn.classList.remove('ready');
+                readyBtn.style.display = 'block';
+            }
+            if (readyStatusEl) {
+                readyStatusEl.style.display = 'none';
+                readyStatusEl.textContent = '';
+            }
             
             // Скрываем элементы Frame1 при показе результатов
             hideFrame1Elements();
             
             document.getElementById('question-screen').style.display = 'none';
             document.getElementById('results-screen').style.display = 'block';
+            
+            // Показать кнопку готовности
+            if (readyBtn) {
+                readyBtn.style.display = 'block';
+                readyBtn.disabled = false;
+                readyBtn.classList.remove('ready');
+            }
+            if (readyStatusEl) {
+                readyStatusEl.style.display = 'none';
+                readyStatusEl.textContent = '';
+            }
             
             // Показываем правильный ответ
             const correctAnswerDisplay = document.getElementById('correct-answer-display');
@@ -1689,9 +1722,24 @@
                 window.previousPlayerScore = newScore;
             }
 
-            // Кнопка готовности удалена - хост управляет переходом к следующему вопросу
             isReady = false; // Сбрасываем флаг готовности
         });
+
+        // Кнопка готовности игрока
+        if (readyBtn) {
+            readyBtn.addEventListener('click', () => {
+                if (!roomCode) return;
+                if (isReady) return;
+                isReady = true;
+                readyBtn.classList.add('ready');
+                readyBtn.disabled = true;
+                if (readyStatusEl) {
+                    readyStatusEl.style.display = 'block';
+                    readyStatusEl.textContent = 'Готов. Ждем остальных...';
+                }
+                socket.emit('player-ready-next', roomCode);
+            });
+        }
 
         // Кнопка готовности удалена - хост управляет переходом к следующему вопросу
 
