@@ -25,6 +25,7 @@
     </script>
     
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/scripts/legacy-socket.js"></script>
     <!-- Layout Manager -->
     <script src="/scripts/layout.js"></script>
     <script src="/scripts/frame-common.js"></script>
@@ -571,7 +572,8 @@
     </footer>
 
     <script>
-        const socket = io();
+        const socketClient = LegacySocket.createSocket();
+        const socket = socketClient.socket;
         let roomCode = null;
         let playerName = null;
         let currentTimer = null;
@@ -595,10 +597,7 @@
             
             // Определяем класс по quizId
             const normalizedId = quizId.toLowerCase();
-            if (normalizedId === 'gnu' || normalizedId === 'friends-quiz' || normalizedId === 'gnu-multiplayer') {
-                document.body.classList.add('quiz-gnu');
-                currentQuizId = 'gnu';
-            } else if (normalizedId === 'akadem' || normalizedId.includes('академ')) {
+            if (normalizedId === 'akadem' || normalizedId.includes('академ')) {
                 document.body.classList.add('quiz-akadem');
                 currentQuizId = 'akadem';
             }
@@ -1065,7 +1064,7 @@
             console.log('Подключение к комнате:', roomCode, 'Игрок:', playerName);
             // Подключаемся без пароля - пароль не требуется для игроков
             console.log('📤 Отправка события player-join:', { roomCode, playerName });
-            socket.emit('player-join', { roomCode, playerName });
+            socketClient.joinPlayer(roomCode, playerName);
         }
 
 
@@ -1156,9 +1155,9 @@
             const progress = (questionNum / totalQuestions) * 100;
             document.getElementById('progress-bar').style.width = progress + '%';
             
-            // Отображение изображения вопроса (не показываем для квиза gazprom)
+            // Отображение изображения вопроса
             let imageContainer = document.getElementById('question-image-container');
-            if (questionData.image && questionData.quizId !== 'gazprom') {
+            if (questionData.image) {
                 if (!imageContainer) {
                     imageContainer = document.createElement('div');
                     imageContainer.className = 'question-image-container';
@@ -1168,7 +1167,7 @@
                 }
                 const img = document.createElement('img');
                 img.className = 'question-image';
-                const questionsDir = questionData.questionsDir || 'gnu';
+                const questionsDir = questionData.questionsDir || 'akadem';
                 img.src = `/data/media/questions/${questionsDir}/${questionData.image}`;
                 img.alt = 'Question image';
                 imageContainer.innerHTML = '';
@@ -1570,7 +1569,7 @@
                 window.stopTimer();
             }
             
-            socket.emit('answer', { roomCode, answerIndex });
+            socketClient.answer(roomCode, answerIndex);
             
             // Визуальная обратная связь
             const buttons = document.querySelectorAll('.option-btn');
@@ -1737,7 +1736,7 @@
                     readyStatusEl.style.display = 'block';
                     readyStatusEl.textContent = 'Готов. Ждем остальных...';
                 }
-                socket.emit('player-ready-next', roomCode);
+                socketClient.playerReadyNext(roomCode);
             });
         }
 
@@ -1992,7 +1991,7 @@
                 }
                 
                 // Подключаемся к комнате
-                socket.emit('player-join', { roomCode, playerName });
+                socketClient.joinPlayer(roomCode, playerName);
                 console.log(`✅ Принудительное подключение к комнате ${roomCode}`);
             }
         });

@@ -77,13 +77,6 @@ function getGameRegistry() {
     }
 
     try {
-      const chgkGame = require('./chgk.game');
-      gameRegistryInstance.registerGame('chgk', chgkGame);
-    } catch (error) {
-      console.error('❌ Failed to load chgk game:', error.message);
-    }
-
-    try {
       const soloGame = require('./solo.game');
       gameRegistryInstance.registerGame('solo', soloGame);
     } catch (error) {

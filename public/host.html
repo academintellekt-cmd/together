@@ -800,6 +800,23 @@
                 }
             }, 100);
         }
+
+        // Динамическая загрузка обертки LegacySocket
+        function ensureLegacySocket(callback) {
+            if (window.LegacySocket && typeof window.LegacySocket.createSocket === 'function') {
+                callback();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = '/scripts/legacy-socket.js';
+            script.async = true;
+            script.onload = () => callback();
+            script.onerror = (err) => {
+                console.error('❌ Не удалось загрузить legacy-socket.js', err);
+                showError('Не удалось загрузить сетевой модуль. Проверьте подключение.');
+            };
+            document.head.appendChild(script);
+        }
         
         // Функция для отображения ошибки без полной замены body
         function showError(message) {
@@ -825,6 +842,7 @@
 
         // Объявляем переменные ДО вызова initApp()
         let socket = null;
+        let socketClient = null;
         let roomCode = null;
         let currentTimer = null;
         let serverUrl = null;
@@ -834,20 +852,24 @@
         // Хранилище данных игроков (объявляем ДО initApp, чтобы было доступно в обработчиках)
         let playersData = new Map(); // playerId -> {name, ready}
 
-        // Инициализация после загрузки socket.io
-        // Проверяем, загружен ли socket.io уже (если скрипт загрузился синхронно)
-        if (typeof io !== 'undefined') {
-            console.log('✅ Socket.io уже загружен, инициализация...');
+        function initAppSafe() {
             try {
                 initApp();
             } catch (error) {
                 console.error('❌ Ошибка при инициализации:', error);
                 showError('Ошибка инициализации: ' + error.message);
             }
+        }
+
+        // Инициализация после загрузки socket.io и legacy-socket
+        // Проверяем, загружен ли socket.io уже (если скрипт загрузился синхронно)
+        if (typeof io !== 'undefined') {
+            console.log('✅ Socket.io уже загружен, инициализация...');
+            ensureLegacySocket(initAppSafe);
         } else {
-            // Ждем загрузки socket.io
+            // Ждем загрузки socket.io, затем подгружаем legacy-socket
             waitForSocketIO(() => {
-                initApp();
+                ensureLegacySocket(initAppSafe);
             });
         }
         
@@ -865,11 +887,9 @@
         // Функция для определения цвета квиза
         function getQuizColors(quizId) {
             const quizColors = {
-                'gnu': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' },
-                'friends-quiz': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' }, // Обратная совместимость
-                'gnu-multiplayer': { bg: '#abf67c', text: '#2fb95d', shadow: 'rgba(47, 185, 93, 0.3)' } // Обратная совместимость
+                'akadem': { bg: '#f67cab', text: '#ffffff', shadow: 'rgba(246, 124, 171, 0.3)' }
             };
-            return quizColors[quizId] || { bg: '#FFFFFF', text: '#393639', shadow: 'rgba(57, 54, 57, 0.3)' };
+            return quizColors[quizId] || quizColors['akadem'];
         }
         
         // Функция для применения цветов к кнопкам
@@ -897,7 +917,7 @@
         function initApp() {
             // Получаем quizId и roomCode из URL
             const urlParams = new URLSearchParams(window.location.search);
-            quizId = urlParams.get('quiz');
+            quizId = urlParams.get('quiz') || 'akadem';
             const roomParam = urlParams.get('room');
             
             // Применяем цвета квиза к кнопкам
@@ -907,7 +927,8 @@
             }
             
             // Инициализируем socket перед проверкой roomParam
-            socket = io();
+            socketClient = LegacySocket.createSocket();
+            socket = socketClient.socket;
             
             // ВАЖНО: Регистрируем обработчики событий ДО подключения к комнате
             // чтобы не пропустить события, которые могут прийти сразу после подключения
@@ -936,36 +957,19 @@
                 
                 // Ждем подключения Socket.io
                 socket.on('connect', () => {
-                    socket.emit('host-join', roomCode);
+                    socketClient.joinHost(roomCode);
                     console.log('Отправлен запрос на подключение к комнате:', roomCode);
                     showButtonsAfterConnect();
                 });
                 
                 // Если socket уже подключен, сразу подключаемся
                 if (socket.connected) {
-                    socket.emit('host-join', roomCode);
+                    socketClient.joinHost(roomCode);
                     showButtonsAfterConnect();
                 }
                 
                 return; // Не создаем новую комнату
             }
-            
-            // Пароли для разных квизов (поддерживаем как новый ID 'gnu', так и старые)
-            const passwords = {
-                'gnu': '1234',
-                'friends-quiz': '1234', // Обратная совместимость
-                'gnu-multiplayer': '1234' // Обратная совместимость
-            };
-            
-            // Ключи localStorage для разных квизов
-            const storageKeys = {
-                'gnu': 'gnuPasswordVerified',
-                'friends-quiz': 'gnuPasswordVerified', // Обратная совместимость
-                'gnu-multiplayer': 'gnuPasswordVerified' // Обратная совместимость
-            };
-            
-            // Список квизов, требующих пароль
-            const quizzesRequiringPassword = Object.keys(passwords);
             
             // Если quizId не указан, перенаправляем на главную страницу
             if (!quizId) {
@@ -975,7 +979,8 @@
             
             // Socket уже инициализирован выше, если подключаемся к существующей комнате
             if (!socket) {
-                socket = io();
+                socketClient = LegacySocket.createSocket();
+                socket = socketClient.socket;
             }
 
             // Получение IP-адреса сервера (с кэшированием)
@@ -1382,17 +1387,6 @@
                     // Начинаем получение IP-адреса сервера параллельно (не блокируем создание комнаты)
                     const serverUrlPromise = getServerUrl();
                     
-                    // Проверяем, пришел ли пользователь со страницы выбора режима
-                    const passwordParam = urlParams.get('password');
-                    const storageKey = storageKeys[quizId];
-                    const passwordVerified = passwordParam === 'verified' || (storageKey && localStorage.getItem(storageKey) === 'true');
-                    
-                    // Если пароль уже проверен на странице выбора режима, передаем его автоматически
-                    const requiredPassword = passwords[quizId];
-                    if (requiredPassword && passwordVerified && !password) {
-                        password = requiredPassword;
-                    }
-                    
                     // Получаем текущий режим из localStorage (если доступен)
                     const currentMode = (typeof getCurrentMode === 'function') ? getCurrentMode() : 'global';
                     
@@ -1419,28 +1413,6 @@
                             errorData = { error: `Ошибка сервера: ${response.status} ${response.statusText}` };
                         }
                         
-                        if (errorData.requiresPassword) {
-                            // Проверяем, пришел ли пользователь со страницы выбора режима
-                            const passwordParam = urlParams.get('password');
-                            const storageKey = storageKeys[quizId];
-                            const passwordVerified = passwordParam === 'verified' || (storageKey && localStorage.getItem(storageKey) === 'true');
-                            
-                            // Если пароль уже проверен, но сервер все равно требует пароль, пробуем еще раз с паролем
-                            const requiredPassword = passwords[quizId];
-                            if (passwordVerified && requiredPassword) {
-                                createRoom(requiredPassword);
-                                return;
-                            }
-                            
-                            // Показываем модальное окно для ввода пароля только если пароль не был проверен
-                            showPasswordModal((enteredPassword) => {
-                                if (storageKey) {
-                                    localStorage.setItem(storageKey, 'true');
-                                }
-                                createRoom(enteredPassword);
-                            });
-                            return;
-                        }
                         throw new Error(errorData.error || `Ошибка сервера: ${response.status} ${response.statusText}`);
                     }
                     
@@ -1468,7 +1440,7 @@
                     await generateQRCode(roomCode);
                     
                     // Подключаемся к комнате
-                    socket.emit('host-join', roomCode);
+                    socketClient.joinHost(roomCode);
                 } catch (error) {
                     console.error('Ошибка создания комнаты:', error);
                     
@@ -2110,7 +2082,7 @@
                 }
                 
                 console.log('📤 Отправка события start-game для комнаты:', roomCode);
-                socket.emit('start-game', roomCode);
+                socketClient.startGame(roomCode);
                 console.log('✅ Событие start-game отправлено');
             }
             
@@ -2422,7 +2394,7 @@
                 if (hub1Timer) {
                     hub1Timer.style.display = 'inline-block';
                 }
-                socket.emit('next-question', roomCode);
+                socketClient.nextQuestion(roomCode);
             });
             
             // Запускаем проверку джойстика при показе экрана результатов

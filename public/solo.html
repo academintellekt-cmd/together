@@ -682,9 +682,7 @@
             
             // Определяем класс по quizId
             const normalizedId = quizId.toLowerCase();
-            if (normalizedId === 'gnu' || normalizedId === 'friends-quiz' || normalizedId === 'gnu-multiplayer') {
-                document.body.classList.add('quiz-gnu');
-            } else if (normalizedId === 'akadem' || normalizedId.includes('академ')) {
+            if (normalizedId === 'akadem' || normalizedId.includes('академ')) {
                 document.body.classList.add('quiz-akadem');
             }
         }
@@ -994,25 +992,10 @@
 
         // Получение ID квиза из URL
         const urlParams = new URLSearchParams(window.location.search);
-        const quizId = urlParams.get('quiz') || 'gnu';
+        const quizId = urlParams.get('quiz') || 'akadem';
         const passwordParam = urlParams.get('password');
-        
-        // Пароли для разных квизов (поддерживаем как новый ID 'gnu', так и старые)
-        const passwords = {
-            'gnu': '1234',
-            'friends-quiz': '1234' // Обратная совместимость
-        };
-        
-        const requiredPassword = passwords[quizId] || null;
-        
-        // Проверяем, пришел ли пользователь с страницы выбора режима (пароль уже проверен)
-        const storageKeys = {
-            'gnu': 'gnuPasswordVerified',
-            'friends-quiz': 'gnuPasswordVerified' // Обратная совместимость
-        };
-        
-        const storageKey = storageKeys[quizId];
-        let passwordVerified = passwordParam === 'verified' || (storageKey && localStorage.getItem(storageKey) === 'true');
+        const requiredPassword = null;
+        let passwordVerified = true;
 
         // Функция показа модального окна для ввода пароля
         function showPasswordModal(callback) {
@@ -1124,25 +1107,8 @@
 
         // Проверка пароля для квизов, требующих пароль
         async function checkPasswordAndLoad() {
-            // Если квиз требует пароль и пароль еще не проверен, показываем модальное окно
-            // Но если пользователь пришел со страницы выбора режима, пароль уже проверен
-            if (requiredPassword && !passwordVerified) {
-                showPasswordModal(async () => {
-                    // Сохраняем флаг проверки пароля
-                    if (storageKey) {
-                        localStorage.setItem(storageKey, 'true');
-                    }
-                    // После ввода правильного пароля загружаем квиз
-                    await loadQuiz();
-                    // Обновляем Frame1 после загрузки квиза
-                    updateFrame1BackUrl();
-                });
-            } else {
-                // Для других квизов просто загружаем
-                await loadQuiz();
-                // Обновляем Frame1 после загрузки квиза
-                updateFrame1BackUrl();
-            }
+            await loadQuiz();
+            updateFrame1BackUrl();
             
             // Устанавливаем ссылки на рейтинг с параметрами
             updateLeaderboardLinks();
@@ -1273,9 +1239,9 @@
             // Сбрасываем флаг ответа для нового вопроса
             hasAnswered = false;
 
-            // Отображение изображения вопроса (не показываем для квиза gazprom)
+            // Отображение изображения вопроса
             let imageContainer = document.getElementById('question-image-container');
-            if (question.image && quizId !== 'gazprom') {
+            if (question.image) {
                 if (!imageContainer) {
                     imageContainer = document.createElement('div');
                     imageContainer.className = 'question-image-container';
@@ -1285,7 +1251,7 @@
                 }
                 const img = document.createElement('img');
                 img.className = 'question-image';
-                const questionsDir = quiz.questionsDir || quiz.id;
+                const questionsDir = quiz.questionsDir || quiz.id || 'akadem';
                 img.src = `/data/media/questions/${questionsDir}/${question.image}`;
                 img.alt = 'Question image';
                 imageContainer.innerHTML = '';

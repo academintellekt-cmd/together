@@ -8,8 +8,6 @@ const router = express.Router();
 const { getRoomManager } = require('../core/rooms');
 const { getGameRegistry } = require('../games/index');
 const { loadAllQuizzes } = require('../utils/quiz-loader');
-const fs = require('fs');
-const path = require('path');
 
 const roomManager = getRoomManager();
 const gameRegistry = getGameRegistry();
@@ -28,67 +26,6 @@ try {
  */
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
-}
-
-/**
- * Загрузка вопросов для ЧГК
- */
-function loadIntellectualQuestions(quizId) {
-  const questionsPath = path.join(__dirname, '../../data/questions', `${quizId}.txt`);
-  
-  if (!fs.existsSync(questionsPath)) {
-    console.warn(`Файл с вопросами не найден: ${questionsPath}`);
-    return [];
-  }
-  
-  const content = fs.readFileSync(questionsPath, 'utf8');
-  const questions = [];
-  const lines = content.split('\n');
-  
-  let currentQuestion = null;
-  let questionId = 1;
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    
-    if (!line || line.startsWith('//') || line.startsWith('#')) {
-      continue;
-    }
-    
-    if (line.match(/^Q\d*:/)) {
-      if (currentQuestion && currentQuestion.answer) {
-        if (currentQuestion.time === null || currentQuestion.time === undefined) {
-          currentQuestion.time = currentQuestion.id <= 4 ? 30 : 60;
-        }
-        questions.push(currentQuestion);
-      }
-      
-      const questionText = line.replace(/^Q\d*:\s*/, '').trim();
-      currentQuestion = {
-        id: questionId++,
-        question: questionText,
-        answer: null,
-        time: null
-      };
-    } else if (line.match(/^A\d*:/) && currentQuestion) {
-      const answerText = line.replace(/^A\d*:\s*/, '').trim();
-      currentQuestion.answer = answerText;
-    } else if ((line.match(/^T\s*:/) || line.match(/^TIME\s*:/)) && currentQuestion) {
-      const timeMatch = line.match(/^(?:T|TIME)\s*:\s*(\d+)/);
-      if (timeMatch) {
-        currentQuestion.time = parseInt(timeMatch[1], 10);
-      }
-    }
-  }
-  
-  if (currentQuestion && currentQuestion.answer) {
-    if (currentQuestion.time === null || currentQuestion.time === undefined) {
-      currentQuestion.time = currentQuestion.id <= 4 ? 30 : 60;
-    }
-    questions.push(currentQuestion);
-  }
-  
-  return questions;
 }
 
 /**
@@ -121,21 +58,6 @@ router.post('/', (req, res) => {
       room = gameEngine.createRoom(roomCode, {
         quizData,
         mode: mode || 'online',
-        password
-      });
-
-    } else if (gameId === 'chgk') {
-      // CHGK mode
-      const questions = loadIntellectualQuestions(quizId || 'chgk');
-      
-      if (questions.length === 0) {
-        return res.status(400).json({ error: 'Questions not found' });
-      }
-
-      room = gameEngine.createRoom(roomCode, {
-        questions,
-        quizId: quizId || 'chgk',
-        quizName: 'ЧГК',
         password
       });
 

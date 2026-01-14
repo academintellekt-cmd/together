@@ -17,15 +17,6 @@ function createReloadRouter(quizzes) {
 
       quizzes[quizId].questions = reloadedQuiz.questions;
 
-      if (quizId === 'gnu') {
-        if (quizzes['friends-quiz']) {
-          quizzes['friends-quiz'].questions = reloadedQuiz.questions;
-        }
-        if (quizzes['gnu-multiplayer']) {
-          quizzes['gnu-multiplayer'].questions = reloadedQuiz.questions;
-        }
-      }
-
       res.json({
         success: true,
         message: `Вопросы перезагружены. Загружено ${reloadedQuiz.questions.length} вопросов.`,

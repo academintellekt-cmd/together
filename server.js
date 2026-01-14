@@ -88,18 +88,6 @@ try {
   console.warn('⚠️ DMX API routes недоступны:', error.message);
 }
 
-// ЧГК API routes
-try {
-  const { router: chgkApiRouter, intellectualRooms: chgkRooms } = require('./server/routes/chgk-api');
-  app.use('/api/chgk', chgkApiRouter);
-  // Экспортируем хранилище комнат для использования в WebSocket обработчиках
-  global.intellectualRooms = chgkRooms;
-  console.log('✅ ЧГК API routes зарегистрированы');
-  console.log('✅ global.intellectualRooms установлен, тип:', typeof global.intellectualRooms, 'размер:', global.intellectualRooms ? global.intellectualRooms.size : 'N/A');
-} catch (error) {
-  console.warn('⚠️ ЧГК API routes недоступны:', error.message);
-}
-
 // Лидерборд API routes
 try {
   const leaderboardRouter = createLeaderboardRouter({
@@ -150,25 +138,12 @@ try {
   console.warn('⚠️ Mode API routes недоступны:', error.message);
 }
 
-// Редиректы для обратной совместимости (старые имена файлов)
-app.get('/quiz-questions-host.html', (req, res) => {
-  res.redirect(301, '/chgk-host.html');
-});
-app.get('/quiz-questions-player.html', (req, res) => {
-  res.redirect(301, '/chgk-player.html');
-});
-app.get('/quiz-questions-commission.html', (req, res) => {
-  res.redirect(301, '/chgk-commission.html');
-});
-
 // Статический middleware будет зарегистрирован после всех API роутов (см. ниже)
 app.use('/docs', express.static(path.join(__dirname, 'docs')));
 
 // Хранилище комнат и игроков
 const rooms = roomsService.getRooms();
 const players = roomsService.getPlayers();
-// Хранилище игроков интеллектуальных комнат (для отслеживания подключений)
-const intellectualPlayers = new Map();
 
 // Инициализация DMX системы сценариев
 try {
@@ -349,30 +324,6 @@ let quizzes = {};
 try {
   quizzes = loadAllQuizzes();
   console.log(`✅ Загружено ${Object.keys(quizzes).length} квизов`);
-  
-  // Для обратной совместимости создаем старые ID
-  // Если есть квиз 'gnu', создаем также 'friends-quiz' и 'gnu-multiplayer'
-  if (quizzes['gnu']) {
-    const gnuQuiz = quizzes['gnu'];
-    
-    // Создаем friends-quiz для соло режима
-    if (!quizzes['friends-quiz']) {
-      quizzes['friends-quiz'] = {
-        ...gnuQuiz,
-        id: 'friends-quiz',
-        soloMode: true
-      };
-    }
-    
-    // Создаем gnu-multiplayer для мультиплеера
-    if (!quizzes['gnu-multiplayer']) {
-      quizzes['gnu-multiplayer'] = {
-        ...gnuQuiz,
-        id: 'gnu-multiplayer',
-        soloMode: false
-      };
-    }
-  }
 } catch (error) {
   console.error('❌ Ошибка загрузки квизов:', error);
   quizzes = {};
@@ -395,13 +346,6 @@ app.get('/api/quizzes', (req, res) => {
       if (!quiz.questions || quiz.questions.length === 0) {
         return false;
       }
-      
-      // Исключаем дубликаты для обратной совместимости
-      // Показываем 'gnu' вместо 'friends-quiz' и 'gnu-multiplayer', если они есть
-      if (quizzes['gnu'] && (quiz.id === 'friends-quiz' || quiz.id === 'gnu-multiplayer')) {
-        return false; // Скрываем старые ID, если есть новый 'gnu'
-      }
-      
       return true;
     })
     .map(quiz => {
@@ -615,16 +559,6 @@ app.post('/api/create-room', (req, res) => {
   if (quiz.passwordRequired && quiz.password) {
     if (!password || password !== quiz.password) {
       return res.status(401).json({ error: 'Неверный пароль', requiresPassword: true });
-    }
-  }
-  
-  // Обратная совместимость: проверка для старых ID
-  if (quizId === 'friends-quiz' || quizId === 'gnu-multiplayer') {
-    const gnuQuiz = quizzes['gnu'] || quizzes[quizId];
-    if (gnuQuiz && gnuQuiz.passwordRequired && gnuQuiz.password) {
-      if (!password || password !== gnuQuiz.password) {
-        return res.status(401).json({ error: 'Неверный пароль', requiresPassword: true });
-      }
     }
   }
   const roomCode = generateRoomCode();

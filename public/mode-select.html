@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Выбор режима - Чемпионат ГНУ</title>
+    <title>Выбор режима - Академгородок</title>
     <!-- Новая система фреймов -->
     <link rel="stylesheet" href="/styles/base.css">
     <link rel="stylesheet" href="/styles/layout.css">
@@ -16,470 +16,99 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Days+One&family=Handlee&family=Kalam:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;600;700;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        /* Специфичные стили для страницы mode-select */
-        .hub3 > .container {
-            max-width: 600px; /* Переопределяем для страницы mode-select */
-            padding: 40px clamp(16px, 4vw, 24px) !important; /* Единый отступ сверху 40px на всех страницах */
-            box-sizing: border-box;
-        }
-
-        /* Модальное окно для пароля */
-        .password-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            backdrop-filter: blur(5px);
-        }
-
-        .password-modal {
-            background: #FFFFFF;
-            border-radius: 24px;
-            padding: clamp(24px, 4vw, 36px) clamp(20px, 4vw, 32px);
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 
-                0 8px 0px rgba(0, 0, 0, 0.2),
-                0 16px 32px rgba(0, 0, 0, 0.3);
-            box-sizing: border-box;
-        }
-
-        .password-title {
-            font-family: 'Days One', sans-serif;
-            font-size: clamp(24px, 5vw, 32px);
-            color: #393639;
-            margin-bottom: 16px;
-            text-transform: uppercase;
-        }
-
-        .password-input {
-            width: 100%;
-            padding: clamp(14px, 3vw, 18px);
-            border: 3px solid #393639;
-            border-radius: 12px;
-            font-family: 'Days One', sans-serif;
-            font-size: clamp(20px, 4vw, 24px);
-            text-align: center;
-            margin-bottom: clamp(16px, 3vw, 20px);
-            box-sizing: border-box;
-        }
-
-        .password-input:focus {
-            outline: none;
-            border-color: #abf67c;
-            box-shadow: 0 0 0 4px rgba(168, 224, 99, 0.2);
-        }
-
-        .password-buttons {
-            display: flex;
-            gap: clamp(8px, 2vw, 12px);
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .password-button {
-            background: #abf67c;
-            color: #393639;
-            border: none;
-            padding: clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 24px);
-            border-radius: 12px;
-            font-family: 'Days One', sans-serif;
-            font-size: clamp(16px, 3vw, 20px);
-            cursor: pointer;
-            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.2);
-            transition: all 0.2s;
-            flex: 1;
-            box-sizing: border-box;
-            min-width: 0;
-        }
-
-        .password-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 0px rgba(0, 0, 0, 0.2);
-        }
-
-        .password-button:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
-        }
-
-        .password-button.back {
-            background: #f2f2f2;
-            color: #393639;
-        }
-
-        .password-button.back:hover {
-            background: #E0E0E0;
-        }
-
-        .password-error {
-            color: #ff7664;
-            font-family: 'Nunito', sans-serif;
-            font-size: clamp(14px, 2.5vw, 16px);
-            margin-top: 12px;
-            min-height: 20px;
-            display: none;
-        }
-
-        .password-error.show {
-            display: block;
-        }
-
-        .back-button {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: #abf67c;
-            color: #393639;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-family: 'Days One', sans-serif;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.2);
-            transition: all 0.2s;
-        }
-
-        .back-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 0px rgba(0, 0, 0, 0.2);
-        }
-
-        .back-button:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
-        }
-
-        .title {
-            font-family: 'Days One', sans-serif;
-            font-size: clamp(32px, 6vw, 48px);
-            color: #393639;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .subtitle {
-            font-family: 'Caveat', cursive;
-            font-size: clamp(24px, 4vw, 32px);
-            color: #ff7664;
-            margin-bottom: 40px;
-            transform: rotate(-1deg);
-        }
-
-        .mode-cards {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: clamp(20px, 4vw, 28px);
-            margin-top: clamp(30px, 6vw, 50px);
-        }
-
-        .mode-card {
-            background: #FFFFFF;
-            border-radius: clamp(16px, 3vw, 24px);
-            padding: clamp(24px, 5vw, 36px) clamp(20px, 4vw, 32px);
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 
-                0 6px 0px rgba(0, 0, 0, 0.15),
-                0 8px 16px rgba(0, 0, 0, 0.1);
-            border: none;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: clamp(120px, 25vw, 240px);
-        }
-
-        .mode-card:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 
-                0 8px 0px rgba(0, 0, 0, 0.2),
-                0 12px 24px rgba(0, 0, 0, 0.15);
-        }
-
-        .mode-card:active {
-            transform: translateY(-4px) scale(1.01);
-        }
-
-        .mode-card.solo {
-            background: #abf67c;
-        }
-
-        .mode-card.multiplayer {
-            background: #FFD500;
-        }
-
-        .mode-card.local {
-            background: #00C159;
-        }
-
-        .mode-icon {
-            font-size: clamp(48px, 10vw, 72px);
-            margin-bottom: clamp(12px, 3vw, 20px);
-            line-height: 1;
-        }
-
-        .mode-title {
-            font-family: 'Days One', sans-serif;
-            font-size: clamp(20px, 4vw, 24px);
-            color: #393639;
-            margin-bottom: clamp(8px, 2vw, 14px);
-            text-transform: uppercase;
-            line-height: 1.2;
-            white-space: nowrap;
-            width: 100%;
-            padding: 0 clamp(10px, 2.5vw, 16px);
-            box-sizing: border-box;
-        }
-
-        .mode-description {
-            font-family: 'Nunito', sans-serif;
-            font-size: clamp(18px, 3.5vw, 22px);
-            color: #393639;
-            opacity: 0.85;
-            line-height: 1.4;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            max-width: 100%;
-        }
-
-        @media (min-width: 768px) {
-            .mode-cards {
-                grid-template-columns: repeat(3, 1fr);
-                gap: clamp(24px, 4vw, 32px);
-            }
-        }
-
-        @media (min-width: 1200px) {
-            .mode-cards {
-                grid-template-columns: repeat(3, 1fr);
-                max-width: 1200px;
-                margin: 0 auto;
-            }
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .hub3 > .container { max-width: 600px; padding: 40px clamp(16px, 4vw, 24px) !important; box-sizing: border-box; }
+        .title { font-family: 'Days One', sans-serif; font-size: clamp(32px, 6vw, 48px); color: #393639; margin-bottom: 10px; text-transform: uppercase; }
+        .subtitle { font-family: 'Caveat', cursive; font-size: clamp(24px, 4vw, 32px); color: #ff7664; margin-bottom: 40px; transform: rotate(-1deg); }
+        .mode-cards { display: grid; grid-template-columns: 1fr; gap: clamp(20px, 4vw, 28px); margin-top: clamp(30px, 6vw, 50px); }
+        .mode-card { background: #FFFFFF; border-radius: clamp(16px, 3vw, 24px); padding: clamp(24px, 5vw, 36px) clamp(20px, 4vw, 32px); cursor: pointer; transition: all 0.3s; box-shadow: 0 6px 0px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.1); border: none; text-align: center; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: clamp(120px, 25vw, 240px); }
+        .mode-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 8px 0px rgba(0, 0, 0, 0.2), 0 12px 24px rgba(0, 0, 0, 0.15); }
+        .mode-card:active { transform: translateY(-4px) scale(1.01); }
+        .mode-card.solo { background: #abf67c; }
+        .mode-card.multiplayer { background: #FFD500; }
+        .mode-card.local { background: #00C159; }
+        .mode-icon { font-size: clamp(48px, 10vw, 72px); margin-bottom: clamp(12px, 3vw, 20px); line-height: 1; }
+        .mode-title { font-family: 'Days One', sans-serif; font-size: clamp(20px, 4vw, 24px); color: #393639; margin-bottom: clamp(8px, 2vw, 14px); text-transform: uppercase; line-height: 1.2; white-space: nowrap; width: 100%; padding: 0 clamp(10px, 2.5vw, 16px); box-sizing: border-box; }
+        .mode-description { font-family: 'Nunito', sans-serif; font-size: clamp(18px, 3.5vw, 22px); color: #393639; opacity: 0.85; line-height: 1.4; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; }
+        @media (min-width: 768px) { .mode-cards { grid-template-columns: repeat(3, 1fr); gap: clamp(24px, 4vw, 32px); } }
+        @media (min-width: 1200px) { .mode-cards { grid-template-columns: repeat(3, 1fr); max-width: 1200px; margin: 0 auto; } }
         @media (max-width: 480px) {
-            .container {
-                padding: 0 clamp(10px, 3vw, 20px);
-            }
-
-            .mode-card {
-                padding: clamp(20px, 5vw, 28px) clamp(16px, 4vw, 24px);
-                min-height: clamp(110px, 30vw, 200px);
-            }
-
-            .mode-title {
-                font-size: clamp(22px, 5vw, 28px);
-            }
-
-            .mode-description {
-                font-size: clamp(20px, 4.5vw, 24px);
-            }
-
-            .password-modal {
-                padding: clamp(24px, 5vw, 32px) clamp(20px, 4vw, 28px);
-            }
+            .container { padding: 0 clamp(10px, 3vw, 20px); }
+            .mode-card { padding: clamp(20px, 5vw, 28px) clamp(16px, 4vw, 24px); min-height: clamp(110px, 30vw, 200px); }
+            .mode-title { font-size: clamp(22px, 5vw, 28px); }
+            .mode-description { font-size: clamp(20px, 4.5vw, 24px); }
         }
-
-        /* Адаптивные стили для HUB4 и HUB5 перенесены в hub-layout.css */
     </style>
 </head>
 <body class="with-hub">
-    <!-- Модальное окно для пароля -->
-    <div class="password-overlay" id="passwordOverlay">
-        <div class="password-modal">
-            <h2 class="password-title">Введите пароль</h2>
-            <input 
-                type="password" 
-                class="password-input" 
-                id="passwordInput" 
-                placeholder="Пароль"
-                autocomplete="off"
-                autofocus
-            >
-            <div class="password-buttons">
-                <button class="password-button back" onclick="goBack()">Назад</button>
-                <button class="password-button" onclick="checkPassword()">Войти</button>
-            </div>
-            <div class="password-error" id="passwordError">Неверный пароль. Попробуйте снова.</div>
-        </div>
-    </div>
-
     <!-- HUB3: основная зона контента -->
     <div class="hub-zone hub3">
-        <div class="container" id="mainContainer" style="display: none;">
-        <h1 class="title">ЧЕМПИОНАТ ГНУ</h1>
-        <p class="subtitle">выбери режим игры</p>
-        
-        <div class="mode-cards">
-            <div class="mode-card solo" onclick="selectMode('solo')">
-                <div class="mode-icon">🎯</div>
-                <div class="mode-title">Одиночная игра</div>
-                <div class="mode-description">
-                    Играй один и соревнуйся с другими в рейтинге. 15 вопросов из 150.
+        <div class="container" id="mainContainer">
+            <h1 class="title">АКАДЕМГОРОДОК</h1>
+            <p class="subtitle">выбери режим игры</p>
+            <div class="mode-cards">
+                <div class="mode-card solo" onclick="selectMode('solo')">
+                    <div class="mode-icon">🎯</div>
+                    <div class="mode-title">Одиночная игра</div>
+                    <div class="mode-description">Играй один и соревнуйся в рейтинге.</div>
+                </div>
+                <div class="mode-card multiplayer" onclick="selectMode('multiplayer')">
+                    <div class="mode-icon">👥</div>
+                    <div class="mode-title">Мультиплеер</div>
+                    <div class="mode-description">Создай комнату, играй с друзьями, подключение по QR.</div>
+                </div>
+                <div class="mode-card local" onclick="selectMode('local')">
+                    <div class="mode-icon">🏠</div>
+                    <div class="mode-title">Локальный режим</div>
+                    <div class="mode-description">Игра по локальной сети с управлением станциями.</div>
                 </div>
             </div>
-            
-            <div class="mode-card multiplayer" onclick="selectMode('multiplayer')">
-                <div class="mode-icon">👥</div>
-                <div class="mode-title">Мультиплеер</div>
-                <div class="mode-description">
-                    Создай комнату и играй с друзьями. QR-код для подключения.
-                </div>
-            </div>
-            
-            <div class="mode-card local" onclick="selectMode('local')">
-                <div class="mode-icon">🏠</div>
-                <div class="mode-title">Локальный режим</div>
-                <div class="mode-description">
-                    Игра на локальной сети. Управление станциями игроков.
-                </div>
-            </div>
-        </div>
         </div>
     </div>
 
     <!-- FOOTER: Frame 4 и Frame 5 -->
     <footer class="site-footer">
-        <!-- Frame 4: Правила безопасности -->
-        <section class="frame frame-4" data-frame="rules" id="hub4">
-        </section>
-
-        <!-- Frame 5: Информация о создателе -->
+        <section class="frame frame-4" data-frame="rules" id="hub4"></section>
         <section class="frame frame-5" data-frame="about" id="hub5">
             <p>© 2024 ВМЕСТЕ. Все права защищены.</p>
         </section>
     </footer>
 
     <script>
-        const GNU_PASSWORD = '1234';
-        let passwordEntered = false;
-
-        // Инициализация Frame1 и Frame2 после проверки пароля
         function initHubs() {
-            // Инициализация Frame1
-            Frame1.init({
-                showBack: true,
-                backUrl: '/index.html'
-            });
-            
-            // Добавляем кнопку меню в правый верхний угол
+            if (typeof Frame1 === 'undefined' || typeof Frame2 === 'undefined' || typeof FrameCommon === 'undefined') {
+                setTimeout(initHubs, 100);
+                return;
+            }
+            Frame1.init({ showBack: true, backUrl: '/index.html' });
             if (typeof addMenuButton === 'function') {
                 setTimeout(addMenuButton, 200);
             }
-            
-            // Инициализация Frame2
             Frame2.init();
-            
-            // Обновление позиций
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        // Позиционирование теперь управляется через CSS Grid
-                        FrameCommon.adaptSubtitleToLogo();
-                    });
+                    FrameCommon.adaptSubtitleToLogo();
                 });
             });
         }
 
-        // Проверка пароля из localStorage
-        if (localStorage.getItem('gnuPasswordEntered') === 'true') {
-            passwordEntered = true;
-            document.getElementById('passwordOverlay').style.display = 'none';
-            document.getElementById('mainContainer').style.display = 'block';
-            // Инициализируем Hub если пароль уже введен
-            if (typeof Frame1 !== 'undefined' && typeof Frame2 !== 'undefined') {
-                initHubs();
-            } else {
-                setTimeout(initHubs, 100);
-            }
-        }
-
-        // Обработка Enter в поле пароля
-        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                checkPassword();
-            }
-        });
-
-        function checkPassword() {
-            const password = document.getElementById('passwordInput').value;
-            const errorDiv = document.getElementById('passwordError');
-            
-            if (password === GNU_PASSWORD) {
-                passwordEntered = true;
-                localStorage.setItem('gnuPasswordEntered', 'true');
-                document.getElementById('passwordOverlay').style.display = 'none';
-                document.getElementById('mainContainer').style.display = 'block';
-                errorDiv.classList.remove('show');
-                // Инициализируем Hub после проверки пароля
-                if (typeof Frame1 !== 'undefined' && typeof Frame2 !== 'undefined') {
-                    initHubs();
-                } else {
-                    setTimeout(initHubs, 100);
-                }
-            } else {
-                errorDiv.classList.add('show');
-                document.getElementById('passwordInput').value = '';
-                document.getElementById('passwordInput').focus();
-            }
-        }
-
-        function clearPassword() {
-            // Очищаем пароль при возврате на главную страницу
-            localStorage.removeItem('gnuPasswordVerified');
-            localStorage.removeItem('gnuPasswordEntered');
-        }
-
-        function goBack() {
-            clearPassword();
-            window.location.href = '/index.html';
-        }
-
         function selectMode(mode) {
-            // Сохраняем флаг, что пароль уже проверен
-            localStorage.setItem('gnuPasswordVerified', 'true');
-            
             if (mode === 'solo') {
-                // Одиночная игра - открываем solo.html с квизом friends-quiz
-                window.location.href = '/solo.html?quiz=friends-quiz&password=verified';
+                window.location.href = '/solo.html?quiz=akadem';
             } else if (mode === 'multiplayer') {
-                // Мультиплеер - открываем host.html с квизом gnu-multiplayer
-                window.location.href = '/host.html?quiz=gnu-multiplayer&password=verified';
+                window.location.href = '/host.html?quiz=akadem';
             } else if (mode === 'local') {
-                // Локальный режим - открываем local-host.html
-                window.location.href = 'http://192.168.1.10:3000/local-host.html';
+                window.location.href = '/local-host.html';
             }
         }
-        
-        // Обновление при загрузке
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof FrameCommon !== 'undefined' && passwordEntered) {
-                // Позиционирование теперь управляется через CSS Grid
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initHubs();
+            if (typeof FrameCommon !== 'undefined') {
                 FrameCommon.adaptSubtitleToLogo();
             }
         });
-        
-        // Обновление при изменении размера окна
+
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
@@ -494,34 +123,22 @@
             }, 100);
         });
     </script>
-    
-    <!-- Frame1 и Frame2 скрипты -->
+
     <!-- Конфигурация видимости фреймов -->
     <script>
-        window.pageLayoutConfig = {
-            showFrame1: true,
-            showFrame2: true,
-            showFrame4: true,
-            showFrame5: true
-        };
+        window.pageLayoutConfig = { showFrame1: true, showFrame2: true, showFrame4: true, showFrame5: true };
     </script>
-    
-    <!-- Layout Manager -->
+
+    <!-- Layout Manager и фреймы -->
     <script src="/scripts/layout.js"></script>
     <script src="/scripts/frame-common.js"></script>
     <script src="/scripts/frame1.js"></script>
     <script src="/scripts/frame2.js"></script>
-    
-    <!-- Общий скрипт для обновления года в Frame 5 -->
     <script src="/scripts/frame5-copyright.js"></script>
-    
-    <!-- Общий скрипт для автоматической заглавной буквы в шрифте Caveat -->
     <script src="/scripts/caveat-capitalize.js"></script>
-    
-    <!-- Оверлей для меню настроек -->
+
+    <!-- Оверлей и меню настроек -->
     <div class="settings-menu-overlay" id="settingsMenuOverlay"></div>
-    
-    <!-- Выпадающее меню настроек -->
     <div class="settings-menu" id="settingsMenu">
         <div class="settings-menu-header">
             <h2 class="settings-menu-title">⚙️ Настройки</h2>
@@ -531,44 +148,22 @@
             <a href="/joystick-test/joystick.html" class="settings-menu-card">
                 <span class="settings-menu-card-icon">🎮</span>
                 <div class="settings-menu-card-title">Джойстик</div>
-                <div class="settings-menu-card-description">Настройка джойстика и геймпада для управления игрой</div>
+                <div class="settings-menu-card-description">Настройка джойстика и геймпада</div>
             </a>
             <a href="/dmx-showmaker.html" class="settings-menu-card">
                 <span class="settings-menu-card-icon">💡</span>
                 <div class="settings-menu-card-title">DMX Освещение</div>
-                <div class="settings-menu-card-description">Управление DMX фонарями и сценическим освещением</div>
+                <div class="settings-menu-card-description">Управление DMX освещением</div>
             </a>
             <a href="/docs/design/BRAND_BOOK.md" target="_blank" class="settings-menu-card">
                 <span class="settings-menu-card-icon">🎨</span>
                 <div class="settings-menu-card-title">Брендбук</div>
-                <div class="settings-menu-card-description">Руководство по дизайну, цветам и типографике проекта</div>
+                <div class="settings-menu-card-description">Руководство по дизайну</div>
             </a>
         </div>
     </div>
-    
-    <!-- Модальное окно для пароля настроек -->
-    <div class="settings-password-modal" id="settingsPasswordModal">
-        <div class="settings-password-content">
-            <h2 class="settings-password-title">Введите пароль</h2>
-            <p style="font-family: 'Montserrat', sans-serif; font-size: clamp(14px, 2.5vw, 16px); color: #393639; margin-bottom: 16px;">Эта страница защищена паролем</p>
-            <input 
-                type="password" 
-                class="settings-password-input" 
-                id="settingsPasswordInput" 
-                placeholder="Пароль"
-                autocomplete="off"
-                autofocus
-            >
-            <div class="settings-password-buttons">
-                <button class="settings-password-button back" id="settingsPasswordBack">Назад</button>
-                <button class="settings-password-button" id="settingsPasswordSubmit">Войти</button>
-            </div>
-            <div class="settings-password-error" id="settingsPasswordError">Неверный пароль. Попробуйте снова.</div>
-        </div>
-    </div>
-    
+
     <!-- Скрипт для меню настроек -->
     <script src="/scripts/settings-menu.js"></script>
 </body>
 </html>
-
