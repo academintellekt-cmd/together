@@ -7,38 +7,9 @@ const leaderboardQueue = [];
 
 async function initializeLeaderboard(loadLeaderboardFromGoogleSheets) {
   console.log('🔄 Загрузка рейтинга из Google Sheets...');
-  const savedLeaderboard = await loadLeaderboardFromGoogleSheets();
-
+  // Очищаем рейтинг и стартуем с нуля (вместо загрузки сохраненных результатов)
   leaderboard.length = 0;
-
-  if (savedLeaderboard.length > 0) {
-    savedLeaderboard.forEach(entry => {
-      const originalQuizId = entry.quizId;
-      const normalizedQuizId = normalizeQuizId(entry.quizId) || entry.quizId;
-
-      if (entry.playerName?.toLowerCase().includes('роман')) {
-        console.log(`🔍 Загрузка "роман" из Google Sheets: оригинальный quizId="${originalQuizId}", нормализованный="${normalizedQuizId}", очки=${entry.score}, дата=${entry.date}`);
-      }
-
-      leaderboard.push({ ...entry, quizId: normalizedQuizId });
-    });
-
-    leaderboard.sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return a.timestamp - b.timestamp;
-    });
-
-    const romanEntries = leaderboard.filter(e => e.playerName?.toLowerCase().includes('роман'));
-    if (romanEntries.length > 0) {
-      console.log(`📊 Найдено ${romanEntries.length} записей "роман" в загруженном рейтинге:`, romanEntries.map(e => ({ quizId: e.quizId, score: e.score, date: e.date })));
-    } else {
-      console.log(`⚠️ Записи "роман" НЕ найдены в загруженном рейтинге`);
-    }
-
-    console.log(`✅ Рейтинг загружен: ${leaderboard.length} записей`);
-  } else {
-    console.log('📝 Начинаем с пустого рейтинга');
-  }
+  console.log('🧹 Рейтинг очищен при инициализации');
 }
 
 async function processLeaderboardQueue(writeToGoogleSheets, reloadFn) {

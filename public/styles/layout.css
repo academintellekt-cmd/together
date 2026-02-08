@@ -167,6 +167,13 @@
     box-sizing: border-box;
 }
 
+/* Hub3 (на host.html вместо frame3) — чтобы не перекрывать логотип во Frame2 */
+.hub3 {
+    padding-top: clamp(80px, 12vh, 120px);
+    position: relative;
+    z-index: var(--z-index-content);
+}
+
 /* Когда Frame2 имеет игроков, немного увеличиваем отступ Frame3 для предотвращения перекрытия */
 body.frame2-has-players .frame-3,
 body.frame2-has-players .frame3,

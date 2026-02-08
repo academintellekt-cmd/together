@@ -440,52 +440,61 @@ select:focus {
         0 8px 16px rgba(47, 185, 93, 0.15);
 }
 
-/* Цвета для квиза Академ */
-.quiz-akadem .option-btn.option-a {
+/* Цвета для квиза GNU (ранее Академ) */
+.quiz-akadem .option-btn.option-a,
+.quiz-gnu .option-btn.option-a {
     border-color: #2b7a8a;
     background: rgba(124, 232, 246, 0.2);
 }
 
-.quiz-akadem .option-btn.option-a .option-label {
+.quiz-akadem .option-btn.option-a .option-label,
+.quiz-gnu .option-btn.option-a .option-label {
     background: #7ce8f6;
     color: #2b7a8a;
     border-color: #2b7a8a;
 }
 
-.quiz-akadem .option-btn.option-b {
+.quiz-akadem .option-btn.option-b,
+.quiz-gnu .option-btn.option-b {
     border-color: #2b7a8a;
     background: rgba(124, 232, 246, 0.15);
 }
 
-.quiz-akadem .option-btn.option-b .option-label {
+.quiz-akadem .option-btn.option-b .option-label,
+.quiz-gnu .option-btn.option-b .option-label {
     background: rgba(124, 232, 246, 0.8);
     color: #2b7a8a;
     border-color: #2b7a8a;
 }
 
-.quiz-akadem .option-btn.option-c {
+.quiz-akadem .option-btn.option-c,
+.quiz-gnu .option-btn.option-c {
     border-color: #2b7a8a;
     background: rgba(124, 232, 246, 0.1);
 }
 
-.quiz-akadem .option-btn.option-c .option-label {
+.quiz-akadem .option-btn.option-c .option-label,
+.quiz-gnu .option-btn.option-c .option-label {
     background: rgba(124, 232, 246, 0.6);
     color: #2b7a8a;
     border-color: #2b7a8a;
 }
 
-.quiz-akadem .option-btn.option-d {
+.quiz-akadem .option-btn.option-d,
+.quiz-gnu .option-btn.option-d {
     border-color: #2b7a8a;
     background: rgba(124, 232, 246, 0.05);
 }
 
-.quiz-akadem .option-btn.option-d .option-label {
+.quiz-akadem .option-btn.option-d .option-label,
+.quiz-gnu .option-btn.option-d .option-label {
     background: rgba(124, 232, 246, 0.4);
     color: #2b7a8a;
     border-color: #2b7a8a;
 }
 
-.quiz-akadem .option-btn:hover:not(:disabled) {
+.quiz-akadem .option-btn:hover:not(:disabled),
+.quiz-gnu .option-btn:hover:not(:disabled) {
     background: rgba(124, 232, 246, 0.3);
     border-color: #2b7a8a;
     box-shadow: 

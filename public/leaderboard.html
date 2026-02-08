@@ -545,8 +545,8 @@
                 // Затем загружаем обновленные данные с фильтром по quizId
                 // Нормализуем quizId для запроса
                 let requestQuizId = quizId;
-                if (quizId === 'akadem' || quizId === 'академ' || quizId === 'академгородок') {
-                    requestQuizId = 'akadem';
+                if (quizId === 'akadem' || quizId === 'академ' || quizId === 'академгородок' || quizId === 'gnu' || (quizId && quizId.toLowerCase().includes('гну'))) {
+                    requestQuizId = 'gnu';
                 } else if (quizId === 'gazprom' || quizId && (quizId.toLowerCase().includes('газпром') || quizId.toLowerCase().includes('тестирование'))) {
                     requestQuizId = 'gazprom';
                 }

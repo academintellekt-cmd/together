@@ -1616,9 +1616,9 @@
             grid.style.display = 'grid';
             grid.innerHTML = '';
 
-    const akademQuiz = (quizzes || []).find(q => q.id === 'akadem');
+    const akademQuiz = (quizzes || []).find(q => q.id === 'gnu');
     if (!akademQuiz) {
-        grid.innerHTML = '<div class="quiz-card">Квиз Академгородок не найден</div>';
+        grid.innerHTML = '<div class="quiz-card">Квиз GNU не найден</div>';
         return;
     }
 

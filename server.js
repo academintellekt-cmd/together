@@ -8,6 +8,7 @@ const { loadAllQuizzes } = require('./server/utils/quiz-loader');
 const { seededShuffle, shuffleQuestions, shuffleOptions } = require('./server/utils/shuffle');
 const { parseTimeToSeconds } = require('./server/utils/time');
 const { normalizeQuizId } = require('./server/utils/normalize');
+const leaderboardService = require('./server/services/leaderboard'); // must be initialized before routers
 const { createLeaderboardRouter } = require('./server/routes/leaderboard');
 const { createJoystickRouter } = require('./server/routes/joystick');
 const { createReloadRouter } = require('./server/routes/reload');
@@ -88,55 +89,6 @@ try {
   console.warn('⚠️ DMX API routes недоступны:', error.message);
 }
 
-// Лидерборд API routes
-try {
-  const leaderboardRouter = createLeaderboardRouter({
-    leaderboardService,
-    normalizeQuizId,
-    writeToGoogleSheets: gsWriteToGoogleSheets,
-    processLeaderboardQueue,
-    loadLeaderboardFromGoogleSheets: gsLoadLeaderboardFromGoogleSheets,
-    initializeLeaderboard,
-    LEADERBOARD_QUEUE_BATCH_SIZE,
-    MAX_LEADERBOARD_ENTRIES
-  });
-  app.use('/api/leaderboard', leaderboardRouter);
-  // Обратная совместимость для старого endpoint
-  app.use('/api/reload-leaderboard', (req, res, next) => {
-    req.url = '/reload';
-    leaderboardRouter(req, res, next);
-  });
-  console.log('✅ Leaderboard API routes зарегистрированы');
-} catch (error) {
-  console.warn('⚠️ Leaderboard API routes недоступны:', error.message);
-}
-
-// Joystick API routes
-try {
-  const joystickRouter = createJoystickRouter();
-  app.use('/api/joystick-config', joystickRouter);
-  console.log('✅ Joystick API routes зарегистрированы');
-} catch (error) {
-  console.warn('⚠️ Joystick API routes недоступны:', error.message);
-}
-
-// Reload API routes
-try {
-  const reloadRouter = createReloadRouter(quizzes);
-  app.use('/api/reload', reloadRouter);
-  console.log('✅ Reload API routes зарегистрированы');
-} catch (error) {
-  console.warn('⚠️ Reload API routes недоступны:', error.message);
-}
-
-// Mode API routes
-try {
-  const modeRouter = createModeRouter(localModeAvailable);
-  app.use('/api/mode', modeRouter);
-  console.log('✅ Mode API routes зарегистрированы');
-} catch (error) {
-  console.warn('⚠️ Mode API routes недоступны:', error.message);
-}
 
 // Статический middleware будет зарегистрирован после всех API роутов (см. ниже)
 app.use('/docs', express.static(path.join(__dirname, 'docs')));
@@ -155,8 +107,6 @@ try {
   dmxScenarioEngine = null;
 }
 
-// Сервис рейтинга
-const leaderboardService = require('./server/services/leaderboard');
 const leaderboard = leaderboardService.getLeaderboard();
 const leaderboardQueue = leaderboardService.getQueue();
 
@@ -337,6 +287,56 @@ const {
   normalizeQuizId,
   quizzes
 });
+
+// Лидерборд API routes (после инициализации quizzes и Google Sheets клиента)
+try {
+  const leaderboardRouter = createLeaderboardRouter({
+    leaderboardService,
+    normalizeQuizId,
+    writeToGoogleSheets: gsWriteToGoogleSheets,
+    processLeaderboardQueue,
+    loadLeaderboardFromGoogleSheets: gsLoadLeaderboardFromGoogleSheets,
+    initializeLeaderboard,
+    LEADERBOARD_QUEUE_BATCH_SIZE,
+    MAX_LEADERBOARD_ENTRIES
+  });
+  app.use('/api/leaderboard', leaderboardRouter);
+  // Обратная совместимость для старого endpoint
+  app.use('/api/reload-leaderboard', (req, res, next) => {
+    req.url = '/reload';
+    leaderboardRouter(req, res, next);
+  });
+  console.log('✅ Leaderboard API routes зарегистрированы');
+} catch (error) {
+  console.warn('⚠️ Leaderboard API routes недоступны:', error.message);
+}
+
+// Joystick API routes
+try {
+  const joystickRouter = createJoystickRouter();
+  app.use('/api/joystick-config', joystickRouter);
+  console.log('✅ Joystick API routes зарегистрированы');
+} catch (error) {
+  console.warn('⚠️ Joystick API routes недоступны:', error.message);
+}
+
+// Reload API routes
+try {
+  const reloadRouter = createReloadRouter(quizzes);
+  app.use('/api/reload', reloadRouter);
+  console.log('✅ Reload API routes зарегистрированы');
+} catch (error) {
+  console.warn('⚠️ Reload API routes недоступны:', error.message);
+}
+
+// Mode API routes
+try {
+  const modeRouter = createModeRouter(localModeAvailable);
+  app.use('/api/mode', modeRouter);
+  console.log('✅ Mode API routes зарегистрированы');
+} catch (error) {
+  console.warn('⚠️ Mode API routes недоступны:', error.message);
+}
 
 // Получение списка квизов
 app.get('/api/quizzes', (req, res) => {

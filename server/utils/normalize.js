@@ -1,7 +1,7 @@
 function normalizeQuizId(quizIdOrName) {
   if (!quizIdOrName) return null;
 
-  const knownIds = ['akadem'];
+  const knownIds = ['gnu'];
   if (knownIds.includes(quizIdOrName)) {
     return quizIdOrName;
   }
@@ -9,8 +9,9 @@ function normalizeQuizId(quizIdOrName) {
   const lower = quizIdOrName.toLowerCase().trim();
 
   if (lower.includes('академ') || lower.includes('академгородок') ||
-      (lower.includes('история') && lower.includes('легенды'))) {
-    return 'akadem';
+      (lower.includes('история') && lower.includes('легенды')) ||
+      lower.includes('гну')) {
+    return 'gnu';
   }
 
   // Попытка совпадения по имени/титулу ранее загруженных квизов

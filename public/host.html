@@ -887,9 +887,9 @@
         // Функция для определения цвета квиза
         function getQuizColors(quizId) {
             const quizColors = {
-                'akadem': { bg: '#f67cab', text: '#ffffff', shadow: 'rgba(246, 124, 171, 0.3)' }
+                'gnu': { bg: '#f67cab', text: '#ffffff', shadow: 'rgba(246, 124, 171, 0.3)' }
             };
-            return quizColors[quizId] || quizColors['akadem'];
+            return quizColors[quizId] || quizColors['gnu'];
         }
         
         // Функция для применения цветов к кнопкам
@@ -917,7 +917,7 @@
         function initApp() {
             // Получаем quizId и roomCode из URL
             const urlParams = new URLSearchParams(window.location.search);
-            quizId = urlParams.get('quiz') || 'akadem';
+            quizId = urlParams.get('quiz') || 'gnu';
             const roomParam = urlParams.get('room');
             
             // Применяем цвета квиза к кнопкам

@@ -597,9 +597,9 @@
             
             // Определяем класс по quizId
             const normalizedId = quizId.toLowerCase();
-            if (normalizedId === 'akadem' || normalizedId.includes('академ')) {
-                document.body.classList.add('quiz-akadem');
-                currentQuizId = 'akadem';
+            if (normalizedId === 'gnu' || normalizedId.includes('академ') || normalizedId.includes('гну')) {
+                document.body.classList.add('quiz-gnu');
+                currentQuizId = 'gnu';
             }
         }
         
@@ -1167,7 +1167,7 @@
                 }
                 const img = document.createElement('img');
                 img.className = 'question-image';
-                const questionsDir = questionData.questionsDir || 'akadem';
+                const questionsDir = questionData.questionsDir || 'gnu';
                 img.src = `/data/media/questions/${questionsDir}/${questionData.image}`;
                 img.alt = 'Question image';
                 imageContainer.innerHTML = '';

@@ -1,7 +1,7 @@
 {
-  "id": "akadem",
-  "name": "Академгородок: история и легенды",
-  "description": "Проверь свои знания об истории и культуре Новосибирского Академгородка",
+  "id": "gnu",
+  "name": "Цели группы",
+  "description": "Узнай, чьи цели и фокусы закреплены у участников группы",
   "icon": "🎓",
   "soloMode": true,
   "multiplayerMode": true,
@@ -13,28 +13,17 @@
     "shadow": "rgba(246, 124, 171, 0.3)"
   },
   "display": {
-    "title": "АКАДЕМГОРОДОК",
-    "subtitle": "история и легенды",
-    "phrase": "Наука в лесу",
+    "title": "ЦЕЛИ ГРУППЫ",
+    "subtitle": "кто к чему идёт",
+    "phrase": "Проверь знания о целях",
     "questionsDisplay": "15 из {total}",
     "timeDisplay": "по {time} сек"
   },
   "gameSettings": {
     "questionsPerGame": 15,
-    "totalQuestions": 60,
+    "totalQuestions": 128,
     "defaultTime": 20,
     "maxPlayers": 14
   },
   "questionsFile": "akadem-quiz.txt"
 }
-
-
-
-
-
-
-
-
-
-
-

@@ -682,8 +682,8 @@
             
             // Определяем класс по quizId
             const normalizedId = quizId.toLowerCase();
-            if (normalizedId === 'akadem' || normalizedId.includes('академ')) {
-                document.body.classList.add('quiz-akadem');
+            if (normalizedId === 'gnu' || normalizedId.includes('академ') || normalizedId.includes('гну')) {
+                document.body.classList.add('quiz-gnu');
             }
         }
         
@@ -992,7 +992,7 @@
 
         // Получение ID квиза из URL
         const urlParams = new URLSearchParams(window.location.search);
-        const quizId = urlParams.get('quiz') || 'akadem';
+        const quizId = urlParams.get('quiz') || 'gnu';
         const passwordParam = urlParams.get('password');
         const requiredPassword = null;
         let passwordVerified = true;
@@ -1086,7 +1086,7 @@
             // Определяем предыдущую страницу на основе quizId
             if (quizId === 'gnu' || quizId === 'friends-quiz') {
                 return '/gnu-quiz.html';
-            } else if (quizId === 'akadem') {
+            } else if (quizId === 'gnu') {
                 return `/quiz-mode-select.html?quiz=${quizId}`;
             } else {
                 // Для других квизов возвращаем на страницу выбора режима
@@ -1251,7 +1251,7 @@
                 }
                 const img = document.createElement('img');
                 img.className = 'question-image';
-                const questionsDir = quiz.questionsDir || quiz.id || 'akadem';
+                const questionsDir = quiz.questionsDir || quiz.id || 'gnu';
                 img.src = `/data/media/questions/${questionsDir}/${question.image}`;
                 img.alt = 'Question image';
                 imageContainer.innerHTML = '';
