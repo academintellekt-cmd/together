@@ -31,6 +31,18 @@ async function processLeaderboardQueue(writeToGoogleSheets, reloadFn) {
 }
 
 function addResult(result) {
+  // Предотвращаем дубликаты (одинаковый игрок, квиз, очки и timestamp)
+  const exists = leaderboard.some(r =>
+    r.playerName === result.playerName &&
+    r.quizId === result.quizId &&
+    r.score === result.score &&
+    r.timestamp === result.timestamp
+  );
+  if (exists) {
+    console.log('⚠️ Дубликат результата пропущен:', result);
+    return;
+  }
+
   leaderboard.push(result);
   leaderboard.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
